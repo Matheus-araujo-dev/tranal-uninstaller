@@ -151,7 +151,7 @@ item aponta para a auditoria que o revelou.
 | 1 | ✅ **Classificar o desinstalador** (enum `UninstallerKind`, em `Core/UninstallerKind.cs`) — 12 tipos, medidos nos 211 programas desta máquina | BCU A2 | Habilita silencioso, MsiExec, Store App, órfão, PowerShell. É o eixo de tudo. |
 | 2 | **Atribuir sobras pela cadeia de desinstalação**, não só pelo nome | BCU C5 | Separa "a pasta do programa" de "a pasta **dele**". Errar aqui é apagar coisa de outro. |
 | 3 | ✅ **Justificativa textual por item de sobra** — enum `LeftoverReason` (11 motivos), coluna "Porquê" na lista de sobras e na saída da CLI; a tradução mora em `Core/Localization/LeftoverLabels.cs`, consumida pela tela e pela CLI | BCU C4 | O Tranal já tem 3 níveis; agora diz **por quê**. A regra de marcagem não mudou: só confiança alta entra na remoção. |
-| 4 | **Desinstalação silenciosa** com gerador (inclusive por automação de interface) | BCU B2/B3 | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. |
+| 4 | **Desinstalação silenciosa** — começar pela **tabela de switches por família de instalador** (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` para Inno, `/S` para NSIS, `/quiet /qn /norestart` para MSI, `/s /v"/qn"` para InstallShield), com a classificação já implementada como chave; depois, o gerador por automação de interface | BCU B2/B3 · **HiBit H.2** | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. O HiBit mostra que a tabela por família existe e é curta — com a classificação pronta, isso deixa de ser heurística. |
 | 5 | **Filtro Regex + lista de desinstalação em arquivo + desinstalação em lote roteirizável** | BCU D2/D3/D4 | É o que torna o Tranal usável em script e em grande escala. |
 
 ### F.2 🟡 Recurso — lacunas claras
@@ -170,19 +170,20 @@ item aponta para a auditoria que o revelou.
 | 15 | Colunas novas: ✅ Tipo de desinstalador e ✅ Código do produto (implementados); ⬜ Desinstalador silencioso, Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
 | 16 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
 | 17 | Remoção definitiva de drivers | Revo E10 |
+| 18 | **Um switch de CLI por ferramenta** (o HiBit tem 19) + a forma longa com sufixo ` RUN` | HiBit H.2 |
 
 ### F.3 🟢 Ganho pequeno
 
 | # | Item | De onde veio |
 |---|---|---|
-| 18 | Treemap | BCU D5 |
-| 19 | Legenda de cores | BCU D6 |
-| 20 | Painel lateral de configurações | BCU D18 |
-| 21 | Agrupamento automático por coluna | BCU D19 |
-| 22 | Renomear entrada / excluir entrada do registro / assumir propriedade | BCU D13/D14/D15 |
-| 23 | Copia avançada para a área de transferência | BCU D9 |
-| 24 | Exportar para script de desinstalação em lote | BCU D11 |
-| 25 | Classificação do usuário (estrelas) | BCU D7 |
+| 19 | Treemap | BCU D5 |
+| 20 | Legenda de cores | BCU D6 |
+| 21 | Painel lateral de configurações | BCU D18 |
+| 22 | Agrupamento automático por coluna | BCU D19 |
+| 23 | Renomear entrada / excluir entrada do registro / assumir propriedade | BCU D13/D14/D15 |
+| 24 | Copia avançada para a área de transferência | BCU D9 |
+| 25 | Exportar para script de desinstalação em lote | BCU D11 |
+| 26 | Classificação do usuário (estrelas) | BCU D7 |
 
 ### F.4 O que **não** fazer (decisão registrada)
 
@@ -230,6 +231,44 @@ drivers × 7 arquiteturas (28 binários) para remover arquivo em uso. O Tranal
 resolve com encerramento de processo e adiamento para o reinício. O custo de
 um driver agora está medido, não suposto.
 
+### H.2 HiBit Uninstaller 4.0.10 — [HIBIT.md](HIBIT.md)
+
+| Recurso | HiBit | Tranal | Prioridade |
+|---|---|---|---|
+| **Tabela de switches silenciosos por instalador** (`/VERYSILENT`, `/S`, `/quiet /qn`, `/silent`) | ✅ | ⬜ | 🔴 **alta** — a classificação já existe, então isso é uma tabela, não heurística |
+| **Switch de CLI por ferramenta** (19 ferramentas, uma por switch) | ✅ | 🟡 | 🟡 |
+| **Ocultar entrada de desinstalação** | ✅ | ⬜ | 🟢 |
+| **Deletar entrada** do registro do programa | ✅ | ⬜ | 🟢 |
+| **Editar informações** do programa | ✅ | ⬜ | 🟢 |
+| **Gerenciador do Menu de Contexto** (gerenciar menus alheios) | ✅ | ⬜ | 🟢 |
+| **Desabilitar handlers** de menu de contexto | ✅ | ⬜ | 🟢 |
+| **Desinstalar atualizações do Windows** (`wusa`/KB) | ✅ | ⬜ | 🟡 |
+| **Gerenciador de Tarefas Agendadas** (criar/remover) | ✅ | ⬜ | 🟡 |
+| **Restaurador do Sistema** (criar ponto com um clique) | ✅ | 🟡 | 🟡 |
+| **Otimizador de registro** com 15+ categorias | ✅ | 🟡 | 🟢 |
+| **Relatórios HTML por ferramenta** | ✅ | ⟡ | 🟢 |
+| **Agendamento automático de limpeza** | ✅ | ⬜ | 🟢 |
+| **Backup próprio** com restauração (`.dbh`) | ✅ | 🟡 | 🟢 |
+| **Sufixo ` RUN`** na forma longa do switch | ✅ | ⬜ | 🟢 |
+| **Driver de kernel** | ⬜ | ⬜ | — (decisão: não) |
+
+**O achado que mais importa:** o HiBit traz uma **tabela de switches
+silenciosos por família de instalador** (`/silent`, `/silent /norestart`,
+`--force-uninstall`, `/AUTO /SILENT`, `-uninstall`, e
+`MsiExec.exe /quiet /qn /norestart /X` para MSI). Combinada com a
+classificação de desinstalador **já implementada** no Tranal, fecha o item
+F.1-4 do backlog sem adivinhação: a estratégia passa a ser "escolher o
+switch pelo tipo".
+
+**O achado que reforça a decisão sobre driver:** o HiBit tem 21+ ferramentas
+e roda **sem driver, sem serviço de fundo e sem extensão COM** — tudo no
+próprio processo. É o argumento mais forte que temos de que a paridade com
+o Revo se ganha por software.
+
+**Correção de domínio registrada:** `hibituninstaller.com` **não** é o site
+do fabricante — é um site de SEO que devolve HTML para qualquer URL. O
+domínio correto é **`hibitsoft.ir`**.
+
 ---
 
 ## G. Estado da auditoria
@@ -238,6 +277,7 @@ um driver agora está medido, não suposto.
 |---|---|---|
 | Bulk Crap Uninstaller 6.3.0 | [BCU.md](BCU.md) | ✅ completo — 80 funcionalidades medidas, 5 linhas de comando, 6 categorias de sobras |
 | IObit Uninstaller 16.1.0.4 | [IOBIT.md](IOBIT.md) | ✅ completo — 142 funcionalidades medidas, 95 telas, 29 DLLs importadas |
+| HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ completo — 58 funcionalidades, 21+ ferramentas, 802 legendas pt-BR, 33 DLLs importadas |
 | HiBit Uninstaller | — | 🔄 em curso |
 | Geek Uninstaller | — | 🔄 em curso |
 | Uninstalr | — | 🔄 em curso |
