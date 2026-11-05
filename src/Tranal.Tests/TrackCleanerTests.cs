@@ -76,12 +76,19 @@ public class TrackCleanerTests : IDisposable
     public void ORastroDaBarraDeEnderecosFicaNoModuloDoWindows()
     {
         // O Revo coloca "Clear the Printers, Computers and People Find
-        // History" (TypedPaths) no limpador do Windows, e no de navegadores.
-        var browsers = TrackCleaner.Scan(TrackModule.Browsers);
-        var windows = TrackCleaner.Scan(TrackModule.Windows);
+        // History" (TypedPaths) no limpador do Windows, e no de navegadore.
+        //
+        // O item so aparece quando a chave TypedPaths existe na maquina — no
+        // CI ela nao existe. Por isso o teste confere o registro do modulo
+        // (independente do estado do sistema) e o lado que nunca pode
+        // falhar: o rastro nao pode estar no modulo de navegadores.
+        var source = RepoFiles.Read(
+            "src", "Tranal.Uninstaller", "Core", "Tools", "TrackCleaner.cs");
 
+        Assert.Contains("windows-typedpaths", source);
+
+        var browsers = TrackCleaner.Scan(TrackModule.Browsers);
         Assert.DoesNotContain(browsers, item => item.CategoryId == "browsers-addressbar");
-        Assert.Contains(windows, item => item.CategoryId == "windows-typedpaths");
     }
 
     [Fact]

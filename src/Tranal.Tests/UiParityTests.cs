@@ -20,30 +20,10 @@ namespace Tranal.Tests;
 /// </summary>
 public class UiParityTests
 {
-    /// <summary>Localiza um arquivo do repositorio a partir da pasta de saida do teste.</summary>
-    private static string? FindRepoFile(params string[] parts)
-    {
-        var relative = Path.Combine(parts);
-
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            var candidate = Path.Combine(directory.FullName, relative);
-            if (File.Exists(candidate)) return candidate;
-
-            directory = directory.Parent;
-        }
-
-        return null;
-    }
-
     /// <summary>Ids das ferramentas declaradas na barra lateral (MainWindow.xaml).</summary>
     private static List<string> SidebarToolIds()
     {
-        var xaml = FindRepoFile("src", "Tranal.Uninstaller", "MainWindow.xaml");
-        Assert.NotNull(xaml);
-
-        var text = File.ReadAllText(xaml!);
+        var text = RepoFiles.Read("src", "Tranal.Uninstaller", "MainWindow.xaml");
 
         return Regex.Matches(text, @"AutomationProperties\.AutomationId=""Tool([A-Za-z]+)""")
             .Select(m => m.Groups[1].Value)
@@ -81,10 +61,7 @@ public class UiParityTests
         // referenciar os dois criaria dois tipos "Core" diferentes.
         // A verificacao e feita sobre o fonte, que e a unica forma de
         // conferir a cobertura sem acoplar a suite ao WPF.
-        var source = FindRepoFile("src", "Tranal.Uninstaller", "Ui", "Tools", "ToolViews.cs");
-        Assert.NotNull(source);
-
-        var text = File.ReadAllText(source!);
+        var text = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "Tools", "ToolViews.cs");
 
         // O id pode aparecer como literal ou pela constante do catalogo.
         var constantNames = ToolCatalogConstantNames();
@@ -104,10 +81,7 @@ public class UiParityTests
     /// <summary>Mapeia o valor de cada constante de <see cref="ToolCatalog"/> para o nome dela.</summary>
     private static Dictionary<string, string> ToolCatalogConstantNames()
     {
-        var source = FindRepoFile("src", "Tranal.Uninstaller", "Core", "ToolCatalog.cs");
-        Assert.NotNull(source);
-
-        var text = File.ReadAllText(source!);
+        var text = RepoFiles.Read("src", "Tranal.Uninstaller", "Core", "ToolCatalog.cs");
 
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
 
@@ -152,10 +126,7 @@ public class UiParityTests
         // marcacao por codigo. Sem INotifyPropertyChanged, a caixa de
         // marcacao da tela continua mostrando o estado antigo, mesmo com o
         // modelo ja alterado — foi o que aconteceu na medicao.
-        var source = FindRepoFile("src", "Tranal.Uninstaller", "Ui", "Tools", "ToolViews.cs");
-        Assert.NotNull(source);
-
-        var text = File.ReadAllText(source!);
+        var text = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "Tools", "ToolViews.cs");
 
         Assert.Contains("INotifyPropertyChanged", text);
         Assert.Contains("PropertyChangedEventArgs(nameof(Selected))", text);
@@ -168,10 +139,7 @@ public class UiParityTests
         // "--uninstall-target <caminho>". Se a interface nao tratar o
         // argumento, o clique apenas abre a janela principal e joga o alvo
         // fora.
-        var source = FindRepoFile("src", "Tranal.Uninstaller", "App.xaml.cs");
-        Assert.NotNull(source);
-
-        var text = File.ReadAllText(source!);
+        var text = RepoFiles.Read("src", "Tranal.Uninstaller", "App.xaml.cs");
 
         Assert.Contains("UninstallTargetArgument.Extract", text);
     }
