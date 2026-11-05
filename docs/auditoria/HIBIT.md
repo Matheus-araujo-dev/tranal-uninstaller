@@ -41,7 +41,7 @@ foi o que destravou o download correto.
 
 ## 2. Superfície observável
 
-58 funcionalidades medidas. As que importam para o Tranal:
+66 funcionalidades medidas. As que importam para o Tranal:
 
 ### 2.1 Núcleo do desinstalador
 
@@ -99,6 +99,24 @@ CRC32**.
 **Agendamento automático de limpeza**: tarefas do Agendador do Windows para
 os limpadores (`Empty_Folder_Cleaner_Schedule`, `Junk_Files_Cleaner_Schedule`,
 `Shortcuts_Fixer_Schedule`, `Registry_Cleaner_Schedule`).
+
+### 2.4 Itens observados na tela principal (captura real)
+
+Oito itens que só apareceram quando a janela principal foi finalmente
+capturada em execução. São de interface, não de mecanismo — e três deles
+(drag-and-drop, tempo relativo e contador de tamanho) são coisas que o Tranal
+também não tem.
+
+| # | Funcionalidade | Evidência |
+|---|---|---|
+| 59 | **Arrastar e soltar** para desinstalar um programa (anunciado na barra de estado) | `hibit-interface-principal.png` |
+| 60 | Painel de informações do sistema no banner (CPU, GPU, RAM disponível, SO, tempo de atividade) | `hibit-interface-principal.png` |
+| 61 | Seletor de tema com amostras de cor na barra superior (7 amostras + botão "…") | `hibit-interface-principal.png` |
+| 62 | Botão **Doar** (adicionado na 4.0.10) | `hibit-interface-principal.png`; `changelog-oficial.txt` |
+| 63 | Data de instalação com **tempo relativo** ("Hoje", "Ontem", "1 mês atrás", "2 meses antes", "1 ano atrás") | `hibit-interface-principal.png` |
+| 64 | Coluna **Tipo** com `32bit` / `64bit` por programa | `hibit-interface-principal.png` |
+| 65 | Contadores na barra de estado: total de programas **e tamanho total ocupado** ("Total: 79 Unidade", "Tamanho: 610 GB") | `hibit-interface-principal.png` |
+| 66 | Painel de detalhes do programa selecionado: **Local de Instalação**, **Entrada de Registro** e **Website** | `hibit-interface-principal.png` |
 
 ---
 
@@ -175,13 +193,40 @@ um modal está aberto; na primeira execução aparece o diálogo **Save
 Settings** com as duas opções de onde guardar a configuração. O Delphi
 desenha tudo no canvas do form, sem HWNDs filhos — a UIA não expõe elementos.
 
+### 4.1 A tela principal, medida
+
+O diálogo inicial foi contornado **sem clique**: semeando
+`app/portable/HiBitUninstaller/Settings.ini` — o caminho que o próprio HiBit
+usa no modo portátil — a segunda execução abre direto na janela principal.
+Ela foi capturada (`evidencia/hibit-interface-principal.png`, em pt-BR):
+
+| Elemento | Observado |
+|---|---|
+| Título `HiBit Uninstaller 4.0.10 (Versão Portátil)` — o sufixo distingue o modo portátil | Observado |
+| Banner de **informações do sistema**: CPU (AMD Ryzen 7 5700X 8-Core), GPU (AMD Radeon RX 9060 XT), RAM disponível (31,9 GB), Windows 11 Professional 64bit e **tempo de atividade** (19 horas 15 minutos) | Observado |
+| Barra de menus com **3** entradas: `Ferramentas ▾`, `Configurar ▾`, `Sobre` | Observado |
+| Seletor de tema com **7 amostras de cor** + botão `…` (mais temas) | Observado |
+| Campo de busca `Pesquisar...` | Observado |
+| Cabeçalhos de coluna: `Nomes dos Programas`, `Data de Instalação`, `Tamanho`, `Tipo`, `Versão`, `Editor` | Observado |
+| **Caixa de seleção por programa** em cada linha → desinstalação em lote | Observado |
+| Datas com **tempo relativo**: `Hoje`, `Ontem`, `1 mês atrás`, `2 meses antes`, `1 ano atrás` | Observado |
+| Coluna `Tipo` com `32bit` / `64bit` | Observado |
+| Painel inferior de detalhes: **Local de Instalação**, **Entrada de Registro** e **Website** (links clicáveis) | Observado |
+| Barra de status: `Total: 79 Unidade`, `Tamanho: 610 GB`, `Suporta Arrastar e Soltar para desinstalar um programa`, botão `Doar` | Observado |
+
+As **56 classes de form** (`TUninstaller`, `TBackupManagerForm`,
+`TVirustotalScanForm`, `TWinUpdateForm`, …) e os **802 pares nome/legenda
+pt-BR** estão em `evidencia/strings-ptbr-formas.txt` e
+`evidencia/PortugueseBLang.ini` — este último é o **arquivo de idioma que o
+próprio HiBit escreveu em execução**, copiado verbatim.
+
 **Limitação de medição registrada:** `SetWindowPos`/`SetForegroundWindow`/
 `AppActivate` retornaram `ACCESS_DENIED` para **todas** as janelas do
-desktop nesta máquina (inclusive as de controle), então não foi possível ir
-além do diálogo inicial. A estrutura de menus foi reconstruída das **802
-legendas pt-BR** embutidas no binário — que, aliás, é o achado mais rico: o
-HiBit tem **legendas em pt-BR de todos os diálogos**, muito mais que o
-Revo.
+desktop nesta máquina (inclusive as de controle), e `PrintWindow` falha
+nestas forms Delphi. A janela principal foi capturada por outro caminho
+(semeando o `Settings.ini`), mas os **menus desplegados não** — a lista de
+itens de menu abaixo vem dos **recursos de string do binário**, não de uma
+captura.
 
 ---
 
@@ -233,7 +278,8 @@ coexistem no binário.
 | Recurso do HiBit | Tranal |
 |---|---|
 | **Switch de linha de comando por ferramenta** (19ferramentas) | 🟡 — a CLI tem `/winapps`, `/be`, `/autorun`, `/tools`, `/export`, `/hunter`, `/backup`, `/exclude`, mas **não** tem switch dedicado por ferramenta nem o sufixo ` RUN` |
-| **Tabela de switches silenciosos por instalador** | ⬜ — agora é possível, porque a classificação existe |
+| **Tabela de switches silenciosos por instalador** | ✅ — `Core/QuietUninstall.cs`: a tabela por família (Inno, NSIS, MSI, InstallShield, SDBInst) está implementada e medida — 185 de 211 programas (87,7%) têm comando silencioso |
+| **Switch silencioso por aplicativo** (o HiBit embute uma lista nome→switch) | ⬜ — o Tranal resolve por **família** do desinstalador, não pelo nome do programa |
 | **Menu de contexto do Monitor de Instalação** (além do de desinstalação) | 🟡 — o Tranal registra um menu, só em `*`; o HiBit registra dois, e para `lnkfile`, `exefile` e `Msi.Package` |
 | **Gerenciador do Menu de Contexto** (gerenciar menus alheios) | ⬜ |
 | **Desabilitar handlers** de menu de contexto | ⬜ |
@@ -258,6 +304,12 @@ coexistem no binário.
 | **Deletar entrada** do registro do programa | ⬜ |
 | **Editar informações** do programa | ⬜ |
 | **Relógio de ferramentas** (agendador) | ⬜ |
+| **Arrastar e soltar** um programa para desinstalar | ⬜ — não há handler `Drop`/`DragOver` na `MainWindow.xaml` |
+| **Data de instalação em tempo relativo** ("Ontem", "2 meses atrás") | ⬜ — o Tranal mostra a data absoluta (`ProgramColumn.Date` → `InstalledProgram.InstallDate`) |
+| **Contador de tamanho total** na barra de status | 🟡 — o Tranal conta os programas (`Status.Installations`), mas não soma o tamanho |
+| **Painel de detalhes** do programa (local de instalação, entrada de registro, website) | 🟡 — os dados existem como colunas (`RegistryKey`, `HomePage`), mas não há painel; e **não há coluna de local de instalação** |
+| **Banner de informações do sistema** (CPU, GPU, RAM, tempo de atividade) | ⬜ |
+| **Seletor de tema na barra superior**, com amostras de cor | 🟡 — o tema existe (`Theming/ThemeManager.cs`, 2 temas), mas só se troca em Opções ou na primeira execução |
 
 ### Onde o Tranal já é melhor
 
@@ -280,13 +332,26 @@ coexistem no binário.
 | `downloads/HiBitUninstaller-Portable-4.0.10.zip` | 6.025.084 | portátil |
 | `app/setup-inno/app/HiBitUninstaller.exe` | 15.410.176 | o binário (idêntico byte a byte ao do portátil) |
 | `evidencia/pe-imports.txt` | 13.765 | 33 DLLs × 698 funções + 63 delay-load |
-| `evidencia/strings-main.txt` | 6.558.004 | 98.361 linhas de strings ASCII + UTF-16 |
+| `evidencia/pe-main.txt` | 837 | cabeçalho PE, versão, assinatura, DLLs importadas |
+| `evidencia/rea-pe-fatos.txt` | 2.857 | fatos REA (não é .NET, sem assinatura Authenticode) |
+| `evidencia/strings-main.txt` | 2.051.297 | 98.362 linhas de strings ASCII + UTF-16 |
+| `evidencia/strings-mecanismos.txt` | 454.050 | índice de mecanismos, sempre com o nº da linha de origem |
 | `evidencia/strings-ptbr-bloco.txt` | 57.188 | **802 legendas pt-BR** — o inventário de telas |
-| `evidencia/cli-switches.txt` | 133 | os switches com contexto |
-| `evidencia/changelog-oficial.txt` | 20.805 | changelog 2026→1.x |
+| `evidencia/strings-ptbr-menu.txt` | 3.474 | menu principal em pt-BR (94 linhas) |
+| `evidencia/strings-ptbr-formas.txt` | 1.586 | as 56 seções `[Forma]` do `.ini` — inventário de janelas |
+| `evidencia/strings-silent-switches.txt` | 3.198 | tabela de switches silenciosos por aplicativo |
+| `evidencia/cli-switches.txt` | 4.435 | switches de linha de comando com contexto |
+| `evidencia/PortugueseBLang.ini` | 69.333 | **arquivo de idioma oficial pt-BR escrito pelo próprio HiBit em execução** (copiado verbatim) |
+| `evidencia/changelog-oficial.txt` | 20.805 | changelog oficial completo (2026→1.x) |
+| `evidencia/changelog-funcionalidades.txt` | 10.716 | 227 linhas do changelog filtradas por termo funcional |
 | `evidencia/site-uninstaller.html` | 16.581 | a lista oficial de recursos |
-| `evidencia/uia-janelas.txt` | 2,1 KB | janelas observadas em execução |
-| `evidencia/hibit-dlg-savesettings.png` | 9.845 | diálogo *Save Settings* em pt-BR |
+| `evidencia/site-falso-hibituninstaller-com.html` | 47.527 | resposta do download em `hibituninstaller.com` (é HTML, não é o produto) |
+| `evidencia/uia-janelas.txt` | 2.217 | janelas observadas em execução (2 execuções) |
+| `evidencia/hibit-interface-principal.png` | 156.359 | **a tela principal do HiBit em execução**, pt-BR |
+| `evidencia/hibit-dlg-savesettings.png` | 9.845 | diálogo *Save Settings* em pt-BR (1ª execução) |
+| `evidencia/hibit-inicial-20261105-190059.png` | 503.889 | tela cheia na 1ª execução (modal *Save Settings* visível) |
+| `evidencia/hibit-desktop-agora.png` | 1.326.982 | tela cheia posterior (documenta o bloqueio de foreground) |
+| `evidencia/hibit-main-oculto.png` | 2.740 | captura vazia (PrintWindow falhou — ver seção 8) |
 
 > **Nota de ferramenta:** o modo `strings` do `coleta.ps1` **estourou o
 > timeout de 600 s** neste binário de 15 MB. O subagente reimplementou a
@@ -300,9 +365,15 @@ coexistem no binário.
 
 | O que faltou | Por quê |
 |---|---|
-| Navegar as 21+ ferramentas em execução | o Delphi não expõe UIA e `SetForegroundWindow` foi negado para todas as janelas do desktop nesta máquina |
+| Navegar as 21+ ferramentas em execução | o Delphi não expõe UIA e `SetForegroundWindow`/`SetWindowPos` foi negado para todas as janelas do desktop nesta máquina; `PrintWindow` falha nestas forms |
+| Capturar os **menus desplegados** | o menu é desenhado no canvas e não responde a clique sintético — a lista de itens vem dos recursos de string, não de uma captura |
 | Desinstalação real de um programa | não executada — seria preciso instalar e desinstalar de verdade |
-| O que a tabela de switches silenciosos cobre por programa | só os switches foram medidos; o mapeamento programa→switch não foi reconstruído |
+| O que a tabela de switches silenciosos cobre por programa | só os switches foram medidos; o **emparelhamento** nome↔switch não é determinável só por estática (os nomes e os switches ficam em posições consecutivas cuja estrutura de pares não é inequívoca) |
+| O que o **modo portátil** bloqueia | o binário traz a mensagem `Notportable`, mas o catálogo de recursos afetados não foi isolado; o instalador (não portátil) nunca foi executado |
+| Manual oficial em PDF | o site oficial não o publica; a fonte primária foi a página do produto + o changelog |
+| `hibitsoft.com` | não resolve DNS nesta máquina; `www.hibituninstaller.com` é site de SEO de terceiros, não o fabricante |
+| Verificação das APIs em runtime | os mecanismos da §3 foram medidos por **strings e imports estáticos**, não por trace de execução — import não prova vínculo nem alcançabilidade |
+| Comparação com o Tranal | feita por busca de nomes e termos no `src\Tranal.Uninstaller`; "não verificado" significa "nenhum correspondente encontrado", não "provavelmente ausente" |
 
 ---
 
@@ -314,13 +385,13 @@ coexistem no binário.
    (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` para Inno, `/S` para NSIS,
    `/quiet /qn /norestart` para MSI, `/s /v"/qn"` para InstallShield). Com a
    classificação implementada, isso é uma **tabela**, não uma heurística.
-2. **Um switch de CLI por ferramenta é o padrão que o HiBit establish.** O
+2. **Um switch de CLI por ferramenta é o padrão que o HiBit estabelece.** O
    Tranal já tem `/winapps`, `/be`, `/autorun`, `/hunter`; o HiBit mostra o
    formato final (19 ferramentas, uma por switch). É barato e faz a CLI
    virar uma ferramenta de verdade.
 3. **A decisão de não usar driver de kernel ganha o argumento mais forte
    até agora.** O HiBit — que tem 21+ ferramentas e é um dos mais
-   professional do grupo — roda **sem driver, sem serviço de fundo e sem
+   profissionais do grupo — roda **sem driver, sem serviço de fundo e sem
    extensão COM**, tudo no próprio processo. A paridade com o Revo se ganha
    por software.
 4. **A lista de 17 categorias de lixo e as 15+ categorias de registro do
@@ -328,6 +399,21 @@ coexistem no binário.
    ferramentas separadas, sem o painel único — que é exatamente o que o
    IObit chamava de *Software Health*. Vale uma seção de painel único no
    Tranal.
+5. **A tela principal do HiBit é a referência de layout, e ela é mais
+   densa que a nossa em cinco pontos baratos de implementar:** arrastar e
+   soltar um programa para desinstalar, data de instalação em tempo
+   relativo, contador de **tamanho total** na barra de status, painel de
+   detalhes do programa selecionado (local de instalação, entrada de
+   registro, website) e o seletor de tema na barra superior. O Tranal já
+   tem as **colunas** `RegistryKey` e `HomePage` — o que falta é o painel
+   que as reúne, e uma coluna de local de instalação.
+6. **O banner de informações do sistema do HiBit não é paridade
+   funcional**, é enfeite. Não entra no backlog; o que entra é o painel
+   de detalhes, que é informação do programa e ajuda a decidir.
+7. **O Tranal pode ser portátil sem perder nada.** O HiBit bloqueia
+   recursos no modo portátil (`Notportable`); o Tranal é distribuído como
+   instalador, mas a instalação não é o que dá a funcionalidade — é um
+   executável + runtime. Vale registrar como decisão de produto.
 
 ---
 
