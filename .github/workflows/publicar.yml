@@ -59,6 +59,36 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
 
+      # O instalador. O programa vai leve (1,3 MB) e o runtime do .NET
+      # Desktop (60 MB) viaja dentro do setup, instalado so quando o
+      # computador nao o tem: assim o setup nao depende de nada externo.
+      #
+      # O Inno Setup vem com a imagem do runner; se nao vier, ele e
+      # instalado aqui (o runner e descartavel, nao a maquina de ninguem).
+      - name: Localizar o Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = @(
+            "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+            "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) {
+            Write-Host "Inno Setup nao encontrado; instalando pelo chocolatey"
+            choco install innosetup --no-progress --yes
+            $iscc = @(
+              "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
+              "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+            ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          }
+          if (-not $iscc) { throw "Inno Setup nao encontrado no runner" }
+          Write-Host "ISCC: $iscc"
+
+      - name: Montar o instalador (setup)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup
+
       - name: Montar pacote
         shell: pwsh
         run: |
@@ -77,6 +107,7 @@ jobs:
           gh release delete latest --cleanup-tag --yes
           gh release create latest TranalUninstaller.zip tranal-cli.zip `
             publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
+            publish\setup\TranalUninstaller-Setup.exe `
             --target $env:GITHUB_SHA --latest `
             --title "Tranal Uninstaller Pro (versao mais recente)" --notes-file NOVIDADES.md
 
@@ -88,4 +119,5 @@ jobs:
         run: |
           gh release create $env:GITHUB_REF_NAME TranalUninstaller.zip tranal-cli.zip `
             publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
+            publish\setup\TranalUninstaller-Setup.exe `
             --title "Tranal Uninstaller Pro $env:GITHUB_REF_NAME" --generate-notes --latest=false

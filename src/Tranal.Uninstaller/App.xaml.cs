@@ -14,6 +14,16 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Acao de manutencao pedida pela linha de comando (usada pelo
+        // instalador). Precisa rodar ANTES de tudo: sem janela, sem tema, sem
+        // idioma — so a acao pedida.
+        if (ManutencaoExecutar(e.Args))
+        {
+            Shutdown();
+            return;
+        }
+
         CultureInfoSetup();
 
         AppDomain.CurrentDomain.UnhandledException += (_, args) => FatalLog.Write(args.ExceptionObject as Exception);
@@ -56,6 +66,30 @@ public partial class App : Application
             forced.Show();
             forced.Analyze(target);
         }
+    }
+
+    /// <summary>
+    /// Executa uma acao de manutencao pedida pela linha de comando e devolve
+    /// true quando ela foi executada (a aplicacao deve encerrar).
+    ///
+    /// O desinstalador usa "--unregister-context-menu": deixar a entrada do
+    /// menu de contexto apontando para um executavel apagado e uma referencia
+    /// orfa. A remocao e feita pelo proprio codigo do programa
+    /// (<see cref="ExplorerContextMenu"/>) e nao pelo script do instalador —
+    /// a regra do registro fica em um lugar so.
+    /// </summary>
+    private static bool ManutencaoExecutar(string[] args)
+    {
+        foreach (var arg in args ?? Array.Empty<string>())
+        {
+            if (string.Equals(arg, "--unregister-context-menu", StringComparison.OrdinalIgnoreCase))
+            {
+                ExplorerContextMenu.RemoveRegistryScript();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

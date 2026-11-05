@@ -36,6 +36,7 @@ dotnet test  Tranal.Uninstaller.slnx -c Release
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant gui      # exige admin
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant preview  # sem admin
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup    # instalador
 ```
 
 Baseline de avisos: **0**. Qualquer aviso novo é regressão.
@@ -254,6 +255,51 @@ sobre o fonte e, de ponta a ponta, por `tools/test-cold-start.ps1`.
 O teste de ponta a ponta (`tools/test-cold-start.ps1`) sobe o aplicativo de
 verdade sem o arquivo de preferências, confere o diálogo, a gravação da
 preferência e a janela principal, e devolve as preferências de quem rodou.
+
+## Instalador (regras do Lote 3)
+
+O instalador é o script do Inno Setup (`installer/tranal.iss`), compilado por
+`tools/publish-tranal.ps1 -Variant setup`. As regras abaixo foram **medidas**
+nesta máquina — não são para serem "deduzidas" de novo.
+
+- **`InitializeSetup` é função, não procedimento.** No Inno Setup 6.7.3 a
+  assinatura é `function InitializeSetup(): Boolean;`. Declarar como
+  `procedure` dá `Invalid prototype for 'InitializeSetup'`. A tabela de
+  eventos fica dentro do próprio compilador (`ISCmplr.dll`): dá para conferir
+  os protótipos por bytes em vez de adivinhar.
+- **A seção `[Run]` não tem `ignoreexitcode`.** As bandeiras aceitas são
+  `nowait`, `waituntilidle`, `shellexec`, `skipifdoesntexist`, `runminimized`,
+  `runmaximized`, `showcheckbox`, `postinstall`, `unchecked`, `skipifsilent`,
+  `skipifnotsilent`, `hidewizard`, `runhidden`, `waituntilterminated`,
+  `32bit`, `64bit`, `runasoriginaluser`, `runascurrentuser`,
+  `dontlogparameters`, `logoutput`. Por isso o runtime do .NET é instalado no
+  `[Code]` (em `PrepareToInstall`), onde o **código de saída é conferido**:
+  `0` = sucesso, `3010` = sucesso mas precisa reiniciar, `1641` = o
+  instalador já reiniciou.
+- **`PrepareToInstall` que devolve texto aborta a instalação** (código de
+  saída 7) — é o jeito de instalar o runtime antes de qualquer arquivo do
+  programa e cancelar tudo se ele falhar, sem deixar o computador pela
+  metade.
+- **`ExtractTemporaryFile` é procedimento** (não devolve valor) e exige que o
+  arquivo esteja na seção `[Files]` com `Flags: dontcopy`.
+- **`Exec` é `Exec(Filename, Params, WorkingDir, ShowCmd, Wait, var ResultCode)`**,
+  com `Wait` = `ewWaitUntilTerminated` e `ShowCmd` = `SW_HIDE`.
+- **O `.iss` tem que estar em UTF-8 COM BOM.** Sem BOM o Inno Setup 6 lê o
+  script como ANSI (cp1252) e os acentos do menu Iniciar saem errados.
+- **A compactação é `zip`, não `lzma2`.** Medido: com LZMA o McAfee desta
+  máquina **bloqueava e apagava** o executável do instalador como "programa
+  potencialmente indesejável"; com zip o bloqueio sumiu e o tamanho mudou
+  0,3%. Se um dia o antivírus voltar a marcar, **a compressão é a primeira
+  coisa a investigar** — não a assinatura do script.
+- **O `ISCC.exe` não vem no PATH** (o winget instala por usuário). `Get-Iscc`
+  procura nos caminhos conhecidos; o CI instala o Inno Setup se não achar.
+- **A regra do registro fica em um lugar só.** A entrada do menu de contexto
+  do Windows é removida pelo **próprio programa**
+  (`TranalUninstaller.exe --unregister-context-menu`), não pelo script do
+  instalador: deixar o registro apontando para um executável apagado seria
+  referência órfã.
+- **O desinstalador não apaga os dados do usuário** (comentários, grupos,
+  preferências): eles moram em `%LOCALAPPDATA%` e não são do instalador.
 
 ## Tema (armadilhas já vencidas)
 

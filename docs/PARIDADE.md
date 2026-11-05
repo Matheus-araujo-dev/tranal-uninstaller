@@ -229,6 +229,55 @@ A distinção entre "não deu para gravar" e "já existe um grupo com esse nome"
 também é explícita: as operações de grupo devolvem `GroupResult`, e a janela
 mostra a mensagem correspondente.
 
+### Instalador (medido)
+
+O original é distribuído por um instalador próprio; o Tranal também passa a
+ser. O script é `installer/tranal.iss` (Inno Setup 6.7.3), compilado por
+`tools/publish-tranal.ps1 -Variant setup`.
+
+| Recurso | Original | Tranal | Onde |
+|---|---|---|---|
+| Assistente de instalação | ✅ | ✅ wizard do Inno Setup, **pt-BR e inglês** | `installer/tranal.iss` |
+| Escolha da pasta de instalação | ✅ | ✅ | idem (`DisableDirPage=no`) |
+| Entrada em "Adicionar e remover programas" | ✅ | ✅ | idem (`AppId` fixo) |
+| Atalho no Menu Iniciar e na Área de Trabalho | ✅ | ✅ (área de trabalho como tarefa opcional) | idem |
+| Desinstalador | ✅ | ✅ | idem |
+| Instalação sem dependência externa | ✅ | ✅ o runtime do .NET viaja dentro do setup | idem |
+| Assinatura digital do instalador | ✅ | ❌ **não assinado** (certificado pago) | — |
+
+Números medidos nesta máquina:
+
+| Métrica | Valor |
+|---|---|
+| Tamanho do setup | 62.069.531 bytes (62,07 MB) |
+| Payload instalado | 1.087.873 bytes (1,09 MB, 5 arquivos) |
+| Redistribuível do .NET Desktop Runtime embutido | 60.035.296 bytes (10.0.14) |
+| Runtime presente na máquina | `C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\10.0.14` |
+
+Duas decisões que valem registro:
+
+1. **O programa instalado é a versão leve** (1,09 MB) e o runtime entra só
+   quando falta. O setup fica menor que o pacote autocontido (62 MB contra
+   132 MB) e o programa instalado ocupa 1/123 do espaço.
+2. **O runtime é instalado em `PrepareToInstall`**, antes de qualquer arquivo
+   do programa, com o código de saída conferido. Se ele falhar, a instalação é
+   cancelada (`PrepareToInstall` devolvendo texto aborta com código 7) e nada
+   é alterado no computador. Na seção `[Run]` do Inno **não existe**
+   `ignoreexitcode`: o código de saída do instalador do .NET não pode ser
+   ignorado, e confiar no número dele seria pior do que conferir o resultado
+   no disco.
+
+A compactação do setup é **zip**, não LZMA: medido nesta máquina, com LZMA o
+McAfee bloqueava e apagava o executável do instalador como "programa
+potencialmente indesejável" (falso positivo conhecido em instaladores com
+carga LZMA). Com zip o bloqueio desaparece e o tamanho muda 0,3%.
+
+O que o desinstalador **não** faz: apagar os dados do usuário. Comentários,
+grupos e preferências moram em `%LOCALAPPDATA%` e continuam lá. A entrada do
+menu de contexto do Windows **é** removida, pelo próprio programa
+(`--unregister-context-menu`), porque deixar o registro apontando para um
+executável apagado seria referência órfã.
+
 ---
 
 ## 2. Gerenciador de Backups

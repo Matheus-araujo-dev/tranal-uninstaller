@@ -6,14 +6,23 @@
   limpar o obj faz o exe seguinte sair com o manifesto do publish anterior —
   foi assim que um build requireAdministrator saiu como asInvoker.
 
+  Variantes:
+    gui     -> publish\gui      (requireAdministrator, autocontido)
+    preview -> publish\preview  (asInvoker, so para inspecao visual)
+    cli     -> publish\cli      (a mesma ferramenta em linha de comando)
+    setup   -> publish\setup    (o instalador, com o programa leve + o runtime
+                                  do .NET embutido; nada externo e preciso)
+
   Uso:
-    publish-tranal.ps1 -Variant gui     -> publish\gui      (requireAdministrator)
-    publish-tranal.ps1 -Variant preview -> publish\preview  (asInvoker, so para inspecao visual)
-    publish-tranal.ps1 -Variant cli     -> publish\cli
+    publish-tranal.ps1 -Variant gui
+    publish-tranal.ps1 -Variant setup
 #>
 param(
-    [ValidateSet('gui', 'preview', 'cli')]
-    [string]$Variant = 'gui'
+    [ValidateSet('gui', 'preview', 'cli', 'setup')]
+    [string]$Variant = 'gui',
+
+    # Versao do .NET Desktop Runtime embutida no instalador.
+    [string]$RuntimeVersion = '10.0.14'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,6 +52,48 @@ function Reset-Intermediate([string]$projectDir) {
         Move-Item $obj $stash -Force
         Write-Host "obj anterior movido para $stash"
     }
+}
+
+# O redistribuivel do .NET Desktop Runtime. O WPF precisa dele; o programa
+# instalado e a versao leve (1,3 MB), entao o runtime viaja dentro do setup.
+# O download fica em cache: o instalador e compilado varias vezes por rodada.
+function Get-RuntimeRedist {
+    $cache = Join-Path $repoRoot 'publish\_cache'
+    if (-not (Test-Path $cache)) { [void][System.IO.Directory]::CreateDirectory($cache) }
+
+    $file = Join-Path $cache "windowsdesktop-runtime-$RuntimeVersion-win-x64.exe"
+    if (Test-Path $file) {
+        Write-Host "runtime ja em cache: $file"
+        return $file
+    }
+
+    $url = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/$RuntimeVersion/windowsdesktop-runtime-$RuntimeVersion-win-x64.exe"
+    Write-Host "baixando o runtime: $url"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri $url -OutFile $file -UseBasicParsing -TimeoutSec 600
+
+    if (-not (Test-Path $file)) { throw "Falha ao baixar o redistribuivel do runtime" }
+    Write-Host ("runtime baixado: {0:N0} bytes" -f (Get-Item $file).Length)
+    return $file
+}
+
+# O compilador do Inno Setup. Ele nao vem no PATH (o winget instala por
+# usuario): procura nos lugares known.
+function Get-Iscc {
+    $candidates = @(
+        (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe'),
+        'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+        'C:\Program Files\Inno Setup 6\ISCC.exe'
+    )
+
+    foreach ($c in $candidates) {
+        if (Test-Path $c) { return $c }
+    }
+
+    $onPath = Get-Command iscc -ErrorAction SilentlyContinue
+    if ($onPath) { return $onPath.Source }
+
+    throw 'Inno Setup nao encontrado (ISCC.exe). Instale com: winget install JRSoftware.InnoSetup'
 }
 
 Push-Location $repoRoot
@@ -75,6 +126,42 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Falha no publish da CLI (exit $LASTEXITCODE)" }
             $expected = $null
             $target = 'publish\cli\tranal.exe'
+        }
+        'setup' {
+            # O programa instalado e a versao leve: o runtime do .NET viaja
+            # dentro do setup (60 MB) e so e instalado quando falta. O
+            # resultado: o setup e menor que o pacote autocontido e o
+            # programa instalado ocupa 1,3 MB em vez de 132 MB.
+            Reset-Intermediate $proj
+            dotnet publish $proj\Tranal.Uninstaller.csproj -c Release -r win-x64 --self-contained false `
+                -p:PublishSingleFile=false `
+                -o publish\setup-payload
+            if ($LASTEXITCODE -ne 0) { throw "Falha no publish do payload do setup (exit $LASTEXITCODE)" }
+
+            $runtime = Get-RuntimeRedist
+            $iscc = Get-Iscc
+
+            # A versao vem do proprio projeto: um numero escrito a mao no
+            # script de publicacao seria uma segunda fonte da verdade.
+            $versao = (Select-String -Path (Join-Path $proj 'Tranal.Uninstaller.csproj') `
+                -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+
+            $iss = Join-Path $repoRoot 'installer\tranal.iss'
+            $defines = @(
+                "/DAppPayloadDir=$repoRoot\publish\setup-payload",
+                "/DRuntimeFile=$runtime",
+                "/DRuntimeFileName=$([System.IO.Path]::GetFileName($runtime))",
+                "/DOutputDir=$repoRoot\publish\setup",
+                "/DAppVersion=$versao",
+                "/DLicenseFile=$repoRoot\LICENSE",
+                "/DRepoRoot=$repoRoot"
+            )
+
+            & $iscc $defines $iss
+            if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o instalador (exit $LASTEXITCODE)" }
+
+            $expected = $null
+            $target = 'publish\setup\TranalUninstaller-Setup.exe'
         }
     }
 

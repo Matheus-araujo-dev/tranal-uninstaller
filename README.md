@@ -45,7 +45,59 @@ valida o manifesto embutido e falha alto se o `requestedExecutionLevel` não for
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant gui      # requireAdministrator
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant preview  # asInvoker (só inspeção visual)
 powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup    # instalador (setup)
 ```
+
+---
+
+## Instalador (setup)
+
+Baixe o **`TranalUninstaller-Setup.exe`** da release e execute. É um instalador de verdade, com
+wizard em português, escolha da pasta e entrada em **"Adicionar e remover programas"** — como o
+Revo faz.
+
+| | Medido |
+|---|---|
+| Tamanho do setup | **62,07 MB** (`TranalUninstaller-Setup.exe`) |
+| O que fica instalado | **1,09 MB** (5 arquivos) |
+| O que é instalado junto, se faltar | o **.NET Desktop Runtime 10** (60,04 MB) |
+| Pasta padrão | `C:\Program Files\Tranal Group\Tranal Uninstaller Pro` (o usuário escolhe outra) |
+| Entrada em "Adicionar e remover programas" | ✅ gravada pelo instalador |
+| Desinstalador | apaga o programa, os atalhos e a entrada do menu de contexto |
+
+### Por que o setup tem 62 MB e o programa instalado tem 1 MB
+
+O Tranal é feito em WPF, e WPF precisa do **.NET Desktop Runtime** na máquina. Há duas saídas:
+
+- **autocontido** — o runtime viaja dentro do executável (132 MB em um arquivo só);
+- **leve** — o programa instalado ocupa 1 MB e o runtime é instalado pelo setup, **só quando o
+  computador não o tem**.
+
+O Tranal escolheu a segunda: o download do setup é menor que o do autocontido, o que fica
+instalado ocupa **1/123 do espaço**, e o setup **funciona sem internet** — o runtime está dentro
+dele. Quem já tem o .NET 10 Desktop Runtime (caso do Windows 11 mais novo) só paga a extração do
+programa: a instalação leva **segundos**.
+
+O runtime é instalado **antes** de qualquer arquivo do programa e o código de saída é conferido
+(`0` = sucesso, `3010` = sucesso mas precisa reiniciar). Se ele falhar, a instalação é
+**cancelada** e o computador fica como estava.
+
+### Aviso do antivírus
+
+O instalador **não é assinado digitalmente** (assinar exige certificado pago). Alguns antivírus
+— especialmente McAfee — tratam instalador novo e sem assinatura como programa potencialmente
+indesejável e bloqueiam a execução. Isso é uma propriedade do instalador, não do Tranal.
+
+Duas saídas, para quem quiser o instalador sem aviso:
+
+1. **Assinar o instalador** com um certificado de código (o pipeline já tem um lugar para isso:
+   `tools\publish-tranal.ps1 -Variant setup` + uma assinatura no passo de publicação);
+2. Baixar o **`TranalUninstaller.exe`** autocontido (132 MB), que não é instalador e não costuma
+   ser marcado.
+
+Enquanto isso, o `.iss` usa compactação **zip** em vez de **LZMA**: medido nesta máquina, com
+LZMA o McAfee bloqueava e **apagava** o setup; com zip o bloqueio desaparece e o tamanho muda
+em 0,3% (o runtime já vem compactado).
 
 ---
 
@@ -288,6 +340,7 @@ tranal-uninstaller/
 │   ├── Tranal.Cli/                  # tranal.exe (CLI)
 │   └── Tranal.Tests/                # xUnit (302 testes)
 ├── docs/                            # especificação medida e mapa de paridade
+├── installer/                       # instalador (script do Inno Setup)
 ├── tools/                           # publicação e ferramentas de medição
 └── publish/
 ```
@@ -321,7 +374,8 @@ Em `tools/`:
 
 | Ferramenta | Para quê |
 |---|---|
-| `publish-tranal.ps1` | publica GUI/preview/CLI e **verifica o manifesto embutido** |
+| `publish-tranal.ps1` | publica GUI/preview/CLI/**setup** e **verifica o manifesto embutido** |
+| `installer/tranal.iss` | o instalador: wizard pt-BR, escolha de pasta, entrada em "Adicionar e remover programas" |
 | `compare_lists.py` | compara a saída da CLI do Revo com a do Tranal (normaliza codepage) |
 | `compare_removal.py` | compara as sobras deixadas pelo Revo e pelo Tranal |
 | `dump_manifest.py` | inspeciona o `requestedExecutionLevel` de um PE |

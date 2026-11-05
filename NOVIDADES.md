@@ -1,6 +1,26 @@
 # Novidades
 
-## v1.4 — partida a frio corrigida e integridade das preferências por programa
+## v1.4 — partida a frio corrigida, integridade das preferências por programa e instalador
+
+### Novo: instalador (setup)
+
+O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller-Setup.exe`
+(62,07 MB) com **wizard em português**, **escolha da pasta de instalação** e entrada em
+**"Adicionar e remover programas"**.
+
+- **O programa instalado ocupa 1,09 MB** (5 arquivos). O runtime do .NET Desktop que o WPF exige
+  (60,04 MB) viaja dentro do setup e **só é instalado quando o computador não o tem** — assim o
+  setup não depende de nada externo e funciona sem internet. Quem já tem o .NET 10 Desktop
+  Runtime instala em segundos.
+- O runtime é instalado **antes** de qualquer arquivo do programa, e o **código de saída é
+  conferido** (`0` = sucesso, `3010` = sucesso mas precisa reiniciar). Se a instalação do runtime
+  falhar, a instalação é **cancelada** e o computador fica como estava.
+- O **desinstalador** apaga o programa, os atalhos e a entrada do menu de contexto do Windows
+  (deixá-la apontando para um executável apagado seria referência órfã). Ele **não** apaga os
+  dados do usuário: comentários, grupos e preferências continuam na pasta de dados.
+- **Aviso do antivírus**: o instalador não é assinado digitalmente (assinar exige certificado
+  pago) e alguns antivírus — especialmente McAfee — bloqueiam instalador novo e sem assinatura.
+  Quem preferir pode baixar o `TranalUninstaller.exe` autocontido, que não é instalador.
 
 ### Correções
 
