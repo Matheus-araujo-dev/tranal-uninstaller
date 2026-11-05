@@ -149,7 +149,7 @@ item aponta para a auditoria que o revelou.
 | # | Item | De onde veio | Por quê |
 |---|---|---|---|
 | 1 | ✅ **Classificar o desinstalador** (enum `UninstallerKind`, em `Core/UninstallerKind.cs`) — 12 tipos, medidos nos 211 programas desta máquina | BCU A2 | Habilita silencioso, MsiExec, Store App, órfão, PowerShell. É o eixo de tudo. |
-| 2 | **Atribuir sobras pela cadeia de desinstalação**, não só pelo nome | BCU C5 | Separa "a pasta do programa" de "a pasta **dele**". Errar aqui é apagar coisa de outro. |
+| 2 | **Atribuir sobras pela cadeia de desinstalação**, não só pelo nome — **começando pela varredura de MSI** (`Installer\UserData\…\Products`, `Installer\Folders`, componentes do .msi), que o Geek já faz (`CScannerMSI::ScanMSITraces`) e que cobre **149 dos 211 programas** desta máquina | BCU C5 · **Geek H.4** | Separa "a pasta do programa" de "a pasta **dele**". Errar aqui é apagar coisa de outro. |
 | 3 | ✅ **Justificativa textual por item de sobra** — enum `LeftoverReason` (11 motivos), coluna "Porquê" na lista de sobras e na saída da CLI; a tradução mora em `Core/Localization/LeftoverLabels.cs`, consumida pela tela e pela CLI | BCU C4 | O Tranal já tem 3 níveis; agora diz **por quê**. A regra de marcagem não mudou: só confiança alta entra na remoção. |
 | 4 | **Desinstalação silenciosa** — começar pela **tabela de switches por família de instalador** (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` para Inno, `/S` para NSIS, `/quiet /qn /norestart` para MSI, `/s /v"/qn"` para InstallShield), com a classificação já implementada como chave; depois, o gerador por automação de interface | BCU B2/B3 · **HiBit H.2** | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. O HiBit mostra que a tabela por família existe e é curta — com a classificação pronta, isso deixa de ser heurística. |
 | 5 | **Motor de desinstalação próprio**: rodar o desinstalador do programa **e** automatizar o que ele não faz (o Uninstalr é explícito: "most other uninstallers simply run the default uninstaller program"), com retomada após reinício | BCU B3 · **Uninstalr H.3** | É o que torna a desinstalação silenciosa confiável: em vez de rezar para o desinstalador aceitar `/S`, o Tranal aciona os controles. |
@@ -308,6 +308,7 @@ tarefas. O site do Uninstalr é **`uninstalr.com`**.
 
 | Recurso | Geek | Tranal | Prioridade |
 |---|---|---|---|
+| **Varredura de sobras de MSI** (`ScanMSITraces`, `Installer\UserData\…\Products`, `Installer\Folders`) | ✅ | ⬜ | 🔴 **alta** — 149 dos 211 programas desta máquina são MSI |
 | **Diálogo de órfãos** ("Alguns itens órfãos encontrados!") | ✅ | ⬜ | 🟡 |
 | **Frase de fechamento do ciclo** ("Todos os traços removidos") | ✅ | ⬜ | 🟡 |
 | **Confirmação ao cancelar** a remoção de sobras | ✅ | ⟡ | 🟢 |
@@ -317,17 +318,27 @@ tarefas. O site do Uninstalr é **`uninstalr.com`**.
 | **Abrir na Microsoft Store** | ✅ | ⬜ | 🟢 |
 | **Browse Source…** (ir à origem do instalador) | ✅ | ⬜ | 🟢 |
 | Diálogo de falha com opção de **limpar entrada e arquivos** | ✅ | 🟡 | 🟢 |
+| **Adiar remoção para o próximo reinício** | ✅ | ✅ | — |
 | **Backup do registro** antes de desinstalar | ❌ | ✅ | — 🟢 Tranal melhor |
 | **Ponto de restauração** antes de desinstalar | ❌ | ✅ | — 🟢 Tranal melhor |
-| **CLI** | ❌ | ✅ | — 🟢 Tranal melhor |
+| **Lixeira** para os arquivos | ❌ | ✅ | — 🟢 Tranal melhor |
+| **CLI** | 1 switch (`/store_apps`) | ✅ | — 🟢 Tranal melhor |
 
 **O dado mais revelador de todas as auditorias:** a superfície observável
 inteira do Geek **gratuito** cabe em **60 strings** — contra 1.136 do Revo
 Pro e 1.066 do BCU. O desinstalador em si é pequeno; o que o Revo vende
 caro é o **painel de manutenção**, que o Tranal já tem.
 
-**A frase que o Tranal está devendo:** depois da varredura, o Geek mostra
-uma frase de fechamento. O Tranal mostra a lista e nada mais.
+**A correção que a medição fez:** acredita-se que o Geek aceite arrastar um
+`.exe` sobre a janela. **Medido: não aceita** — nenhuma das 22 janelas e
+controles tem `WS_EX_ACCEPTFILES`, o `WM_DROPFILES` não produziu resposta, e
+passar o caminho como argumento também não fez nada.
+
+**O achado que dá o próximo passo do núcleo:** o Geek varre as sobras de
+**MSI** (`CScannerMSI::ScanMSITraces`, `Installer\UserData\…\Products`,
+`Installer\Folders`). São **149 dos 211 programas** desta máquina. A
+varredura por nome não acha o que o instalador pôs fora da pasta do
+programa — e é exatamente o item F.1-2 do backlog.
 
 ---
 
