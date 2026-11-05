@@ -35,6 +35,7 @@ documento diz **"não verificado"** e explica o motivo.
 | IObit Uninstaller 16.1.0.4 | [IOBIT.md](IOBIT.md) | ✅ auditado |
 | HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ auditado |
 | Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ auditado |
+| Geek Uninstaller 1.6.0.200 | [GEEK.md](GEEK.md) | ✅ auditado |
 | HiBit Uninstaller | — | em curso |
 | Geek Uninstaller | — | em curso |
 | Uninstalr | — | em curso |

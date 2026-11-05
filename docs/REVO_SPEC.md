@@ -40,7 +40,7 @@
 
 | Tipo | Quantidade | Conteúdo |
 |---|---|---|
-| `RT_DIALOG` | **171** | Templates de diálogo com geometria e控件 exatos de cada controle |
+| `RT_DIALOG` | **171** | Templates de diálogo com geometria e tamanhos exatos de cada controle |
 | `AFX_DIALOG_LAYOUT` | 121 | Dados de layout MFC |
 | `RT_MENU` | 60 | Menus |
 | `RT_STRING` | 169 | Tabelas de strings |

@@ -304,6 +304,31 @@ uma CLI a partir dessa literatura constrói a errada.
 **A correção de domínio:** `instalr.com` é um produto homônimo de gestão de
 tarefas. O site do Uninstalr é **`uninstalr.com`**.
 
+### H.4 Geek Uninstaller 1.6.0.200 (Free) — [GEEK.md](GEEK.md)
+
+| Recurso | Geek | Tranal | Prioridade |
+|---|---|---|---|
+| **Diálogo de órfãos** ("Alguns itens órfãos encontrados!") | ✅ | ⬜ | 🟡 |
+| **Frase de fechamento do ciclo** ("Todos os traços removidos") | ✅ | ⬜ | 🟡 |
+| **Confirmação ao cancelar** a remoção de sobras | ✅ | ⟡ | 🟢 |
+| **Batch Force Removal** / **Batch Remove Entries** | ✅ | ⬜ | 🟡 |
+| **Modificar/reparar** a instalação | ✅ | ⬜ | 🟢 |
+| **Reset Columns** | ✅ | ⬜ | 🟢 |
+| **Abrir na Microsoft Store** | ✅ | ⬜ | 🟢 |
+| **Browse Source…** (ir à origem do instalador) | ✅ | ⬜ | 🟢 |
+| Diálogo de falha com opção de **limpar entrada e arquivos** | ✅ | 🟡 | 🟢 |
+| **Backup do registro** antes de desinstalar | ❌ | ✅ | — 🟢 Tranal melhor |
+| **Ponto de restauração** antes de desinstalar | ❌ | ✅ | — 🟢 Tranal melhor |
+| **CLI** | ❌ | ✅ | — 🟢 Tranal melhor |
+
+**O dado mais revelador de todas as auditorias:** a superfície observável
+inteira do Geek **gratuito** cabe em **60 strings** — contra 1.136 do Revo
+Pro e 1.066 do BCU. O desinstalador em si é pequeno; o que o Revo vende
+caro é o **painel de manutenção**, que o Tranal já tem.
+
+**A frase que o Tranal está devendo:** depois da varredura, o Geek mostra
+uma frase de fechamento. O Tranal mostra a lista e nada mais.
+
 ---
 
 ## G. Estado da auditoria
@@ -314,6 +339,7 @@ tarefas. O site do Uninstalr é **`uninstalr.com`**.
 | IObit Uninstaller 16.1.0.4 | [IOBIT.md](IOBIT.md) | ✅ completo — 142 funcionalidades medidas, 95 telas, 29 DLLs importadas |
 | HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ completo — 58 funcionalidades, 21+ ferramentas, 802 legendas pt-BR, 33 DLLs importadas |
 | Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ completo — 49 funcionalidades medidas, deep search de 25 min medido, 162 apps / 846 arquivos / 1.562 pastas / 394 chaves |
+| Geek Uninstaller 1.6.0.200 | [GEEK.md](GEEK.md) | ✅ completo — **60 strings** (superfície inteira), menus e assistente capturados |
 | HiBit Uninstaller | — | 🔄 em curso |
 | Geek Uninstaller | — | 🔄 em curso |
 | Uninstalr | — | 🔄 em curso |
