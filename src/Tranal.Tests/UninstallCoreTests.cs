@@ -53,8 +53,8 @@ public class UninstallModeTests
     {
         var program = new InstalledProgram { DisplayName = "Programa de Teste Tranal" };
 
-        Assert.Empty(LeftoverScanner.Scan(program, UninstallMode.BuiltIn));
-        Assert.Empty(LeftoverScanner.ScanForced(@"C:\Windows\System32", UninstallMode.BuiltIn));
+        Assert.Empty(LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.BuiltIn }));
+        Assert.Empty(LeftoverScanner.ScanForced(@"C:\Windows\System32", new LeftoverScanOptions { Mode = UninstallMode.BuiltIn }));
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class UninstallModeTests
         using var temp = new TempFolder();
         var folder = temp.CreateSubFolder("Programa de Teste Tranal");
 
-        Assert.Empty(LeftoverScanner.ScanForced(folder, UninstallMode.BuiltIn));
+        Assert.Empty(LeftoverScanner.ScanForced(folder, new LeftoverScanOptions { Mode = UninstallMode.BuiltIn }));
     }
 }
 
@@ -98,7 +98,7 @@ public class LeftoverConfidenceTests
             InstallLocation = folder,
         };
 
-        var items = LeftoverScanner.Scan(program, UninstallMode.Safe);
+        var items = LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.Safe });
 
         var install = Assert.Single(items, i => i.Kind == "Pasta" && i.Path == folder);
         Assert.Equal(LeftoverConfidence.High, install.Confidence);
@@ -117,7 +117,7 @@ public class LeftoverConfidenceTests
             InstallLocation = folder,
         };
 
-        var items = LeftoverScanner.Scan(program, UninstallMode.Advanced);
+        var items = LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.Advanced });
 
         Assert.All(items.Where(i => i.Confidence != LeftoverConfidence.High),
             i => Assert.False(i.Selected));

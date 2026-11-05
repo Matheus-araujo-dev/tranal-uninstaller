@@ -1,0 +1,119 @@
+<Window x:Class="Tranal.Uninstaller.Ui.ExcludeListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Lista de exclusões" Height="560" Width="860"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" UseLayoutRounding="True">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- titulo -->
+      <RowDefinition Height="Auto" />   <!-- comandos -->
+      <RowDefinition Height="*" />      <!-- listas -->
+      <RowDefinition Height="Auto" />   <!-- entrada -->
+      <RowDefinition Height="Auto" />   <!-- status -->
+      <RowDefinition Height="Auto" />   <!-- fechar -->
+    </Grid.RowDefinitions>
+
+    <!-- Titulo -->
+    <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" CornerRadius="3" Padding="10,8">
+      <StackPanel>
+        <TextBlock Text="{loc:Tr ExcludeList.Title}" FontWeight="Bold"
+                   Foreground="{DynamicResource TitleTextBrush}" FontSize="14" />
+        <TextBlock Text="{loc:Tr ExcludeList.Header}" Margin="0,3,0,0" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextDimBrush}" />
+      </StackPanel>
+    </Border>
+
+    <!-- Comandos -->
+    <WrapPanel Grid.Row="1" Margin="0,10,0,8">
+      <Button x:Name="AddFolderButton" Content="{loc:Tr ExcludeList.AddFolder}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="ExcludeAddFolder"
+              Click="AddFolderButton_Click" />
+      <Button x:Name="AddPathButton" Content="{loc:Tr ExcludeList.AddPath}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="ExcludeAddPath"
+              Click="AddPathButton_Click" />
+      <Button x:Name="AddRegistryKeyButton" Content="{loc:Tr ExcludeList.AddRegistryKey}" Style="{StaticResource FlatButton}"
+              Margin="0,0,12,0" AutomationProperties.AutomationId="ExcludeAddRegistryKey"
+              Click="AddRegistryKeyButton_Click" />
+      <Button x:Name="RemoveButton" Content="{loc:Tr ExcludeList.Remove}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="ExcludeRemove"
+              Click="RemoveButton_Click" />
+      <Button x:Name="ClearButton" Content="{loc:Tr ExcludeList.Clear}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="ExcludeClear"
+              Click="ClearButton_Click" />
+    </WrapPanel>
+
+    <!-- Listas: caminhos protegidos e chaves protegidas -->
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="12" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <Grid Grid.Column="0">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="{loc:Tr ExcludeList.PathsTitle}" FontWeight="SemiBold" Margin="0,0,0,4" />
+        <Grid Grid.Row="1">
+          <ListView x:Name="PathsList" AutomationProperties.AutomationId="ExcludePathsList"
+                    Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    AlternationCount="2" SelectionMode="Single" />
+          <TextBlock x:Name="PathsEmptyText" Text="{loc:Tr ExcludeList.Empty}" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" Visibility="Collapsed"
+                     Foreground="{DynamicResource TextDimBrush}" />
+        </Grid>
+      </Grid>
+
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="{loc:Tr ExcludeList.RegistryTitle}" FontWeight="SemiBold" Margin="0,0,0,4" />
+        <Grid Grid.Row="1">
+          <ListView x:Name="RegistryList" AutomationProperties.AutomationId="ExcludeRegistryList"
+                    Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    AlternationCount="2" SelectionMode="Single" />
+          <TextBlock x:Name="RegistryEmptyText" Text="{loc:Tr ExcludeList.Empty}" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" Visibility="Collapsed"
+                     Foreground="{DynamicResource TextDimBrush}" />
+        </Grid>
+      </Grid>
+    </Grid>
+
+    <!-- Entrada manual (caminho ou chave de registro) -->
+    <Border Grid.Row="3" Background="{DynamicResource HeaderBrush}" CornerRadius="3" Padding="10,8"
+            Margin="0,10,0,0" Visibility="Collapsed" x:Name="InputPanel">
+      <StackPanel>
+        <TextBlock x:Name="InputPromptText" TextWrapping="Wrap" Margin="0,0,0,6" />
+        <StackPanel Orientation="Horizontal">
+          <TextBox x:Name="InputBox" Width="420" VerticalContentAlignment="Center"
+                   AutomationProperties.AutomationId="ExcludeInputBox" />
+          <Button x:Name="InputOkButton" Content="{loc:Tr Common.Ok}" Style="{StaticResource FlatButton}"
+                  Margin="8,0,6,0" AutomationProperties.AutomationId="ExcludeInputOk"
+                  Click="InputOkButton_Click" />
+          <Button x:Name="InputCancelButton" Content="{loc:Tr Common.Cancel}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,0,0" AutomationProperties.AutomationId="ExcludeInputCancel"
+                  Click="InputCancelButton_Click" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Status -->
+    <Border Grid.Row="4" Background="{DynamicResource StatusBarBrush}" CornerRadius="3" Padding="8,5" Margin="0,10,0,0">
+      <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="ExcludeStatus" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextDimBrush}" />
+    </Border>
+
+    <!-- Fechar -->
+    <Button Grid.Row="5" x:Name="CloseButton" Content="{loc:Tr ExcludeList.Close}" Style="{StaticResource FlatButton}"
+            HorizontalAlignment="Right" Margin="0,10,0,0" AutomationProperties.AutomationId="ExcludeClose"
+            Click="CloseButton_Click" />
+  </Grid>
+</Window>

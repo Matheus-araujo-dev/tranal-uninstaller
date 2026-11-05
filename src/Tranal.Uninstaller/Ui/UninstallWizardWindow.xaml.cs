@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -63,6 +64,18 @@ public partial class UninstallWizardWindow : Window
     private string _summary = string.Empty;
 
     /// <summary>
+    /// Opcoes da operacao, resolvidas uma vez no inicio (etapa 2) para que
+    /// a etapa 4 remova exatamente o que foi pedido.
+    /// </summary>
+    private UninstallRemovalOptions _removalOptions = UninstallRemovalOptions.Default;
+
+    /// <summary>
+    /// Backup completo do registro, criado ANTES do desinstalador nativo.
+    /// Vazio quando a opcao nao foi pedida.
+    /// </summary>
+    private FullRegistryBackupResult? _fullRegistryBackup;
+
+    /// <summary>
     /// Opcao "marcar todos os itens restantes por padrao" do Revo: quando
     /// ligada, a varredura marca tambem os itens de confianca media e baixa.
     /// Lida das preferencias no momento da varredura.
@@ -87,6 +100,12 @@ public partial class UninstallWizardWindow : Window
         LeftoversList.ItemsSource = _leftovers;
 
         ApplyPreferences();
+
+        // Desmarcar a varredura em todas as contas desmarca tambem a
+        // desinstalacao de todas as contas: as duas opcoes andam juntas.
+        ScanAllAccountsCheck.Checked += (_, _) => SyncAccountChecks();
+        ScanAllAccountsCheck.Unchecked += (_, _) => SyncAccountChecks();
+
         ShowStep(0);
     }
 
@@ -122,6 +141,24 @@ public partial class UninstallWizardWindow : Window
             ? Visibility.Collapsed
             : Visibility.Visible;
 
+        FullRegistryBackupCheck.IsChecked = settings.CreateFullRegistryBackupBeforeUninstall;
+
+        // As opcoes de conta do Windows so aparecem quando o interruptor
+        // mestre das Opcoes esta ligado — como no original, onde a opcao
+        // existe mas fica oculta ate o usuario habilita-la.
+        var showAccounts = settings.ShowScanAllAccountsOption;
+
+        ScanAllAccountsCheck.IsChecked = settings.ScanAllWindowsAccounts;
+        ScanAllAccountsCheck.Visibility = showAccounts ? Visibility.Visible : Visibility.Collapsed;
+
+        UninstallAllAccountsCheck.IsChecked = settings.UninstallFromAllWindowsAccounts;
+        UninstallAllAccountsCheck.Visibility = showAccounts ? Visibility.Visible : Visibility.Collapsed;
+
+        ScanAllAccountsNote.Text = Loc.Get("Wizard.ScanAllAccountsNote");
+        ScanAllAccountsNote.Visibility = Visibility.Collapsed;
+
+        SyncAccountChecks();
+
         if (settings.OnlyRunBuiltInUninstaller)
         {
             ModeBuiltInRadio.IsChecked = true;
@@ -134,6 +171,33 @@ public partial class UninstallWizardWindow : Window
             ModeModerateRadio.IsChecked = true;
         }
     }
+
+    /// <summary>
+    /// Garante a invariante entre as duas opcoes de conta: marcar para
+    /// desinstalar de todas as contas so faz sentido quando a varredura em
+    /// todas as contas esta ligada. Sem isso, a marcacao ficaria valendo sem
+    /// nenhum item de outra conta na lista.
+    /// </summary>
+    private void SyncAccountChecks()
+    {
+        var scanAll = ScanAllAccountsCheck.IsChecked == true;
+
+        if (!scanAll)
+            UninstallAllAccountsCheck.IsChecked = false;
+
+        UninstallAllAccountsCheck.IsEnabled = scanAll;
+        ScanAllAccountsNote.Visibility = scanAll ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Opcoes de varredura do assistente, ja normalizadas.</summary>
+    private LeftoverScanOptions BuildScanOptions() => new()
+    {
+        Mode = _mode,
+        CheckAllLeftovers = CheckAllLeftovers,
+        ScanAllUserAccounts = ScanAllAccountsCheck.IsChecked == true,
+        SelectOtherAccountItems =
+            (ScanAllAccountsCheck.IsChecked == true) && (UninstallAllAccountsCheck.IsChecked == true),
+    };
 
     /// <summary>Mostra uma das 5 etapas do fluxo.</summary>
     private void ShowStep(int step)
@@ -237,6 +301,24 @@ public partial class UninstallWizardWindow : Window
     }
 
     /// <summary>
+    /// Grava as opcoes escolhidas no painel da etapa 2. A interface e a linha
+    /// de comando leem as mesmas preferencias: o que o usuario marca aqui
+    /// vale para as duas.
+    /// </summary>
+    private void PersistWizardOptions()
+    {
+        var scanAll = ScanAllAccountsCheck.IsChecked == true;
+        var uninstallAll = scanAll && UninstallAllAccountsCheck.IsChecked == true;
+
+        AppSettingsStore.Update(s =>
+        {
+            s.CreateFullRegistryBackupBeforeUninstall = FullRegistryBackupCheck.IsChecked == true;
+            s.ScanAllWindowsAccounts = scanAll;
+            s.UninstallFromAllWindowsAccounts = uninstallAll;
+        });
+    }
+
+    /// <summary>
     /// Etapa 1: registra quais rastros do programa existem ANTES da
     /// desinstalacao. Esse conjunto e comparado com a varredura da etapa 3
     /// para dizer o que sobrou.
@@ -247,7 +329,7 @@ public partial class UninstallWizardWindow : Window
         _mode = SelectedMode;
 
         _analysis = await Task.Run(() => _programs
-            .SelectMany(p => LeftoverScanner.Scan(p, _mode, CheckAllLeftovers))
+            .SelectMany(p => LeftoverScanner.Scan(p, BuildScanOptions()))
             .ToList());
 
         StatusText.Text = Loc.Get("Wizard.Analyzed", _analysis.Count);
@@ -260,6 +342,20 @@ public partial class UninstallWizardWindow : Window
     /// </summary>
     private async Task RunBuiltInAsync()
     {
+        PersistWizardOptions();
+
+        var name = string.Join(", ", _programs.Select(p => p.DisplayName));
+        _removalOptions = UninstallRemovalOptions.FromSettings($"Desinstalacao de {name}");
+
+        // O backup completo do registro vem ANTES do desinstalador nativo: e
+        // depois dele que o desinstalador do proprio programa apaga as chaves
+        // dele, e um .reg do registro ja limpo nao serve para nada.
+        if (_removalOptions.FullRegistryBackup)
+        {
+            StatusText.Text = Loc.Get("Wizard.CreatingFullRegistryBackup");
+            _fullRegistryBackup = UninstallEngine.PrepareFullRegistryBackup(_removalOptions);
+        }
+
         StatusText.Text = Loc.Get("Wizard.CreatingBackup");
         if (BackupRegistryCheck.IsChecked == true)
         {
@@ -305,7 +401,7 @@ public partial class UninstallWizardWindow : Window
 
         var items = UninstallModes.Scans(_mode)
             ? await Task.Run(() => _programs
-                .SelectMany(p => LeftoverScanner.Scan(p, _mode, CheckAllLeftovers))
+                .SelectMany(p => LeftoverScanner.Scan(p, BuildScanOptions()))
                 .ToList())
             : new List<LeftoverItem>();
 
@@ -332,9 +428,10 @@ public partial class UninstallWizardWindow : Window
         StatusText.Text = Loc.Get("Wizard.Removing");
 
         var name = string.Join(", ", _programs.Select(p => p.DisplayName));
-        var options = UninstallRemovalOptions.FromSettings($"Desinstalacao de {name}");
+        var options = _removalOptions;
 
-        _report = await Task.Run(() => UninstallEngine.RemoveLeftovers(_leftovers, options));
+        _report = await Task.Run(() =>
+            UninstallEngine.RemoveLeftovers(_leftovers, options, _fullRegistryBackup));
         _summary = BuildSummary(_report);
 
         if (!AppSettingsStore.Current.DisableUninstallHistory)
@@ -414,7 +511,8 @@ public partial class UninstallWizardWindow : Window
         sb.AppendLine(Loc.Get("Wizard.SummaryTotal", report.Total));
         sb.AppendLine(Loc.Get("Wizard.SummaryRemoved", report.RemovedCount));
         sb.AppendLine(Loc.Get("Wizard.SummaryAbsent", report.AbsentCount));
-        sb.AppendLine(Loc.Get("Wizard.SummaryFailed", report.FailedCount + report.ProtectedCount));
+        sb.AppendLine(Loc.Get("Wizard.SummaryFailed", report.FailedCount));
+        sb.AppendLine(Loc.Get("Wizard.SummaryProtected", report.ProtectedCount));
         sb.AppendLine(Loc.Get("Wizard.SummaryDeferred", report.DeferredCount));
         sb.AppendLine(Loc.Get("Wizard.SummaryRecycleBin", CountRecycleBin(report)));
 
@@ -435,6 +533,25 @@ public partial class UninstallWizardWindow : Window
         {
             sb.AppendLine();
             sb.AppendLine($"• {_backupError}");
+        }
+
+        // O backup completo do registro nao e um item removido, entao nao
+        // entra nas contagens: ele aparece aqui, com o caminho onde ficou.
+        if (!string.IsNullOrWhiteSpace(report.FullRegistryBackupPath))
+        {
+            sb.AppendLine();
+            sb.AppendLine(report.FullRegistryBackupOk
+                ? Loc.Get("Wizard.FullRegistryBackupSaved", report.FullRegistryBackupPath)
+                : Loc.Get("Wizard.FullRegistryBackupFailed", report.FullRegistryBackupPath));
+        }
+
+        // Processos que nao puderam ser encerrados: os arquivos deles
+        // continuam em uso, e o relatorio de itens nao os mostra.
+        var processosFalhos = report.CountOf("Processo", RemovalStatus.Failed);
+        if (processosFalhos > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine(Loc.Get("Wizard.ProcessesNotTerminated", processosFalhos));
         }
 
         return sb.ToString().TrimEnd();
@@ -519,6 +636,48 @@ public partial class UninstallWizardWindow : Window
 
         ApplyHeaderStyle(grid);
         LeftoversList.View = grid;
+        BuildLeftoversContextMenu();
+    }
+
+    /// <summary>
+    /// Menu de contexto da lista de sobras. A entrada "Adicionar a lista de
+    /// exclusoes" protege o item contra qualquer remocao futura — e o
+    /// equivalente do "Add to Exclude List" do original.
+    /// </summary>
+    private void BuildLeftoversContextMenu()
+    {
+        var menu = new ContextMenu();
+
+        var addToExclude = new MenuItem { Header = Loc.Get("ContextMenu.AddToExcludeList") };
+        AutomationProperties.SetAutomationId(addToExclude, "CtxAddToExcludeList");
+        addToExclude.Click += (_, _) => AddSelectedToExcludeList();
+        menu.Items.Add(addToExclude);
+
+        LeftoversList.ContextMenu = menu;
+    }
+
+    /// <summary>
+    /// Protege a sobra selecionada contra qualquer remocao. O item continua
+    /// na lista desta execucao (a lista ja foi montada), mas a partir de
+    /// agora ele e devolvido pela varredura como "nao encontrado" e o motor
+    /// recusa remove-lo.
+    /// </summary>
+    private void AddSelectedToExcludeList()
+    {
+        if (LeftoversList.SelectedItem is not LeftoverItem item)
+        {
+            StatusText.Text = Loc.Get("ExcludeList.NothingSelected");
+            return;
+        }
+
+        if (!ExcludeList.Current.AddItem(item))
+        {
+            StatusText.Text = Loc.Get("ExcludeList.AlreadyExcluded");
+            return;
+        }
+
+        ExcludeList.Current.Save();
+        StatusText.Text = Loc.Get("ContextMenu.AddedToExcludeList");
     }
 
     /// <summary>Aplica o cabecalho no estilo do tema (o padrao do WPF destoa).</summary>

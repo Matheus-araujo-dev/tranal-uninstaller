@@ -1,5 +1,70 @@
 # Novidades
 
+## v1.2 — lista de exclusões, processos em execução, todas as contas e backup do registro
+
+Quatro funcionalidades que faltavam para fechar a paridade de segurança e de
+alcance da desinstalação. Todas medidas nas strings do original (inventário de
+331 strings da seção `UninstallerPro` do `lang\english.ini` do Revo Pro 5.5.4).
+
+### Novas funcionalidades
+
+- **Lista de exclusões** — o item protegido **não aparece** na varredura e o motor
+  **recusa removê-lo** mesmo que ele chegue marcado por outro caminho. O backup feito antes
+  da remoção também pula os itens excluídos: um backup não pode guardar justamente o que o
+  usuário mandou proteger. Excluir um **arquivo** dentro de uma pasta protege o arquivo mesmo
+  quando a pasta é removida: a remoção recursiva cega levaria o arquivo junto, então o conteúdo
+  sai item a item e a pasta permanece. O encerramento de processos também respeita a lista.
+  O casamento é por prefixo de pasta/chave, e `HKLM\…` casa com `HKEY_LOCAL_MACHINE\…`. Tem
+  gerenciador próprio na interface e comando `/exclude` na CLI.
+- **Encerrar os executáveis em execução** antes de remover os arquivos deles — a opção
+  "Forcibly stop running executable files during their uninstall" do original. O processo do
+  próprio Tranal nunca é encerrado, e um processo só entra na lista quando o executável está
+  dentro da pasta que vai ser removida — nunca "qualquer processo com o mesmo nome".
+- **Varredura em todas as contas do Windows** — as sobras dos outros perfis aparecem
+  (`HKEY_USERS\<SID>` e o `AppData` de cada perfil). As contas vêm do `ProfileList` do
+  registro, que é o catálogo real de perfis da máquina. Os itens das outras contas **não vêm
+  marcados**: só a opção "Desinstalar de todas as contas do Windows" os marca. A opção
+  "marcar todas as sobras" **não** marca itens de outra conta.
+- **Backup completo do registro antes de desinstalar** — todos os hives em `.reg`, com script
+  de restauração, feito **antes do desinstalador nativo**: depois dele, o desinstalador do
+  próprio programa já apagou as chaves dele e o `.reg` não serviria para nada. Usa o
+  `reg.exe` do Windows em vez de reescrever o formato `.reg` por conta própria: é o caminho
+  nativo, preserva todos os tipos de valor (inclusive `REG_BINARY`, `REG_QWORD` e
+  `REG_MULTI_SZ`) e não depende de o Tranal saber reescrever cada tipo sem erro. O backup só
+  é considerado válido quando **todos** os hives foram exportados.
+
+### Correções
+
+- O `LeftoverScanner` recebia modo e "marcar tudo" como parâmetros posicionais soltos; com
+  mais um comportamento, quatro parâmetros booleanos ficaram impossíveis de ler. Passam a
+  viajar como um único objeto nomeado (`LeftoverScanOptions`).
+- **O motor nunca atravessa um atalho** (junction, symbolic link, ponto de montagem).
+  Medido nesta máquina: o .NET 10 atravessa o atalho ao enumerar uma pasta recursivamente e
+  falha com `UnauthorizedAccessException` ao apagá-la — e a falha deixava a pasta pela
+  metade. Como o alvo do atalho está **fora** da pasta que o usuário mandou remover,
+  apagá-lo seria perda de dados não pedida. Agora o atalho é removido **como atalho** e o
+  alvo fica intacto, nos dois caminhos da remoção (o que apaga a pasta inteira e o que apaga
+  item a item por causa da lista de exclusões), **quando o próprio item de remoção é um
+  atalho**, na contagem de tamanho de pasta, no varredor de programas, na cópia do backup e
+  na varredura do limpador de arquivos temporários.
+- **A desinstalação forçada volta a remover o alvo que o usuário apontou.** O mesmo
+  caminho entrava na lista duas vezes — como pasta de instalação e como pasta achada pelo
+  nome do programa — e a ocorrência fraca (desmarcada) sombreava a forte. O resultado era
+  que a desinstalação forçada encontrava a pasta e não removia nada. Agora vale a
+  ocorrência mais forte, e o alvo informado entra primeiro na lista.
+- **Apontar para um arquivo não remove mais a pasta em que ele está.** Ao corrigir a
+  deduplicação, a pasta que contém o arquivo passou a ser tratada como "pasta de
+  instalação" — e a desinstalação forçada de um executável em `%LOCALAPPDATA%\Temp`
+  passaria a remover a pasta `Temp` inteira, com tudo o que o usuário tem lá dentro. A
+  desinstalação forçada de um arquivo remove **o arquivo**; a pasta aparece na lista e o
+  usuário pode marcá-la se quiser.
+- **O relatório da remoção não esconde mais nada.** Uma pasta com item protegido é um item
+  na lista, mas o conteúdo sai item a item: o resumo agora diz quantos itens saíram de
+  dentro dela, quantos ficaram protegidos, quantos falharam e quantos foram adiados para o
+  próximo reinício. Um item em uso que não pôde ser apagado não é engolido em silêncio: ele
+  aparece na contagem e no texto do relatório — na interface e na linha de comando, com os
+  mesmos números.
+
 ## v1.1 — fechar as lacunas do REA e a cobertura das ferramentas
 
 ### Novas funcionalidades (medidas nas strings do original)

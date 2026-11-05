@@ -511,7 +511,17 @@ public static class JunkCleaner
 
     private static IEnumerable<string> SafeEnumerateFiles(string folder, string pattern, SearchOption option)
     {
-        try { return Directory.EnumerateFiles(folder, pattern, option).ToList(); }
+        try
+        {
+            // A travessia profunda nao atravessa atalho (junction, symlink):
+            // o limpador nao pode remover arquivos que estao fora da pasta
+            // que ele limpou — e o alvo do link pode ser o perfil de outro
+            // usuario da maquina.
+            if (option == SearchOption.AllDirectories)
+                return SafeTraversal.EnumerateFilesDeep(folder, pattern);
+
+            return Directory.EnumerateFiles(folder, pattern, option).ToList();
+        }
         catch (Exception ex)
         {
             ToolLog.Error($"Falha ao listar os arquivos de '{folder}': {ex.Message}");

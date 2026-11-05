@@ -278,7 +278,7 @@ public class BackupSafetyTests : IDisposable
         // chave de desinstalacao dele seria remover o programa de outra coisa.
         var program = new InstalledProgram { DisplayName = "Steam" };
 
-        var items = LeftoverScanner.Scan(program, UninstallMode.Safe);
+        var items = LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.Safe });
 
         var homonimo = items.FirstOrDefault(i =>
             i.Kind == "Registro" && i.Detail.Contains("Steam Client", StringComparison.OrdinalIgnoreCase));
@@ -299,7 +299,7 @@ public class BackupSafetyTests : IDisposable
             InstallLocation = @"C:\Windows",
         };
 
-        var items = LeftoverScanner.Scan(program, UninstallMode.Safe);
+        var items = LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.Safe });
 
         Assert.DoesNotContain(items, i =>
             i.Kind == "Pasta" && i.Selected && i.Path.StartsWith(@"C:\Windows", StringComparison.OrdinalIgnoreCase));

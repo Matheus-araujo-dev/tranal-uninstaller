@@ -46,6 +46,15 @@ public sealed class LeftoverItem
 
     /// <summary>True quando o item deve ser exibido em negrito na lista de sobras.</summary>
     public bool IsHighConfidence => Confidence == LeftoverConfidence.High;
+
+    /// <summary>
+    /// True quando o item pertence a outra conta do Windows, e nao a conta que
+    /// esta usando o Tranal agora.
+    ///
+    /// Itens de outra conta nunca vem marcados por padrao: remover dados de
+    /// outra conta e uma acao que precisa ser pedida explicitamente.
+    /// </summary>
+    public bool OtherAccount { get; init; }
 }
 
 /// <summary>Normalizacao canonica de caminhos de sistema.</summary>
@@ -362,17 +371,17 @@ public static class LeftoverScanner
     /// Varre o sistema por restos de um programa removido.
     /// </summary>
     public static List<LeftoverItem> Scan(
-        InstalledProgram program, UninstallMode mode, bool checkAllLeftovers = false)
+        InstalledProgram program, LeftoverScanOptions options)
     {
         var items = new List<LeftoverItem>();
 
         // Modo "Somente": o desinstalador nativo faz o trabalho e nada mais
         // e procurado. Nenhuma sobra e reportada.
-        if (!UninstallModes.Scans(mode)) return items;
+        if (!UninstallModes.Scans(options.Mode)) return items;
 
         var all = NameVariants(program);
         // Safe usa apenas o nome completo; Moderate e Advanced ampliam.
-        var variants = mode switch
+        var variants = options.Mode switch
         {
             UninstallMode.Safe => all.Take(1).ToList(),
             UninstallMode.Moderate => all.Take(2).ToList(),
@@ -380,10 +389,10 @@ public static class LeftoverScanner
         };
 
         foreach (var variant in variants)
-            ScanRegistry(variant, mode, items);
+            ScanRegistry(variant, options, items);
 
         foreach (var variant in variants)
-            ScanFolders(variant, mode, items);
+            ScanFolders(variant, options, items);
 
         // A propria pasta de instalacao e sempre candidata: o nome dela nem sempre
         // contem o nome do programa (ex.: "VS Revo Group" para "Revo Uninstaller Pro").
@@ -417,12 +426,22 @@ public static class LeftoverScanner
         // Opcao "marcar todos os itens restantes por padrao" do Revo: a
         // marcacao inicial passa a incluir a confianca media e baixa. A
         // confianca de cada item continua visivel na lista.
-        if (checkAllLeftovers)
+        //
+        // Os itens de outra conta do Windows nao sao marcados por essa opcao:
+        // "marcar tudo" nao pode ser lido como "remover tambem os dados dos
+        // outros usuarios da maquina".
+        if (options.CheckAllLeftovers)
         {
-            foreach (var item in result) item.Selected = true;
+            foreach (var item in result)
+            {
+                if (item.OtherAccount && !options.SelectOtherAccountItems) continue;
+                item.Selected = true;
+            }
         }
 
-        return result;
+        // Itens protegidos pela lista de exclusoes nao aparecem: nem para o
+        // usuario duvidar deles, nem para ele marcar e remover.
+        return ExcludeList.Current.ApplyTo(result);
     }
 
     /// <summary>
@@ -432,13 +451,13 @@ public static class LeftoverScanner
     /// estiver relacionado ao nome informado.
     /// </summary>
     public static List<LeftoverItem> ScanForced(
-        string path, UninstallMode mode, bool checkAllLeftovers = false)
+        string path, LeftoverScanOptions options)
     {
         var full = PathUtil.Normalize(path);
         if (full.Length == 0) return new List<LeftoverItem>();
 
         // No modo "Somente" nao ha varredura alguma — apenas o alvo informado.
-        if (!UninstallModes.Scans(mode)) return new List<LeftoverItem>();
+        if (!UninstallModes.Scans(options.Mode)) return new List<LeftoverItem>();
 
         string name;
         string installLocation;
@@ -453,7 +472,15 @@ public static class LeftoverScanner
             else
             {
                 name = Path.GetFileNameWithoutExtension(full);
-                installLocation = Path.GetDirectoryName(full) ?? string.Empty;
+
+                // A pasta que contem o arquivo apontado NAO e a pasta de
+                // instalacao do programa — e inferi-la seria perigoso: a
+                // desinstalacao forcada de "%LOCALAPPDATA%\Temp\app.exe"
+                // removeria a pasta Temp inteira, com tudo o que o usuario
+                // tem la dentro. O alvo apontado e o unico item garantido;
+                // a pasta aparece na lista pela varredura, sem confianca
+                // suficiente para ser removida sozinha.
+                installLocation = string.Empty;
             }
         }
         catch { return new List<LeftoverItem>(); }
@@ -466,10 +493,14 @@ public static class LeftoverScanner
             InstallLocation = installLocation,
         };
 
-        var items = new List<LeftoverItem>(Scan(synthetic, mode, checkAllLeftovers));
+        // O proprio alvo informado entra PRIMEIRO na lista: e o item que o
+        // usuario mandou remover, e ele vem marcado. Entrando depois, a
+        // deduplicacao preferiria a ocorrencia fraca da varredura — a mesma
+        // pasta achada pelo nome, com confianca baixa — e a desinstalacao
+        // forcada terminaria sem remover o alvo. (A protecao contra pastas de
+        // sistema continua valendo em UninstallEngine.RemoveLeftovers.)
+        var items = new List<LeftoverItem>();
 
-        // O proprio alvo informado entra na lista (a protecao contra pastas de
-        // sistema continua valendo em UninstallEngine.RemoveLeftovers).
         try
         {
             if (Directory.Exists(full))
@@ -497,24 +528,47 @@ public static class LeftoverScanner
         }
         catch { }
 
+        items.AddRange(Scan(synthetic, options));
+
         var result = Deduplicate(items);
 
         // O alvo informado ja entra marcado; a opcao "marcar todos" garante
         // que os itens achados pelo nome tambem venham marcados.
-        if (checkAllLeftovers)
+        if (options.CheckAllLeftovers)
         {
-            foreach (var item in result) item.Selected = true;
+            foreach (var item in result)
+            {
+                if (item.OtherAccount && !options.SelectOtherAccountItems) continue;
+                item.Selected = true;
+            }
         }
 
-        return result;
+        // Um alvo que esteja na lista de exclusoes nao aparece e nao pode ser
+        // removido: a protecao vale mesmo quando o caminho foi digitado a mao.
+        return ExcludeList.Current.ApplyTo(result);
     }
 
-    /// <summary>Deduplica por tipo + caminho canonico.</summary>
+    /// <summary>
+    /// Deduplica por tipo + caminho canonico.
+    ///
+    /// O mesmo item pode ser descoberto por caminhos diferentes: a pasta de
+    /// instalacao tambem casa com o nome do programa, e o alvo informado de
+    /// uma desinstalacao forcada tambem aparece na varredura pelo nome.
+    /// Vale a ocorrencia mais forte — a marcada e de alta confianca.
+    ///
+    /// Sem esta regra a desinstalacao forcada do proprio alvo terminava sem
+    /// remover nada: a lista devolvia a ocorrencia fraca (achada pelo nome,
+    /// desmarcada) e descartava a forte, que e a que o usuario mandou
+    /// remover.
+    /// </summary>
     private static List<LeftoverItem> Deduplicate(IEnumerable<LeftoverItem> items) =>
         items
             .Where(i => !string.IsNullOrWhiteSpace(i.Path))
             .GroupBy(i => i.Kind + "|" + PathUtil.Normalize(i.Path), StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.First())
+            .Select(g => g
+                .OrderByDescending(i => i.Selected)
+                .ThenBy(i => i.Confidence)
+                .First())
             .ToList();
 
     /// <summary>Pastas candidatas: a registrada e a pasta do executavel de desinstalacao.</summary>
@@ -540,91 +594,136 @@ public static class LeftoverScanner
             .Distinct(StringComparer.OrdinalIgnoreCase);
     }
 
-    private static void ScanRegistry(string variant, UninstallMode mode, List<LeftoverItem> items)
+    /// <summary>
+    /// Uma arvore de registro a varrer.
+    ///
+    /// As contas do Windows entram como alvos proprios: as chaves de um
+    /// usuario que nao e o atual nao ficam em HKEY_CURRENT_USER, e sim em
+    /// HKEY_USERS com o SID da conta.
+    /// </summary>
+    private readonly record struct RegistryTarget(
+        RegistryHive Hive, RegistryView View, string Sid, bool OtherAccount)
     {
-        // 1) Chaves de desinstalacao: o NOME da chave e um GUID, entao o casamento
-        //    precisa ser pelo valor DisplayName dentro dela.
-        foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+        /// <summary>Caminho do subcaminho dentro do hive.</summary>
+        public string SubPath(string root) => OtherAccount ? $@"{Sid}\{root}" : root;
+
+        /// <summary>Caminho canonico do item, como exibido pelo regedit.</summary>
+        public string CanonicalPath(string root, string name) =>
+            OtherAccount
+                ? $@"HKEY_USERS\{Sid}\{root}\{name}"
+                : CanonicalRegistryPath(Hive, root, name, View);
+    }
+
+    /// <summary>
+    /// Regra de marcacao: confianca alta vem marcada. Itens de outra conta do
+    /// Windows so vem marcados quando o usuario pediu para desinstalar de todas
+    /// as contas.
+    /// </summary>
+    private static bool Selects(
+        LeftoverConfidence confidence, LeftoverScanOptions options, bool otherAccount) =>
+        confidence == LeftoverConfidence.High && (!otherAccount || options.SelectOtherAccountItems);
+
+    private static void ScanRegistry(string variant, LeftoverScanOptions options, List<LeftoverItem> items)
+    {
+        var targets = new List<RegistryTarget>
         {
-            foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+            new(RegistryHive.LocalMachine, RegistryView.Registry64, string.Empty, false),
+            new(RegistryHive.LocalMachine, RegistryView.Registry32, string.Empty, false),
+            new(RegistryHive.CurrentUser, RegistryView.Registry64, string.Empty, false),
+            new(RegistryHive.CurrentUser, RegistryView.Registry32, string.Empty, false),
+        };
+
+        // As outras contas do Windows so entram quando a varredura em todas as
+        // contas esta ligada — e apenas as contas com o hive carregado, que
+        // sao as unicas cujas chaves existem de fato no momento.
+        if (options.ScanAllUserAccounts)
+        {
+            foreach (var profile in UserProfiles.Others())
             {
-                foreach (var root in UninstallRoots)
+                if (!profile.IsLoaded) continue;
+                targets.Add(new RegistryTarget(
+                    RegistryHive.Users, RegistryView.Default, profile.Sid, true));
+            }
+        }
+
+        foreach (var target in targets)
+        {
+            // 1) Chaves de desinstalacao: o NOME da chave e um GUID, entao o casamento
+            //    precisa ser pelo valor DisplayName dentro dela.
+            foreach (var root in UninstallRoots)
+            {
+                try
                 {
-                    try
+                    using var baseKey = RegistryKey.OpenBaseKey(target.Hive, target.View);
+                    using var key = baseKey.OpenSubKey(target.SubPath(root));
+                    if (key is null) continue;
+
+                    foreach (var name in key.GetSubKeyNames())
                     {
-                        using var baseKey = RegistryKey.OpenBaseKey(hive, view);
-                        using var key = baseKey.OpenSubKey(root);
-                        if (key is null) continue;
+                        using var sub = key.OpenSubKey(name);
+                        if (sub is null) continue;
+                        var display = sub.GetValue("DisplayName")?.ToString();
+                        if (display is null || !NameMatch.ContainsWord(display, variant)) continue;
 
-                        foreach (var name in key.GetSubKeyNames())
+                        // A chave de desinstalacao e evidencia forte, mas o
+                        // nome precisa ser o do programa: "Steam Client"
+                        // casa com "Steam" e e um produto diferente. Com
+                        // nome exato, a confianca e alta e o item entra
+                        // marcado; caso contrario, fica apenas listado.
+                        var confidence = ConfidenceFor(display.Trim(), variant);
+
+                        items.Add(new LeftoverItem
                         {
-                            using var sub = key.OpenSubKey(name);
-                            if (sub is null) continue;
-                            var display = sub.GetValue("DisplayName")?.ToString();
-                            if (display is null || !NameMatch.ContainsWord(display, variant)) continue;
-
-                            // A chave de desinstalacao e evidencia forte, mas o
-                            // nome precisa ser o do programa: "Steam Client"
-                            // casa com "Steam" e e um produto diferente. Com
-                            // nome exato, a confianca e alta e o item entra
-                            // marcado; caso contrario, fica apenas listado.
-                            var confidence = ConfidenceFor(display.Trim(), variant);
-
-                            items.Add(new LeftoverItem
-                            {
-                                Kind = "Registro",
-                                Path = CanonicalRegistryPath(hive, root, name, view),
-                                Detail = display,
-                                Confidence = confidence,
-                                Selected = confidence == LeftoverConfidence.High,
-                            });
-                        }
+                            Kind = "Registro",
+                            Path = target.CanonicalPath(root, name),
+                            Detail = display,
+                            Confidence = confidence,
+                            Selected = Selects(confidence, options, target.OtherAccount),
+                            OtherAccount = target.OtherAccount,
+                        });
                     }
-                    catch { }
                 }
+                catch { }
             }
         }
 
         // 2) Demais arvores: casamento pelo NOME da chave (evita varrer todo valor).
         //    No nivel Advanced tambem se olha o segundo nivel, onde ficam as chaves
         //    do proprio programa (ex.: SOFTWARE\VS Revo Group\Revo Uninstaller Pro).
-        foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
+        foreach (var target in targets)
         {
-            foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+            foreach (var root in NameRoots)
             {
-                foreach (var root in NameRoots)
+                try
                 {
-                    try
+                    using var baseKey = RegistryKey.OpenBaseKey(target.Hive, target.View);
+                    using var key = baseKey.OpenSubKey(target.SubPath(root));
+                    if (key is null) continue;
+
+                    foreach (var name in key.GetSubKeyNames())
                     {
-                        using var baseKey = RegistryKey.OpenBaseKey(hive, view);
-                        using var key = baseKey.OpenSubKey(root);
-                        if (key is null) continue;
+                        if (NameMatch.ContainsWord(name, variant))
+                            AddRegistryItem(target, root, name, items, name,
+                                ConfidenceFor(name, variant), options);
 
-                        foreach (var name in key.GetSubKeyNames())
+                        if (options.Mode != UninstallMode.Advanced) continue;
+
+                        try
                         {
-                            if (NameMatch.ContainsWord(name, variant))
-                                AddRegistryItem(hive, root, name, view, items, name,
-                                    ConfidenceFor(name, variant));
+                            using var vendor = key.OpenSubKey(name);
+                            if (vendor is null) continue;
 
-                            if (mode != UninstallMode.Advanced) continue;
-
-                            try
+                            foreach (var child in vendor.GetSubKeyNames())
                             {
-                                using var vendor = key.OpenSubKey(name);
-                                if (vendor is null) continue;
-
-                                foreach (var child in vendor.GetSubKeyNames())
-                                {
-                                    if (!NameMatch.ContainsWord(child, variant)) continue;
-                                    AddRegistryItem(hive, root, $@"{name}\{child}", view, items, child,
-                                        LeftoverConfidence.Low);
-                                }
+                                if (!NameMatch.ContainsWord(child, variant)) continue;
+                                AddRegistryItem(target, root, $@"{name}\{child}", items, child,
+                                    LeftoverConfidence.Low, options);
                             }
-                            catch { }
                         }
+                        catch { }
                     }
-                    catch { }
                 }
+                catch { }
             }
         }
     }
@@ -638,11 +737,11 @@ public static class LeftoverScanner
             ? LeftoverConfidence.High
             : LeftoverConfidence.Medium;
 
-    private static void AddRegistryItem(RegistryHive hive, string root, string relativePath,
-        RegistryView view, List<LeftoverItem> items, string detail,
-        LeftoverConfidence confidence)
+    private static void AddRegistryItem(RegistryTarget target, string root, string relativePath,
+        List<LeftoverItem> items, string detail, LeftoverConfidence confidence,
+        LeftoverScanOptions options)
     {
-        var path = CanonicalRegistryPath(hive, root, relativePath, view);
+        var path = target.CanonicalPath(root, relativePath);
         if (SafetyRules.IsProtectedRegistryKey(path)) return;
 
         items.Add(new LeftoverItem
@@ -651,7 +750,8 @@ public static class LeftoverScanner
             Path = path,
             Detail = detail,
             Confidence = confidence,
-            Selected = confidence == LeftoverConfidence.High,
+            Selected = Selects(confidence, options, target.OtherAccount),
+            OtherAccount = target.OtherAccount,
         });
     }
 
@@ -675,13 +775,34 @@ public static class LeftoverScanner
         return $@"{SafetyRules.HiveName(hive)}\{root}\{name}";
     }
 
-    private static void ScanFolders(string variant, UninstallMode mode, List<LeftoverItem> items)
+    private static void ScanFolders(string variant, LeftoverScanOptions options, List<LeftoverItem> items)
     {
-        var roots = mode == UninstallMode.Advanced
+        // Cada raiz sabe de qual conta ela vem: as pastas das outras contas
+        // do Windows nao podem receber a mesma marcacao das pastas da conta
+        // atual.
+        var roots = new List<(string Path, bool OtherAccount)>();
+
+        var baseRoots = options.Mode == UninstallMode.Advanced
             ? FolderRoots
             : FolderRoots.Take(4).ToArray();
 
-        foreach (var root in roots)
+        foreach (var root in baseRoots)
+            roots.Add((root, false));
+
+        // As pastas das outras contas do Windows: o AppData de cada perfil.
+        if (options.ScanAllUserAccounts)
+        {
+            foreach (var profile in UserProfiles.Others())
+            {
+                if (string.IsNullOrWhiteSpace(profile.LocalPath)) continue;
+
+                roots.Add((Path.Combine(profile.LocalPath, "AppData", "Local"), true));
+                roots.Add((Path.Combine(profile.LocalPath, "AppData", "Roaming"), true));
+                roots.Add((Path.Combine(profile.LocalPath, "AppData", "LocalLow"), true));
+            }
+        }
+
+        foreach (var (root, otherAccount) in roots)
         {
             if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root)) continue;
             try
@@ -691,20 +812,20 @@ public static class LeftoverScanner
                     var name = Path.GetFileName(dir);
                     if (NameMatch.StartsWithWord(name, variant))
                     {
-                        AddFolderItem(dir, items, ConfidenceFor(name, variant));
+                        AddFolderItem(dir, items, ConfidenceFor(name, variant), options, otherAccount);
                         continue;
                     }
 
                     // No modo Advanced o segundo nivel guarda a pasta real do programa
                     // (ex.: %LOCALAPPDATA%\VS Revo Group\Revo Uninstaller Pro).
-                    if (mode != UninstallMode.Advanced) continue;
+                    if (options.Mode != UninstallMode.Advanced) continue;
 
                     try
                     {
                         foreach (var sub in Directory.EnumerateDirectories(dir, "*", SearchOption.TopDirectoryOnly))
                         {
                             if (NameMatch.StartsWithWord(Path.GetFileName(sub), variant))
-                                AddFolderItem(sub, items, LeftoverConfidence.Low);
+                                AddFolderItem(sub, items, LeftoverConfidence.Low, options, otherAccount);
                         }
                     }
                     catch { }
@@ -714,7 +835,8 @@ public static class LeftoverScanner
         }
     }
 
-    private static void AddFolderItem(string dir, List<LeftoverItem> items, LeftoverConfidence confidence)
+    private static void AddFolderItem(string dir, List<LeftoverItem> items, LeftoverConfidence confidence,
+        LeftoverScanOptions options, bool otherAccount)
     {
         var full = PathUtil.Normalize(dir);
         if (SafetyRules.IsProtectedFolder(full)) return;
@@ -725,7 +847,8 @@ public static class LeftoverScanner
             Path = full,
             Detail = $"{ProgramScanner.MeasureFolder(dir) / 1024 / 1024} MB",
             Confidence = confidence,
-            Selected = confidence == LeftoverConfidence.High,
+            Selected = Selects(confidence, options, otherAccount),
+            OtherAccount = otherAccount,
         });
     }
 }
@@ -950,7 +1073,37 @@ public static class UninstallEngine
     /// </summary>
     /// <param name="items">Todos os itens encontrados; apenas os marcados sao removidos.</param>
     /// <param name="options">Opcoes da remocao. Quando nulo, usa <see cref="UninstallRemovalOptions.Default"/>.</param>
-    public static RemovalReport RemoveLeftovers(IEnumerable<LeftoverItem> items, UninstallRemovalOptions? options = null)
+    /// <summary>
+    /// Cria o backup completo do registro, quando a operacao pede por ele.
+    ///
+    /// Deve ser chamada ANTES do desinstalador nativo: depois dele, o
+    /// desinstalador do proprio programa ja apagou as chaves dele, e o .reg
+    /// resultante nao serviria para devolver nada. E o contrato do original:
+    /// "Make a System Restore Point and a full Registry backup before
+    /// uninstalling" (15162).
+    ///
+    /// O backup nao depende de haver sobras a remover: no modo "Somente" ele
+    /// tambem e criado, porque e o backup do programa que vai ser
+    /// desinstalado, nao das sobras.
+    /// </summary>
+    public static FullRegistryBackupResult? PrepareFullRegistryBackup(UninstallRemovalOptions options) =>
+        options.FullRegistryBackup ? FullRegistryBackup.Create() : null;
+
+    /// <summary>
+    /// Remove as sobras marcadas.
+    ///
+    /// O backup completo do registro NAO e criado aqui: ele precisa existir
+    /// antes do desinstalador nativo, e nao antes da remocao das sobras. Quem
+    /// o cria (o assistente e a CLI) passa o resultado em
+    /// <paramref name="fullRegistryBackup"/>.
+    /// </summary>
+    /// <param name="items">Sobras a remover.</param>
+    /// <param name="options">Opcoes da operacao.</param>
+    /// <param name="fullRegistryBackup">Backup completo ja criado, se houver.</param>
+    public static RemovalReport RemoveLeftovers(
+        IEnumerable<LeftoverItem> items,
+        UninstallRemovalOptions? options = null,
+        FullRegistryBackupResult? fullRegistryBackup = null)
     {
         var opts = options ?? UninstallRemovalOptions.Default;
         var selected = items.Where(i => i.Selected).ToList();
@@ -965,12 +1118,293 @@ public static class UninstallEngine
             point = CreateRestorePoint(selected, opts);
         }
 
+        // O backup completo do registro foi criado ANTES do desinstalador
+        // nativo (e nao aqui): o que chega e o resultado ja pronto.
+        var full = fullRegistryBackup;
+
+        // Encerrar os executaveis do programa: um arquivo em uso nao pode ser
+        // apagado, e o Revo oferece "Kill the Process and Continue" (15125).
+        //
+        // A lista de exclusoes protege ate aqui: encerrar o processo de um
+        // item protegido seria tocar no item protegido. O item continua na
+        // lista e o motor o recusa na remocao — mas o processo nao pode ser
+        // encerrado por baixo dos panos.
+        if (opts.KillRunningProcesses && selected.Count > 0)
+        {
+            var killable = selected
+                .Where(i => !ExcludeList.Current.Contains(i.Kind, i.Path))
+                .ToList();
+
+            outcomes.AddRange(KillRunningProcesses(killable));
+        }
+
         foreach (var item in selected)
         {
             outcomes.Add(RemoveOne(item, opts));
         }
 
-        return new RemovalReport(outcomes) { RestorePointId = point?.Id };
+        return new RemovalReport(outcomes)
+        {
+            RestorePointId = point?.Id,
+            FullRegistryBackupPath = full?.Directory ?? string.Empty,
+            FullRegistryBackupOk = full?.Success ?? false,
+        };
+    }
+
+    /// <summary>
+    /// True quando a pasta — ou alguma subpasta dela — contém item protegido
+    /// pela lista de exclusões.
+    ///
+    /// Sem esta conferida, excluir um ARQUIVO dentro de uma pasta não
+    /// protegeria nada: a remoção da pasta levaria o arquivo junto.
+    ///
+    /// Atalhos (junction, symlink) não são percorridos: o alvo deles está
+    /// fora da pasta removida e não participa do que o usuário mandou
+    /// remover.
+    /// </summary>
+    private static bool HasProtectedDescendant(string folder)
+    {
+        // A raiz e um atalho: o alvo esta fora da pasta e nao participa do
+        // que o usuario mandou remover.
+        if (SafeTraversal.IsReparsePoint(folder)) return false;
+
+        foreach (var file in EnumerateFilesSafe(folder))
+        {
+            if (ExcludeList.Current.ContainsPath(file)) return true;
+        }
+
+        foreach (var dir in EnumerateDirectoriesSafe(folder))
+        {
+            if (ExcludeList.Current.ContainsPath(dir)) return true;
+            if (SafeTraversal.IsReparsePoint(dir)) continue;
+            if (HasProtectedDescendant(dir)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Como um item dentro de uma pasta removida item a item terminou.
+    /// </summary>
+    private enum ItemRemoval
+    {
+        /// <summary>O item saiu do disco.</summary>
+        Removed,
+
+        /// <summary>O item está em uso e foi agendado para o próximo reinício.</summary>
+        Deferred,
+
+        /// <summary>O item não pôde ser removido agora.</summary>
+        Failed,
+    }
+
+    /// <summary>
+    /// Resumo do que a remoção granular do conteúdo de uma pasta conseguiu.
+    /// </summary>
+    private readonly record struct FolderContent(int Removed, int Protected, int Failed, int Deferred);
+
+    /// <summary>
+    /// Remove o conteúdo de uma pasta item a item, preservando o que a lista
+    /// de exclusões protege.
+    ///
+    /// A pasta em si só é removida quando ela fica vazia: havendo conteúdo
+    /// protegido (ou item que não pode ser apagado agora), ela permanece.
+    ///
+    /// Atalhos (junction, symlink) nunca são atravessados: o alvo está fora
+    /// da pasta removida, e apagar arquivo alheio seria perda de dados não
+    /// pedida. O link é removido como link — só ele.
+    /// </summary>
+    private static FolderContent RemoveFolderContent(string folder, UninstallRemovalOptions options)
+    {
+        // A raiz e um atalho: o conteudo do alvo nao e da pasta, e nao se
+        // toca nele.
+        if (SafeTraversal.IsReparsePoint(folder)) return new FolderContent(0, 0, 0, 0);
+
+        var removed = 0;
+        var protectedKept = 0;
+        var failed = 0;
+        var deferred = 0;
+
+        foreach (var file in EnumerateFilesSafe(folder))
+        {
+            if (ExcludeList.Current.ContainsPath(file))
+            {
+                protectedKept++;
+                continue;
+            }
+
+            switch (RemoveFileSafely(file, options))
+            {
+                case ItemRemoval.Removed: removed++; break;
+                case ItemRemoval.Deferred: deferred++; break;
+                default: failed++; break;
+            }
+        }
+
+        foreach (var dir in EnumerateDirectoriesSafe(folder))
+        {
+            if (ExcludeList.Current.ContainsPath(dir))
+            {
+                protectedKept++;
+                continue;
+            }
+
+            // Atalho: remove-se o link, nunca o alvo.
+            if (SafeTraversal.IsReparsePoint(dir))
+            {
+                switch (RemoveLinkSafely(dir, options))
+                {
+                    case ItemRemoval.Removed: removed++; break;
+                    case ItemRemoval.Deferred: deferred++; break;
+                    default: failed++; break;
+                }
+                continue;
+            }
+
+            var sub = RemoveFolderContent(dir, options);
+            removed += sub.Removed;
+            protectedKept += sub.Protected;
+            failed += sub.Failed;
+            deferred += sub.Deferred;
+        }
+
+        // A pasta em si só sai quando não sobrou nada dentro dela.
+        if (protectedKept == 0 && failed == 0 && deferred == 0)
+        {
+            try { Directory.Delete(folder, recursive: false); }
+            catch { /* a pasta não ficou vazia: ela permanece */ }
+        }
+
+        return new FolderContent(removed, protectedKept, failed, deferred);
+    }
+
+    /// <summary>
+    /// Remove um arquivo de dentro de uma pasta, enviando-o para a Lixeira
+    /// quando o usuário pediu isso.
+    /// </summary>
+    private static ItemRemoval RemoveFileSafely(string file, UninstallRemovalOptions options)
+    {
+        try
+        {
+            // Atalho de arquivo: apagar remove o link, nunca o alvo. Ele
+            // também não vai para a Lixeira — a Lixeira moveria o conteúdo
+            // do alvo junto.
+            if (SafeTraversal.IsReparsePoint(file))
+            {
+                File.Delete(file);
+                return ItemRemoval.Removed;
+            }
+
+            if (options.UseRecycleBin && RecycleBin.CanAccept(file) && RecycleBin.Send(file))
+                return ItemRemoval.Removed;
+
+            File.Delete(file);
+            return ItemRemoval.Removed;
+        }
+        catch
+        {
+            // Em uso ou sem permissão: a fila de remoção pendente do Windows
+            // resolve no próximo reinício, como o Revo avisa.
+            if (options.DeferToNextRestart && DeferredDelete.Schedule(file))
+                return ItemRemoval.Deferred;
+
+            return ItemRemoval.Failed;
+        }
+    }
+
+    /// <summary>
+    /// Remove um atalho de pasta sem tocar no alvo.
+    /// </summary>
+    private static ItemRemoval RemoveLinkSafely(string dir, UninstallRemovalOptions options)
+    {
+        try
+        {
+            Directory.Delete(dir, recursive: false);
+            return ItemRemoval.Removed;
+        }
+        catch
+        {
+            if (options.DeferToNextRestart && DeferredDelete.Schedule(dir))
+                return ItemRemoval.Deferred;
+
+            return ItemRemoval.Failed;
+        }
+    }
+
+    /// <summary>Arquivos de uma pasta, sem falhar quando um deles está inacessível.</summary>
+    private static IEnumerable<string> EnumerateFilesSafe(string folder)
+    {
+        try
+        {
+            return Directory.EnumerateFiles(folder, "*", SearchOption.TopDirectoryOnly).ToList();
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
+    }
+
+    /// <summary>Subpastas de uma pasta, sem falhar quando uma delas está inacessível.</summary>
+    private static IEnumerable<string> EnumerateDirectoriesSafe(string folder)
+    {
+        try
+        {
+            return Directory.EnumerateDirectories(folder, "*", SearchOption.TopDirectoryOnly).ToList();
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
+    }
+
+    /// <summary>
+    /// Encerra os processos que estao rodando a partir dos arquivos e pastas
+    /// que serao removidos.
+    /// </summary>
+    private static IEnumerable<RemovalOutcome> KillRunningProcesses(List<LeftoverItem> selected)
+    {
+        var folders = selected
+            .Where(i => i.Kind == "Pasta")
+            .Select(i => PathUtil.Normalize(i.Path))
+            .Where(p => p.Length > 0)
+            .ToList();
+
+        var files = selected
+            .Where(i => i.Kind == "Arquivo")
+            .Select(i => PathUtil.Normalize(i.Path))
+            .Where(p => p.Length > 0)
+            .ToList();
+
+        var processes = ProcessTerminator.FindUnder(folders);
+        if (files.Count > 0)
+            processes = processes
+                .Concat(ProcessTerminator.FindExact(files))
+                .DistinctBy(p => p.ProcessId)
+                .ToList();
+
+        // Um processo que roda a partir de um item protegido nao e encerrado:
+        // encerrar o processo seria tocar no item protegido tanto quanto
+        // apagar o arquivo.
+        processes = processes
+            .Where(p => !ExcludeList.Current.ContainsPath(p.ExecutablePath))
+            .ToList();
+
+        foreach (var termination in ProcessTerminator.Terminate(processes))
+        {
+            yield return new RemovalOutcome
+            {
+                Item = new LeftoverItem
+                {
+                    Kind = "Processo",
+                    Path = termination.Process.ExecutablePath,
+                    Detail = termination.Process.ProcessName,
+                },
+                Status = termination.Terminated ? RemovalStatus.Removed : RemovalStatus.Failed,
+                Message = termination.Terminated
+                    ? $"processo {termination.Process.ProcessName} encerrado"
+                    : $"não foi possível encerrar o processo {termination.Process.ProcessName}: {termination.Message}",
+            };
+        }
     }
 
     /// <summary>
@@ -993,6 +1427,11 @@ public static class UninstallEngine
 
             foreach (var item in selected)
             {
+                // Item na lista de exclusoes nunca e removido — logo, nunca e
+                // copiado. Sem esta checagem, um backup guardaria justamente o
+                // que o usuario mandou proteger.
+                if (ExcludeList.Current.Contains(item.Kind, item.Path)) continue;
+
                 // Item protegido nunca e removido — logo, nunca e copiado.
                 // Sem esta checagem, uma varredura forçada sobre uma pasta de
                 // sistema colocaria o System32 inteiro no backup.
@@ -1025,6 +1464,13 @@ public static class UninstallEngine
     {
         try
         {
+            // Guarda final da lista de exclusoes. A varredura ja esconde os
+            // itens excluidos, mas o item pode chegar marcado por outro
+            // caminho (uma marcacao antiga, um item vindo de outra tela). A
+            // lista de exclusoes e a ultima palavra: o item nao e removido.
+            if (ExcludeList.Current.Contains(item.Kind, item.Path))
+                return Fail(item, RemovalStatus.Protected, "item na lista de exclusões");
+
             switch (item.Kind)
             {
                 case "Pasta":
@@ -1036,13 +1482,85 @@ public static class UninstallEngine
                     if (!Directory.Exists(full))
                         return new RemovalOutcome { Item = item, Status = RemovalStatus.AlreadyAbsent, Message = "já não existia" };
 
+                    // O proprio item e um atalho (junction, symlink): o alvo
+                    // esta fora da pasta que o usuario mandou remover. Remove-se
+                    // o link e nada mais — enumerar a raiz devolveria os
+                    // arquivos do alvo, e a remocao apagaria conteudo de fora
+                    // do escopo (e burlaria a lista de exclusoes).
+                    if (SafeTraversal.IsReparsePoint(full))
+                    {
+                        try
+                        {
+                            Directory.Delete(full, recursive: false);
+                            return new RemovalOutcome
+                            {
+                                Item = item,
+                                Status = RemovalStatus.Removed,
+                                Message = "removido o atalho (o destino do link não foi tocado)",
+                            };
+                        }
+                        catch (Exception inner)
+                        {
+                            if (options.DeferToNextRestart && DeferredDelete.Schedule(full))
+                                return new RemovalOutcome
+                                {
+                                    Item = item,
+                                    Status = RemovalStatus.Deferred,
+                                    Message = "atalho agendado para o próximo reinício do sistema",
+                                };
+
+                            return Fail(item, RemovalStatus.Failed, inner.Message);
+                        }
+                    }
+
+                    // A remoção recursiva "cega" (Directory.Delete) e o envio da
+                    // pasta inteira para a Lixeira levariam junto os arquivos
+                    // que o usuário mandou proteger — e proteger é a única razão
+                    // de a lista existir. Havendo item protegido dentro da
+                    // pasta, o conteúdo sai item a item e a pasta em si
+                    // permanece.
+                    if (HasProtectedDescendant(full))
+                    {
+                        var content = RemoveFolderContent(full, options);
+
+                        // Nada aqui fica em silêncio: o que saiu, o que ficou
+                        // protegido, o que falhou e o que foi adiado para o
+                        // próximo reinício aparecem todos no relatório.
+                        var details = new List<string>();
+                        if (content.Removed > 0) details.Add($"{content.Removed} item(ns) removido(s) dentro dela");
+                        if (content.Protected > 0) details.Add($"{content.Protected} item(ns) protegido(s) mantido(s)");
+                        if (content.Failed > 0) details.Add($"{content.Failed} item(ns) não puderam ser removidos");
+                        if (content.Deferred > 0) details.Add($"{content.Deferred} item(ns) adiado(s) para o próximo reinício");
+
+                        var status = content.Protected > 0 ? RemovalStatus.Protected
+                            : content.Failed > 0 ? RemovalStatus.Failed
+                            : content.Deferred > 0 ? RemovalStatus.Deferred
+                            : RemovalStatus.Removed;
+
+                        return new RemovalOutcome
+                        {
+                            Item = item,
+                            Status = status,
+                            Message = status == RemovalStatus.Removed
+                                ? "removida"
+                                : "permaneceu: " + string.Join(", ", details),
+                            RemovedInside = content.Removed,
+                            ProtectedInside = content.Protected,
+                            FailedInside = content.Failed,
+                            DeferredInside = content.Deferred,
+                        };
+                    }
+
                     // O Revo Pro envia as sobras de arquivos para a Lixeira.
                     if (options.UseRecycleBin && RecycleBin.CanAccept(full) && RecycleBin.Send(full))
                         return new RemovalOutcome { Item = item, Status = RemovalStatus.Removed, Message = "enviada para a Lixeira" };
 
                     try
                     {
-                        Directory.Delete(full, true);
+                        // A remoção percorre a árvore sem atravessar atalho:
+                        // o alvo de um junction está fora da pasta e não
+                        // pode ser apagado junto.
+                        SafeTraversal.DeleteDirectoryTree(full);
                         return new RemovalOutcome { Item = item, Status = RemovalStatus.Removed, Message = "removida" };
                     }
                     catch (Exception inner)
@@ -1069,7 +1587,12 @@ public static class UninstallEngine
                     if (!File.Exists(full))
                         return new RemovalOutcome { Item = item, Status = RemovalStatus.AlreadyAbsent, Message = "já não existia" };
 
-                    if (options.UseRecycleBin && RecycleBin.CanAccept(full) && RecycleBin.Send(full))
+                    // Atalho de arquivo: apagar remove o link, nunca o alvo.
+                    // Ele também não vai para a Lixeira — a Lixeira moveria o
+                    // conteúdo do alvo junto.
+                    var isLink = SafeTraversal.IsReparsePoint(full);
+
+                    if (!isLink && options.UseRecycleBin && RecycleBin.CanAccept(full) && RecycleBin.Send(full))
                         return new RemovalOutcome { Item = item, Status = RemovalStatus.Removed, Message = "enviado para a Lixeira" };
 
                     try

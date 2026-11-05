@@ -104,6 +104,12 @@
         <CheckBox x:Name="CheckAllLeftoversCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.CheckAllLeftovers}"
                   AutomationProperties.AutomationId="OptCheckAllLeftovers" />
+        <CheckBox x:Name="ForciblyStopExecutablesCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ForciblyStopRunningExecutables}"
+                  AutomationProperties.AutomationId="OptForciblyStopExecutables" />
+        <CheckBox x:Name="ShowScanAllAccountsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowScanAllAccountsOption}"
+                  AutomationProperties.AutomationId="OptShowScanAllAccounts" />
 
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />

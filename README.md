@@ -181,7 +181,7 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 | Elevação `requireAdministrator` na GUI | ✅ (manifesto verificado no publish) |
 | **Temas claro / escuro** com troca em runtime | ✅ (verificado nos dois sentidos) |
 | **48 idiomas** no seletor (mesmos do Revo) | ✅ catálogo completo |
-| **Tradução de 2 idiomas** (pt-BR, en-US, 480 chaves cada) | ✅ os outros 46 com fallback honesto |
+| **Tradução de 2 idiomas** (pt-BR, en-US, 546 chaves cada) | ✅ os outros 46 com fallback honesto |
 | **Filtros** por tipo / tamanho / unidade | ✅ |
 | Menu "Mais Comandos" completo + menu principal (Opções / Tema / Idioma / Sair) | ✅ |
 | **Janela Principal Flutuante** (overlay arrastável sobre janela/ícone/barra de tarefas) | ✅ |
@@ -200,7 +200,12 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 | **Ferramenta Otimizador de Registro** (entradas obsoletas do Menu Iniciar) | ✅ |
 | **Ferramenta Removedor de Evidências** | ✅ |
 | **Ferramenta Exclusão Irrecuperável** | ✅ |
-| CLI do app gráfico (`/mu`, `/scan`, `/mode`, `/backup`, `/export`, `/wa`, `/be`, `/autorun`, `/tools`, `/hunter`, `/lang`, `/theme`, `/new`, `--uninstall-target`) | ✅ |
+| **Lista de exclusões** (pastas, arquivos e chaves que o Tranal nunca toca) | ✅ gerenciador próprio + `/exclude` na CLI |
+| **Encerrar os executáveis em execução** antes de remover os arquivos deles | ✅ |
+| **Varredura em todas as contas do Windows** (outros perfis do `ProfileList`) | ✅ (itens de outra conta não vêm marcados) |
+| **Backup completo do registro** (todos os hives em `.reg` + script de restauração) | ✅ antes de qualquer remoção |
+| **Remoção que nunca atravessa atalho** (junction, symlink, ponto de montagem) | ✅ o alvo do link fica intacto |
+| CLI do app gráfico (`/mu`, `/scan`, `/mode`, `/backup`, `/export`, `/wa`, `/be`, `/autorun`, `/tools`, `/hunter`, `/lang`, `/theme`, `/new`, `/exclude`, `--uninstall-target`) | ✅ |
 
 O mapa completo de paridade, seção a seção do produto original, está em
 [`docs/PARIDADE.md`](docs/PARIDADE.md). A especificação que serviu de base está em
@@ -215,11 +220,15 @@ desativar o histórico, atalhos de páginas web, modo avançado, atualização a
 adiamento para o próximo reinício, backup antes de remover, pasta de dados portátil, carregamento
 rápido e mecanismo de busca na web.
 
+A lista de exclusões mora em um arquivo próprio,
+`%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\exclude-list.json`, e é editada tanto pela
+janela do gerenciador quanto pela CLI (`/exclude`).
+
 ---
 
 ## Testes
 
-`src/Tranal.Tests` (xUnit): **106 testes, todos verdes**.
+`src/Tranal.Tests` (xUnit): **211 testes, todos verdes**.
 
 Incluem verificações adversariais que valem mais que cobertura de linha:
 
@@ -251,7 +260,7 @@ tranal-uninstaller/
 │   │   ├── App.xaml(.cs)            # catálogo de temas + estilos
 │   │   ├── Themes/                  # Dark.xaml, Light.xaml (cores) + Styles.xaml (estilos)
 │   │   ├── Theming/ThemeManager.cs  # troca de tema em runtime
-│   │   ├── Lang/                    # pt-BR.json, en-US.json (480 chaves cada)
+│   │   ├── Lang/                    # pt-BR.json, en-US.json (546 chaves cada)
 │   │   ├── Ui/                      # painel genérico, assistente, backups, ferramentas, módulos
 │   │   └── Core/                    # scanner, exportadores, backup, sobras, ferramentas, módulos
 │   ├── Tranal.Cli/                  # tranal.exe (CLI)

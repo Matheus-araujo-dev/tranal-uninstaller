@@ -47,6 +47,92 @@ O original tem quatro modos. No Tranal eles são **um único enum**
 | Item em uso | "will be deleted during the next system restart" | `DeferredDelete.Schedule` (`MoveFileEx` + `MOVEFILE_DELAY_UNTIL_REBOOT`) |
 | Itens em negrito | "Only checked bolded items and their subitems will be deleted" | `LeftoverConfidence.High` é o único que vem marcado |
 
+### Lote 1 — segurança e alcance da desinstalação (strings 15102, 15125–15126, 15162–15166, 15265, 15307–15309, 15315–15317, 15345, 15352–15353)
+
+Funcionalidades levantadas no inventário do original e levadas ao Tranal:
+
+| Recurso do original | Strings | Tranal | Onde |
+|---|---|---|---|
+| "Add to Exclude List" | 15102 | "Adicionar à lista de exclusões" no menu de contexto da lista de sobras | `Core/ExcludeList.cs`, `Ui/UninstallWizardWindow.*` |
+| "Files and Folders to Exclude" / "Folder to exclude" | 15315–15316 | Gerenciador de exclusões: pastas e arquivos protegidos | `Ui/ExcludeListWindow.*` |
+| "Registry Keys to Exclude" | 15317 | Gerenciador de exclusões: chaves de registro protegidas | idem |
+| "Forcibly stop running executable files during their uninstall" | 15265 | opção nas Opções → Desinstalador | `Core/ProcessTerminator.cs`, `Core/Settings/AppSettings.cs` |
+| "Kill the Process and Continue" / "Selected file is a running process!…" | 15125–15126 | os executáveis do programa são encerrados antes da remoção, quando a opção está ligada | `UninstallEngine.RemoveLeftovers` |
+| "Make a System Restore Point and a full Registry backup before uninstalling" | 15162 | as duas marcas na etapa de opções do assistente | `Ui/UninstallWizardWindow.*` |
+| "Create a full Registry Backup before uninstall" / "Creating a full Registry backup…" | 15307, 15163, 15165–15166 | backup de todos os hives em `.reg` + script de restauração, feito **antes do desinstalador nativo** | `Core/FullRegistryBackup.cs` |
+| "Show the option to scan all Windows accounts for leftovers" | 15345 | interruptor mestre nas Opções → Desinstalador | `AppSettings.ShowScanAllAccountsOption` |
+| "Scan all Windows accounts for leftovers" | 15352 | varre `HKEY_USERS\<SID>` e o `AppData` dos outros perfis | `Core/UserProfiles.cs`, `Core/LeftoverScanOptions.cs` |
+| "Uninstall from all Windows accounts" | 15353 | os itens das outras contas só vêm marcados quando esta opção está ligada | `LeftoverScanOptions.SelectOtherAccountItems` |
+
+**A lista de exclusões é a regra que realmente protege.** O item excluído
+**não aparece** na varredura e o motor **recusa removê-lo** mesmo que ele
+chegue marcado por outro caminho (`UninstallEngine.RemoveOne`). O backup feito
+antes da remoção também pula os itens excluídos — um backup não pode guardar
+justamente o que o usuário mandou proteger. O encerramento de processos também
+respecta a lista: encerrar o processo de um item protegido seria tocar no item
+protegido tanto quanto apagar a pasta. E excluir um **arquivo** dentro de uma
+pasta protege o arquivo mesmo quando a pasta é removida: a remoção recursiva
+cega levaria o arquivo junto, então o conteúdo sai item a item e a pasta
+permanece. O casamento é por prefixo de pasta/chave, e `HKLM\…` casa com
+`HKEY_LOCAL_MACHINE\…`.
+
+**O backup completo do registro vem antes do desinstalador nativo.** O
+original diz "Make a System Restore Point and a full Registry backup **before
+uninstalling**" (15162). Depois do desinstalador nativo, as chaves do próprio
+programa já foram apagadas e o `.reg` resultante não serviria para devolver
+nada — por isso o backup é preparado por quem conduz a operação (o assistente
+e a CLI), e o motor de remoção apenas o carrega no relatório.
+
+**As contas do Windows têm duas portas, não uma.** "Procurar em todas as
+contas" revela os itens das outras contas, mas eles **não vêm marcados**;
+só "Desinstalar de todas as contas" os marca. A opção "marcar todas as
+sobras" **não** marca itens de outra conta: ler "marcar tudo" como "remover
+também os dados dos outros usuários da máquina" seria uma leitura perigosa
+demais.
+
+**O backup completo do registro usa o `reg.exe` do Windows**, e não uma
+reescrita própria do formato `.reg`: é o caminho nativo, preserva todos os
+tipos de valor (inclusive `REG_BINARY`, `REG_QWORD` e `REG_MULTI_SZ`) e não
+depende de o Tranal saber reescrever cada tipo sem erro — que é exatamente o
+tipo de bug que torna um backup inutilizável. O backup só é considerado
+válido quando **todos** os hives foram exportados.
+
+### Atalhos: o motor nunca atravessa um link
+
+Medido nesta máquina (.NET 10, `mklink /J`):
+
+| Comportamento do .NET | Consequência |
+|---|---|
+| `Directory.EnumerateFiles(pasta, "*", AllDirectories)` **atravessa** o junction | os arquivos do alvo aparecem como se fossem da pasta |
+| `Directory.Delete(pasta, true)` **falha** com `UnauthorizedAccessException` ao chegar no junction | não apaga o alvo, mas deixa a pasta pela metade e o erro não fala do atalho |
+| `Directory.Delete(link, false)` apaga **só** o link | o alvo fica intacto |
+
+O alvo de um atalho está **fora** da pasta que o usuário mandou remover.
+Apagar arquivo alheio seria perda de dados não pedida — e o Tranal não faz
+isso. A regra está em um lugar só (`Core/SafeTraversal.cs`) e vale para:
+
+| Onde | Antes | Agora |
+|---|---|---|
+| Remoção (pasta inteira) | `Directory.Delete(pasta, true)` — falhava no atalho e deixava a pasta pela metade | percorre a árvore sem atravessar atalho; o link sai como link |
+| Remoção (item a item, lista de exclusões) | **atravessava o atalho e apagava o alvo** | o link sai como link; o alvo fica intacto |
+| O próprio item de remoção é um atalho | enumerava a raiz e apagava o alvo | remove-se o link e nada mais |
+| Contagem de tamanho de pasta | `SearchOption.AllDirectories` — atravessava | `SafeTraversal.MeasureSize` |
+| Cópia do backup | recursiva sem guarda — copiava o alvo para dentro do backup | o alvo não entra no backup |
+| Varredura do limpador de arquivos temporários | `AllDirectories` — listava (e removeria) o alvo | `SafeTraversal.EnumerateFilesDeep` |
+
+### O relatório não esconde nada
+
+Uma pasta com item protegido é **um** item na lista: a pasta sai do lugar do
+usuário, mas o conteúdo sai item a item. O relatório mostra os dois lados:
+
+- `Removido dentro` — quantos itens saíram de dentro da pasta;
+- `Protegido dentro`, `Falha dentro`, `Adiado dentro` — quantos ficaram;
+- e o item travado aparece no texto (`permaneceu: …`), não é engolido em
+  silêncio.
+
+O item em uso é contado **e** agendado para o próximo reinício, como a
+regra do projeto exige: `Item em uso → adiado para o próximo reinício`.
+
 ---
 
 ## 2. Gerenciador de Backups
@@ -181,6 +267,7 @@ mensagem do original tratam só das mensagens informativas e de aviso.
 |---|---|
 | **Driver de kernel** (`revoflt.sys`) | o original usa `DeviceIoControl` para interceptar o sistema de arquivos. O Tranal usa as APIs do Windows (`SHFileOperation`, `MoveFileEx`, WMI `SystemRestore`) e não carrega driver próprio — menos risco e nenhuma assinatura de driver. |
 | **Remoção definitiva de drivers** | não há no Tranal; drivers instalados saem pelo desinstalador nativo do próprio fabricante. |
+| **Resolver o programa a partir de um arquivo solto** | o Revo, ao apontar para um executável, descobre de qual programa ele é e remove a pasta de instalação desse programa. O Tranal não faz essa correlação: a desinstalação forçada de um arquivo remove **o arquivo** e mostra a pasta na lista, sem marcá-la. Inferir a pasta a partir do diretório do arquivo seria perigoso — apontar para `%LOCALAPPDATA%\Temp\app.exe` removeria a pasta `Temp` inteira. A pasta de instalação continua sendo usada no assistente, onde ela é conhecida de verdade (o registro manda). |
 
 ---
 
@@ -197,8 +284,8 @@ mensagem do original tratam só das mensagens informativas e de aviso.
 | Medida | Valor |
 |---|---|
 | Build | 0 erros, 0 avisos |
-| Suíte de testes | **154 verdes**, 0 falhas |
-| Catálogos de idioma | **510 chaves** em pt-BR e en-US, em paridade |
+| Suíte de testes | **211 verdes**, 0 falhas |
+| Catálogos de idioma | **546 chaves** em pt-BR e en-US, em paridade |
 | Programas listados | 76 (18 em "Novos Programas", 58 em "Outros Programas") |
 | Varredura completa | 150 ms |
 | Ambiente do usuário | intocado pela suíte (comparação byte a byte antes/depois) |

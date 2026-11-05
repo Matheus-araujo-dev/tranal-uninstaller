@@ -78,7 +78,11 @@ public partial class ForcedUninstallWindow : Window
         StatusText.Text = Loc.Get("Status.Scanning");
 
         var items = LeftoverScanner.ScanForced(
-            path, UninstallMode.Advanced, AppSettingsStore.Current.CheckAllLeftoversByDefault);
+            path, new LeftoverScanOptions
+            {
+                Mode = UninstallMode.Advanced,
+                CheckAllLeftovers = AppSettingsStore.Current.CheckAllLeftoversByDefault,
+            });
 
         _leftovers.Clear();
         foreach (var item in items) _leftovers.Add(item);
@@ -91,12 +95,35 @@ public partial class ForcedUninstallWindow : Window
     {
         if (_leftovers.Count == 0) return;
 
-        var report = UninstallEngine.RemoveLeftovers(_leftovers);
+        // A desinstalacao forcada usa as mesmas opcoes da interface e da
+        // linha de comando: backup completo do registro, encerramento dos
+        // executaveis, Lixeira e adiamento para o proximo reinicio.
+        var options = UninstallRemovalOptions.FromSettings($"Desinstalação forçada de {SelectedPath}");
+
+        // O backup completo do registro vem antes da remocao. Aqui nao ha
+        // desinstalador nativo, entao este e o ultimo momento possivel.
+        var fullBackup = UninstallEngine.PrepareFullRegistryBackup(options);
+
+        var report = UninstallEngine.RemoveLeftovers(_leftovers, options, fullBackup);
         Removed = true;
 
-        StatusText.Text = Loc.Get("Forced.Removed",
+        var status = Loc.Get("Forced.Removed",
             report.RemovedCount, report.AbsentCount,
-            report.FailedCount + report.ProtectedCount);
+            report.FailedCount, report.ProtectedCount,
+            report.DeferredCount);
+
+        // O que saiu de dentro das pastas que ficaram no sistema: sem esta
+        // linha o resumo mostraria "0 removidos" com arquivos de fato
+        // apagados — e esconderia o item que ficou para trás.
+        if (report.RemovedInsideCount > 0 || report.ProtectedInsideCount > 0
+            || report.FailedInsideCount > 0 || report.DeferredInsideCount > 0)
+        {
+            status += Environment.NewLine + Loc.Get("Forced.RemovedInside",
+                report.RemovedInsideCount, report.ProtectedInsideCount,
+                report.FailedInsideCount, report.DeferredInsideCount);
+        }
+
+        StatusText.Text = status;
 
         _leftovers.Clear();
         RemoveButton.IsEnabled = false;

@@ -718,6 +718,16 @@ public static class AutorunManager
             return false;
         }
 
+        // A lista de exclusoes protege a CHAVE inteira: apagar um valor de
+        // dentro de uma chave protegida seria um caminho para furar a
+        // protecao. (A remocao deste item nao passa pelo motor canonico,
+        // porque o motor remove chaves e nao valores.)
+        if (ExcludeList.Current.ContainsRegistryKey(keyPath))
+        {
+            ToolLog.Info($"Chave na lista de exclusoes: {keyPath}");
+            return false;
+        }
+
         using var baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
         using var key = baseKey.OpenSubKey(subPath, writable: true);
         if (key is null)

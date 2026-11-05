@@ -75,6 +75,8 @@ public partial class OptionsWindow : Window
         DeferRemovalCheck.IsChecked = settings.DeferRemovalToNextRestart;
         BackupBeforeRemovalCheck.IsChecked = settings.BackupBeforeRemoval;
         CheckAllLeftoversCheck.IsChecked = settings.CheckAllLeftoversByDefault;
+        ForciblyStopExecutablesCheck.IsChecked = settings.ForciblyStopRunningExecutables;
+        ShowScanAllAccountsCheck.IsChecked = settings.ShowScanAllAccountsOption;
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -132,6 +134,8 @@ public partial class OptionsWindow : Window
             s.DeferRemovalToNextRestart = DeferRemovalCheck.IsChecked == true;
             s.BackupBeforeRemoval = BackupBeforeRemovalCheck.IsChecked == true;
             s.CheckAllLeftoversByDefault = CheckAllLeftoversCheck.IsChecked == true;
+            s.ForciblyStopRunningExecutables = ForciblyStopExecutablesCheck.IsChecked == true;
+            s.ShowScanAllAccountsOption = ShowScanAllAccountsCheck.IsChecked == true;
 
             s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();

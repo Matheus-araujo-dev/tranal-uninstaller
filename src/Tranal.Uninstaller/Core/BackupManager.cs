@@ -840,8 +840,21 @@ public static class BackupManager
         catch { return null; }
     }
 
+    /// <summary>
+    /// Copia uma pasta e o conteudo dela para o backup.
+    ///
+    /// Atalhos (junction, symlink) nao sao percorridos: o alvo esta fora da
+    /// pasta que o usuario mandou fazer backup, e copiar o conteudo dele
+    /// seria levar dados de fora do escopo para dentro do backup. O link
+    /// tambem nao vira pasta real na restauracao — o backup guarda o que o
+    /// usuario pediu para guardar.
+    /// </summary>
     private static void CopyDirectory(string source, string target, bool overwrite)
     {
+        // A raiz e um atalho: o alvo esta fora da pasta que o usuario mandou
+        // fazer backup, e o backup nao leva o conteudo dele.
+        if (SafeTraversal.IsReparsePoint(source)) return;
+
         Directory.CreateDirectory(target);
 
         foreach (var file in Directory.EnumerateFiles(source))
@@ -852,17 +865,19 @@ public static class BackupManager
         }
 
         foreach (var dir in Directory.EnumerateDirectories(source))
+        {
+            if (SafeTraversal.IsReparsePoint(dir)) continue;
             CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)), overwrite);
+        }
     }
 
     private static long MeasureDirectory(string path)
     {
         try
         {
-            long total = 0;
-            foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
-                total += new FileInfo(file).Length;
-            return total;
+            // A travessia nao atravessa atalho (junction, symlink): o alvo
+            // pode ser outra unidade inteira, e a conta nao terminaria.
+            return SafeTraversal.MeasureSize(path);
         }
         catch { return 0; }
     }

@@ -19,6 +19,7 @@ namespace Tranal.Cli;
 ///   tranal /mu "programa" [/mode builtin|safe|moderate|advanced]
 ///   tranal /scan "programa" [/mode ...] [/remove]
 ///   tranal /backup | /bk [restore|delete|delete-all|delete-older]
+///   tranal /exclude [add|addreg|rm|rmreg|clear]
 /// </summary>
 public static class Program
 {
@@ -156,7 +157,8 @@ public static class Program
         if (string.IsNullOrWhiteSpace(name))
         {
             Console.Error.WriteLine("Uso: tranal /scan \"nome do programa\" "
-                                  + "[/mode builtin|safe|moderate|advanced] [/all|/high] [/remove]");
+                                  + "[/mode builtin|safe|moderate|advanced] [/all|/high] [/remove] "
+                                  + "[/all-accounts] [/uninstall-all-accounts] [/kill] [/regbackup]");
             return 1;
         }
 
@@ -186,18 +188,25 @@ public static class Program
             return 0;
         }
 
-        var items = LeftoverScanner.Scan(target, mode);
+        // As opcoes de varredura sao resolvidas pelo nucleo: a CLI apenas
+        // diz o que o usuario pediu e deixa a decisao (o que fica marcado, o
+        // que entra das outras contas) para uma unica interpretacao.
+        var scanOptions = BuildScanOptions(flags, mode);
+
+        var items = LeftoverScanner.Scan(target, scanOptions);
+        PrintOtherAccountSummary(items, scanOptions);
+
         if (items.Count == 0)
         {
             Console.WriteLine("Nenhuma sobra encontrada.");
             return 0;
         }
 
-        var shown = SelectLeftovers(items, flags.Contains("/high"), flags.Contains("/all"));
+        var shown = SelectLeftovers(items, flags.Contains("/high"));
         PrintLeftovers(shown);
         Console.WriteLine();
         Console.WriteLine(DescribeLeftoverTotals(shown));
-        PrintSelectionNote(flags.Contains("/all"));
+        PrintSelectionNote(flags.Contains("/all"), scanOptions);
 
         var options = BuildRemovalOptions(flags, $"Varredura de {target.DisplayName}");
         PrintRemovalOptions(options);
@@ -209,10 +218,70 @@ public static class Program
             return 0;
         }
 
-        var report = UninstallEngine.RemoveLeftovers(items, options);
-        PrintRemovalSummary(report);
+        // O backup completo do registro vem antes da remocao. Aqui nao ha
+        // desinstalador nativo, entao este e o ultimo momento possivel.
+        var fullBackup = CreateFullRegistryBackup(options);
 
-        return report.FailedCount + report.ProtectedCount == 0 ? 0 : 2;
+        var report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
+        PrintRemovalSummary(report, options);
+
+        return RemovalExitCode(report);
+    }
+
+    /// <summary>
+    /// Cria o backup completo do registro quando a operacao pede por ele, e
+    /// informa o resultado. O backup precisa existir ANTES de qualquer coisa
+    /// que apague chaves: depois do desinstalador nativo, o registro ja esta
+    /// limpo.
+    /// </summary>
+    private static FullRegistryBackupResult? CreateFullRegistryBackup(UninstallRemovalOptions options)
+    {
+        if (!options.FullRegistryBackup) return null;
+
+        Console.WriteLine("Criando o backup completo do registro...");
+        var backup = UninstallEngine.PrepareFullRegistryBackup(options);
+        Console.WriteLine(backup is { Success: true }
+            ? $"Backup completo do registro criado em {backup.Directory}"
+            : $"Falha ao criar o backup completo do registro: {backup?.Message}");
+        Console.WriteLine();
+
+        return backup;
+    }
+
+    /// <summary>
+    /// Codigo de saida da operacao: 0 quando nada falhou, 2 quando sobrou
+    /// item protegido ou com falha. Um processo que nao pode ser encerrado
+    /// tambem e falha da operacao — o arquivo dele continua em uso.
+    /// </summary>
+    private static int RemovalExitCode(RemovalReport report) =>
+        (report.FailedCount
+         + report.ProtectedCount
+         + report.CountOf("Processo", RemovalStatus.Failed)) == 0 ? 0 : 2;
+
+    /// <summary>
+    /// Linha de resumo de uma remocao: as contagens de itens e o que saiu de
+    /// dentro das pastas que ficaram no sistema.
+    ///
+    /// Uma pasta com item protegido e um item so na lista. Sem a segunda
+    /// linha, o resumo diria "0 removidos" com arquivos de fato apagados —
+    /// e esconderia o item que ficou para tras.
+    /// </summary>
+    private static string RemovalSummaryLine(RemovalReport report)
+    {
+        var line = $"Removidos: {report.RemovedCount} | Já inexistentes: {report.AbsentCount} | "
+                 + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount} | "
+                 + $"Adiados para o próximo reinício: {report.DeferredCount}";
+
+        if (report.RemovedInsideCount > 0 || report.ProtectedInsideCount > 0
+            || report.FailedInsideCount > 0 || report.DeferredInsideCount > 0)
+        {
+            line += Environment.NewLine
+                  + $"Dentro das pastas que permaneceram: {report.RemovedInsideCount} removido(s), "
+                  + $"{report.ProtectedInsideCount} protegido(s), {report.FailedInsideCount} com falha, "
+                  + $"{report.DeferredInsideCount} adiado(s).";
+        }
+
+        return line;
     }
 
     /// <summary>
@@ -251,7 +320,8 @@ public static class Program
             Console.Error.WriteLine("Uso: tranal /mu \"nome do programa\" "
                                   + "[/mode builtin|safe|moderate|advanced] [/all|/high] "
                                   + "[/recycle|/norecycle] [/backup|/nobackup] [/defer|/nodefer] "
-                                  + "[/nobuiltin] [/noremove]");
+                                  + "[/nobuiltin] [/noremove] [/all-accounts] [/uninstall-all-accounts] "
+                                  + "[/kill] [/regbackup]");
             return 1;
         }
 
@@ -282,6 +352,16 @@ public static class Program
                   + "(o serviço de restauração do Windows pode estar desativado).");
         }
 
+        // As opcoes da operacao sao resolvidas uma vez, antes de tudo: o
+        // backup completo do registro precisa existir ANTES do desinstalador
+        // nativo, porque depois dele as chaves do programa ja foram apagadas.
+        var options = BuildRemovalOptions(flags, $"Desinstalação de {target.DisplayName}");
+
+        // O backup completo do registro vem ANTES do desinstalador nativo: e
+        // o contrato do original ("Make a System Restore Point and a full
+        // Registry backup before uninstalling", 15162).
+        var fullBackup = CreateFullRegistryBackup(options);
+
         var results = new List<BuiltInUninstallResult>();
         if (runBuiltIn)
         {
@@ -297,24 +377,26 @@ public static class Program
         // O modo "Somente" roda apenas o desinstalador nativo: nenhuma sobra e procurada.
         if (UninstallModes.Scans(mode))
         {
-            items = LeftoverScanner.Scan(target, mode);
+            var scanOptions = BuildScanOptions(flags, mode);
+
+            items = LeftoverScanner.Scan(target, scanOptions);
+            PrintOtherAccountSummary(items, scanOptions);
             Console.WriteLine($"Sobras encontradas: {items.Count}");
 
-            var shown = SelectLeftovers(items, flags.Contains("/high"), flags.Contains("/all"));
+            var shown = SelectLeftovers(items, flags.Contains("/high"));
             PrintLeftovers(shown);
             Console.WriteLine();
             Console.WriteLine(DescribeLeftoverTotals(shown));
-            PrintSelectionNote(flags.Contains("/all"));
+            PrintSelectionNote(flags.Contains("/all"), scanOptions);
             Console.WriteLine();
 
-            var options = BuildRemovalOptions(flags, $"Desinstalação de {target.DisplayName}");
             PrintRemovalOptions(options);
             Console.WriteLine();
 
             if (remove)
             {
-                report = UninstallEngine.RemoveLeftovers(items, options);
-                PrintRemovalSummary(report);
+                report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
+                PrintRemovalSummary(report, options);
             }
             else
             {
@@ -340,7 +422,7 @@ public static class Program
             });
         }
 
-        return report.FailedCount + report.ProtectedCount == 0 ? 0 : 2;
+        return RemovalExitCode(report);
     }
 
     /// <summary>
@@ -381,7 +463,11 @@ public static class Program
             return RelaunchElevated(new[] { "--uninstall-target", full });
         }
 
-        var items = LeftoverScanner.ScanForced(full, UninstallMode.Advanced);
+        // A desinstalacao forcada usa as mesmas preferencias da interface
+        // grafica (inclusive "marcar todos os itens restantes"), porem a
+        // profundidade e sempre a mais completa.
+        var scanOptions = LeftoverScanOptions.FromSettings(UninstallMode.Advanced);
+        var items = LeftoverScanner.ScanForced(full, scanOptions);
         Console.WriteLine();
         Console.WriteLine($"Sobras encontradas: {items.Count}");
 
@@ -397,18 +483,19 @@ public static class Program
             return 0;
         }
 
-        var report = UninstallEngine.RemoveLeftovers(items,
-            UninstallRemovalOptions.FromSettings($"Desinstalação de {name}"));
+        var removalOptions = UninstallRemovalOptions.FromSettings($"Desinstalação de {name}");
+        var fullBackup = CreateFullRegistryBackup(removalOptions);
+        var report = UninstallEngine.RemoveLeftovers(items, removalOptions, fullBackup);
 
         Console.WriteLine();
         Console.WriteLine(report.Describe());
         Console.WriteLine();
-        Console.WriteLine($"Removidos: {report.RemovedCount} | Já inexistentes: {report.AbsentCount} | "
-                        + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount} | "
-                        + $"Adiados para o próximo reinício: {report.DeferredCount}");
+        Console.WriteLine(RemovalSummaryLine(report));
 
         if (!string.IsNullOrEmpty(report.RestorePointId))
             Console.WriteLine($"Ponto de restauração criado: {report.RestorePointId}");
+
+        PrintExtraRemovalInfo(report, removalOptions);
 
         UninstallHistory.Append(new UninstallHistoryEntry
         {
@@ -420,7 +507,7 @@ public static class Program
             Failed = report.FailedCount + report.ProtectedCount,
         });
 
-        return report.FailedCount + report.ProtectedCount == 0 ? 0 : 2;
+        return RemovalExitCode(report);
     }
 
     private static InstalledProgram? FindProgram(string name)
@@ -472,27 +559,62 @@ public static class Program
     }
 
     /// <summary>
-    /// Escolhe quais sobras sao consideradas e quais entram na remocao.
-    /// Por padrao, apenas os itens de alta confianca (os que o nucleo marcou)
-    /// sao removidos; /all marca tambem os de media e baixa confianca; /high
-    /// restringe a lista inteira aos itens de alta confianca.
+    /// Restringe a lista exibida aos itens de alta confianca quando o usuario
+    /// pediu com "/high".
+    ///
+    /// A marcacao do que sera removido ja foi resolvida pelo nucleo (em
+    /// <see cref="LeftoverScanOptions"/>): a CLI nao mantem uma segunda
+    /// interpretacao de "marcar todos".
     /// </summary>
-    private static List<LeftoverItem> SelectLeftovers(List<LeftoverItem> items, bool onlyHigh, bool removeAll)
-    {
-        var result = onlyHigh
+    private static List<LeftoverItem> SelectLeftovers(List<LeftoverItem> items, bool onlyHigh) =>
+        onlyHigh
             ? items.Where(i => i.IsHighConfidence).ToList()
             : items.ToList();
 
-        if (removeAll && !onlyHigh)
+    /// <summary>
+    /// Monta as opcoes de varredura. A base sao sempre as preferencias do
+    /// usuario (as mesmas que a interface grafica usa); as flags da linha de
+    /// comando apenas sobrescrevem o que foi explicitamente pedido.
+    ///
+    /// A decisao do que fica marcado para remocao — e do que pertence a outra
+    /// conta do Windows — e do nucleo: aqui so se traduz o que o usuario
+    /// pediu.
+    /// </summary>
+    private static LeftoverScanOptions BuildScanOptions(HashSet<string> flags, UninstallMode mode)
+    {
+        var options = LeftoverScanOptions.FromSettings(mode);
+
+        var allAccounts = flags.Contains("/all-accounts");
+        var uninstallAll = flags.Contains("/uninstall-all-accounts");
+
+        // "/uninstall-all-accounts" so faz sentido junto de "/all-accounts":
+        // sem a varredura em todas as contas nao existe item de outra conta
+        // para marcar. Nesse caso as duas valem, e o usuario e avisado.
+        if (uninstallAll && !allAccounts)
         {
-            foreach (var item in result) item.Selected = true;
+            Console.WriteLine("Aviso: /uninstall-all-accounts só faz sentido junto com /all-accounts; "
+                              + "a varredura em todas as contas do Windows foi ativada.");
+            allAccounts = true;
         }
 
-        return result;
+        return options with
+        {
+            // "/high" restringe a lista as sobras de alta confianca: marcar
+            // tambem as de media e baixa faria o oposto do que foi pedido.
+            CheckAllLeftovers = !flags.Contains("/high")
+                                 && (flags.Contains("/all") || options.CheckAllLeftovers),
+
+            // A flag prevalece sobre a preferencia: quem pede a varredura em
+            // todas as contas nao precisa mexer nas Opcoes antes.
+            ScanAllUserAccounts = allAccounts || options.ScanAllUserAccounts,
+            SelectOtherAccountItems = uninstallAll || options.SelectOtherAccountItems,
+        };
     }
 
     /// <summary>
     /// Lista as sobras encontradas, indicando a confianca de cada item.
+    /// Itens de outra conta do Windows sao sinalizados: eles exigem pedido
+    /// explicito para entrar na remocao.
     /// </summary>
     private static void PrintLeftovers(List<LeftoverItem> items)
     {
@@ -500,18 +622,40 @@ public static class Program
         {
             var detail = string.IsNullOrWhiteSpace(item.Detail) ? string.Empty : $"   ({item.Detail})";
             var marker = item.Selected ? "marcado" : "não marcado";
+            var account = item.OtherAccount ? " - outra conta do Windows" : string.Empty;
             Console.WriteLine($"  [{item.Kind}] {item.Path}{detail}"
-                              + $"   confiança: {ConfidenceLabel(item.Confidence)} - {marker}");
+                              + $"   confiança: {ConfidenceLabel(item.Confidence)} - {marker}{account}");
         }
     }
 
     /// <summary>
     /// Explica o que sera removido conforme a selecao de sobras.
     /// </summary>
-    private static void PrintSelectionNote(bool removeAll) =>
-        Console.WriteLine(removeAll
-            ? "Atenção: /all inclui na remoção as sobras de confiança média e baixa."
-            : "Somente os itens marcados (confiança alta) são removidos; os demais são apenas listados.");
+    private static void PrintSelectionNote(bool removeAll, LeftoverScanOptions options)
+    {
+        if (removeAll)
+            Console.WriteLine("Atenção: /all inclui na remoção as sobras de confiança média e baixa.");
+        else if (options.CheckAllLeftovers)
+            Console.WriteLine("Atenção: a preferência \"marcar todos os itens restantes\" está ligada; "
+                              + "as sobras de confiança média e baixa também entram na remoção.");
+        else
+            Console.WriteLine("Somente os itens marcados (confiança alta) são removidos; os demais são apenas listados.");
+
+        if (options.ScanAllUserAccounts && !options.SelectOtherAccountItems)
+            Console.WriteLine("Atenção: as sobras de outras contas do Windows são apenas listadas; "
+                              + "use /uninstall-all-accounts para marcá-las.");
+    }
+
+    /// <summary>
+    /// Informa quantas sobras pertencem a outras contas do Windows. So faz
+    /// sentido quando a varredura incluiu as outras contas.
+    /// </summary>
+    private static void PrintOtherAccountSummary(List<LeftoverItem> items, LeftoverScanOptions options)
+    {
+        if (!options.ScanAllUserAccounts) return;
+
+        Console.WriteLine($"Sobras em outras contas do Windows: {items.Count(i => i.OtherAccount)}");
+    }
 
     /// <summary>
     /// Resume a contagem das sobras por confianca e quantas entram na remocao.
@@ -561,6 +705,8 @@ public static class Program
             Backup = ResolveFlag(flags, "/backup", "/nobackup", settings.Backup),
             UseRecycleBin = ResolveFlag(flags, "/recycle", "/norecycle", settings.UseRecycleBin),
             DeferToNextRestart = ResolveFlag(flags, "/defer", "/nodefer", settings.DeferToNextRestart),
+            KillRunningProcesses = ResolveFlag(flags, "/kill", "/nokill", settings.KillRunningProcesses),
+            FullRegistryBackup = ResolveFlag(flags, "/regbackup", "/noregbackup", settings.FullRegistryBackup),
             RestorePointName = settings.RestorePointName,
         };
     }
@@ -577,14 +723,16 @@ public static class Program
         Console.WriteLine("Opções de remoção: "
                         + $"backup antes de remover: {(options.Backup ? "sim" : "não")} | "
                         + $"Lixeira: {(options.UseRecycleBin ? "sim" : "não")} | "
-                        + $"adiar para o próximo reinício: {(options.DeferToNextRestart ? "sim" : "não")}");
+                        + $"adiar para o próximo reinício: {(options.DeferToNextRestart ? "sim" : "não")} | "
+                        + $"encerrar executáveis: {(options.KillRunningProcesses ? "sim" : "não")} | "
+                        + $"backup completo do registro: {(options.FullRegistryBackup ? "sim" : "não")}");
     }
 
     /// <summary>
     /// Mostra o relatorio da remocao: contagens, itens enviados para a Lixeira,
     /// itens adiados para o proximo reinicio e o ponto de restauracao criado.
     /// </summary>
-    private static void PrintRemovalSummary(RemovalReport report)
+    private static void PrintRemovalSummary(RemovalReport report, UninstallRemovalOptions options)
     {
         var description = report.Describe();
         if (!string.IsNullOrWhiteSpace(description))
@@ -593,13 +741,33 @@ public static class Program
             Console.WriteLine();
         }
 
-        Console.WriteLine($"Removidos: {report.RemovedCount} | Já inexistentes: {report.AbsentCount} | "
-                        + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount} | "
-                        + $"Adiados para o próximo reinício: {report.DeferredCount}");
+        Console.WriteLine(RemovalSummaryLine(report));
         Console.WriteLine(Loc.Get("Wizard.SummaryRecycleBin", CountRecycleBin(report)));
 
         if (!string.IsNullOrWhiteSpace(report.RestorePointId))
             Console.WriteLine(Loc.Get("Wizard.BackupPointSaved", report.RestorePointId));
+
+        PrintExtraRemovalInfo(report, options);
+    }
+
+    /// <summary>
+    /// Mostra as informacoes que so existem quando as opcoes correspondentes
+    /// estao ligadas: os processos encerrados.
+    /// A CLI nao repete a decisao do nucleo — ela mostra o que o relatorio
+    /// canonico devolveu.
+    ///
+    /// O backup completo do registro NAO aparece aqui: ele e criado antes do
+    /// desinstalador nativo e ja foi informado no momento da criacao.
+    /// </summary>
+    private static void PrintExtraRemovalInfo(RemovalReport report, UninstallRemovalOptions options)
+    {
+        if (options.KillRunningProcesses)
+        {
+            var terminated = report.CountOf("Processo", RemovalStatus.Removed);
+            var failed = report.CountOf("Processo", RemovalStatus.Failed);
+            Console.WriteLine($"Processos encerrados: {terminated}"
+                              + (failed > 0 ? $" | Não encerrados: {failed}" : string.Empty));
+        }
     }
 
     /// <summary>
@@ -718,9 +886,11 @@ public static class Program
         Console.WriteLine();
         Console.WriteLine("Operações:");
         Console.WriteLine("tranal /mu \"nome do programa\" [/mode builtin|safe|moderate|advanced] [/all|/high] "
-                        + "[/recycle|/norecycle] [/backup|/nobackup] [/defer|/nodefer] [/nobuiltin] [/noremove]");
+                        + "[/recycle|/norecycle] [/backup|/nobackup] [/defer|/nodefer] [/nobuiltin] [/noremove] "
+                        + "[/all-accounts] [/uninstall-all-accounts] [/kill] [/regbackup]");
         Console.WriteLine("     Desinstala um programa (desinstalador nativo, varredura de sobras e remoção)");
-        Console.WriteLine("tranal /scan \"nome do programa\" [/mode builtin|safe|moderate|advanced] [/all|/high] [/remove]");
+        Console.WriteLine("tranal /scan \"nome do programa\" [/mode builtin|safe|moderate|advanced] [/all|/high] "
+                        + "[/remove] [/all-accounts] [/uninstall-all-accounts] [/kill] [/regbackup]");
         Console.WriteLine("     Lista as sobras (arquivos, pastas e chaves de registro) com a confiança de cada item");
         Console.WriteLine();
         Console.WriteLine("Modos de desinstalação (/mode, ou /level como apelido):");
@@ -738,6 +908,20 @@ public static class Program
         Console.WriteLine("/nobackup - Não cria o ponto de restauração antes de remover");
         Console.WriteLine("/defer    - Adia para o próximo reinício os itens em uso (padrão: conforme as preferências)");
         Console.WriteLine("/nodefer  - Não adia para o próximo reinício os itens em uso");
+        Console.WriteLine("/all-accounts - Procura sobras também nas outras contas do Windows "
+                        + "(prevalece sobre as preferências)");
+        Console.WriteLine("/uninstall-all-accounts - Marca para remoção as sobras das outras contas do Windows "
+                        + "(usar junto com /all-accounts)");
+        Console.WriteLine("/kill     - Encerra os executáveis do programa antes de remover");
+        Console.WriteLine("/regbackup - Cria o backup completo do registro antes de desinstalar");
+        Console.WriteLine();
+        Console.WriteLine("Lista de exclusões (itens que o Tranal nunca toca):");
+        Console.WriteLine("tranal /exclude                     - Lista as pastas, os arquivos e as chaves protegidos");
+        Console.WriteLine("tranal /exclude add \"caminho\"       - Protege uma pasta ou um arquivo");
+        Console.WriteLine("tranal /exclude addreg \"chave\"      - Protege uma chave de registro");
+        Console.WriteLine("tranal /exclude rm \"caminho\"        - Libera a proteção de uma pasta ou arquivo");
+        Console.WriteLine("tranal /exclude rmreg \"chave\"       - Libera a proteção de uma chave de registro");
+        Console.WriteLine("tranal /exclude clear               - Esvazia a lista de exclusões");
         Console.WriteLine();
         Console.WriteLine("Gerenciador de Backups:");
         Console.WriteLine("tranal /backup | /bk                   - Lista os pontos de restauração");

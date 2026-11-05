@@ -366,6 +366,15 @@ public static class TrackCleaner
     {
         try
         {
+            // A lista de exclusoes protege tambem as ferramentas: um item
+            // excluido nao e limpo pelo Tracks Cleaner. O item sintetico da
+            // Lixeira nao tem caminho e nao passa por aqui.
+            if (entry.Kind is "Registro" or "Pasta" or "Arquivo"
+                && ExcludeList.Current.Contains(entry.Kind, entry.Path))
+            {
+                return Fail(entry, "item na lista de exclusões");
+            }
+
             switch (entry.Kind)
             {
                 case "Lixeira":

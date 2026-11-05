@@ -159,6 +159,47 @@ public sealed class AppSettings
     /// desinstalacao" do Revo.
     /// </summary>
     public bool DeleteTracedLogAfterUninstall { get; set; }
+
+    /// <summary>
+    /// Exibe a opcao de procurar sobras em todas as contas do Windows na tela
+    /// de desinstalacao. Corresponde a opcao "Show the option to scan all
+    /// Windows accounts for leftovers" do Revo.
+    ///
+    /// Padrao: <c>false</c> — como no Revo, a opcao existe mas fica oculta
+    /// ate o usuario ligar este interruptor nas Opcoes.
+    /// </summary>
+    public bool ShowScanAllAccountsOption { get; set; }
+
+    /// <summary>
+    /// Procura sobras nas outras contas do Windows (chaves em HKEY_USERS e
+    /// pastas dos outros perfis). Corresponde a opcao "Scan all Windows
+    /// accounts for leftovers" do Revo.
+    /// </summary>
+    public bool ScanAllWindowsAccounts { get; set; }
+
+    /// <summary>
+    /// Deixa marcados para remocao os itens que pertencem a outras contas do
+    /// Windows. Corresponde a opcao "Uninstall from all Windows accounts" do
+    /// Revo.
+    ///
+    /// Sem esta opcao, a varredura em todas as contas e apenas informativa:
+    /// os itens das outras contas aparecem na lista, mas nao vem marcados.
+    /// </summary>
+    public bool UninstallFromAllWindowsAccounts { get; set; }
+
+    /// <summary>
+    /// Encerra os executaveis do programa que esta sendo removido antes de
+    /// apagar os arquivos deles. Corresponde a opcao "Forcibly stop running
+    /// executable files during their uninstall" do Revo.
+    /// </summary>
+    public bool ForciblyStopRunningExecutables { get; set; }
+
+    /// <summary>
+    /// Cria um backup completo do registro (todos os hives) antes de remover
+    /// as sobras. Corresponde a opcao "Create a full Registry Backup before
+    /// uninstall" do Revo.
+    /// </summary>
+    public bool CreateFullRegistryBackupBeforeUninstall { get; set; }
 }
 
 /// <summary>Leitura e gravacao das <see cref="AppSettings"/>.</summary>
@@ -252,5 +293,7 @@ public static class SettingsFileFormat
         + "portableDataFolder, fastLoadingMode, webSearchEngine, "
         + "checkAllLeftoversByDefault, skipInformationMessages, skipWarningMessages, "
         + "showMainToolbar, showDescriptionPanel, showStatusBar, showToolsToolbar, "
-        + "showContextMenuCommands, deleteTracedLogAfterUninstall";
+        + "showContextMenuCommands, deleteTracedLogAfterUninstall, "
+        + "showScanAllAccountsOption, scanAllWindowsAccounts, uninstallFromAllWindowsAccounts, "
+        + "forciblyStopRunningExecutables, createFullRegistryBackupBeforeUninstall";
 }

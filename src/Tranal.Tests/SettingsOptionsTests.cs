@@ -125,7 +125,7 @@ public class SettingsOptionsTests : IDisposable
 
         try
         {
-            var items = LeftoverScanner.Scan(program, UninstallMode.Advanced);
+            var items = LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.Advanced });
 
             // A varredura precisa achar alguma coisa: um teste que roda sobre
             // uma lista vazia passa sem provar nada.
@@ -156,7 +156,7 @@ public class SettingsOptionsTests : IDisposable
 
         try
         {
-            var items = LeftoverScanner.Scan(program, UninstallMode.Advanced, checkAllLeftovers: true);
+            var items = LeftoverScanner.Scan(program, new LeftoverScanOptions { Mode = UninstallMode.Advanced, CheckAllLeftovers = true });
 
             Assert.NotEmpty(items);
             Assert.Contains(items, i => i.Confidence != LeftoverConfidence.High);
@@ -179,7 +179,7 @@ public class SettingsOptionsTests : IDisposable
         {
             var target = Path.Combine(program.InstallLocation, "app.exe");
 
-            var items = LeftoverScanner.ScanForced(target, UninstallMode.Advanced, checkAllLeftovers: true);
+            var items = LeftoverScanner.ScanForced(target, new LeftoverScanOptions { Mode = UninstallMode.Advanced, CheckAllLeftovers = true });
 
             Assert.NotEmpty(items);
             Assert.All(items, item => Assert.True(item.Selected));

@@ -360,24 +360,10 @@ public static class ProgramScanner
         try
         {
             if (!Directory.Exists(path)) return 0;
-            long total = 0;
-            var stack = new Stack<string>();
-            stack.Push(path);
-            while (stack.Count > 0)
-            {
-                var dir = stack.Pop();
-                try
-                {
-                    foreach (var file in Directory.EnumerateFiles(dir))
-                    {
-                        try { total += new FileInfo(file).Length; } catch { }
-                    }
-                    foreach (var sub in Directory.EnumerateDirectories(dir))
-                        stack.Push(sub);
-                }
-                catch { }
-            }
-            return total;
+
+            // A travessia nao atravessa atalho (junction, symlink): o alvo
+            // pode ser outra unidade inteira, e a conta nao terminaria.
+            return SafeTraversal.MeasureSize(path);
         }
         catch { return 0; }
     }

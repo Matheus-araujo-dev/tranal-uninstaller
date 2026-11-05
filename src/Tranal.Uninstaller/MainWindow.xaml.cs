@@ -535,6 +535,9 @@ public partial class MainWindow : Window
         var backups = CommandItem(Loc.Get("Cmd.BackupManager"), "CmdBackupManager", () => ShowBackupManager());
         menu.Items.Add(backups);
 
+        var excludeList = CommandItem(Loc.Get("Cmd.ExcludeList"), "CmdExcludeList", () => ShowExcludeList());
+        menu.Items.Add(excludeList);
+
         var topmost = CommandItem(Loc.Get("Cmd.TopmostWindow"), "CmdTopmostWindow", () => ShowTopmostWindow());
         menu.Items.Add(topmost);
 
@@ -708,6 +711,16 @@ public partial class MainWindow : Window
     private void ShowBackupManager()
     {
         var dialog = new BackupManagerWindow { Owner = this };
+        dialog.ShowDialog();
+    }
+
+    /// <summary>
+    /// Abre o Gerenciador da lista de exclusoes: as pastas, arquivos e chaves
+    /// de registro que o Tranal nunca vai remover.
+    /// </summary>
+    private void ShowExcludeList()
+    {
+        var dialog = new ExcludeListWindow { Owner = this };
         dialog.ShowDialog();
     }
 

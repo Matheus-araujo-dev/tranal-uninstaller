@@ -28,6 +28,21 @@ public sealed class UninstallRemovalOptions
     /// </summary>
     public bool DeferToNextRestart { get; init; } = true;
 
+    /// <summary>
+    /// Encerra os executaveis do programa que esta sendo removido antes de
+    /// apagar os arquivos deles. Corresponde a opcao "Forcibly stop running
+    /// executable files during their uninstall" do Revo.
+    /// Padrao: <c>false</c>.
+    /// </summary>
+    public bool KillRunningProcesses { get; init; }
+
+    /// <summary>
+    /// Cria um backup completo do registro (todos os hives) antes de remover.
+    /// Corresponde a opcao "Create a full Registry Backup before uninstall"
+    /// do Revo. Padrao: <c>false</c>.
+    /// </summary>
+    public bool FullRegistryBackup { get; init; }
+
     /// <summary>Nome exibido do ponto de restauracao criado.</summary>
     public string? RestorePointName { get; init; }
 
@@ -47,6 +62,8 @@ public sealed class UninstallRemovalOptions
             Backup = settings.BackupBeforeRemoval,
             UseRecycleBin = settings.SendFilesToRecycleBin,
             DeferToNextRestart = settings.DeferRemovalToNextRestart,
+            KillRunningProcesses = settings.ForciblyStopRunningExecutables,
+            FullRegistryBackup = settings.CreateFullRegistryBackupBeforeUninstall,
             RestorePointName = restorePointName,
         };
     }

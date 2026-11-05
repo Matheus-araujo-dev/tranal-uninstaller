@@ -79,6 +79,80 @@ Baseline de avisos: **0**. Qualquer aviso novo é regressão.
 - **Item em uso → adiado para o próximo reinício** (`MoveFileEx` com
   `MOVEFILE_DELAY_UNTIL_REBOOT`), nunca deixado para trás em silêncio.
 
+## Lista de exclusões, contas e backup do registro (regras do Lote 1)
+
+- **A lista de exclusões (`Core/ExcludeList.cs`) é a guarda final do motor.**
+  Ela é consultada em dois lugares e nos dois o item fica protegido: na
+  varredura (o item **não aparece**) e em `UninstallEngine.RemoveOne` (o
+  motor **recusa** remover, com `RemovalStatus.Protected`). O backup feito
+  antes da remoção também pula os itens excluídos. Se um item excluído
+  chegar marcado por outro caminho, ele **não** é removido.
+- **Excluir um arquivo protege o arquivo mesmo dentro de uma pasta removida.**
+  A remoção de pasta é recursiva, e uma remoção recursiva "cega"
+  (`Directory.Delete(pasta, true)`) ou o envio da pasta inteira para a
+  Lixeira levariam o arquivo protegido junto. Por isso, havendo item
+  protegido dentro da pasta, o conteúdo sai **item a item**
+  (`HasProtectedDescendant` + `RemoveFolderContent`) e a pasta em si
+  permanece. O mesmo vale para o encerramento de processos: um processo que
+  roda a partir de um item protegido não é encerrado.
+- **O motor nunca atravessa um atalho.** Junction, symbolic link e ponto de
+  montagem apontam para fora da pasta removida. Medido: o .NET 10 atravessa
+  junction em `SearchOption.AllDirectories` e falha com
+  `UnauthorizedAccessException` em `Directory.Delete(pasta, true)`. A regra
+  está em `Core/SafeTraversal.cs`: o atalho é apagado **como atalho**
+  (`Directory.Delete(link, false)`), o alvo fica intacto. Vale para:
+  - a remoção, nos dois caminhos (o que apaga a pasta inteira e o que apaga
+    item a item por causa da lista de exclusões);
+  - **a raiz**: quando o próprio item de remoção é um atalho, remove-se o
+    link e nada mais — enumerar a raiz devolveria os arquivos do alvo;
+  - a contagem de tamanho de pasta e o `ProgramScanner`;
+  - a cópia do backup (`BackupManager.CopyDirectory`): o backup não leva
+    para dentro dele o conteúdo de fora da pasta que o usuário mandou
+    fazer backup;
+  - a varredura profunda do limpador de arquivos temporários
+    (`SafeTraversal.EnumerateFilesDeep`): um limpador não remove arquivo de
+    fora do escopo — e o alvo do link pode ser o perfil de outro usuário.
+- **Nada fica em silêncio na remoção.** Item em uso dentro de uma pasta
+  removida item a item é contado (`FailedInside`/`DeferredInside`) e aparece
+  no texto do relatório; o que saiu de dentro da pasta também aparece
+  (`RemovedInside`). Uma pasta com item protegido é **um** item na lista —
+  mas o relatório diz quantos itens saíram de dentro dela. A GUI e a CLI
+  mostram os mesmos quatro números: não pode haver um caso em que um dos
+  dois mostre e o outro não.
+- **Na deduplicação da varredura vence a ocorrência mais forte.** O mesmo
+  caminho pode entrar na lista como pasta de instalação (alta confiança,
+  marcada) e como pasta achada pelo nome do programa (confiança baixa, não
+  marcada). Vence a marcada — e a desinstalação forçada adiciona o alvo
+  informado **primeiro**, para que ele nunca seja sombreado por uma
+  ocorrência fraca. Sem isso, a desinstalação forçada terminava sem
+  remover o alvo que o usuário apontou.
+- **Apontar para um arquivo não autoriza remover a pasta dele.** A
+  desinstalação forçada de um arquivo **não** infere "pasta de instalação"
+  a partir do diretório do arquivo: inferir faria a desinstalação forçada de
+  `%LOCALAPPDATA%\Temp\app.exe` remover a pasta `Temp` inteira. O alvo
+  apontado é o único item garantido; a pasta aparece na lista pela varredura
+  e o usuário pode marcá-la se quiser. A pasta de instalação continua sendo
+  usada quando ela é conhecida de verdade (o registro manda).
+- **O casamento da lista é por prefixo com separador.** `C:\App` protege
+  `C:\App\arquivo` e **não** protege `C:\App2`. O mesmo vale para chaves de
+  registro, e `HKLM\…` precisa casar com `HKEY_LOCAL_MACHINE\…`.
+- **Item de outra conta do Windows nunca vem marcado por padrão.**
+  `LeftoverItem.OtherAccount` marca a origem; só
+  `LeftoverScanOptions.SelectOtherAccountItems` libera a marcação. A opção
+  "marcar todas as sobras" **não** marca item de outra conta.
+- **As contas vêm do `ProfileList` do registro** (`Core/UserProfiles.cs`),
+  não de uma varredura de pastas: pasta de perfil abandonada não é conta.
+- **O backup completo do registro usa o `reg.exe` do Windows**
+  (`Core/FullRegistryBackup.cs`). Não reescreva o formato `.reg` por conta
+  própria: o caminho nativo preserva todos os tipos de valor e um backup com
+  tipo errado é pior do que nenhum backup.
+- **`ProcessTerminator` nunca encerra o processo do próprio Tranal** e só
+  considera processo cujo executável esteja dentro da pasta que será
+  removida — nunca "processo com o mesmo nome".
+- **As opções de varredura viajam em `LeftoverScanOptions`**, não como
+  parâmetros posicionais: quatro parâmetros (modo e três booleanos) fazem
+  qualquer chamada errada trocar o modo por um booleano.
+
 ## Tema (armadilhas já vencidas)
 
 - **Cores de texto nunca fixas no XAML** fora de `Themes/Dark.xaml` e

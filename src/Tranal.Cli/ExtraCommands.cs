@@ -21,6 +21,7 @@ namespace Tranal.Cli;
 ///   tranal /lang "pt-BR"                 - define o idioma da interface
 ///   tranal /theme "dark|light"           - define o tema da interface
 ///   tranal /backup | /bk                 - Gerenciador de Backups (pontos de restauracao)
+///   tranal /exclude [add|addreg|rm|rmreg|clear] - Gerenciador da lista de exclusoes
 /// </summary>
 public static class ExtraCommands
 {
@@ -41,6 +42,7 @@ public static class ExtraCommands
         if (flags.Contains("/theme")) return RunTheme(args);
         if (flags.Contains("/new")) return RunNewPrograms();
         if (flags.Contains("/backup") || flags.Contains("/bk")) return RunBackupManager(args, flags);
+        if (flags.Contains("/exclude")) return RunExcludeManager(args);
         return null;
     }
 
@@ -662,5 +664,152 @@ public static class ExtraCommands
     {
         var text = ByteFormatter.Format(bytes);
         return string.IsNullOrWhiteSpace(text) ? "0 KB" : text;
+    }
+
+    // ------------------------------------------------------------------
+    // Lista de exclusoes
+    // ------------------------------------------------------------------
+    /// <summary>
+    /// Gerenciador da lista de exclusoes: as pastas, os arquivos e as chaves de
+    /// registro que o Tranal nunca toca. Equivale ao modulo homonimo do Revo
+    /// Uninstaller Pro ("Add to Exclude List").
+    ///
+    /// A regra mora no nucleo (<see cref="ExcludeList"/>): a CLI apenas
+    /// traduz o pedido do usuario em add/rm/clear e mostra o resultado.
+    /// </summary>
+    private static int RunExcludeManager(string[] args)
+    {
+        var index = Array.FindIndex(args, a => a.Equals("/exclude", StringComparison.OrdinalIgnoreCase));
+        if (index < 0) return UsageExclude();
+
+        // Os argumentos que seguem o comando sao os operandos; as flags
+        // (comecadas por "/") sao tratadas a parte.
+        var operands = args.Skip(index + 1)
+            .Where(a => !a.StartsWith("/", StringComparison.Ordinal))
+            .ToArray();
+
+        if (operands.Length == 0) return ListExclusions();
+
+        var action = operands[0].ToLowerInvariant();
+        var value = operands.Length > 1 ? operands[1] : null;
+
+        return action switch
+        {
+            "add" => ChangeExclusion(value, registry: false, add: true),
+            "addreg" => ChangeExclusion(value, registry: true, add: true),
+            "rm" => ChangeExclusion(value, registry: false, add: false),
+            "rmreg" => ChangeExclusion(value, registry: true, add: false),
+            "clear" => ClearExclusions(),
+            _ => UsageExclude(),
+        };
+    }
+
+    /// <summary>
+    /// Mostra a lista de exclusoes atual: as pastas e os arquivos protegidos e
+    /// as chaves de registro protegidas.
+    /// </summary>
+    private static int ListExclusions()
+    {
+        var list = ExcludeList.Current;
+
+        Console.WriteLine($"Lista de exclusões: {list.Paths.Count} pasta(s)/arquivo(s) "
+                          + $"e {list.RegistryKeys.Count} chave(s) de registro");
+        Console.WriteLine();
+
+        Console.WriteLine("Pastas e arquivos protegidos:");
+        if (list.Paths.Count == 0) Console.WriteLine("  (nenhum)");
+        foreach (var path in list.Paths) Console.WriteLine($"  {path}");
+
+        Console.WriteLine();
+        Console.WriteLine("Chaves de registro protegidas:");
+        if (list.RegistryKeys.Count == 0) Console.WriteLine("  (nenhuma)");
+        foreach (var key in list.RegistryKeys) Console.WriteLine($"  {key}");
+
+        Console.WriteLine();
+        Console.WriteLine($"Arquivo: {ExcludeList.FilePath}");
+        return 0;
+    }
+
+    /// <summary>
+    /// Adiciona ou remove um caminho (pasta/arquivo) ou uma chave de registro
+    /// da lista de exclusoes, e grava a lista no disco.
+    /// </summary>
+    private static int ChangeExclusion(string? value, bool registry, bool add)
+    {
+        var what = registry ? "chave de registro" : "caminho";
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            Console.Error.WriteLine($"Uso: tranal /exclude {UsageAction(registry, add)} \"{what}\"");
+            return 1;
+        }
+
+        var list = ExcludeList.Current;
+
+        var changed = add
+            ? (registry ? list.AddRegistryKey(value) : list.AddPath(value))
+            : (registry ? list.RemoveRegistryKey(value) : list.RemovePath(value));
+
+        if (!changed)
+        {
+            Console.WriteLine(add
+                ? $"Já está na lista de exclusões: {value}"
+                : $"Não está na lista de exclusões: {value}");
+            return 0;
+        }
+
+        if (!list.Save())
+        {
+            Console.Error.WriteLine($"Não foi possível gravar a lista de exclusões: {ExcludeList.FilePath}");
+            return 2;
+        }
+
+        if (registry)
+            Console.WriteLine(add ? $"Chave de registro protegida: {value}" : $"Chave de registro liberada: {value}");
+        else
+            Console.WriteLine(add ? $"Pasta/arquivo protegido: {value}" : $"Pasta/arquivo liberado: {value}");
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Esvazia a lista de exclusoes. O comando e explicitamente destrutivo e
+    /// sem ambiguidade, por isso nao pede confirmacao (como o "delete-all" do
+    /// Gerenciador de Backups).
+    /// </summary>
+    private static int ClearExclusions()
+    {
+        var list = ExcludeList.Current;
+        if (list.IsEmpty)
+        {
+            Console.WriteLine("A lista de exclusões já está vazia.");
+            return 0;
+        }
+
+        list.Clear();
+
+        if (!list.Save())
+        {
+            Console.Error.WriteLine($"Não foi possível gravar a lista de exclusões: {ExcludeList.FilePath}");
+            return 2;
+        }
+
+        Console.WriteLine("Lista de exclusões esvaziada.");
+        return 0;
+    }
+
+    /// <summary>Nome da acao do gerenciador de exclusoes, para o texto de uso.</summary>
+    private static string UsageAction(bool registry, bool add)
+    {
+        if (registry) return add ? "addreg" : "rmreg";
+        return add ? "add" : "rm";
+    }
+
+    /// <summary>Texto de uso do gerenciador de exclusoes.</summary>
+    private static int UsageExclude()
+    {
+        Console.Error.WriteLine("Uso: tranal /exclude "
+                              + "[add \"caminho\" | addreg \"chave\" | rm \"caminho\" | rmreg \"chave\" | clear]");
+        return 1;
     }
 }
