@@ -321,7 +321,26 @@ nesta máquina — não são para serem "deduzidas" de novo.
   com chave privada, senão o primeiro. Sem isso, um certificado de teste com o
   mesmo nome rouba a assinatura.
 
-## Tema (armadilhas já vencidas)
+## Auditoria de concorrentes (regras da auditoria)
+
+A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do
+Revo. Um documento por software, no mesmo formato do `PARIDADE.md`, e a
+matriz consolidada em `docs/auditoria/MATRIZ.md`.
+
+- **Medido vale, inferido não vale.** Cada linha de um documento de auditoria
+  aponta para uma evidência que existe em disco (strings de interface, seção
+  de manual, árvore UIA, cabeçalho PE). O que não deu para verificar é
+  escrito como **"não verificado"**, com o motivo.
+- **O inventário bruto não é versionado.** O que fica no repositório é o fato
+  derivado, como já vale para o `PARIDADE.md`.
+- **A matriz muda o backlog.** Uma funcionalidade que só um concorrente tem
+  pode ser nicho; se todos têm, vira prioridade máxima.
+- **A coleta é feita por `tools/auditoria/coleta.ps1`** (strings / resx / PE),
+  sem dependência externa. Não há 7-Zip CLI, Ghidra nem IDA nesta máquina.
+- **Nunca desinstalar software do dono por causa da auditoria.** Os
+  concorrentes estão autorizados pelo dono; o resto do PC, não.
+
+
 
 - **Cores de texto nunca fixas no XAML** fora de `Themes/Dark.xaml` e
   `Themes/Light.xaml`. Use `DynamicResource`. Há teste que reprova cor fixa.
