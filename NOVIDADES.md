@@ -17,7 +17,9 @@ O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller
   falhar, a instalação é **cancelada** e o computador fica como estava.
 - O **desinstalador** apaga o programa, os atalhos e a entrada do menu de contexto do Windows
   (deixá-la apontando para um executável apagado seria referência órfã). Ele **não** apaga os
-  dados do usuário: comentários, grupos e preferências continuam na pasta de dados.
+  dados do usuário: comentários, grupos, preferências e pontos de restauração do registro
+  continuam na pasta de dados. (Medido na máquina: o Revo Uninstaller, ao desinstalar, **apaga**
+  essa pasta junto — as sobras do programa.)
 - **O instalador é assinado digitalmente** com um certificado autossinado da Tranal (o arquivo
   público está em `installer/certificado/TranalUninstallerPro.cer`). Quem instalar esse
   certificado na máquina vê "Tranal Uninstaller Pro" em vez de "editor desconhecido". A

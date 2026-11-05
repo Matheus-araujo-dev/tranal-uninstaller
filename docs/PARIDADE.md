@@ -278,6 +278,32 @@ menu de contexto do Windows **é** removida, pelo próprio programa
 (`--unregister-context-menu`), porque deixar o registro apontando para um
 executável apagado seria referência órfã.
 
+### Desinstalação medida na máquina (instalador do Tranal x Revo)
+
+Ciclo completo rodado na máquina do dono: instalar → conferir → desinstalar
+pelo próprio "Adicionar e remover programas" → conferir.
+
+| O que acontece | Tranal | Revo Uninstaller |
+|---|---|---|
+| Remove o programa instalado | ✅ | ✅ |
+| Remove a entrada de "Adicionar e remover programas" | ✅ | ✅ |
+| Remove os atalhos do Menu Iniciar | ✅ | ✅ |
+| **Preserva a pasta de dados do usuário** (`%LOCALAPPDATA%`) | ✅ | ❌ **apagou** (4 backups e 61 backups de registro junto) |
+| Remove a entrada do menu de contexto do Windows | ✅ (pelo próprio programa) | — |
+
+A diferença é a que importa para quem usa: o Revo varre as sobras do programa
+desinstalado e leva a pasta de `%LOCALAPPDATA%` junto — foi o que aconteceu
+com as preferências e com os pontos de restauração do registro do dono. O
+desinstalador do Tranal apaga só o que ele instalou.
+
+Defeito encontrado e corrigido nesse mesmo ciclo (não aparece na leitura do
+script, só na execução): a bandeira `postinstall` da seção `[Run]` faz o
+instalador executar o programa com as credenciais do usuário **não** elevado, e
+o Tranal exige administrador. O Windows barra o lançamento com *"CreateProcess
+falhou; código 740"*. A entrada precisa de `runascurrentuser` — assim o
+programa herda o token elevado do instalador e nem aparece um segundo pedido de
+UAC.
+
 ---
 
 ## 2. Gerenciador de Backups
