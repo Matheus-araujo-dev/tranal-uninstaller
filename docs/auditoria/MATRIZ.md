@@ -80,7 +80,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | C1 | Varredura de sobras após a desinstalação | ✅ | ✅ | ✅ | — |
 | C2 | **4 modos** (builtin / seguro / moderado / avançado) | ✅ | 🟡 (varredura de lixo por nível) | ✅ | — |
 | C3 | **Níveis de confiança** | 🟡 (negrito = alta) | ✅ (5 níveis) | ✅ (3 níveis) | — |
-| C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") | ⬜ | ✅ | ⬜ | 🔴 |
+| C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") | ⬜ | ✅ | ✅ (11 motivos, coluna "Porquê") | — |
 | C5 | **Atribuição pela cadeia de desinstalação** (item citado explicitamente) | 🟡 | ✅ | ⬜ | 🔴 |
 | C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | ⬜ | 🟡 |
 | C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | ⬜ | ✅ | ⬜ | 🟢 |
@@ -149,7 +149,7 @@ item aponta para a auditoria que o revelou.
 |---|---|---|---|
 | 1 | ✅ **Classificar o desinstalador** (enum `UninstallerKind`, em `Core/UninstallerKind.cs`) — 12 tipos, medidos nos 211 programas desta máquina | BCU A2 | Habilita silencioso, MsiExec, Store App, órfão, PowerShell. É o eixo de tudo. |
 | 2 | **Atribuir sobras pela cadeia de desinstalação**, não só pelo nome | BCU C5 | Separa "a pasta do programa" de "a pasta **dele**". Errar aqui é apagar coisa de outro. |
-| 3 | **Justificativa textual por item de sobra** | BCU C4 | O Tranal já tem 3 níveis; falta dizer **por quê**. Custa pouco e muda a confiança do usuário. |
+| 3 | ✅ **Justificativa textual por item de sobra** — enum `LeftoverReason` (11 motivos), coluna "Porquê" na lista de sobras e na saída da CLI; a tradução mora em `Core/Localization/LeftoverLabels.cs`, consumida pela tela e pela CLI | BCU C4 | O Tranal já tem 3 níveis; agora diz **por quê**. A regra de marcagem não mudou: só confiança alta entra na remoção. |
 | 4 | **Desinstalação silenciosa** com gerador (inclusive por automação de interface) | BCU B2/B3 | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. |
 | 5 | **Filtro Regex + lista de desinstalação em arquivo + desinstalação em lote roteirizável** | BCU D2/D3/D4 | É o que torna o Tranal usável em script e em grande escala. |
 

@@ -94,6 +94,25 @@ O original tem quatro modos. No Tranal eles são **um único enum**
 | Chaves de registro | "delete selected registry items" | apagadas em definitivo |
 | Item em uso | "will be deleted during the next system restart" | `DeferredDelete.Schedule` (`MoveFileEx` + `MOVEFILE_DELAY_UNTIL_REBOOT`) |
 | Itens em negrito | "Only checked bolded items and their subitems will be deleted" | `LeftoverConfidence.High` é o único que vem marcado |
+| **O porquê de cada item** | (não existe no original: o negrito é a única pista) | ✅ **melhor que o original** — todo item tem um **motivo** (`LeftoverReason`), exibido na coluna "Porquê" da lista de sobras e na saída da CLI. A confiança sozinha diz o quanto o Tranal acredita no item, mas não diz por quê; o motivo acompanha sempre, decidido no mesmo julgamento (`LeftoverScanner.Judge`) |
+
+Medido nesta máquina, varredura do "Revo Uninstaller 2.7.0" em modo avançado:
+
+```
+[Pasta] D:\Program Files\VS Revo Group\Revo Uninstaller   (Pasta de instalação)
+   confiança: Alta - marcado   motivo: É a pasta de instalação registrada do programa
+[Registro] HKLM\...\Uninstall\{A28DBDA2-…}_is1   (Revo Uninstaller 2.7.0)
+   confiança: Alta - marcado   motivo: O nome é exatamente o do programa
+[Registro] HKCU\SOFTWARE\VS Revo Group\Revo Uninstaller   (Revo Uninstaller)
+   confiança: Baixa - não marcado   motivo: O nome está no segundo nível da chave de registro
+[Pasta] C:\Users\Matheus\AppData\Local\VS Revo Group\Revo Uninstaller
+   confiança: Baixa - não marcado   motivo: É uma subpasta de uma pasta parecida com a do programa
+```
+
+O motivo é o vocabulário do Bulk Crap Uninstaller (`docs/auditoria/BCU.md`,
+seção 2.3): lá cada nível de confiança vem acompanhado da razão que o
+produziu. A tradução mora em **um lugar só** (`Core/Localization/LeftoverLabels.cs`)
+e a interface e a CLI consomem esse mesmo método.
 
 ### Lote 1 — segurança e alcance da desinstalação (strings 15102, 15125–15126, 15162–15166, 15265, 15307–15309, 15315–15317, 15345, 15352–15353)
 

@@ -342,6 +342,21 @@ arquivo reimplementa o reconhecimento — quem precisar do tipo consome o enum.
 - Cada tipo do enum precisa ser produzido por alguma regra — há teste que
   garante isso, para o enum não ganhar membro morto.
 
+## Justificativa da sobra (regra do núcleo)
+
+A **confiança** e o **motivo** são o mesmo julgamento em duas partes, e por
+isso nunca são decididos separados:
+
+- O enum `LeftoverReason` e o julgamento `LeftoverScanner.Judge` ficam em
+  `Core/UninstallSupport.cs`. Quem precisar do motivo consome o enum.
+- **Todo item varrido tem motivo.** Um item sem justificativa não é
+  aproveitável pelo usuário; há teste que garante isso.
+- **A tradução mora em um lugar só**: `Core/Localization/LeftoverLabels.cs`.
+  A interface (`ReasonTextConverter`) e a CLI consomem esse mesmo método —
+  quando cada uma tivesse a sua, divergiriam na primeira tradução esquecida.
+- **O motivo não é um botão de remoção.** Só a confiança alta entra marcada
+  para remoção; o motivo é informação, e não muda a regra de seleção.
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do

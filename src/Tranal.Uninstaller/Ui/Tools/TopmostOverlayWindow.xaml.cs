@@ -345,6 +345,7 @@ public partial class TopmostOverlayWindow : Window
                 Detail = "Encerrar e excluir processo",
                 Selected = true,
                 Confidence = LeftoverConfidence.High,
+                Reason = LeftoverReason.ProcessTermination,
             },
         };
 

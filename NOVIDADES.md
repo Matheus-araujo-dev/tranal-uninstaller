@@ -51,11 +51,61 @@ tradução que possa divergir do código.
 
 O "desconhecido" é honesto: são os desinstaladores de fabricante (Chromium,
 Visual Studio, .NET, Riot, Electron) que não seguem nenhum empacotador
-conhecido — classificá-los como se fossemseria inventar. A classificação
+conhecido — classificá-los como se fossem seria inventar. A classificação
 também é **conservadora de propósito**: o casamento do NSIS é pelo nome
 **do arquivo**, não por substring, para que um `EAUninstall.exe` não seja
 confundido com o `uninstall.exe` do NSIS (foi exatamente o que aconteceu na
 primeira medição, e virou teste de regressão).
+
+### Novo: cada sobra agora diz POR QUÊ é sobra
+
+A confiança sozinha diz o quanto o Tranal acredita num item, mas não diz
+**por que**. Um "baixa confiança" sem explicação não ajuda ninguém a decidir.
+O Revo tem o mesmo limite: o negrito é a única pista. O Bulk Crap Uninstaller
+resolve com o que chama de *confidence part*: cada nível de confiança vem
+acompanhado da razão que o produziu.
+
+Agora todo item da lista de sobras tem um **motivo**, decidido no mesmo
+julgamento que decide a confiança — e nunca separado dele:
+
+| Motivo | Quando aparece |
+|---|---|
+| É a pasta de instalação registrada do programa | a pasta veio do registro |
+| É um alvo informado por você | o alvo foi digitado |
+| O nome é exatamente o do programa | o nome bate certinho |
+| O nome casa com uma variante do programa | "MeuApp Data" para "MeuApp" |
+| O nome apenas se parece com o do programa | nome parecido |
+| É uma subpasta de uma pasta parecida com a do programa | segundo nível no disco |
+| O nome está no segundo nível da chave de registro | chave dentro da chave |
+| É uma entrada obsoleta do Menu Iniciar | ferramenta de registro |
+| É um atalho obsoleto do Menu Iniciar | ferramenta de registro |
+| Veio do histórico de remoção do Tranal | histórico |
+| É o encerramento de um processo do programa | janela flutuante |
+
+Apareceu uma coluna nova na lista de sobras do assistente — **"Porquê"** — e a
+saída da CLI passou a mostrar o motivo também:
+
+```
+tranal /scan "Revo Uninstaller" /mode advanced
+```
+
+```
+[Pasta] D:\Program Files\VS Revo Group\Revo Uninstaller   (Pasta de instalação)
+   confiança: Alta - marcado   motivo: É a pasta de instalação registrada do programa
+[Registro] HKLM\...\Uninstall\{A28DBDA2-…}_is1   (Revo Uninstaller 2.7.0)
+   confiança: Alta - marcado   motivo: O nome é exatamente o do programa
+[Registro] HKCU\SOFTWARE\VS Revo Group\Revo Uninstaller   (Revo Uninstaller)
+   confiança: Baixa - não marcado   motivo: O nome está no segundo nível da chave de registro
+[Pasta] C:\Users\Matheus\AppData\Local\VS Revo Group\Revo Uninstaller
+   confiança: Baixa - não marcado   motivo: É uma subpasta de uma pasta parecida com a do programa
+```
+
+**A regra de marcagem não mudou**: continua entrando na remoção só o que tem
+confiança alta. O motivo é informação, não um botão de remoção.
+
+A tradução do motivo mora em **um lugar só**
+(`Core/Localization/LeftoverLabels.cs`) e a interface e a CLI consomem esse
+mesmo método — para que as duas não divirjam na primeira tradução esquecida.
 
 ### Novo: instalador (setup)
 

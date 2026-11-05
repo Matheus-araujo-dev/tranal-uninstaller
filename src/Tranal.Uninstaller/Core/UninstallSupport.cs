@@ -31,6 +31,60 @@ public enum LeftoverConfidence
     Low,
 }
 
+/// <summary>
+/// O motivo pelo qual um item foi considerado sobra do programa.
+///
+/// A confianca sozinha diz o quanto o Tranal acredita no item; o motivo diz
+/// <c>por que</c>. Sao o mesmo julgamento em duas partes, e por isso sao
+/// decididos sempre juntos, no mesmo lugar
+/// (<see cref="LeftoverScanner.Judge"/>).
+///
+/// O vocabulario segue o do Bulk Crap Uninstaller 6.3.0
+/// (<c>docs/auditoria/BCU.md</c>, secao 2.3), que e o concorrente de codigo
+/// aberto: la cada nivel de confianca vem acompanhado do motivo.
+/// </summary>
+public enum LeftoverReason
+{
+    /// <summary>Sem motivo registrado.</summary>
+    Unknown,
+
+    /// <summary>E a pasta de instalacao registrada do programa.</summary>
+    InstallFolder,
+
+    /// <summary>E um alvo informado pelo usuario.</summary>
+    ExplicitTarget,
+
+    /// <summary>O nome e exatamente o do programa.</summary>
+    ExactNameMatch,
+
+    /// <summary>O nome casa com uma variante conhecida do programa.</summary>
+    VariantNameMatch,
+
+    /// <summary>O nome apenas se parece com o do programa.</summary>
+    SimilarNameMatch,
+
+    /// <summary>E uma subpasta de uma pasta que se parece com a do programa.</summary>
+    SubfolderMatch,
+
+    /// <summary>
+    /// O nome esta no segundo nivel da chave de registro: uma chave dentro
+    /// da chave do programa, e nao a chave do programa.
+    /// </summary>
+    RegistrySecondLevel,
+
+    /// <summary>E uma entrada obsoleta do Menu Iniciar.</summary>
+    ObsoleteStartMenu,
+
+    /// <summary>E um atalho obsoleto do Menu Iniciar.</summary>
+    ObsoleteShortcut,
+
+    /// <summary>Veio do historico de remocao do proprio Tranal.</summary>
+    History,
+
+    /// <summary>E o encerramento de um processo do programa.</summary>
+    ProcessTermination,
+}
+
 public sealed class LeftoverItem
 {
     public string Kind { get; init; } = string.Empty;      // "Arquivo" | "Pasta" | "Registro"
@@ -43,6 +97,12 @@ public sealed class LeftoverItem
     /// marcado para remocao: apenas a confianca alta entra marcada.
     /// </summary>
     public LeftoverConfidence Confidence { get; init; } = LeftoverConfidence.High;
+
+    /// <summary>
+    /// O motivo do julgamento. Vai sempre junto com a confianca: um "baixa
+    /// confianca" sem explicacao nao diz nada ao usuario.
+    /// </summary>
+    public LeftoverReason Reason { get; init; } = LeftoverReason.Unknown;
 
     /// <summary>True quando o item deve ser exibido em negrito na lista de sobras.</summary>
     public bool IsHighConfidence => Confidence == LeftoverConfidence.High;
@@ -413,6 +473,7 @@ public static class LeftoverScanner
                     Path = PathUtil.Normalize(folder),
                     Detail = "Pasta de instalação",
                     Confidence = LeftoverConfidence.High,
+                    Reason = LeftoverReason.InstallFolder,
                     Selected = true,
                 });
             }
@@ -511,6 +572,7 @@ public static class LeftoverScanner
                     Path = full,
                     Detail = "Alvo informado",
                     Confidence = LeftoverConfidence.High,
+                    Reason = LeftoverReason.ExplicitTarget,
                     Selected = true,
                 });
             }
@@ -522,6 +584,7 @@ public static class LeftoverScanner
                     Path = full,
                     Detail = "Alvo informado",
                     Confidence = LeftoverConfidence.High,
+                    Reason = LeftoverReason.ExplicitTarget,
                     Selected = true,
                 });
             }
@@ -670,15 +733,16 @@ public static class LeftoverScanner
                         // casa com "Steam" e e um produto diferente. Com
                         // nome exato, a confianca e alta e o item entra
                         // marcado; caso contrario, fica apenas listado.
-                        var confidence = ConfidenceFor(display.Trim(), variant);
+                        var judgment = Judge(display.Trim(), variant);
 
                         items.Add(new LeftoverItem
                         {
                             Kind = "Registro",
                             Path = target.CanonicalPath(root, name),
                             Detail = display,
-                            Confidence = confidence,
-                            Selected = Selects(confidence, options, target.OtherAccount),
+                            Confidence = judgment.Confidence,
+                            Reason = judgment.Reason,
+                            Selected = Selects(judgment.Confidence, options, target.OtherAccount),
                             OtherAccount = target.OtherAccount,
                         });
                     }
@@ -704,7 +768,7 @@ public static class LeftoverScanner
                     {
                         if (NameMatch.ContainsWord(name, variant))
                             AddRegistryItem(target, root, name, items, name,
-                                ConfidenceFor(name, variant), options);
+                                Judge(name, variant), options);
 
                         if (options.Mode != UninstallMode.Advanced) continue;
 
@@ -717,7 +781,7 @@ public static class LeftoverScanner
                             {
                                 if (!NameMatch.ContainsWord(child, variant)) continue;
                                 AddRegistryItem(target, root, $@"{name}\{child}", items, child,
-                                    LeftoverConfidence.Low, options);
+                                    new LeftoverJudgment(LeftoverConfidence.Low, LeftoverReason.RegistrySecondLevel), options);
                             }
                         }
                         catch { }
@@ -729,16 +793,24 @@ public static class LeftoverScanner
     }
 
     /// <summary>
-    /// Confianca de um item cujo nome casa com uma variante do programa.
-    /// Nome exatamente igual e alta confianca; casamento parcial e media.
+    /// O julgamento de uma sobra: a confianca e o motivo, sempre juntos.
     /// </summary>
-    private static LeftoverConfidence ConfidenceFor(string name, string variant) =>
+    internal readonly record struct LeftoverJudgment(LeftoverConfidence Confidence, LeftoverReason Reason);
+
+    /// <summary>
+    /// Julga um item cujo nome casa com uma variante do programa.
+    ///
+    /// Nome exatamente igual e alta confianca; casamento parcial e media.
+    /// O motivo acompanha sempre a confianca, porque um "baixa confianca"
+    /// sem explicacao nao diz nada ao usuario.
+    /// </summary>
+    internal static LeftoverJudgment Judge(string name, string variant) =>
         string.Equals(name, variant, StringComparison.OrdinalIgnoreCase)
-            ? LeftoverConfidence.High
-            : LeftoverConfidence.Medium;
+            ? new LeftoverJudgment(LeftoverConfidence.High, LeftoverReason.ExactNameMatch)
+            : new LeftoverJudgment(LeftoverConfidence.Medium, LeftoverReason.VariantNameMatch);
 
     private static void AddRegistryItem(RegistryTarget target, string root, string relativePath,
-        List<LeftoverItem> items, string detail, LeftoverConfidence confidence,
+        List<LeftoverItem> items, string detail, LeftoverJudgment judgment,
         LeftoverScanOptions options)
     {
         var path = target.CanonicalPath(root, relativePath);
@@ -749,8 +821,9 @@ public static class LeftoverScanner
             Kind = "Registro",
             Path = path,
             Detail = detail,
-            Confidence = confidence,
-            Selected = Selects(confidence, options, target.OtherAccount),
+            Confidence = judgment.Confidence,
+            Reason = judgment.Reason,
+            Selected = Selects(judgment.Confidence, options, target.OtherAccount),
             OtherAccount = target.OtherAccount,
         });
     }
@@ -812,7 +885,7 @@ public static class LeftoverScanner
                     var name = Path.GetFileName(dir);
                     if (NameMatch.StartsWithWord(name, variant))
                     {
-                        AddFolderItem(dir, items, ConfidenceFor(name, variant), options, otherAccount);
+                        AddFolderItem(dir, items, Judge(name, variant), options, otherAccount);
                         continue;
                     }
 
@@ -825,7 +898,9 @@ public static class LeftoverScanner
                         foreach (var sub in Directory.EnumerateDirectories(dir, "*", SearchOption.TopDirectoryOnly))
                         {
                             if (NameMatch.StartsWithWord(Path.GetFileName(sub), variant))
-                                AddFolderItem(sub, items, LeftoverConfidence.Low, options, otherAccount);
+                                AddFolderItem(sub, items,
+                                    new LeftoverJudgment(LeftoverConfidence.Low, LeftoverReason.SubfolderMatch),
+                                    options, otherAccount);
                         }
                     }
                     catch { }
@@ -835,7 +910,7 @@ public static class LeftoverScanner
         }
     }
 
-    private static void AddFolderItem(string dir, List<LeftoverItem> items, LeftoverConfidence confidence,
+    private static void AddFolderItem(string dir, List<LeftoverItem> items, LeftoverJudgment judgment,
         LeftoverScanOptions options, bool otherAccount)
     {
         var full = PathUtil.Normalize(dir);
@@ -846,8 +921,9 @@ public static class LeftoverScanner
             Kind = "Pasta",
             Path = full,
             Detail = $"{ProgramScanner.MeasureFolder(dir) / 1024 / 1024} MB",
-            Confidence = confidence,
-            Selected = Selects(confidence, options, otherAccount),
+            Confidence = judgment.Confidence,
+            Reason = judgment.Reason,
+            Selected = Selects(judgment.Confidence, options, otherAccount),
             OtherAccount = otherAccount,
         });
     }

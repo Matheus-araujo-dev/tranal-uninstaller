@@ -156,6 +156,7 @@ public sealed class RegistryOptimizer
                         Detail = string.IsNullOrWhiteSpace(entry.DisplayName) ? "Entrada obsoleta do Menu Iniciar" : entry.DisplayName,
                         Selected = true,
                         Confidence = LeftoverConfidence.High,
+                        Reason = LeftoverReason.ObsoleteStartMenu,
                     });
                 }
                 else
@@ -168,6 +169,7 @@ public sealed class RegistryOptimizer
                         Detail = string.IsNullOrWhiteSpace(entry.DisplayName) ? "Atalho obsoleto do Menu Iniciar" : entry.DisplayName,
                         Selected = true,
                         Confidence = LeftoverConfidence.High,
+                        Reason = LeftoverReason.ObsoleteShortcut,
                     });
                 }
             }

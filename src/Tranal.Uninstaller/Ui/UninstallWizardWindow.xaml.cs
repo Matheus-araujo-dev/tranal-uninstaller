@@ -634,6 +634,15 @@ public partial class UninstallWizardWindow : Window
             DisplayMemberBinding = new Binding("Confidence") { Converter = new ConfidenceTextConverter() },
         });
 
+        // A coluna do motivo: a confianca sozinha diz o quanto o Tranal
+        // acredita no item, mas nao diz por que. O motivo acompanha sempre.
+        grid.Columns.Add(new GridViewColumn
+        {
+            Header = Loc.Get("Common.Reason"),
+            Width = 250,
+            DisplayMemberBinding = new Binding("Reason") { Converter = new ReasonTextConverter() },
+        });
+
         ApplyHeaderStyle(grid);
         LeftoversList.View = grid;
         BuildLeftoversContextMenu();
@@ -749,12 +758,35 @@ public sealed class ConfidenceTextConverter : IValueConverter
     /// <param name="culture">Cultura do conversor, nao usada.</param>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
         value is LeftoverConfidence confidence
-            ? Loc.Get(confidence switch
-            {
-                LeftoverConfidence.High => "Common.High",
-                LeftoverConfidence.Medium => "Common.Medium",
-                _ => "Common.Low",
-            })
+            ? LeftoverLabels.Confidence(confidence)
+            : string.Empty;
+
+    /// <summary>Conversao de volta nao e suportada: a coluna e somente leitura.</summary>
+    /// <param name="value">Valor de origem.</param>
+    /// <param name="targetType">Tipo de destino da conversao.</param>
+    /// <param name="parameter">Parametro do conversor, nao usado.</param>
+    /// <param name="culture">Cultura do conversor, nao usada.</param>
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        Binding.DoNothing;
+}
+
+/// <summary>
+/// Converte o motivo do julgamento de uma sobra no texto localizado exibido
+/// na coluna "Por que" da lista de sobras do assistente.
+///
+/// O motivo e o que o Bulk Crap Uninstaller chama de "confidence part": la,
+/// cada nivel de confianca vem acompanhado da razao que o produziu.
+/// </summary>
+public sealed class ReasonTextConverter : IValueConverter
+{
+    /// <summary>Devolve a frase que explica por que o item e sobra do programa.</summary>
+    /// <param name="value">Valor da propriedade <c>Reason</c> da sobra.</param>
+    /// <param name="targetType">Tipo de destino da conversao.</param>
+    /// <param name="parameter">Parametro do conversor, nao usado.</param>
+    /// <param name="culture">Cultura do conversor, nao usada.</param>
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is LeftoverReason reason
+            ? LeftoverLabels.Reason(reason)
             : string.Empty;
 
     /// <summary>Conversao de volta nao e suportada: a coluna e somente leitura.</summary>

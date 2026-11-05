@@ -640,6 +640,7 @@ public static class TrackCleaner
         Path = entry.Path,
         Detail = entry.Detail,
         Confidence = LeftoverConfidence.High,
+        Reason = LeftoverReason.History,
         Selected = true,
     };
 
