@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,6 +26,7 @@ public static class ToolViews
         "HistoryCleaner" => CreateHistory(),
         "EvidenceRemover" => CreateEvidence(),
         "UnrecoverableDelete" => CreateUnrecoverable(),
+        "RegistryOptimizer" => CreateRegistryOptimizer(),
         _ => new ItemListPanel(),
     };
 
@@ -343,6 +345,76 @@ public static class ToolViews
             }
 
             var report = await Task.Run(() => HistoryCleaner.Clear(selected));
+            panel.PanelStatus = Loc.Get("Status.Removed") + $": {report.RemovedCount} | "
+                + Loc.Get("Common.Error") + $": {report.FailedCount + report.ProtectedCount}";
+
+            await ScanAsync(panel, rows, items);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Otimizador de Registro (entradas obsoletas do Menu Iniciar)
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateRegistryOptimizer()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+        var items = new List<RegistryOptimizerEntry>();
+
+        panel.Configure(
+            Loc.Get("Module.RegistryOptimizer"),
+            new[]
+            {
+                new ColumnDef { Header = "", Width = 34, IsCheckable = true },
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 560, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Detail"), Width = 340, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "RegistryOptimizerScan", Text = Loc.Get("RegistryOptimizer.Scan"), Action = () => panel.RunAsync(() => ScanAsync(panel, rows, items)) },
+                new CommandDef { AutomationId = "RegistryOptimizerRemove", Text = Loc.Get("RegistryOptimizer.RemoveSelected"), Action = () => panel.RunAsync(() => RemoveAsync(panel, rows, items)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ScanAsync(panel, rows, items));
+        return panel;
+
+        static async Task ScanAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<RegistryOptimizerEntry> items)
+        {
+            var found = await Task.Run(RegistryOptimizer.ScanStartMenu);
+
+            items.Clear();
+            items.AddRange(found);
+
+            rows.Clear();
+            foreach (var item in found)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = item.DisplayName,
+                    Path = item.Path,
+                    Size = item.Detail,
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = found.Count == 0
+                ? Loc.Get("RegistryOptimizer.Empty")
+                : string.Format(CultureInfo.CurrentCulture, Loc.Get("RegistryOptimizer.Found"), found.Count);
+        }
+
+        static async Task RemoveAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<RegistryOptimizerEntry> items)
+        {
+            var selected = rows.Where(r => r.Selected).Select(r => r.Source).OfType<RegistryOptimizerEntry>().ToList();
+
+            if (selected.Count == 0)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var report = await Task.Run(() => RegistryOptimizer.Remove(selected));
             panel.PanelStatus = Loc.Get("Status.Removed") + $": {report.RemovedCount} | "
                 + Loc.Get("Common.Error") + $": {report.FailedCount + report.ProtectedCount}";
 

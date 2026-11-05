@@ -28,7 +28,12 @@ $cliProj = Join-Path $repoRoot 'src\Tranal.Cli'
 function Reset-Intermediate([string]$projectDir) {
     $obj = Join-Path $projectDir 'obj'
     if (Test-Path $obj) {
-        $stash = Join-Path $repoRoot ('publish\_obj-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        # A pasta de destino precisa existir: Move-Item nao cria diretorios
+        # intermediarios e falha com "parte do caminho nao foi encontrada".
+        $stashRoot = Join-Path $repoRoot 'publish'
+        if (-not (Test-Path $stashRoot)) { [void][System.IO.Directory]::CreateDirectory($stashRoot) }
+
+        $stash = Join-Path $stashRoot ('_obj-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
         Move-Item $obj $stash -Force
         Write-Host "obj anterior movido para $stash"
     }

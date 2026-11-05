@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Win32;
@@ -175,9 +176,15 @@ public static class BackupManager
     /// <summary>
     /// Captura uma chave de registro e todos os seus valores.
     /// </summary>
-    /// <returns><c>true</c> quando a chave existia e foi capturada.</returns>
+    /// <returns>
+    /// <c>true</c> quando a chave existia e foi capturada.
+    /// <c>false</c> quando a chave nao existe, nao pode ser lida ou e uma chave
+    /// protegida — uma chave que nao pode ser removida tambem nao e copiada.
+    /// </returns>
     public static bool AddRegistryKey(RestorePoint point, string registryPath)
     {
+        if (SafetyRules.IsProtectedRegistryKey(registryPath)) return false;
+
         var snapshots = CaptureRegistry(registryPath);
         if (snapshots.Count == 0) return false;
 
@@ -201,11 +208,16 @@ public static class BackupManager
         return true;
     }
 
-    /// <summary>Captura um arquivo, copiando-o para a pasta do ponto de restauracao.</summary>
+    /// <summary>
+    /// Captura um arquivo, copiando-o para a pasta do ponto de restauracao.
+    /// Arquivos dentro de caminho protegido nao sao copiados: o que nao pode
+    /// ser removido tambem nao precisa de backup.
+    /// </summary>
     public static bool AddFile(RestorePoint point, string filePath)
     {
         var full = PathUtil.Normalize(filePath);
         if (full.Length == 0 || !File.Exists(full)) return false;
+        if (SafetyRules.IsProtectedFolder(Path.GetDirectoryName(full) ?? string.Empty)) return false;
 
         var target = Path.Combine(point.FolderPath, "files", $"{point.Items.Count:0000}-{Path.GetFileName(full)}");
         try
@@ -227,11 +239,17 @@ public static class BackupManager
         catch { return false; }
     }
 
-    /// <summary>Captura uma pasta, copiando-a recursivamente.</summary>
+    /// <summary>
+    /// Captura uma pasta, copiando-a recursivamente.
+    /// Pasta protegida pelo Tranal nao e copiada: uma pasta que nao pode ser
+    /// removida nao precisa de backup — e copiar o <c>C:\Windows\System32</c>
+    /// inteiro ocuparia centenas de megabytes sem qualquer ganho.
+    /// </summary>
     public static bool AddFolder(RestorePoint point, string folderPath)
     {
         var full = PathUtil.Normalize(folderPath);
         if (full.Length == 0 || !Directory.Exists(full)) return false;
+        if (SafetyRules.IsProtectedFolder(full)) return false;
 
         var target = Path.Combine(point.FolderPath, "files", $"{point.Items.Count:0000}-{Path.GetFileName(full)}");
         try
@@ -258,9 +276,35 @@ public static class BackupManager
         {
             Directory.CreateDirectory(point.FolderPath);
             var manifest = Path.Combine(point.FolderPath, "manifest.json");
-            File.WriteAllText(manifest, JsonSerializer.Serialize(point, ManifestOptions));
+
+            // O total e recalculado a partir dos itens: quem chamou o Create
+            // ainda nao sabia o tamanho do que seria guardado.
+            var snapshot = new RestorePoint
+            {
+                Id = point.Id,
+                Name = point.Name,
+                CreatedAt = point.CreatedAt,
+                Operation = point.Operation,
+                TotalSize = ComputeTotalSize(point.Items),
+                Items = point.Items,
+                FolderPath = point.FolderPath,
+            };
+
+            File.WriteAllText(manifest, JsonSerializer.Serialize(snapshot, ManifestOptions));
         }
         catch { /* manifesto e a unica parte dispensavel do backup */ }
+    }
+
+    /// <summary>
+    /// Soma o tamanho dos itens guardados. O total e calculado a partir dos
+    /// proprios itens — e nao informado por quem grava — para que a listagem
+    /// nunca mostre "0 KB" num ponto de restauracao que tem conteudo.
+    /// </summary>
+    private static long ComputeTotalSize(IEnumerable<BackupItem> items)
+    {
+        long total = 0;
+        foreach (var item in items) total += item.Size;
+        return total;
     }
 
     /// <summary>Lista todos os pontos de restauracao, do mais novo para o mais antigo.</summary>
@@ -290,7 +334,7 @@ public static class BackupManager
             if (!File.Exists(manifest)) return null;
 
             var point = JsonSerializer.Deserialize<RestorePoint>(
-                File.ReadAllText(manifest), ManifestOptions);
+                ReadManifest(manifest), ManifestOptions);
             if (point is null) return null;
 
             return new RestorePoint
@@ -299,12 +343,34 @@ public static class BackupManager
                 Name = point.Name,
                 CreatedAt = point.CreatedAt,
                 Operation = point.Operation,
-                TotalSize = point.TotalSize,
+                TotalSize = point.TotalSize > 0 ? point.TotalSize : ComputeTotalSize(point.Items),
                 Items = point.Items,
                 FolderPath = folder,
             };
         }
         catch { return null; }
+    }
+
+    /// <summary>
+    /// Le o manifesto detectando a codificacao pelo BOM. Um manifesto gravado
+    /// pelo PowerShell 5.1 vem em UTF-16 com BOM: lido como UTF-8, o JSON
+    /// pareceria corrompido e o ponto de restauracao sumiria da listagem sem
+    /// aviso nenhum.
+    /// </summary>
+    private static string ReadManifest(string path)
+    {
+        var bytes = File.ReadAllBytes(path);
+
+        if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+            return Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
+
+        if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF)
+            return Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2);
+
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+            return Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
+
+        return Encoding.UTF8.GetString(bytes);
     }
 
     /// <summary>Apaga um ponto de restauracao (pasta inteira).</summary>

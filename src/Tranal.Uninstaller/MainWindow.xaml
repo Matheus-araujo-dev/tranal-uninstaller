@@ -193,6 +193,13 @@
               <TextBlock Text="{loc:Tr Module.EvidenceRemover}" />
             </StackPanel>
           </Button>
+          <Button Style="{StaticResource ModuleButton}" Tag="RegistryOptimizer" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolRegistryOptimizer">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C3;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.RegistryOptimizer}" />
+            </StackPanel>
+          </Button>
           <Button Style="{StaticResource ModuleButton}" Tag="UnrecoverableDelete" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolUnrecoverableDelete">
             <StackPanel Orientation="Horizontal">

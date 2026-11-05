@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
-        Title="Assistente" Height="620" Width="820" WindowStartupLocation="CenterOwner"
+        Title="Assistente" Height="680" Width="900" WindowStartupLocation="CenterOwner"
         Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
         FontSize="12" ShowInTaskbar="False">
 
@@ -43,45 +43,91 @@
     <!-- conteudo -->
     <Border Grid.Row="2" Background="{DynamicResource DescriptionBrush}" CornerRadius="3" Padding="12">
       <Grid>
-        <TextBlock x:Name="MessageText" AutomationProperties.AutomationId="WizardMessage" TextWrapping="Wrap" VerticalAlignment="Top" />
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <StackPanel x:Name="OptionsPanel" VerticalAlignment="Top" Margin="0,10,0,0" Visibility="Collapsed">
-          <TextBlock Text="{loc:Tr Wizard.Step3.Level}" Margin="0,0,0,6" />
-          <StackPanel Orientation="Horizontal">
-            <RadioButton x:Name="SafeRadio" AutomationProperties.AutomationId="ScanSafeRadio"
-                         Content="{loc:Tr Wizard.Step3.Safe}" IsChecked="True" Margin="0,0,14,0" />
-            <RadioButton x:Name="ModerateRadio" AutomationProperties.AutomationId="ScanModerateRadio"
-                         Content="{loc:Tr Wizard.Step3.Moderate}" Margin="0,0,14,0" />
-            <RadioButton x:Name="AdvancedRadio" AutomationProperties.AutomationId="ScanAdvancedRadio"
-                         Content="{loc:Tr Wizard.Step3.Advanced}" />
-          </StackPanel>
-          <CheckBox x:Name="AutoDeleteCheck" AutomationProperties.AutomationId="AutoDeleteCheck"
-                    Content="{loc:Tr Wizard.Step4.AutoDelete}" Margin="0,10,0,0" />
-          <CheckBox x:Name="BackupRegistryCheck" AutomationProperties.AutomationId="BackupRegistryCheck"
-                    Content="{loc:Tr Wizard.Step2.Backup}" IsChecked="True" Margin="0,4,0,0" />
-          <CheckBox x:Name="RestorePointCheck" AutomationProperties.AutomationId="RestorePointCheck"
-                    Content="{loc:Tr Wizard.Step2.RestorePoint}" IsChecked="True" Margin="0,4,0,0" />
+        <TextBlock x:Name="MessageText" Grid.Row="0" AutomationProperties.AutomationId="WizardMessage"
+                   TextWrapping="Wrap" VerticalAlignment="Top" />
+
+        <!-- Etapa 1: escolha do modo de desinstalacao (a unica opcao da operacao) -->
+        <StackPanel x:Name="ModePanel" Grid.Row="1" Visibility="Collapsed" Margin="0,10,0,0">
+          <TextBlock Text="{loc:Tr Wizard.Mode.Title}" FontWeight="SemiBold" />
+          <TextBlock Text="{loc:Tr Wizard.Mode.Intro}" TextWrapping="Wrap" Margin="0,2,0,8"
+                     Foreground="{DynamicResource TextDimBrush}" />
+
+          <RadioButton x:Name="ModeBuiltInRadio" GroupName="UninstallMode" Margin="0,0,0,2"
+                       Content="{loc:Tr Wizard.Mode.BuiltIn}"
+                       AutomationProperties.AutomationId="ModeBuiltInRadio" />
+          <TextBlock Text="{loc:Tr Wizard.Mode.BuiltInDesc}" Margin="22,0,0,6" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" />
+
+          <RadioButton x:Name="ModeSafeRadio" GroupName="UninstallMode" Margin="0,0,0,2"
+                       Content="{loc:Tr Wizard.Mode.Safe}"
+                       AutomationProperties.AutomationId="ModeSafeRadio" />
+          <TextBlock Text="{loc:Tr Wizard.Mode.SafeDesc}" Margin="22,0,0,6" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" />
+
+          <RadioButton x:Name="ModeModerateRadio" GroupName="UninstallMode" Margin="0,0,0,2"
+                       Content="{loc:Tr Wizard.Mode.Moderate}"
+                       AutomationProperties.AutomationId="ModeModerateRadio" />
+          <TextBlock Text="{loc:Tr Wizard.Mode.ModerateDesc}" Margin="22,0,0,6" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" />
+
+          <RadioButton x:Name="ModeAdvancedRadio" GroupName="UninstallMode" Margin="0,0,0,2"
+                       Content="{loc:Tr Wizard.Mode.Advanced}"
+                       AutomationProperties.AutomationId="ModeAdvancedRadio" />
+          <TextBlock Text="{loc:Tr Wizard.Mode.AdvancedDesc}" Margin="22,0,0,6" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" />
         </StackPanel>
 
-        <ListView x:Name="LeftoversList" AutomationProperties.AutomationId="LeftoversList" Margin="0,10,0,0" Visibility="Collapsed"
-                  Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}">
-          <ListView.View>
-            <GridView>
-              <GridViewColumn Header="" Width="34">
-                <GridViewColumn.CellTemplate>
-                  <DataTemplate>
-                    <CheckBox IsChecked="{Binding Selected, Mode=TwoWay}" />
-                  </DataTemplate>
-                </GridViewColumn.CellTemplate>
-              </GridViewColumn>
-              <GridViewColumn Header="Tipo" Width="90" DisplayMemberBinding="{Binding Kind}" />
-              <GridViewColumn Header="Caminho" Width="520" DisplayMemberBinding="{Binding Path}" />
-              <GridViewColumn Header="Tamanho" Width="90" DisplayMemberBinding="{Binding Detail}" />
-            </GridView>
-          </ListView.View>
-        </ListView>
+        <!-- Etapa 2: opcoes da execucao nativa -->
+        <StackPanel x:Name="OptionsPanel" Grid.Row="1" Visibility="Collapsed" Margin="0,10,0,0">
+          <CheckBox x:Name="BackupRegistryCheck" AutomationProperties.AutomationId="BackupRegistryCheck"
+                    Content="{loc:Tr Wizard.Step2.Backup}" IsChecked="True" Margin="0,0,0,4" />
+          <CheckBox x:Name="RestorePointCheck" AutomationProperties.AutomationId="RestorePointCheck"
+                    Content="{loc:Tr Wizard.Step2.RestorePoint}" Margin="0,0,0,4" />
+          <TextBlock x:Name="RestorePointNote" AutomationProperties.AutomationId="RestorePointNote"
+                     TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}" Margin="22,0,0,0"
+                     Visibility="Collapsed" />
+        </StackPanel>
 
-        <TextBlock x:Name="SummaryText" AutomationProperties.AutomationId="WizardSummary" Visibility="Collapsed" TextWrapping="Wrap" VerticalAlignment="Top" />
+        <!-- Etapa 3: modo em uso -->
+        <TextBlock x:Name="ModeInfoText" Grid.Row="1" Visibility="Collapsed" Margin="0,10,0,0"
+                   FontWeight="SemiBold" AutomationProperties.AutomationId="WizardModeInfo" />
+
+        <!-- Etapa 4: remocao das sobras -->
+        <Grid x:Name="RemovalPanel" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" Margin="0,10,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <TextBlock Grid.Row="0" Text="{loc:Tr Wizard.Step4.Legend}" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" Margin="0,0,0,6" />
+
+          <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+            <Button x:Name="SelectAllButton" Content="{loc:Tr Wizard.Step4.SelectAll}" Style="{StaticResource FlatButton}"
+                    AutomationProperties.AutomationId="WizardSelectAllButton" Margin="0,0,6,0"
+                    Click="SelectAllButton_Click" />
+            <Button x:Name="DeselectAllButton" Content="{loc:Tr Wizard.Step4.DeselectAll}" Style="{StaticResource FlatButton}"
+                    AutomationProperties.AutomationId="WizardDeselectAllButton" Margin="0,0,12,0"
+                    Click="DeselectAllButton_Click" />
+            <TextBlock Text="{loc:Tr Wizard.Step4.RecycleBin}" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextDimBrush}" />
+          </WrapPanel>
+
+          <ListView x:Name="LeftoversList" Grid.Row="2" AutomationProperties.AutomationId="LeftoversList"
+                    Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    AlternationCount="2" />
+        </Grid>
+
+        <!-- Etapa 5: resumo -->
+        <TextBlock x:Name="SummaryText" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" TextWrapping="Wrap"
+                   VerticalAlignment="Top" AutomationProperties.AutomationId="WizardSummary" />
       </Grid>
     </Border>
 

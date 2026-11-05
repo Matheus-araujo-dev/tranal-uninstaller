@@ -20,6 +20,7 @@ namespace Tranal.Cli;
 ///   tranal /hunter "caminho"             - resolve um icone para o programa instalado
 ///   tranal /lang "pt-BR"                 - define o idioma da interface
 ///   tranal /theme "dark|light"           - define o tema da interface
+///   tranal /backup | /bk                 - Gerenciador de Backups (pontos de restauracao)
 /// </summary>
 public static class ExtraCommands
 {
@@ -39,6 +40,7 @@ public static class ExtraCommands
         if (flags.Contains("/lang")) return RunLanguage(args);
         if (flags.Contains("/theme")) return RunTheme(args);
         if (flags.Contains("/new")) return RunNewPrograms();
+        if (flags.Contains("/backup") || flags.Contains("/bk")) return RunBackupManager(args, flags);
         return null;
     }
 
@@ -208,7 +210,16 @@ public static class ExtraCommands
         else if (flags.Contains("/xml")) content = Exporters.ToXml(programs);
         else content = Exporters.ToText(programs);
 
-        File.WriteAllText(destination, content, Encoding.UTF8);
+        try
+        {
+            File.WriteAllText(destination, content, Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Não foi possível exportar a listagem: {ex.Message}");
+            return 2;
+        }
+
         Console.WriteLine($"Lista exportada: {destination} ({programs.Count} entradas)");
         return 0;
     }
@@ -321,5 +332,335 @@ public static class ExtraCommands
         AppSettingsStore.Update(s => s.Theme = normalized);
         Console.WriteLine($"Tema definido: {normalized}");
         return 0;
+    }
+
+    // ------------------------------------------------------------------
+    // Gerenciador de Backups
+    // ------------------------------------------------------------------
+    /// <summary>
+    /// Gerenciador de Backups: lista, restaura e apaga os pontos de
+    /// restauracao criados pelo Tranal (equivalente ao modulo homonimo do
+    /// Revo Uninstaller Pro).
+    /// </summary>
+    private static int RunBackupManager(string[] args, HashSet<string> flags)
+    {
+        var index = Array.FindIndex(args, a =>
+            a.Equals("/backup", StringComparison.OrdinalIgnoreCase) ||
+            a.Equals("/bk", StringComparison.OrdinalIgnoreCase));
+
+        if (index < 0) return 1;
+
+        // Os argumentos que seguem o comando sao os operandos; as flags
+        // (comecadas por "/") sao tratadas a parte.
+        var operands = args.Skip(index + 1)
+            .Where(a => !a.StartsWith("/", StringComparison.Ordinal))
+            .ToArray();
+
+        if (operands.Length == 0) return ListRestorePoints();
+
+        return operands[0].ToLowerInvariant() switch
+        {
+            "restore" => RestoreRestorePoint(args, operands.Skip(1).ToArray()),
+            "delete" => DeleteRestorePoint(operands.Skip(1).ToArray(), flags),
+            "delete-all" => DeleteAllRestorePoints(),
+            "delete-older" => DeleteOlderRestorePoints(operands.Skip(1).ToArray(), flags),
+            _ => UsageBackup(),
+        };
+    }
+
+    /// <summary>
+    /// Lista os pontos de restauracao: id, nome, operacao, data/hora, tamanho
+    /// e a quantidade de itens de registro e de arquivos.
+    /// </summary>
+    private static int ListRestorePoints()
+    {
+        IReadOnlyList<RestorePoint> points;
+        try
+        {
+            points = BackupManager.List();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erro ao ler os pontos de restauração: {ex.Message}");
+            return 2;
+        }
+
+        if (points.Count == 0)
+        {
+            Console.WriteLine(Loc.Get("Backup.Empty"));
+            return 0;
+        }
+
+        Console.WriteLine($"{Loc.Get("Backup.Title")}: {points.Count} ponto(s) de restauração");
+        Console.WriteLine();
+
+        foreach (var point in points)
+        {
+            Console.WriteLine($"Id: {point.Id}");
+            Console.WriteLine($"  {Loc.Get("Backup.Column.Name")}: {point.Name}");
+            Console.WriteLine($"  {Loc.Get("Backup.Column.Operation")}: {point.Operation}");
+            Console.WriteLine($"  {Loc.Get("Backup.Column.Date")}: {point.CreatedAt:dd/MM/yyyy} "
+                              + $"{Loc.Get("Backup.Column.Time")}: {point.CreatedAt:HH:mm:ss}");
+            Console.WriteLine($"  {Loc.Get("Backup.Column.Size")}: {FormatSize(point.Items.Sum(i => i.Size))}");
+            Console.WriteLine($"  {Loc.Get("Backup.Column.Items")}: {point.Items.Count} "
+                              + $"(registro: {point.RegistryItemCount}, arquivos/pastas: {point.FileItemCount})");
+            Console.WriteLine();
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Restaura um ponto de restauracao. Sem caminhos, restaura tudo; com
+    /// caminhos, restaura somente os itens que correspondem a eles.
+    /// </summary>
+    private static int RestoreRestorePoint(string[] args, string[] operands)
+    {
+        if (operands.Length == 0)
+        {
+            Console.Error.WriteLine("Uso: tranal /backup restore <id> [caminho...]");
+            return 1;
+        }
+
+        var id = operands[0];
+        var wanted = operands.Skip(1).ToArray();
+
+        RestorePoint? point;
+        try
+        {
+            point = BackupManager.Load(id);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erro ao ler o ponto de restauração: {ex.Message}");
+            return 2;
+        }
+
+        if (point is null)
+        {
+            Console.Error.WriteLine($"{Loc.Get("Backup.RestorePointDataNotFound")} ({id})");
+            return 1;
+        }
+
+        List<BackupItem>? selected = null;
+        if (wanted.Length > 0)
+        {
+            selected = point.Items.Where(item => MatchesPaths(item.OriginalPath, wanted)).ToList();
+            if (selected.Count == 0)
+            {
+                Console.Error.WriteLine("Nenhum item do ponto de restauração corresponde aos caminhos informados.");
+                return 1;
+            }
+
+            Console.WriteLine($"{Loc.Get("Backup.CustomRestore")}: {selected.Count} de {point.Items.Count} item(ns).");
+        }
+
+        // Devolver chaves do HKLM e arquivos em "Program Files" exige administrador.
+        // Backups que ficam apenas no perfil do usuario sao restaurados sem elevacao.
+        var targets = selected ?? point.Items;
+        if (NeedsElevation(targets) && !Program.IsElevated())
+        {
+            Console.WriteLine("A restauração exige privilégios de administrador: relançando...");
+            return Program.RelaunchElevated(args);
+        }
+
+        RestoreResult result;
+        try
+        {
+            result = BackupManager.Restore(point, selected);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erro ao restaurar: {ex.Message}");
+            return 2;
+        }
+
+        foreach (var detail in result.Details)
+            Console.WriteLine($"  {detail}");
+
+        Console.WriteLine();
+        Console.WriteLine(Loc.Get("Backup.RestoreDone", result.Restored, result.Failed));
+        if (result.Skipped > 0)
+            Console.WriteLine($"Ignorados: {result.Skipped}");
+
+        return result.Succeeded ? 0 : 2;
+    }
+
+    /// <summary>Exclui um ponto de restauracao, apos confirmacao explicita.</summary>
+    private static int DeleteRestorePoint(string[] operands, HashSet<string> flags)
+    {
+        if (operands.Length == 0)
+        {
+            Console.Error.WriteLine("Uso: tranal /backup delete <id>");
+            return 1;
+        }
+
+        var id = operands[0];
+        var point = BackupManager.Load(id);
+        if (point is null)
+        {
+            Console.Error.WriteLine($"Ponto de restauração não encontrado: {id}");
+            return 1;
+        }
+
+        if (!Confirm(Loc.Get("Backup.DeleteConfirm", point.Name), flags))
+        {
+            Console.WriteLine("Operação cancelada.");
+            return 0;
+        }
+
+        var ok = BackupManager.Delete(id);
+        Console.WriteLine(ok
+            ? $"Ponto de restauração excluído: {id}"
+            : $"Não foi possível excluir o ponto de restauração: {id}");
+        return ok ? 0 : 2;
+    }
+
+    /// <summary>
+    /// Exclui todos os pontos de restauracao. O comando e explicitamente
+    /// destrutivo e sem ambiguidade, por isso nao pede confirmacao.
+    /// </summary>
+    private static int DeleteAllRestorePoints()
+    {
+        int count;
+        try
+        {
+            count = BackupManager.DeleteAll();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erro ao excluir os pontos de restauração: {ex.Message}");
+            return 2;
+        }
+
+        Console.WriteLine($"Pontos de restauração excluídos: {count}");
+        return 0;
+    }
+
+    /// <summary>Exclui os pontos de restauracao mais antigos que N dias.</summary>
+    private static int DeleteOlderRestorePoints(string[] operands, HashSet<string> flags)
+    {
+        if (operands.Length == 0 || !int.TryParse(operands[0], out var days) || days <= 0)
+        {
+            Console.Error.WriteLine("Uso: tranal /backup delete-older <dias>");
+            return 1;
+        }
+
+        var cutoff = DateTime.Now.AddDays(-days);
+        if (!Confirm($"Tem certeza de que deseja excluir os pontos de restauração com mais de {days} dias?", flags))
+        {
+            Console.WriteLine("Operação cancelada.");
+            return 0;
+        }
+
+        int count;
+        try
+        {
+            count = BackupManager.DeleteOlderThan(cutoff);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Erro ao excluir os pontos de restauração: {ex.Message}");
+            return 2;
+        }
+
+        Console.WriteLine($"Pontos de restauração excluídos: {count} (anteriores a {cutoff:dd/MM/yyyy})");
+        return 0;
+    }
+
+    /// <summary>
+    /// True quando a restauracao precisa do token administrativo: chaves de
+    /// registro do sistema (HKLM, HKCR, HKU) e arquivos guardados em pastas
+    /// protegidas como "Program Files" e "Windows".
+    /// </summary>
+    private static bool NeedsElevation(IEnumerable<BackupItem> items)
+    {
+        var roots = new[]
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+        };
+
+        foreach (var item in items)
+        {
+            var path = item.OriginalPath;
+            if (path.StartsWith("HKEY_LOCAL_MACHINE", StringComparison.OrdinalIgnoreCase)) return true;
+            if (path.StartsWith("HKEY_CLASSES_ROOT", StringComparison.OrdinalIgnoreCase)) return true;
+            if (path.StartsWith("HKEY_USERS", StringComparison.OrdinalIgnoreCase)) return true;
+
+            var normalized = NormalizeForMatch(path);
+            foreach (var root in roots)
+            {
+                if (root.Length == 0) continue;
+                if (normalized.StartsWith(root, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Verifica se o caminho original de um item corresponde a um dos caminhos
+    /// informados. A comparacao ignora maiusculas/minusculas e considera que
+    /// um caminho de pasta inclui os itens guardados dentro dela.
+    /// </summary>
+    private static bool MatchesPaths(string originalPath, IReadOnlyList<string> wanted)
+    {
+        var original = NormalizeForMatch(originalPath);
+
+        foreach (var candidate in wanted)
+        {
+            var target = NormalizeForMatch(candidate);
+            if (target.Length == 0) continue;
+
+            if (string.Equals(original, target, StringComparison.OrdinalIgnoreCase)) return true;
+            if (original.StartsWith(target + "\\", StringComparison.OrdinalIgnoreCase)) return true;
+            if (target.StartsWith(original + "\\", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Normaliza um caminho para comparacao. Caminhos de registro sao
+    /// comparados como texto; os demais usam a normalizacao do nucleo.
+    /// </summary>
+    private static string NormalizeForMatch(string path)
+    {
+        var value = path.Trim().Trim('"');
+        if (value.StartsWith("HKEY_", StringComparison.OrdinalIgnoreCase)) return value.TrimEnd('\\');
+        return PathUtil.Normalize(value);
+    }
+
+    /// <summary>
+    /// Pede confirmacao explicita no console. A flag "/yes" dispensa a pergunta.
+    /// </summary>
+    private static bool Confirm(string question, HashSet<string> flags)
+    {
+        if (flags.Contains("/yes")) return true;
+
+        Console.Write($"{question} ({Loc.Get("Common.Yes")}/{Loc.Get("Common.No")}): ");
+        var answer = Console.ReadLine();
+        if (answer is null) return false;
+
+        // A resposta pode chegar com a marca de ordem de bytes (BOM) do UTF-8
+        // no inicio, quando o texto vem de um script ou de outro processo.
+        var value = answer.Trim().Trim('\uFEFF').ToLowerInvariant();
+        return value is "s" or "sim" or "y" or "yes";
+    }
+
+    /// <summary>Texto de uso do Gerenciador de Backups.</summary>
+    private static int UsageBackup()
+    {
+        Console.Error.WriteLine("Uso: tranal /backup | /bk [restore <id> [caminho...] | delete <id> | delete-all | delete-older <dias>]");
+        return 1;
+    }
+
+    /// <summary>Formata um tamanho em bytes, sem valor vazio quando o tamanho e zero.</summary>
+    private static string FormatSize(long bytes)
+    {
+        var text = ByteFormatter.Format(bytes);
+        return string.IsNullOrWhiteSpace(text) ? "0 KB" : text;
     }
 }

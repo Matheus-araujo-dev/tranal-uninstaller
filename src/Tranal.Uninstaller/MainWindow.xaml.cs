@@ -477,6 +477,9 @@ public partial class MainWindow : Window
         var options = CommandItem(Loc.Get("Cmd.Options"), "CmdOptions", () => ShowOptions());
         menu.Items.Add(options);
 
+        var backups = CommandItem(Loc.Get("Cmd.BackupManager"), "CmdBackupManager", () => ShowBackupManager());
+        menu.Items.Add(backups);
+
         menu.PlacementTarget = MoreCommandsButton;
         menu.IsOpen = true;
     }
@@ -520,6 +523,12 @@ public partial class MainWindow : Window
 
         var options = CommandItem(Loc.Get("Cmd.Options"), "CmdOptions", () => ShowOptions());
         menu.Items.Add(options);
+
+        var backups = CommandItem(Loc.Get("Cmd.BackupManager"), "CmdBackupManager", () => ShowBackupManager());
+        menu.Items.Add(backups);
+
+        var topmost = CommandItem(Loc.Get("Cmd.TopmostWindow"), "CmdTopmostWindow", () => ShowTopmostWindow());
+        menu.Items.Add(topmost);
 
         var themeMenu = new MenuItem { Header = Loc.Get("Cmd.Theme") };
         themeMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ThemeDark"), "CmdThemeDark",
@@ -565,6 +574,27 @@ public partial class MainWindow : Window
         var dialog = new OptionsWindow { Owner = this };
         if (dialog.ShowDialog() == true)
             _ = ReloadAsync();
+    }
+
+    /// <summary>
+    /// Abre o Gerenciador de Backups: a lista de pontos de restauracao
+    /// criados a cada remocao, com restauracao integral ou item a item.
+    /// </summary>
+    private void ShowBackupManager()
+    {
+        var dialog = new BackupManagerWindow { Owner = this };
+        dialog.ShowDialog();
+    }
+
+    /// <summary>
+    /// Abre a Janela Principal Flutuante: um overlay arrastavel que resolve o
+    /// alvo apontado (janela, icone ou item da barra de tarefas) e oferece as
+    /// acoes sobre ele. Sem alvo, a janela espera um arrasto.
+    /// </summary>
+    private void ShowTopmostWindow()
+    {
+        var overlay = new Ui.Tools.TopmostOverlayWindow();
+        overlay.Show();
     }
 
     // ------------------------------------------------------------------

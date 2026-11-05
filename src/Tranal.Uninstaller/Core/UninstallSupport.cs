@@ -900,6 +900,14 @@ public static class UninstallEngine
 
             foreach (var item in selected)
             {
+                // Item protegido nunca e removido — logo, nunca e copiado.
+                // Sem esta checagem, uma varredura forçada sobre uma pasta de
+                // sistema colocaria o System32 inteiro no backup.
+                if (item.Kind == "Registro" && SafetyRules.IsProtectedRegistryKey(item.Path)) continue;
+                if (item.Kind == "Pasta" && SafetyRules.IsProtectedFolder(PathUtil.Normalize(item.Path))) continue;
+                if (item.Kind == "Arquivo"
+                    && SafetyRules.IsProtectedFolder(Path.GetDirectoryName(PathUtil.Normalize(item.Path)) ?? string.Empty)) continue;
+
                 switch (item.Kind)
                 {
                     case "Registro":

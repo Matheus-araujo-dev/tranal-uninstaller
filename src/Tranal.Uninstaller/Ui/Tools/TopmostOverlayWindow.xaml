@@ -1,0 +1,155 @@
+<Window x:Class="Tranal.Uninstaller.Ui.Tools.TopmostOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Width="330" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ShowInTaskbar="False" Topmost="True" ResizeMode="NoResize"
+        WindowStartupLocation="Manual"
+        FontFamily="{DynamicResource UiFont}" FontSize="11"
+        AllowDrop="True" Drop="Overlay_Drop" DragOver="Overlay_DragOver">
+
+  <Border Background="{DynamicResource PanelBrush}"
+          BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+          CornerRadius="6" Padding="10">
+
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <!-- cabecalho (area de arraste) -->
+      <Grid Grid.Row="0" MouseLeftButtonDown="Header_MouseLeftButtonDown"
+            Background="Transparent">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Image x:Name="TargetIcon" Grid.Column="0" Width="16" Height="16"
+               Stretch="Uniform" VerticalAlignment="Center" />
+
+        <TextBlock x:Name="TitleText" Grid.Column="1" Margin="6,0,0,0"
+                   VerticalAlignment="Center" FontWeight="SemiBold"
+                   Text="{loc:Tr Topmost.Title}"
+                   Foreground="{DynamicResource TitleTextBrush}"
+                   AutomationProperties.AutomationId="TopmostTitleText" />
+
+        <Button Grid.Column="2" Content="{loc:Tr Topmost.Exit}" Style="{StaticResource FlatButton}"
+                Padding="6,1" Click="ExitButton_Click"
+                AutomationProperties.AutomationId="TopmostExitButton" />
+      </Grid>
+
+      <!-- alvo resolvido -->
+      <Border x:Name="DropZone" Grid.Row="1" Margin="0,8,0,0" Padding="6"
+              Background="{DynamicResource DescriptionBrush}" CornerRadius="3"
+              ToolTip="{loc:Tr Topmost.DragDrop}"
+              AllowDrop="True" Drop="Overlay_Drop" DragOver="Overlay_DragOver">
+        <StackPanel>
+          <TextBlock x:Name="TargetNameText" TextWrapping="Wrap" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextBrush}"
+                     AutomationProperties.AutomationId="TopmostTargetName" />
+          <TextBlock x:Name="TargetPathText" Margin="0,2,0,0" TextWrapping="Wrap"
+                     FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                     AutomationProperties.AutomationId="TopmostTargetPath" />
+        </StackPanel>
+      </Border>
+
+      <!-- opcoes: tamanho e sempre no topo -->
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0"
+                  ToolTip="{loc:Tr Topmost.Options}">
+        <TextBlock Text="{loc:Tr Topmost.Size}" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextDimBrush}" Margin="0,0,6,0" />
+
+        <ComboBox x:Name="SizeCombo" Width="96" VerticalAlignment="Center"
+                  SelectionChanged="SizeCombo_SelectionChanged"
+                  AutomationProperties.AutomationId="TopmostSizeCombo">
+          <ComboBoxItem Content="{loc:Tr Topmost.Size.Small}" Tag="Small" />
+          <ComboBoxItem Content="{loc:Tr Topmost.Size.Middle}" Tag="Middle" />
+          <ComboBoxItem Content="{loc:Tr Topmost.Size.Large}" Tag="Large" />
+        </ComboBox>
+
+        <CheckBox x:Name="AlwaysOnTopCheck" Margin="10,0,0,0" VerticalAlignment="Center"
+                  IsChecked="True" Content="{loc:Tr Topmost.AlwaysOnTop}"
+                  Checked="AlwaysOnTopCheck_Changed" Unchecked="AlwaysOnTopCheck_Changed"
+                  AutomationProperties.AutomationId="TopmostAlwaysOnTopCheck" />
+      </StackPanel>
+
+      <!-- opcoes: transparencia -->
+      <Grid Grid.Row="3" Margin="0,6,0,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Column="0" Text="{loc:Tr Topmost.Transparency}"
+                   VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}"
+                   Margin="0,0,6,0" />
+
+        <Slider x:Name="TransparencySlider" Grid.Column="1" Minimum="0.3" Maximum="1.0"
+                Value="0.92" VerticalAlignment="Center"
+                ValueChanged="TransparencySlider_ValueChanged"
+                AutomationProperties.AutomationId="TopmostTransparencySlider" />
+      </Grid>
+
+      <!-- acoes -->
+      <WrapPanel Grid.Row="4" Margin="0,8,0,0">
+        <Button x:Name="UninstallButton" Content="{loc:Tr Topmost.Uninstall}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="UninstallButton_Click"
+                AutomationProperties.AutomationId="TopmostUninstallButton" />
+
+        <Button x:Name="StopAutoStartButton" Content="{loc:Tr Topmost.StopAutoStart}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="StopAutoStartButton_Click"
+                AutomationProperties.AutomationId="TopmostStopAutoStartButton" />
+
+        <Button x:Name="KillProcessButton" Content="{loc:Tr Topmost.KillProcess}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="KillProcessButton_Click"
+                AutomationProperties.AutomationId="TopmostKillProcessButton" />
+
+        <Button x:Name="KillAndDeleteButton" Content="{loc:Tr Topmost.KillAndDelete}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="KillAndDeleteButton_Click"
+                AutomationProperties.AutomationId="TopmostKillAndDeleteButton" />
+
+        <Button x:Name="OpenFolderButton" Content="{loc:Tr Topmost.OpenFolder}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="OpenFolderButton_Click"
+                AutomationProperties.AutomationId="TopmostOpenFolderButton" />
+
+        <Button x:Name="PropertiesButton" Content="{loc:Tr Topmost.Properties}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="PropertiesButton_Click"
+                AutomationProperties.AutomationId="TopmostPropertiesButton" />
+
+        <Button x:Name="InfoButton" Content="{loc:Tr Topmost.Info}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="InfoButton_Click"
+                AutomationProperties.AutomationId="TopmostInfoButton" />
+
+        <Button x:Name="HunterModeButton" Content="{loc:Tr Topmost.HunterMode}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4" Visibility="Collapsed"
+                Click="HunterModeButton_Click"
+                AutomationProperties.AutomationId="TopmostHunterModeButton" />
+
+        <Button x:Name="OpenMainWindowButton" Content="{loc:Tr Topmost.OpenMainWindow}"
+                Style="{StaticResource FlatButton}" Margin="0,0,4,4"
+                Click="OpenMainWindowButton_Click"
+                AutomationProperties.AutomationId="TopmostOpenMainWindowButton" />
+      </WrapPanel>
+
+      <!-- mensagem de estado -->
+      <TextBlock x:Name="StatusText" Grid.Row="5" Margin="0,6,0,0" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextDimBrush}"
+                 AutomationProperties.AutomationId="TopmostStatusText" />
+    </Grid>
+  </Border>
+</Window>

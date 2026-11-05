@@ -3,6 +3,9 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Settings;
+using Tranal.Uninstaller.Core.Topmost;
 
 namespace Tranal.Cli;
 
@@ -13,14 +16,21 @@ namespace Tranal.Cli;
 ///   tranal /winapps [/i] [/p]
 ///   tranal /?
 /// E reproduz as operacoes do RevoUninPro.exe:
-///   tranal /mu "programa" /mode safe|moderate|advanced
-///   tranal /scan "programa" [/level ...] [/remove]
+///   tranal /mu "programa" [/mode builtin|safe|moderate|advanced]
+///   tranal /scan "programa" [/mode ...] [/remove]
+///   tranal /backup | /bk [restore|delete|delete-all|delete-older]
 /// </summary>
 public static class Program
 {
+    /// <summary>Executa a CLI e devolve o codigo de saida (0 = sucesso, 1 = uso invalido, 2 = falha).</summary>
     public static int Main(string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
+
+        // O catalogo de idioma e carregado sob demanda: sem isso, Loc.Get
+        // devolveria a propria chave. A saida da CLI e sempre em portugues
+        // do Brasil, independentemente do idioma escolhido para a interface.
+        Loc.Load(Loc.DefaultLanguage);
 
         // Marcador interno: o processo ja foi relancado com elevacao.
         var elevated = args.Contains("/elevated", StringComparer.OrdinalIgnoreCase);
@@ -39,7 +49,7 @@ public static class Program
             return 0;
         }
 
-        // Varredura de sobras: /scan "programa" [/level safe|moderate|advanced] [/remove]
+        // Varredura de sobras: /scan "programa" [/mode ...] [/remove]
         if (flags.Contains("/scan"))
         {
             return RunScan(effective, flags, elevated);
@@ -51,8 +61,24 @@ public static class Program
             return RunUninstall(effective, flags, elevated);
         }
 
+        // Alvo apontado pelo menu de contexto do Explorer:
+        // tranal.exe --uninstall-target "<caminho do executavel>"
+        var targetIndex = Array.FindIndex(effective,
+            a => a.Equals("--uninstall-target", StringComparison.OrdinalIgnoreCase));
+        if (targetIndex >= 0)
+        {
+            if (targetIndex + 1 >= effective.Length)
+            {
+                Console.Error.WriteLine("Uso: tranal --uninstall-target \"<caminho do executavel>\"");
+                return 1;
+            }
+
+            return RunUninstallTarget(effective[targetIndex + 1], elevated);
+        }
+
         // Comandos com paridade de contrato com o RevoCmd/RevoUninPro:
         // /winapps, /wa, /be, /autorun, /tools, /export, /hunter, /lang, /theme
+        // e o Gerenciador de Backups (/backup, /bk).
         var extra = ExtraCommands.TryRun(effective, flags);
         if (extra.HasValue) return extra.Value;
 
@@ -103,25 +129,33 @@ public static class Program
     private static int RunScan(string[] args, HashSet<string> flags, bool elevated)
     {
         string? name = null;
-        var level = UninstallMode.Moderate;
+        var mode = UninstallMode.Moderate;
         var remove = flags.Contains("/remove");
 
         for (var i = 0; i < args.Length - 1; i++)
         {
             if (args[i].Equals("/scan", StringComparison.OrdinalIgnoreCase))
             {
-                name = args[i + 1];
+                if (!args[i + 1].StartsWith("/", StringComparison.Ordinal)) name = args[i + 1];
                 continue;
             }
-            if (args[i].Equals("/level", StringComparison.OrdinalIgnoreCase))
+
+            if (args[i].Equals("/mode", StringComparison.OrdinalIgnoreCase)
+                || args[i].Equals("/level", StringComparison.OrdinalIgnoreCase))
             {
-                level = ParseLevel(args[i + 1]);
+                if (!TryParseMode(args[i + 1], out mode))
+                {
+                    Console.Error.WriteLine($"Modo de desinstalação inválido: {args[i + 1]}");
+                    Console.Error.WriteLine("Modos válidos: builtin, safe, moderate, advanced.");
+                    return 1;
+                }
             }
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            Console.Error.WriteLine("Uso: tranal /scan \"nome do programa\" [/level safe|moderate|advanced] [/remove]");
+            Console.Error.WriteLine("Uso: tranal /scan \"nome do programa\" "
+                                  + "[/mode builtin|safe|moderate|advanced] [/all|/high] [/remove]");
             return 1;
         }
 
@@ -141,21 +175,32 @@ public static class Program
 
         Console.WriteLine($"Alvo: {target.DisplayName}  ({target.VersionOrNoVersion})");
         Console.WriteLine($"Desinstalador: {target.UninstallString}");
-        Console.WriteLine($"Nível: {level}");
+        PrintMode(mode);
         Console.WriteLine();
 
-        var items = LeftoverScanner.Scan(target, level);
+        // O modo "Somente" nao varre: nao existe lista de sobras para mostrar.
+        if (!UninstallModes.Scans(mode))
+        {
+            Console.WriteLine(Loc.Get("Wizard.ScanSkipped"));
+            return 0;
+        }
+
+        var items = LeftoverScanner.Scan(target, mode);
         if (items.Count == 0)
         {
             Console.WriteLine("Nenhuma sobra encontrada.");
             return 0;
         }
 
-        foreach (var item in items)
-            Console.WriteLine($"  [{item.Kind}] {item.Path}   ({item.Detail})");
-
+        var shown = SelectLeftovers(items, flags.Contains("/high"), flags.Contains("/all"));
+        PrintLeftovers(shown);
         Console.WriteLine();
-        Console.WriteLine($"Total: {items.Count} item(ns).");
+        Console.WriteLine(DescribeLeftoverTotals(shown));
+        PrintSelectionNote(flags.Contains("/all"));
+
+        var options = BuildRemovalOptions(flags, $"Varredura de {target.DisplayName}");
+        PrintRemovalOptions(options);
+        Console.WriteLine();
 
         if (!remove)
         {
@@ -163,12 +208,8 @@ public static class Program
             return 0;
         }
 
-        var report = UninstallEngine.RemoveLeftovers(items);
-        Console.WriteLine();
-        Console.WriteLine(report.Describe());
-        Console.WriteLine();
-        Console.WriteLine($"Removidos: {report.RemovedCount} | Já inexistentes: {report.AbsentCount} | "
-                        + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount}");
+        var report = UninstallEngine.RemoveLeftovers(items, options);
+        PrintRemovalSummary(report);
 
         return report.FailedCount + report.ProtectedCount == 0 ? 0 : 2;
     }
@@ -180,7 +221,7 @@ public static class Program
     private static int RunUninstall(string[] args, HashSet<string> flags, bool elevated)
     {
         string? name = null;
-        var level = UninstallMode.Moderate;
+        var mode = UninstallMode.Moderate;
         var runBuiltIn = !flags.Contains("/nobuiltin");
         var remove = !flags.Contains("/noremove");
 
@@ -188,18 +229,27 @@ public static class Program
         {
             if (args[i].Equals("/mu", StringComparison.OrdinalIgnoreCase))
             {
-                name = args[i + 1];
+                if (!args[i + 1].StartsWith("/", StringComparison.Ordinal)) name = args[i + 1];
                 continue;
             }
-            if (args[i].Equals("/mode", StringComparison.OrdinalIgnoreCase))
+
+            if (args[i].Equals("/mode", StringComparison.OrdinalIgnoreCase)
+                || args[i].Equals("/level", StringComparison.OrdinalIgnoreCase))
             {
-                level = ParseLevel(args[i + 1]);
+                if (!TryParseMode(args[i + 1], out mode))
+                {
+                    Console.Error.WriteLine($"Modo de desinstalação inválido: {args[i + 1]}");
+                    Console.Error.WriteLine("Modos válidos: builtin, safe, moderate, advanced.");
+                    return 1;
+                }
             }
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            Console.Error.WriteLine("Uso: tranal /mu \"nome do programa\" [/mode safe|moderate|advanced] "
+            Console.Error.WriteLine("Uso: tranal /mu \"nome do programa\" "
+                                  + "[/mode builtin|safe|moderate|advanced] [/all|/high] "
+                                  + "[/recycle|/norecycle] [/backup|/nobackup] [/defer|/nodefer] "
                                   + "[/nobuiltin] [/noremove]");
             return 1;
         }
@@ -218,8 +268,18 @@ public static class Program
         }
 
         Console.WriteLine($"Alvo: {target.DisplayName}  ({target.VersionOrNoVersion})");
-        Console.WriteLine($"Nível de varredura: {level}");
+        PrintMode(mode);
         Console.WriteLine();
+
+        // Ponto de restauracao do sistema: mesma preferencia da interface grafica.
+        if (AppSettingsStore.Current.CreateRestorePointBeforeUninstall)
+        {
+            var created = UninstallEngine.TryCreateRestorePoint($"Tranal Uninstaller Pro - {target.DisplayName}");
+            Console.WriteLine(created
+                ? "Ponto de restauração do sistema criado."
+                : "Aviso: não foi possível criar o ponto de restauração do sistema "
+                  + "(o serviço de restauração do Windows pode estar desativado).");
+        }
 
         var results = new List<BuiltInUninstallResult>();
         if (runBuiltIn)
@@ -230,29 +290,130 @@ public static class Program
             Console.WriteLine();
         }
 
-        var items = LeftoverScanner.Scan(target, level);
-        Console.WriteLine($"Sobras encontradas: {items.Count}");
-        foreach (var item in items)
-            Console.WriteLine($"  [{item.Kind}] {item.Path}   ({item.Detail})");
-        Console.WriteLine();
+        var items = new List<LeftoverItem>();
+        RemovalReport report = new(Array.Empty<RemovalOutcome>());
 
-        if (!remove)
+        // O modo "Somente" roda apenas o desinstalador nativo: nenhuma sobra e procurada.
+        if (UninstallModes.Scans(mode))
         {
-            Console.WriteLine("(dry-run: nada foi removido)");
+            items = LeftoverScanner.Scan(target, mode);
+            Console.WriteLine($"Sobras encontradas: {items.Count}");
+
+            var shown = SelectLeftovers(items, flags.Contains("/high"), flags.Contains("/all"));
+            PrintLeftovers(shown);
+            Console.WriteLine();
+            Console.WriteLine(DescribeLeftoverTotals(shown));
+            PrintSelectionNote(flags.Contains("/all"));
+            Console.WriteLine();
+
+            var options = BuildRemovalOptions(flags, $"Desinstalação de {target.DisplayName}");
+            PrintRemovalOptions(options);
+            Console.WriteLine();
+
+            if (remove)
+            {
+                report = UninstallEngine.RemoveLeftovers(items, options);
+                PrintRemovalSummary(report);
+            }
+            else
+            {
+                Console.WriteLine("(dry-run: nada foi removido)");
+            }
+        }
+        else
+        {
+            Console.WriteLine(Loc.Get("Wizard.ScanSkipped"));
+            Console.WriteLine("O modo \"Somente\" executa apenas o desinstalador nativo: nenhuma sobra foi procurada.");
+        }
+
+        if (remove)
+        {
+            UninstallHistory.Append(new UninstallHistoryEntry
+            {
+                Programs = target.DisplayName,
+                Level = mode.ToString(),
+                BuiltIn = string.Join(" | ", results.Select(r => r.Describe())),
+                Report = report.Describe(),
+                Removed = report.RemovedCount,
+                Failed = report.FailedCount + report.ProtectedCount,
+            });
+        }
+
+        return report.FailedCount + report.ProtectedCount == 0 ? 0 : 2;
+    }
+
+    /// <summary>
+    /// Desinstalacao a partir de um caminho de executavel — e o que o menu de
+    /// contexto do Explorer chama. O alvo nao precisa estar registrado no
+    /// Windows: o Tranal varre o sistema em busca do que pertence ao programa
+    /// e mostra o que encontrou antes de remover.
+    /// </summary>
+    private static int RunUninstallTarget(string path, bool elevated)
+    {
+        var full = PathUtil.Normalize(path);
+        if (full.Length == 0 || (!File.Exists(full) && !Directory.Exists(full)))
+        {
+            Console.Error.WriteLine($"Alvo não encontrado: {path}");
+            return 1;
+        }
+
+        // Resolver o alvo reuse a regra do Modo Caçador: o nome vem do arquivo
+        // apontado, nunca de uma segunda interpretacao.
+        var resolved = TopmostTargetResolver.ResolveFromFile(full);
+        var name = resolved?.DisplayName ?? Path.GetFileName(full);
+
+        Console.WriteLine($"Alvo: {name}  ({full})");
+        if (resolved?.Program is not null)
+        {
+            Console.WriteLine($"Programa instalado: {resolved.Program.DisplayName} "
+                + $"({resolved.Program.VersionOrNoVersion})");
+            Console.WriteLine($"Desinstalador: {resolved.Program.UninstallString}");
+        }
+        else
+        {
+            Console.WriteLine("O alvo não corresponde a um programa registrado no Windows.");
+        }
+
+        if (!elevated && !IsElevated())
+        {
+            Console.WriteLine("A remoção exige privilégios de administrador: relançando...");
+            return RelaunchElevated(new[] { "--uninstall-target", full });
+        }
+
+        var items = LeftoverScanner.ScanForced(full, UninstallMode.Advanced);
+        Console.WriteLine();
+        Console.WriteLine($"Sobras encontradas: {items.Count}");
+
+        foreach (var item in items)
+        {
+            var mark = item.Selected ? "marcado" : "não marcado";
+            Console.WriteLine($"  [{item.Kind}] {item.Path}   ({item.Detail}) — confiança: {item.Confidence}, {mark}");
+        }
+
+        if (items.Count == 0)
+        {
+            Console.WriteLine("Nada a remover.");
             return 0;
         }
 
-        var report = UninstallEngine.RemoveLeftovers(items);
+        var report = UninstallEngine.RemoveLeftovers(items,
+            UninstallRemovalOptions.FromSettings($"Desinstalação de {name}"));
+
+        Console.WriteLine();
         Console.WriteLine(report.Describe());
         Console.WriteLine();
         Console.WriteLine($"Removidos: {report.RemovedCount} | Já inexistentes: {report.AbsentCount} | "
-                        + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount}");
+                        + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount} | "
+                        + $"Adiados para o próximo reinício: {report.DeferredCount}");
+
+        if (!string.IsNullOrEmpty(report.RestorePointId))
+            Console.WriteLine($"Ponto de restauração criado: {report.RestorePointId}");
 
         UninstallHistory.Append(new UninstallHistoryEntry
         {
-            Programs = target.DisplayName,
-            Level = level.ToString(),
-            BuiltIn = string.Join(" | ", results.Select(r => r.Describe())),
+            Programs = name,
+            Level = UninstallMode.Advanced.ToString(),
+            BuiltIn = "(alvo apontado pelo menu de contexto)",
             Report = report.Describe(),
             Removed = report.RemovedCount,
             Failed = report.FailedCount + report.ProtectedCount,
@@ -275,15 +436,180 @@ public static class Program
                 p.DisplayName.Equals(name, StringComparison.CurrentCultureIgnoreCase));
     }
 
-    private static UninstallMode ParseLevel(string value) => value.ToLowerInvariant() switch
+    /// <summary>
+    /// Converte o texto do modo de desinstalacao. Aceita os nomes em ingles
+    /// (usados na linha de comando) e os nomes curtos em portugues.
+    /// </summary>
+    private static bool TryParseMode(string value, out UninstallMode mode)
     {
-        "builtin" => UninstallMode.BuiltIn,
-        "safe" => UninstallMode.Safe,
-        "advanced" => UninstallMode.Advanced,
-        _ => UninstallMode.Moderate,
+        switch (value.Trim().ToLowerInvariant())
+        {
+            case "builtin":
+            case "somente":
+                mode = UninstallMode.BuiltIn;
+                return true;
+
+            case "safe":
+            case "seguro":
+                mode = UninstallMode.Safe;
+                return true;
+
+            case "moderate":
+            case "moderado":
+                mode = UninstallMode.Moderate;
+                return true;
+
+            case "advanced":
+            case "avancado":
+                mode = UninstallMode.Advanced;
+                return true;
+
+            default:
+                mode = UninstallMode.Moderate;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Escolhe quais sobras sao consideradas e quais entram na remocao.
+    /// Por padrao, apenas os itens de alta confianca (os que o nucleo marcou)
+    /// sao removidos; /all marca tambem os de media e baixa confianca; /high
+    /// restringe a lista inteira aos itens de alta confianca.
+    /// </summary>
+    private static List<LeftoverItem> SelectLeftovers(List<LeftoverItem> items, bool onlyHigh, bool removeAll)
+    {
+        var result = onlyHigh
+            ? items.Where(i => i.IsHighConfidence).ToList()
+            : items.ToList();
+
+        if (removeAll && !onlyHigh)
+        {
+            foreach (var item in result) item.Selected = true;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Lista as sobras encontradas, indicando a confianca de cada item.
+    /// </summary>
+    private static void PrintLeftovers(List<LeftoverItem> items)
+    {
+        foreach (var item in items)
+        {
+            var detail = string.IsNullOrWhiteSpace(item.Detail) ? string.Empty : $"   ({item.Detail})";
+            var marker = item.Selected ? "marcado" : "não marcado";
+            Console.WriteLine($"  [{item.Kind}] {item.Path}{detail}"
+                              + $"   confiança: {ConfidenceLabel(item.Confidence)} - {marker}");
+        }
+    }
+
+    /// <summary>
+    /// Explica o que sera removido conforme a selecao de sobras.
+    /// </summary>
+    private static void PrintSelectionNote(bool removeAll) =>
+        Console.WriteLine(removeAll
+            ? "Atenção: /all inclui na remoção as sobras de confiança média e baixa."
+            : "Somente os itens marcados (confiança alta) são removidos; os demais são apenas listados.");
+
+    /// <summary>
+    /// Resume a contagem das sobras por confianca e quantas entram na remocao.
+    /// </summary>
+    private static string DescribeLeftoverTotals(List<LeftoverItem> items)
+    {
+        var high = items.Count(i => i.Confidence == LeftoverConfidence.High);
+        var medium = items.Count(i => i.Confidence == LeftoverConfidence.Medium);
+        var low = items.Count(i => i.Confidence == LeftoverConfidence.Low);
+        var marked = items.Count(i => i.Selected);
+
+        return $"Total: {items.Count} {Loc.Get("Common.Items")} "
+             + $"(confiança alta: {high}, média: {medium}, baixa: {low}) "
+             + $"| marcados para remoção: {marked}";
+    }
+
+    /// <summary>Rotulo da confianca de uma sobra, no idioma ativo.</summary>
+    private static string ConfidenceLabel(LeftoverConfidence confidence) => confidence switch
+    {
+        LeftoverConfidence.High => Loc.Get("Common.High"),
+        LeftoverConfidence.Medium => Loc.Get("Common.Medium"),
+        LeftoverConfidence.Low => Loc.Get("Common.Low"),
+        _ => confidence.ToString(),
     };
 
-    private static bool IsElevated()
+    /// <summary>
+    /// Mostra o modo de desinstalacao escolhido e o que ele faz.
+    /// </summary>
+    private static void PrintMode(UninstallMode mode)
+    {
+        Console.WriteLine($"Modo: {UninstallModes.ShortName(mode)}");
+        var description = Loc.Get(UninstallModes.DescriptionKey(mode));
+        if (!string.IsNullOrWhiteSpace(description)) Console.WriteLine($"  {description}");
+    }
+
+    /// <summary>
+    /// Monta as opcoes de remocao. A base sao sempre as preferencias do
+    /// usuario (as mesmas que a interface grafica usa); as flags da linha de
+    /// comando apenas sobrescrevem o que foi explicitamente pedido.
+    /// </summary>
+    private static UninstallRemovalOptions BuildRemovalOptions(HashSet<string> flags, string restorePointName)
+    {
+        var settings = UninstallRemovalOptions.FromSettings(restorePointName);
+
+        return new UninstallRemovalOptions
+        {
+            Backup = ResolveFlag(flags, "/backup", "/nobackup", settings.Backup),
+            UseRecycleBin = ResolveFlag(flags, "/recycle", "/norecycle", settings.UseRecycleBin),
+            DeferToNextRestart = ResolveFlag(flags, "/defer", "/nodefer", settings.DeferToNextRestart),
+            RestorePointName = settings.RestorePointName,
+        };
+    }
+
+    /// <summary>Verdadeiro/falso conforme a flag usada; sem flag, vale o padrao.</summary>
+    private static bool ResolveFlag(HashSet<string> flags, string on, string off, bool current) =>
+        flags.Contains(on) ? true : flags.Contains(off) ? false : current;
+
+    /// <summary>
+    /// Mostra as opcoes de remocao que serao aplicadas.
+    /// </summary>
+    private static void PrintRemovalOptions(UninstallRemovalOptions options)
+    {
+        Console.WriteLine("Opções de remoção: "
+                        + $"backup antes de remover: {(options.Backup ? "sim" : "não")} | "
+                        + $"Lixeira: {(options.UseRecycleBin ? "sim" : "não")} | "
+                        + $"adiar para o próximo reinício: {(options.DeferToNextRestart ? "sim" : "não")}");
+    }
+
+    /// <summary>
+    /// Mostra o relatorio da remocao: contagens, itens enviados para a Lixeira,
+    /// itens adiados para o proximo reinicio e o ponto de restauracao criado.
+    /// </summary>
+    private static void PrintRemovalSummary(RemovalReport report)
+    {
+        var description = report.Describe();
+        if (!string.IsNullOrWhiteSpace(description))
+        {
+            Console.WriteLine(description);
+            Console.WriteLine();
+        }
+
+        Console.WriteLine($"Removidos: {report.RemovedCount} | Já inexistentes: {report.AbsentCount} | "
+                        + $"Falhas: {report.FailedCount} | Protegidos: {report.ProtectedCount} | "
+                        + $"Adiados para o próximo reinício: {report.DeferredCount}");
+        Console.WriteLine(Loc.Get("Wizard.SummaryRecycleBin", CountRecycleBin(report)));
+
+        if (!string.IsNullOrWhiteSpace(report.RestorePointId))
+            Console.WriteLine(Loc.Get("Wizard.BackupPointSaved", report.RestorePointId));
+    }
+
+    /// <summary>
+    /// Conta os itens que foram enviados para a Lixeira. O nucleo sinaliza a
+    /// Lixeira pela mensagem do resultado ("enviado para a Lixeira").
+    /// </summary>
+    private static int CountRecycleBin(RemovalReport report) =>
+        report.Outcomes.Count(o => o.Message.Contains("Lixeira", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>True quando o processo atual roda com o token administrativo.</summary>
+    internal static bool IsElevated()
     {
         try
         {
@@ -294,7 +620,7 @@ public static class Program
     }
 
     /// <summary>Relanca a propria CLI com o token administrativo (elevacao UAC).</summary>
-    private static int RelaunchElevated(string[] args)
+    internal static int RelaunchElevated(string[] args)
     {
         try
         {
@@ -341,9 +667,9 @@ public static class Program
     private static void PrintTable(
         List<InstalledProgram> programs, bool includeLocation, bool includeUninstall)
     {
-        var headers = new List<string> { "Program", "Version" };
-        if (includeLocation) headers.Add("Location");
-        if (includeUninstall) headers.Add("Uninstall");
+        var headers = new List<string> { "Programa", "Versão" };
+        if (includeLocation) headers.Add("Local de instalação");
+        if (includeUninstall) headers.Add("Comando de desinstalação");
         Console.WriteLine(string.Join("\t", headers));
         foreach (var p in programs)
         {
@@ -373,39 +699,64 @@ public static class Program
 
     private static void PrintHelp()
     {
-        Console.WriteLine("tranal v1.0 - List installed programs on local computer");
-        Console.WriteLine("Tranal Uninstaller");
+        Console.WriteLine("tranal v1.0 - Tranal Uninstaller Pro");
         Console.WriteLine();
-        Console.WriteLine("Usage: tranal /m \"program name\" [/i] [/u] [/p] [/t]");
-        Console.WriteLine("/m - Match program name using wildcard characters - * and ?");
-        Console.WriteLine("     The asterisk (*) wildcard represents any collection of characters");
-        Console.WriteLine("     The question mark (?) wildcard represents any single character");
-        Console.WriteLine("     Example: tranal /m Microso*");
-        Console.WriteLine("     Shows all programs beginning with the name Microso");
+        Console.WriteLine("Uso: tranal /m \"nome do programa\" [/i] [/u] [/p] [/t]");
+        Console.WriteLine("/m - Casa o nome do programa usando curingas * e ?");
+        Console.WriteLine("     O asterisco (*) representa qualquer coleção de caracteres");
+        Console.WriteLine("     O ponto de interrogação (?) representa um único caractere");
+        Console.WriteLine("     Exemplo: tranal /m Microso*");
+        Console.WriteLine("     Mostra todos os programas que começam com o nome Microso");
         Console.WriteLine();
-        Console.WriteLine("/i - Include Install Location if exists");
-        Console.WriteLine("/u - Include Uninstall command");
-        Console.WriteLine("/p - Pause on each page");
-        Console.WriteLine("/t - Print the results in a table");
-        Console.WriteLine("/winapps - List installed Windows Apps");
-        Console.WriteLine("/? | /help - This help");
+        Console.WriteLine("/i - Inclui o local de instalação, quando existir");
+        Console.WriteLine("/u - Inclui o comando de desinstalação");
+        Console.WriteLine("/p - Pausa ao final da listagem");
+        Console.WriteLine("/t - Mostra o resultado em tabela");
+        Console.WriteLine("/winapps - Lista os aplicativos do Windows");
+        Console.WriteLine("/? | /help - Esta ajuda");
         Console.WriteLine();
-        Console.WriteLine("Operations:");
-        Console.WriteLine("tranal /mu \"program name\" [/mode safe|moderate|advanced] [/nobuiltin] [/noremove]");
-        Console.WriteLine("     Uninstall a program (built-in uninstaller, leftover scan and removal)");
-        Console.WriteLine("tranal /scan \"program name\" [/level safe|moderate|advanced] [/remove]");
-        Console.WriteLine("     List leftover files, folders and registry keys (dry-run unless /remove)");
+        Console.WriteLine("Operações:");
+        Console.WriteLine("tranal /mu \"nome do programa\" [/mode builtin|safe|moderate|advanced] [/all|/high] "
+                        + "[/recycle|/norecycle] [/backup|/nobackup] [/defer|/nodefer] [/nobuiltin] [/noremove]");
+        Console.WriteLine("     Desinstala um programa (desinstalador nativo, varredura de sobras e remoção)");
+        Console.WriteLine("tranal /scan \"nome do programa\" [/mode builtin|safe|moderate|advanced] [/all|/high] [/remove]");
+        Console.WriteLine("     Lista as sobras (arquivos, pastas e chaves de registro) com a confiança de cada item");
         Console.WriteLine();
-        Console.WriteLine("Modules and tools:");
-        Console.WriteLine("tranal /winapps              - List installed Windows Apps");
-        Console.WriteLine("tranal /wa \"App1;App2\"       - Uninstall Windows Apps by name");
-        Console.WriteLine("tranal /be                   - List browser extensions");
-        Console.WriteLine("tranal /be \"Ext1;Ext2\" /remove - Remove browser extensions by name");
-        Console.WriteLine("tranal /autorun              - List auto-start items (run keys, services, tasks)");
-        Console.WriteLine("tranal /tools                - List the native Windows tools");
-        Console.WriteLine("tranal /export \"path\" [/txt|/html|/csv|/xml] - Export the program list");
-        Console.WriteLine("tranal /hunter \"path\"       - Resolve a shortcut/executable to an installed program");
-        Console.WriteLine("tranal /lang [code]          - Show or set the interface language");
-        Console.WriteLine("tranal /theme [dark|light]   - Show or set the interface theme");
+        Console.WriteLine("Modos de desinstalação (/mode, ou /level como apelido):");
+        Console.WriteLine("builtin   - Apenas o desinstalador nativo; nenhuma sobra é procurada");
+        Console.WriteLine("safe      - Varredura das sobras seguras de apagar (a mais rápida)");
+        Console.WriteLine("moderate  - Varredura estendida nos lugares mais comuns do Registro e do disco");
+        Console.WriteLine("advanced  - Varredura profunda e completa no Registro e no disco (a mais lenta)");
+        Console.WriteLine();
+        Console.WriteLine("Opções de varredura e remoção:");
+        Console.WriteLine("/all      - Inclui as sobras de confiança média e baixa também na remoção");
+        Console.WriteLine("/high     - Considera somente as sobras de alta confiança");
+        Console.WriteLine("/recycle  - Envia arquivos e pastas para a Lixeira (padrão: conforme as preferências)");
+        Console.WriteLine("/norecycle - Apaga arquivos e pastas de forma definitiva");
+        Console.WriteLine("/backup   - Cria o ponto de restauração antes de remover (padrão: conforme as preferências)");
+        Console.WriteLine("/nobackup - Não cria o ponto de restauração antes de remover");
+        Console.WriteLine("/defer    - Adia para o próximo reinício os itens em uso (padrão: conforme as preferências)");
+        Console.WriteLine("/nodefer  - Não adia para o próximo reinício os itens em uso");
+        Console.WriteLine();
+        Console.WriteLine("Gerenciador de Backups:");
+        Console.WriteLine("tranal /backup | /bk                   - Lista os pontos de restauração");
+        Console.WriteLine("tranal /backup restore <id> [caminhos] - Restaura um ponto de restauração");
+        Console.WriteLine("tranal /backup delete <id>             - Exclui um ponto de restauração (pede confirmação)");
+        Console.WriteLine("tranal /backup delete-all              - Exclui todos os pontos de restauração");
+        Console.WriteLine("tranal /backup delete-older <dias>     - Exclui os pontos com mais de N dias (pede confirmação)");
+        Console.WriteLine("/yes      - Dispensa a confirmação nas operações destrutivas");
+        Console.WriteLine();
+        Console.WriteLine("Módulos e ferramentas:");
+        Console.WriteLine("tranal /winapps              - Lista os aplicativos do Windows");
+        Console.WriteLine("tranal /wa \"App1;App2\"       - Desinstala aplicativos do Windows pelo nome");
+        Console.WriteLine("tranal /be                   - Lista as extensões de navegador");
+        Console.WriteLine("tranal /be \"Ext1;Ext2\" /remove - Remove extensões de navegador pelo nome");
+        Console.WriteLine("tranal /autorun              - Lista os itens de inicialização automática (chaves, serviços, tarefas)");
+        Console.WriteLine("tranal /tools                - Lista as ferramentas nativas do Windows");
+        Console.WriteLine("tranal /export \"caminho\" [/txt|/html|/csv|/xml] - Exporta a listagem de programas");
+        Console.WriteLine("tranal /hunter \"caminho\"       - Resolve um atalho/executável para o programa instalado");
+        Console.WriteLine("tranal /lang [código]        - Mostra ou define o idioma da interface");
+        Console.WriteLine("tranal /theme [dark|light]   - Mostra ou define o tema da interface");
+        Console.WriteLine("tranal /new                  - Lista o grupo \"Novos Programas\"");
     }
 }

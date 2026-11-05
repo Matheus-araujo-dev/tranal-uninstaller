@@ -1,6 +1,7 @@
 using System.IO;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Xunit;
 
@@ -37,8 +38,14 @@ public class UninstallModeTests
     [InlineData(UninstallMode.Advanced)]
     public void TodoModoTemDescricaoENomeCurto(UninstallMode mode)
     {
-        Assert.False(string.IsNullOrWhiteSpace(UninstallModes.Describe(mode)));
+        Assert.False(string.IsNullOrWhiteSpace(UninstallModes.DescriptionKey(mode)));
         Assert.False(string.IsNullOrWhiteSpace(UninstallModes.ShortName(mode)));
+
+        // A descricao mora apenas no catalogo: e o mesmo texto que a GUI e a
+        // CLI mostram. Se a chave sumir do catalogo, o modo fica sem texto.
+        Loc.Load(Loc.DefaultLanguage);
+        Assert.True(Loc.HasKey(UninstallModes.DescriptionKey(mode)),
+            $"a descricao do modo {mode} precisa existir no catalogo");
     }
 
     [Fact]

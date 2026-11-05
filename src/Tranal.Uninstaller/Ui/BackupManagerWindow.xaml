@@ -1,0 +1,141 @@
+<Window x:Class="Tranal.Uninstaller.Ui.BackupManagerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Gerenciador de Backups" Height="620" Width="940"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" UseLayoutRounding="True">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- titulo -->
+      <RowDefinition Height="Auto" />   <!-- comandos -->
+      <RowDefinition Height="*" />      <!-- conteudo -->
+      <RowDefinition Height="Auto" />   <!-- status -->
+    </Grid.RowDefinitions>
+
+    <!-- Titulo -->
+    <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" CornerRadius="3" Padding="10,8">
+      <TextBlock x:Name="TitleText" Text="{loc:Tr Backup.Title}" FontWeight="Bold"
+                 Foreground="{DynamicResource TitleTextBrush}" FontSize="14" />
+    </Border>
+
+    <!-- Barra de comandos -->
+    <WrapPanel Grid.Row="1" Margin="0,10,0,8">
+      <Button x:Name="RestoreAllButton" Content="{loc:Tr Backup.RestoreFull}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="BackupRestoreAll"
+              Click="RestoreAllButton_Click" />
+      <Button x:Name="CustomRestoreButton" Content="{loc:Tr Backup.CustomRestore}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="BackupCustomRestore"
+              Click="CustomRestoreButton_Click" />
+      <Button x:Name="DeleteButton" Content="{loc:Tr Backup.Delete}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="BackupDelete"
+              Click="DeleteButton_Click" />
+      <Button x:Name="DeleteAllButton" Content="{loc:Tr Backup.DeleteAll}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="BackupDeleteAll"
+              Click="DeleteAllButton_Click" />
+      <Button x:Name="DeleteByTimeButton" Content="{loc:Tr Backup.DeleteByTime}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="BackupDeleteByTime"
+              Click="DeleteByTimeButton_Click" />
+    </WrapPanel>
+
+    <!-- Conteudo: lista de pontos, restauracao personalizada ou exclusao por data -->
+    <Grid Grid.Row="2">
+
+      <!-- Lista de pontos de restauracao -->
+      <Grid x:Name="PointsPanel">
+        <ListView x:Name="PointsList" AutomationProperties.AutomationId="BackupPointsList"
+                  Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                  AlternationCount="2" SelectionMode="Single" />
+        <TextBlock x:Name="EmptyText" Text="{loc:Tr Backup.Empty}" HorizontalAlignment="Center"
+                   VerticalAlignment="Center" Visibility="Collapsed"
+                   Foreground="{DynamicResource TextDimBrush}" />
+      </Grid>
+
+      <!-- Restauracao personalizada (itens marcados um a um) -->
+      <Grid x:Name="CustomRestorePanel" Visibility="Collapsed">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="CustomRestoreTitle" Grid.Row="0" FontWeight="SemiBold" TextWrapping="Wrap" />
+
+        <WrapPanel Grid.Row="1" Margin="0,8,0,8">
+          <Button x:Name="RestoreSelectedButton" Content="{loc:Tr Common.Restore}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,6,0" AutomationProperties.AutomationId="BackupRestoreSelected"
+                  Click="RestoreSelectedButton_Click" />
+          <Button x:Name="SelectAllItemsButton" Content="{loc:Tr Common.SelectAll}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,6,0" AutomationProperties.AutomationId="BackupSelectAllItems"
+                  Click="SelectAllItemsButton_Click" />
+          <Button x:Name="DeselectAllItemsButton" Content="{loc:Tr Common.DeselectAll}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,12,0" AutomationProperties.AutomationId="BackupDeselectAllItems"
+                  Click="DeselectAllItemsButton_Click" />
+          <Button x:Name="BackFromCustomButton" Content="{loc:Tr Wizard.Back}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,6,0" AutomationProperties.AutomationId="BackupCustomBack"
+                  Click="BackFromCustomButton_Click" />
+        </WrapPanel>
+
+        <Grid Grid.Row="2">
+          <ListView x:Name="ItemsList" AutomationProperties.AutomationId="BackupItemsList"
+                    Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                    AlternationCount="2" />
+          <TextBlock x:Name="CustomEmptyText" Text="{loc:Tr Backup.Empty}" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" Visibility="Collapsed"
+                     Foreground="{DynamicResource TextDimBrush}" />
+        </Grid>
+      </Grid>
+
+      <!-- Exclusao por data -->
+      <Grid x:Name="DeleteByTimePanel" Visibility="Collapsed">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{loc:Tr Backup.DeleteByTimePrompt}" FontWeight="SemiBold" />
+
+        <StackPanel Grid.Row="1" Margin="0,10,0,0">
+          <RadioButton x:Name="PeriodWeekRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.Week}"
+                       Margin="0,0,0,4" AutomationProperties.AutomationId="BackupPeriodWeek" />
+          <RadioButton x:Name="PeriodTwoWeeksRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.TwoWeeks}"
+                       Margin="0,0,0,4" AutomationProperties.AutomationId="BackupPeriodTwoWeeks" />
+          <RadioButton x:Name="Period30DaysRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.Days30}"
+                       Margin="0,0,0,4" AutomationProperties.AutomationId="BackupPeriod30Days" />
+          <RadioButton x:Name="Period90DaysRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.Days90}"
+                       Margin="0,0,0,4" AutomationProperties.AutomationId="BackupPeriod90Days" />
+          <RadioButton x:Name="Period180DaysRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.Days180}"
+                       Margin="0,0,0,4" AutomationProperties.AutomationId="BackupPeriod180Days" />
+          <RadioButton x:Name="PeriodOneYearRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.OneYear}"
+                       Margin="0,0,0,4" AutomationProperties.AutomationId="BackupPeriodOneYear" />
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+            <RadioButton x:Name="PeriodCustomRadio" GroupName="BackupPeriod" Content="{loc:Tr Backup.CustomDate}"
+                         VerticalAlignment="Center" AutomationProperties.AutomationId="BackupPeriodCustom" />
+            <TextBox x:Name="CustomDateBox" Width="110" Margin="8,0,4,0" VerticalContentAlignment="Center"
+                     AutomationProperties.AutomationId="BackupCustomDate" />
+            <TextBlock x:Name="CustomDateHint" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextDimBrush}" />
+          </StackPanel>
+        </StackPanel>
+
+        <WrapPanel Grid.Row="2" Margin="0,16,0,0">
+          <Button x:Name="DeleteByTimeConfirmButton" Content="{loc:Tr Common.Delete}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,6,0" AutomationProperties.AutomationId="BackupDeleteByTimeConfirm"
+                  Click="DeleteByTimeConfirmButton_Click" />
+          <Button x:Name="BackFromDeleteByTimeButton" Content="{loc:Tr Wizard.Back}" Style="{StaticResource FlatButton}"
+                  Margin="0,0,6,0" AutomationProperties.AutomationId="BackupDeleteByTimeBack"
+                  Click="BackFromDeleteByTimeButton_Click" />
+        </WrapPanel>
+      </Grid>
+    </Grid>
+
+    <!-- Status -->
+    <Border Grid.Row="3" Background="{DynamicResource StatusBarBrush}" CornerRadius="3" Padding="8,5" Margin="0,10,0,0">
+      <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="BackupStatus" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextDimBrush}" />
+    </Border>
+  </Grid>
+</Window>

@@ -181,12 +181,11 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 | Elevação `requireAdministrator` na GUI | ✅ (manifesto verificado no publish) |
 | **Temas claro / escuro** com troca em runtime | ✅ (verificado nos dois sentidos) |
 | **48 idiomas** no seletor (mesmos do Revo) | ✅ catálogo completo |
-| **Tradução de 2 idiomas** (pt-BR, en-US, 446 chaves cada) | ✅ os outros 46 com fallback honesto |
+| **Tradução de 2 idiomas** (pt-BR, en-US, 480 chaves cada) | ✅ os outros 46 com fallback honesto |
 | **Filtros** por tipo / tamanho / unidade | ✅ |
 | Menu "Mais Comandos" completo + menu principal (Opções / Tema / Idioma / Sair) | ✅ |
 | **Janela Principal Flutuante** (overlay arrastável sobre janela/ícone/barra de tarefas) | ✅ |
 | **Menu de contexto do Windows Explorer** | ✅ |
-| **Otimizador de Registro** (entradas obsoletas do Menu Iniciar) | ✅ |
 | **Verificação de atualização** (inicialização e automática em segundo plano) | ✅ |
 | **Modo portátil** (pasta de dados própria + carregamento rápido) | ✅ |
 | **Módulo Programas Monitorados** | ✅ com dados reais (TraceStore) |
@@ -197,10 +196,11 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 | **Ferramenta Gerenciador de Autorun** | ✅ 346 itens de inicialização automática reais |
 | **Ferramenta Limpeza de Arquivos Temporários** | ✅ |
 | **Ferramenta Ferramentas do Windows** | ✅ |
-| **Ferramenta Limpeza de Histórico** | ✅ |
+| **Ferramenta Limpeza de Histórico** (agora com os 3 limpadores de rastros do original: navegadores, Office e Windows) | ✅ |
+| **Ferramenta Otimizador de Registro** (entradas obsoletas do Menu Iniciar) | ✅ |
 | **Ferramenta Removedor de Evidências** | ✅ |
 | **Ferramenta Exclusão Irrecuperável** | ✅ |
-| CLI do app gráfico (`/mu`, `/path`, `/mode`, `/scan`, `/backup`, `/export`, `/wa`, `/be`, `/autorun`, `/tools`, `/hunter`, `/lang`, `/theme`, `/new`) | ✅ |
+| CLI do app gráfico (`/mu`, `/scan`, `/mode`, `/backup`, `/export`, `/wa`, `/be`, `/autorun`, `/tools`, `/hunter`, `/lang`, `/theme`, `/new`, `--uninstall-target`) | ✅ |
 
 O mapa completo de paridade, seção a seção do produto original, está em
 [`docs/PARIDADE.md`](docs/PARIDADE.md). A especificação que serviu de base está em
@@ -219,7 +219,7 @@ rápido e mecanismo de busca na web.
 
 ## Testes
 
-`src/Tranal.Tests` (xUnit): **83 testes, todos verdes**.
+`src/Tranal.Tests` (xUnit): **91 testes, todos verdes**.
 
 Incluem verificações adversariais que valem mais que cobertura de linha:
 
@@ -247,7 +247,7 @@ tranal-uninstaller/
 │   │   ├── App.xaml(.cs)            # catálogo de temas + estilos
 │   │   ├── Themes/                  # Dark.xaml, Light.xaml (cores) + Styles.xaml (estilos)
 │   │   ├── Theming/ThemeManager.cs  # troca de tema em runtime
-│   │   ├── Lang/                    # pt-BR.json, en-US.json (446 chaves cada)
+│   │   ├── Lang/                    # pt-BR.json, en-US.json (480 chaves cada)
 │   │   ├── Ui/                      # painel genérico, assistente, backups, ferramentas, módulos
 │   │   └── Core/                    # scanner, exportadores, backup, sobras, ferramentas, módulos
 │   ├── Tranal.Cli/                  # tranal.exe (CLI)

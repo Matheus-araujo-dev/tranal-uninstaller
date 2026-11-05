@@ -8,16 +8,28 @@ namespace Tranal.Uninstaller.Ui;
 
 /// <summary>
 /// Janela de opcoes do Tranal Uninstaller Pro (paridade com "Menu -&gt; Options"
-/// do Revo): tema, idioma e comportamento da listagem.
+/// do Revo): tema, idioma, comportamento da listagem e as preferencias de
+/// desinstalacao, armazenamento e atualizacao.
 /// </summary>
 public partial class OptionsWindow : Window
 {
+    /// <summary>Titulo do grupo de preferencias de desinstalacao.</summary>
+    private static string UninstallSection => Loc.Get("Options.UninstallSection");
+
+    /// <summary>Titulo do grupo de preferencias de armazenamento.</summary>
+    private static string StorageSection => Loc.Get("Options.StorageSection");
+
+    /// <summary>Cria a janela de opcoes e carrega os valores atuais.</summary>
     public OptionsWindow()
     {
         InitializeComponent();
 
         // Window.Title nao aceita binding: texto via codigo.
         Title = Loc.Get("Options.Title");
+
+        // Titulos de grupo que ainda nao existem no catalogo de idiomas.
+        UninstallSectionText.Text = UninstallSection;
+        StorageSectionText.Text = StorageSection;
 
         foreach (var language in LanguageCatalog.All)
         {
@@ -36,6 +48,22 @@ public partial class OptionsWindow : Window
         SystemComponentsCheck.IsChecked = settings.ShowSystemComponents;
         WindowsAppsCheck.IsChecked = settings.ShowWindowsApps;
         NewDaysBox.Text = settings.NewProgramsDays.ToString();
+
+        ShowWebShortcutsCheck.IsChecked = settings.ShowWebPageShortcuts;
+        AdvancedModeCheck.IsChecked = settings.AdvancedMode;
+        FastLoadingCheck.IsChecked = settings.FastLoadingMode;
+        CheckUpdateCheck.IsChecked = settings.CheckForUpdateOnStartup;
+        AutoUpdateCheck.IsChecked = settings.UpdateAutomatically;
+
+        CreateRestorePointCheck.IsChecked = settings.CreateRestorePointBeforeUninstall;
+        OnlyBuiltInCheck.IsChecked = settings.OnlyRunBuiltInUninstaller;
+        DisableHistoryCheck.IsChecked = settings.DisableUninstallHistory;
+        RecycleBinCheck.IsChecked = settings.SendFilesToRecycleBin;
+        DeferRemovalCheck.IsChecked = settings.DeferRemovalToNextRestart;
+        BackupBeforeRemovalCheck.IsChecked = settings.BackupBeforeRemoval;
+
+        PortableFolderBox.Text = settings.PortableDataFolder;
+        WebSearchBox.Text = settings.WebSearchEngine;
     }
 
     private static void SelectByTag(ComboBox combo, string tag)
@@ -52,6 +80,7 @@ public partial class OptionsWindow : Window
         if (combo.Items.Count > 0) combo.SelectedIndex = 0;
     }
 
+    /// <summary>Grava as preferencias escolhidas e aplica tema e idioma.</summary>
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
         var theme = (ThemeCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? ThemeManager.Dark;
@@ -66,6 +95,22 @@ public partial class OptionsWindow : Window
             s.ShowSystemComponents = SystemComponentsCheck.IsChecked == true;
             s.ShowWindowsApps = WindowsAppsCheck.IsChecked == true;
             s.NewProgramsDays = days;
+
+            s.ShowWebPageShortcuts = ShowWebShortcutsCheck.IsChecked == true;
+            s.AdvancedMode = AdvancedModeCheck.IsChecked == true;
+            s.FastLoadingMode = FastLoadingCheck.IsChecked == true;
+            s.CheckForUpdateOnStartup = CheckUpdateCheck.IsChecked == true;
+            s.UpdateAutomatically = AutoUpdateCheck.IsChecked == true;
+
+            s.CreateRestorePointBeforeUninstall = CreateRestorePointCheck.IsChecked == true;
+            s.OnlyRunBuiltInUninstaller = OnlyBuiltInCheck.IsChecked == true;
+            s.DisableUninstallHistory = DisableHistoryCheck.IsChecked == true;
+            s.SendFilesToRecycleBin = RecycleBinCheck.IsChecked == true;
+            s.DeferRemovalToNextRestart = DeferRemovalCheck.IsChecked == true;
+            s.BackupBeforeRemoval = BackupBeforeRemovalCheck.IsChecked == true;
+
+            s.PortableDataFolder = PortableFolderBox.Text.Trim();
+            s.WebSearchEngine = WebSearchBox.Text.Trim();
         });
 
         ThemeManager.Apply(theme);
@@ -75,6 +120,7 @@ public partial class OptionsWindow : Window
         Close();
     }
 
+    /// <summary>Fecha a janela sem gravar as preferencias.</summary>
     private void CancelButton_Click(object sender, RoutedEventArgs e)
     {
         DialogResult = false;

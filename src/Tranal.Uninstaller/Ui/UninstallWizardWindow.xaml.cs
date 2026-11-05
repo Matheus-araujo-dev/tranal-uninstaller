@@ -1,17 +1,39 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Markup;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Ui;
 
 /// <summary>
 /// Assistente de desinstalacao em 5 etapas, no mesmo fluxo do Revo:
-/// Analyze -> Run Built-in Uninstaller -> Scan -> Removal -> Summary.
+/// Analisar -&gt; Executar desinstalador nativo -&gt; Verificar sobras -&gt;
+/// Remocao -&gt; Resumo.
+///
+/// O usuario escolhe o MODO de desinstalacao (Somente, Seguro, Moderado ou
+/// Avancado) e ele e a unica opcao da operacao: define o que e varrido e se
+/// ha varredura. Nao existe mais um "nivel de varredura" separado.
 /// </summary>
 public partial class UninstallWizardWindow : Window
 {
+    /// <summary>
+    /// Mensagem da etapa 3. O catalogo ainda fala em "nivel de varredura",
+    /// que deixou de existir: o modo escolhido e a unica opcao da operacao.
+    /// </summary>
+    private static string ScanStepMessage => Loc.Get("Wizard.ScanStepMessage");
+
+    /// <summary>Informa quantas sobras ficaram no sistema e quantas ja existiam antes.</summary>
+    private static string LeftoversAfterUninstall => Loc.Get("Wizard.LeftoversAfterUninstall");
+
+    /// <summary>Instrucao de recuperacao do conteudo removido.</summary>
+    private static string RestorePointHint => Loc.Get("Wizard.RestorePointHint");
+
     private readonly List<InstalledProgram> _programs;
     private readonly bool _quick;
     private readonly ObservableCollection<LeftoverItem> _leftovers = new();
@@ -31,39 +53,87 @@ public partial class UninstallWizardWindow : Window
     private List<LeftoverItem> _analysis = new();
     private List<BuiltInUninstallResult> _builtInResults = new();
     private string _backupFile = string.Empty;
+    private string _backupError = string.Empty;
     private bool _restorePointCreated;
     private string _restorePointMessage = string.Empty;
-    private UninstallMode _level = UninstallMode.Moderate;
+    private UninstallMode _mode = UninstallMode.Moderate;
+    private int _survivors;
     private RemovalReport? _report;
     private string _summary = string.Empty;
 
+    /// <summary>Cria o assistente para a lista de programas informada.</summary>
+    /// <param name="programs">Programas a desinstalar.</param>
+    /// <param name="quick">True quando a desinstalacao foi pedido em modo rapido.</param>
     public UninstallWizardWindow(List<InstalledProgram> programs, bool quick)
     {
         InitializeComponent();
 
         // Window.Title e GridViewColumn.Header nao aceitam binding: texto via codigo.
         Title = Loc.Get("Wizard.Title");
-        if (LeftoversList.View is GridView grid && grid.Columns.Count >= 3)
-        {
-            grid.Columns[0].Header = Loc.Get("Common.Type");
-            grid.Columns[1].Header = Loc.Get("Common.Path");
-            grid.Columns[2].Header = Loc.Get("Common.Size");
-        }
+        BuildLeftoversView();
 
         _programs = programs;
         _quick = quick;
         StepsBar.ItemsSource = StepNames;
         LeftoversList.ItemsSource = _leftovers;
+
+        ApplyPreferences();
         ShowStep(0);
     }
 
     private InstalledProgram Target => _programs[0];
 
+    /// <summary>
+    /// Modo escolhido pelo usuario. E a unica opcao da operacao: ela define
+    /// o que e varrido e se ha varredura.
+    /// </summary>
+    private UninstallMode SelectedMode
+    {
+        get
+        {
+            if (ModeBuiltInRadio.IsChecked == true) return UninstallMode.BuiltIn;
+            if (ModeSafeRadio.IsChecked == true) return UninstallMode.Safe;
+            if (ModeAdvancedRadio.IsChecked == true) return UninstallMode.Advanced;
+            return UninstallMode.Moderate;
+        }
+    }
+
+    /// <summary>
+    /// Aplica as preferencias do usuario ao assistente: o ponto de restauracao
+    /// segue a preferencia das Opcoes e a opcao "executar apenas o
+    /// desinstalador nativo" trava o modo em "Somente".
+    /// </summary>
+    private void ApplyPreferences()
+    {
+        var settings = AppSettingsStore.Current;
+
+        RestorePointCheck.IsChecked = settings.CreateRestorePointBeforeUninstall;
+        RestorePointNote.Text = Loc.Get("Wizard.RestorePointDisabled");
+        RestorePointNote.Visibility = settings.CreateRestorePointBeforeUninstall
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
+        if (settings.OnlyRunBuiltInUninstaller)
+        {
+            ModeBuiltInRadio.IsChecked = true;
+            ModeSafeRadio.IsEnabled = false;
+            ModeModerateRadio.IsEnabled = false;
+            ModeAdvancedRadio.IsEnabled = false;
+        }
+        else
+        {
+            ModeModerateRadio.IsChecked = true;
+        }
+    }
+
+    /// <summary>Mostra uma das 5 etapas do fluxo.</summary>
     private void ShowStep(int step)
     {
         _step = step;
+        ModePanel.Visibility = Visibility.Collapsed;
         OptionsPanel.Visibility = Visibility.Collapsed;
-        LeftoversList.Visibility = Visibility.Collapsed;
+        ModeInfoText.Visibility = Visibility.Collapsed;
+        RemovalPanel.Visibility = Visibility.Collapsed;
         SummaryText.Visibility = Visibility.Collapsed;
         MessageText.Visibility = Visibility.Visible;
         BackButton.IsEnabled = step > 0;
@@ -79,6 +149,7 @@ public partial class UninstallWizardWindow : Window
             case 0:
                 SubtitleText.Text = Loc.Get("Wizard.StepCounter", 1, Loc.Get("Wizard.Step1.Title"));
                 MessageText.Text = Loc.Get("Wizard.AnalyzeIntro", name);
+                ModePanel.Visibility = Visibility.Visible;
                 StatusText.Text = Loc.Get("Wizard.Ready");
                 break;
 
@@ -91,16 +162,22 @@ public partial class UninstallWizardWindow : Window
 
             case 2:
                 SubtitleText.Text = Loc.Get("Wizard.StepCounter", 3, Loc.Get("Wizard.Step3.Title"));
-                MessageText.Text = Loc.Get("Wizard.ScanIntro");
-                OptionsPanel.Visibility = Visibility.Visible;
-                StatusText.Text = Loc.Get("Wizard.ScanNotice");
+                MessageText.Text = UninstallModes.Scans(_mode)
+                    ? ScanStepMessage
+                    : Loc.Get("Wizard.ScanSkipped");
+                ModeInfoText.Text = $"{Loc.Get("Wizard.Step3.Mode")}: {UninstallModes.ShortName(_mode)}";
+                ModeInfoText.Visibility = Visibility.Visible;
+                StatusText.Text = UninstallModes.Scans(_mode)
+                    ? Loc.Get("Wizard.ScanNotice")
+                    : Loc.Get("Wizard.ScanSkipped");
                 break;
 
             case 3:
                 SubtitleText.Text = Loc.Get("Wizard.StepCounter", 4, Loc.Get("Wizard.Step4.Title"));
                 MessageText.Text = Loc.Get("Wizard.RemovalIntro");
-                LeftoversList.Visibility = Visibility.Visible;
-                StatusText.Text = Loc.Get("Wizard.ItemsFound", _leftovers.Count);
+                RemovalPanel.Visibility = Visibility.Visible;
+                StatusText.Text = string.Format(
+                    CultureInfo.CurrentCulture, LeftoversAfterUninstall, _leftovers.Count, _survivors);
                 break;
 
             case 4:
@@ -150,25 +227,44 @@ public partial class UninstallWizardWindow : Window
         }
     }
 
-    /// <summary>Etapa 1: analise previa dos rastros do programa.</summary>
+    /// <summary>
+    /// Etapa 1: registra quais rastros do programa existem ANTES da
+    /// desinstalacao. Esse conjunto e comparado com a varredura da etapa 3
+    /// para dizer o que sobrou.
+    /// </summary>
     private async Task AnalyzeAsync()
     {
         StatusText.Text = Loc.Get("Wizard.Analyzing");
+        _mode = SelectedMode;
 
         _analysis = await Task.Run(() => _programs
-            .SelectMany(p => LeftoverScanner.Scan(p, UninstallMode.Advanced))
+            .SelectMany(p => LeftoverScanner.Scan(p, _mode))
             .ToList());
 
         StatusText.Text = Loc.Get("Wizard.Analyzed", _analysis.Count);
     }
 
+    /// <summary>
+    /// Etapa 2: cria o backup do Registro e o ponto de restauracao do sistema
+    /// (quando a preferencia das Opcoes esta ligada) e executa o desinstalador
+    /// nativo.
+    /// </summary>
     private async Task RunBuiltInAsync()
     {
         StatusText.Text = Loc.Get("Wizard.CreatingBackup");
         if (BackupRegistryCheck.IsChecked == true)
         {
-            var paths = _programs.Select(p => p.RegistryPath).ToList();
-            _backupFile = RegistryBackup.Backup(paths);
+            try
+            {
+                var paths = _programs.Select(p => p.RegistryPath).ToList();
+                _backupFile = RegistryBackup.Backup(paths);
+            }
+            catch (Exception ex)
+            {
+                // O backup e um extra: uma falha aqui nao pode derrubar a desinstalacao.
+                _backupFile = string.Empty;
+                _backupError = ex.Message;
+            }
         }
 
         if (RestorePointCheck.IsChecked == true)
@@ -176,8 +272,13 @@ public partial class UninstallWizardWindow : Window
             StatusText.Text = Loc.Get("Wizard.CreatingRestorePoint");
             _restorePointCreated = UninstallEngine.TryCreateRestorePoint("Tranal Uninstaller Pro");
             _restorePointMessage = _restorePointCreated
-                ? Loc.Get("Wizard.RestorePointCreated")
+                ? Loc.Get("Wizard.BackupPointSaved", "Tranal Uninstaller Pro")
                 : Loc.Get("Wizard.RestorePointFailed");
+        }
+        else
+        {
+            _restorePointCreated = false;
+            _restorePointMessage = Loc.Get("Wizard.RestorePointDisabled");
         }
 
         StatusText.Text = Loc.Get("Wizard.RunningBuiltIn");
@@ -185,56 +286,68 @@ public partial class UninstallWizardWindow : Window
             _builtInResults.Add(await UninstallEngine.RunBuiltInUninstaller(program));
     }
 
+    /// <summary>
+    /// Etapa 3: varre as sobras DEPOIS do desinstalador nativo, no modo
+    /// escolhido. No modo "Somente" nao ha varredura alguma.
+    /// </summary>
     private async Task ScanAsync()
     {
         StatusText.Text = Loc.Get("Wizard.Scanning");
-        _level = SafeRadio.IsChecked == true ? UninstallMode.Safe
-            : ModerateRadio.IsChecked == true ? UninstallMode.Moderate
-            : UninstallMode.Advanced;
 
-        var items = await Task.Run(() =>
-            _programs.SelectMany(p => LeftoverScanner.Scan(p, _level)).ToList());
+        var items = UninstallModes.Scans(_mode)
+            ? await Task.Run(() => _programs.SelectMany(p => LeftoverScanner.Scan(p, _mode)).ToList())
+            : new List<LeftoverItem>();
 
         _leftovers.Clear();
         foreach (var item in items) _leftovers.Add(item);
 
-        if (AutoDeleteCheck.IsChecked == true)
-        {
-            StatusText.Text = Loc.Get("Wizard.AutoRemoving");
-            _report = UninstallEngine.RemoveLeftovers(_leftovers);
-            _summary = BuildSummary(_report);
-        }
-        else
-        {
-            StatusText.Text = Loc.Get("Wizard.ItemsFound", _leftovers.Count);
-        }
+        // O Revo lista TUDO que sobrou relacionado ao programa. O conjunto
+        // analisado antes da desinstalacao serve para dizer quantos desses
+        // itens ja existiam antes (ou seja, o que o desinstalador nativo
+        // deixou para tras).
+        var before = new HashSet<string>(_analysis.Select(ItemKey), StringComparer.OrdinalIgnoreCase);
+        _survivors = items.Count(i => before.Contains(ItemKey(i)));
+
+        StatusText.Text = Loc.Get("Wizard.ItemsFound", _leftovers.Count);
     }
 
+    /// <summary>
+    /// Etapa 4: remove somente as sobras marcadas pelo usuario. As opcoes
+    /// (backup automatico, Lixeira e adiamento para o proximo reinicio) vem
+    /// das preferencias do usuario.
+    /// </summary>
     private async Task RemoveAsync()
     {
         StatusText.Text = Loc.Get("Wizard.Removing");
 
-        // Quando a remocao automatica ja ocorreu na etapa 3, o relatorio e o mesmo:
-        // nao ha dupla remocao nem dupla contagem.
-        _report ??= await Task.Run(() => UninstallEngine.RemoveLeftovers(_leftovers));
+        var name = string.Join(", ", _programs.Select(p => p.DisplayName));
+        var options = UninstallRemovalOptions.FromSettings($"Desinstalacao de {name}");
 
+        _report = await Task.Run(() => UninstallEngine.RemoveLeftovers(_leftovers, options));
         _summary = BuildSummary(_report);
 
-        UninstallHistory.Append(new UninstallHistoryEntry
+        if (!AppSettingsStore.Current.DisableUninstallHistory)
         {
-            Programs = string.Join(", ", _programs.Select(p => p.DisplayName)),
-            Level = _level.ToString(),
-            BuiltIn = string.Join(" | ", _builtInResults.Select(r => r.Describe())),
-            Report = _summary,
-            Removed = _report.RemovedCount,
-            Failed = _report.FailedCount + _report.ProtectedCount,
-        });
+            UninstallHistory.Append(new UninstallHistoryEntry
+            {
+                Programs = name,
+                Level = _mode.ToString(),
+                BuiltIn = string.Join(" | ", _builtInResults.Select(r => r.Describe())),
+                Report = _summary,
+                Removed = _report.RemovedCount,
+                Failed = _report.FailedCount + _report.ProtectedCount,
+            });
+        }
     }
 
-    /// <summary>Resumo final: contagens por categoria, igual ao painel de resumo do Revo.</summary>
+    /// <summary>
+    /// Resumo final: contagens por categoria, igual ao painel de resumo do
+    /// Revo, mais o adiamento para o proximo reinicio, os itens enviados para
+    /// a Lixeira e o ponto de restauracao do que foi removido.
+    /// </summary>
     private string BuildSummary(RemovalReport report)
     {
-        var sb = new System.Text.StringBuilder();
+        var sb = new StringBuilder();
         sb.AppendLine(Loc.Get("Wizard.SummaryTitle", string.Join(", ", _programs.Select(p => p.DisplayName))));
         sb.AppendLine();
 
@@ -244,6 +357,9 @@ public partial class UninstallWizardWindow : Window
         if (_restorePointMessage.Length > 0)
             sb.AppendLine($"• {_restorePointMessage}");
 
+        sb.AppendLine($"• {Loc.Get("Wizard.Mode.Title")}: {UninstallModes.ShortName(_mode)}");
+        sb.AppendLine($"• {Loc.Get("Wizard.ItemsFound", _leftovers.Count)}");
+
         sb.AppendLine();
         sb.AppendLine(report.Describe());
         sb.AppendLine();
@@ -251,6 +367,15 @@ public partial class UninstallWizardWindow : Window
         sb.AppendLine(Loc.Get("Wizard.SummaryRemoved", report.RemovedCount));
         sb.AppendLine(Loc.Get("Wizard.SummaryAbsent", report.AbsentCount));
         sb.AppendLine(Loc.Get("Wizard.SummaryFailed", report.FailedCount + report.ProtectedCount));
+        sb.AppendLine(Loc.Get("Wizard.SummaryDeferred", report.DeferredCount));
+        sb.AppendLine(Loc.Get("Wizard.SummaryRecycleBin", CountRecycleBin(report)));
+
+        if (report.RestorePointId is not null)
+        {
+            sb.AppendLine();
+            sb.AppendLine(Loc.Get("Wizard.BackupPointSaved", report.RestorePointId));
+            sb.AppendLine(RestorePointHint);
+        }
 
         if (_backupFile.Length > 0)
         {
@@ -258,8 +383,142 @@ public partial class UninstallWizardWindow : Window
             sb.AppendLine(Loc.Get("Wizard.BackupSaved", _backupFile));
             sb.AppendLine(Loc.Get("Wizard.BackupHint"));
         }
+        else if (_backupError.Length > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"• {_backupError}");
+        }
 
         return sb.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// Quantos itens foram enviados para a Lixeira. O nucleo sinaliza a
+    /// Lixeira pela mensagem do resultado (as chaves de registro nunca vao
+    /// para ela).
+    /// </summary>
+    private static int CountRecycleBin(RemovalReport report) =>
+        report.Outcomes.Count(o => o.Message.Contains("Lixeira", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Chave canonica de um item (tipo + caminho normalizado). E o que permite
+    /// comparar o que existia antes da desinstalacao com o que existe agora.
+    /// </summary>
+    private static string ItemKey(LeftoverItem item) =>
+        item.Kind + "|" + PathUtil.Normalize(item.Path);
+
+    /// <summary>Marca todas as sobras da lista para remocao.</summary>
+    private void SelectAllButton_Click(object sender, RoutedEventArgs e) => SetAllSelected(true);
+
+    /// <summary>Desmarca todas as sobras da lista.</summary>
+    private void DeselectAllButton_Click(object sender, RoutedEventArgs e) => SetAllSelected(false);
+
+    /// <summary>Altera a marcacao de todos os itens da lista de sobras.</summary>
+    private void SetAllSelected(bool selected)
+    {
+        foreach (var item in _leftovers)
+            item.Selected = selected;
+
+        // LeftoverItem nao avisa mudancas de propriedade: o refresh refaz as
+        // ligacoes da lista para as caixas de marcacao acompanharem a escolha.
+        LeftoversList.Items.Refresh();
+
+        StatusText.Text = Loc.Get("Wizard.ItemsFound", _leftovers.Count);
+    }
+
+    /// <summary>
+    /// Monta as colunas da lista de sobras. Os cabecalhos nao aceitam binding,
+    /// por isso o texto vem do catalogo por codigo.
+    /// </summary>
+    private void BuildLeftoversView()
+    {
+        var grid = new GridView();
+
+        grid.Columns.Add(new GridViewColumn
+        {
+            Header = string.Empty,
+            Width = 34,
+            CellTemplate = BuildCheckTemplate(),
+        });
+
+        grid.Columns.Add(new GridViewColumn
+        {
+            Header = Loc.Get("Common.Type"),
+            Width = 90,
+            DisplayMemberBinding = new Binding("Kind"),
+        });
+
+        grid.Columns.Add(new GridViewColumn
+        {
+            Header = Loc.Get("Common.Path"),
+            Width = 430,
+            CellTemplate = BuildBoldPathTemplate(),
+        });
+
+        grid.Columns.Add(new GridViewColumn
+        {
+            Header = Loc.Get("Common.Size"),
+            Width = 90,
+            DisplayMemberBinding = new Binding("Detail"),
+        });
+
+        grid.Columns.Add(new GridViewColumn
+        {
+            Header = Loc.Get("Common.Confidence"),
+            Width = 90,
+            DisplayMemberBinding = new Binding("Confidence") { Converter = new ConfidenceTextConverter() },
+        });
+
+        ApplyHeaderStyle(grid);
+        LeftoversList.View = grid;
+    }
+
+    /// <summary>Aplica o cabecalho no estilo do tema (o padrao do WPF destoa).</summary>
+    private static void ApplyHeaderStyle(GridView grid)
+    {
+        foreach (var column in grid.Columns)
+        {
+            var header = new GridViewColumnHeader { Content = column.Header, Tag = column };
+            if (Application.Current.TryFindResource("ListViewHeaderStyle") is Style style)
+                header.Style = style;
+            column.Header = header;
+        }
+    }
+
+    /// <summary>Template da coluna de marcacao: a caixa liga no Selected da sobra.</summary>
+    private static DataTemplate BuildCheckTemplate()
+    {
+        var xaml =
+            "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>"
+            + "<CheckBox IsChecked='{Binding Selected, Mode=TwoWay}' VerticalAlignment='Center' />"
+            + "</DataTemplate>";
+        return (DataTemplate)XamlReader.Parse(xaml);
+    }
+
+    /// <summary>
+    /// Template da coluna de caminho: os itens de confianca alta ficam em
+    /// negrito, como no Revo (so eles vem marcados para remocao).
+    /// </summary>
+    private static DataTemplate BuildBoldPathTemplate()
+    {
+        var xaml =
+            "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>"
+            + "<TextBlock Text='{Binding Path}' TextTrimming='CharacterEllipsis' ToolTip='{Binding Path}'>"
+            + "<TextBlock.Style>"
+            + "<Style TargetType='TextBlock'>"
+            + "<Setter Property='Foreground' Value='{DynamicResource TextBrush}' />"
+            + "<Setter Property='FontFamily' Value='{DynamicResource UiFont}' />"
+            + "<Setter Property='FontSize' Value='11' />"
+            + "<Style.Triggers>"
+            + "<DataTrigger Binding='{Binding IsHighConfidence}' Value='True'>"
+            + "<Setter Property='FontWeight' Value='Bold' />"
+            + "</DataTrigger>"
+            + "</Style.Triggers>"
+            + "</Style>"
+            + "</TextBlock.Style>"
+            + "</TextBlock>"
+            + "</DataTemplate>";
+        return (DataTemplate)XamlReader.Parse(xaml);
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -268,4 +527,34 @@ public partial class UninstallWizardWindow : Window
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e) => Close();
+}
+
+/// <summary>
+/// Converte o nivel de confianca de uma sobra no texto localizado exibido na
+/// coluna "Confianca" da lista de sobras do assistente.
+/// </summary>
+public sealed class ConfidenceTextConverter : IValueConverter
+{
+    /// <summary>Devolve "Alta", "Media" ou "Baixa" conforme a confianca do item.</summary>
+    /// <param name="value">Valor da propriedade <c>Confidence</c> da sobra.</param>
+    /// <param name="targetType">Tipo de destino da conversao.</param>
+    /// <param name="parameter">Parametro do conversor, nao usado.</param>
+    /// <param name="culture">Cultura do conversor, nao usada.</param>
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
+        value is LeftoverConfidence confidence
+            ? Loc.Get(confidence switch
+            {
+                LeftoverConfidence.High => "Common.High",
+                LeftoverConfidence.Medium => "Common.Medium",
+                _ => "Common.Low",
+            })
+            : string.Empty;
+
+    /// <summary>Conversao de volta nao e suportada: a coluna e somente leitura.</summary>
+    /// <param name="value">Valor de origem.</param>
+    /// <param name="targetType">Tipo de destino da conversao.</param>
+    /// <param name="parameter">Parametro do conversor, nao usado.</param>
+    /// <param name="culture">Cultura do conversor, nao usada.</param>
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
+        Binding.DoNothing;
 }

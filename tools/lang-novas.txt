@@ -184,3 +184,15 @@ Cat.WindowsLivekernel|Relatos de falha do kernel|Kernel failure reports
 Cat.WindowsTemp|Arquivos temporários do Windows|Windows temporary files
 Cat.WindowsUsertemp|Arquivos temporários do usuário|User temporary files
 Cat.WindowsChkdsk|Fragmentos recuperados pelo CHKDSK|CHKDSK recovered fragments
+Cmd.BackupManager|Gerenciador de Backups|Backup Manager
+Cmd.TopmostWindow|Janela Principal Flutuante|Topmost Window
+Cmd.RegistryOptimizer|Otimizador de Registro|Registry Optimizer
+Wizard.ScanStepMessage|Verificando as sobras do programa no modo de desinstalação escolhido.|Scanning the program's leftovers in the chosen uninstall mode.
+Wizard.LeftoversAfterUninstall|{0} item(ns) relacionados ao programa ainda existem; {1} deles já existiam antes da desinstalação.|{0} item(s) related to the program still exist; {1} of them already existed before the uninstall.
+Wizard.RestorePointHint|Use o Gerenciador de Backups para restaurar o que foi removido.|Use the Backup Manager to restore what was removed.
+Backup.DeletedPointsMessage|{0} ponto(s) de restauração excluído(s).|{0} restore point(s) deleted.
+Backup.NoItemsSelected|Nenhum item foi marcado para restauração.|No item was selected for restoration.
+Options.UninstallSection|Desinstalação|Uninstall
+Options.StorageSection|Armazenamento|Storage
+Module.RegistryOptimizer|Otimizador de Registro|Registry Optimizer
+Common.Detail|Detalhe|Detail

@@ -48,22 +48,17 @@ public static class UninstallModes
     public static bool Scans(UninstallMode mode) => mode != UninstallMode.BuiltIn;
 
     /// <summary>
-    /// Descricao completa do modo, no formato das quatro opcoes do Revo:
-    /// o que o modo inclui e qual e o seu custo.
+    /// Chave do catalogo de idiomas com a descricao completa do modo.
+    ///
+    /// O texto mora **apenas** no catalogo (GUI e CLI leem o mesmo texto de
+    /// <c>Wizard.Mode.*Desc</c>); o nucleo devolve a chave, nunca a frase.
     /// </summary>
-    public static string Describe(UninstallMode mode) => mode switch
+    public static string DescriptionKey(UninstallMode mode) => mode switch
     {
-        UninstallMode.BuiltIn =>
-            "Somente o desinstalador nativo do aplicativo, sem qualquer varredura adicional.",
-        UninstallMode.Safe =>
-            "Inclui o modo Somente e realiza varreduras adicionais no Registro e no disco "
-            + "para encontrar sobras seguras de apagar. E o modo mais rapido.",
-        UninstallMode.Moderate =>
-            "Inclui o modo Seguro e realiza uma varredura extendida para encontrar todas as "
-            + "informacoes remanescentes do aplicativo nos lugares mais comuns do Registro e do disco.",
-        UninstallMode.Advanced =>
-            "Inclui o modo Moderado e realiza uma varredura profunda e completa no Registro e no "
-            + "disco. E o modo mais lento.",
+        UninstallMode.BuiltIn => "Wizard.Mode.BuiltInDesc",
+        UninstallMode.Safe => "Wizard.Mode.SafeDesc",
+        UninstallMode.Moderate => "Wizard.Mode.ModerateDesc",
+        UninstallMode.Advanced => "Wizard.Mode.AdvancedDesc",
         _ => string.Empty,
     };
 

@@ -43,6 +43,10 @@ Baseline de avisos: **0**. Qualquer aviso novo é regressão.
 ## Regras do projeto
 
 - **Português (pt-BR)** em comentários, XML docs, textos de interface e mensagens.
+- **A CLI é pt-BR por decisão**: a saída do `tranal.exe` usa texto em português
+  escrito no próprio código, e não o catálogo de idiomas. A GUI é a superfície
+  traduzida. Não misture as duas: texto de interface da GUI vem **sempre** do
+  catálogo (`Loc.Get`), e o catálogo nunca ganha uma chave que só a CLI usaria.
 - **Nenhum PackageReference novo**. O que é do framework, é do framework
   (`System.Management` é a única exceção já existente).
 - **`using System.IO` explícito** — em projeto WPF não é implícito.
