@@ -41,6 +41,12 @@ public enum ProgramColumn
     /// <summary>Codigo do produto (GUID) do Windows Installer.</summary>
     ProductCode,
 
+    /// <summary>
+    /// Comando de desinstalacao silenciosa, quando existe um jeito conhecido
+    /// de silenciar aquele desinstalador.
+    /// </summary>
+    QuietUninstall,
+
     /// <summary>Grupo criado pelo usuario (15072: "Group").</summary>
     Group,
 
@@ -88,6 +94,7 @@ public static class ProgramColumns
         new(ProgramColumn.UninstallString, "Common.UninstallString", "Desinstalador", "UninstallString"),
         new(ProgramColumn.UninstallerKind, "Common.UninstallerKind", "Tipo de desinstalador", "UninstallerKind"),
         new(ProgramColumn.ProductCode, "Common.ProductCode", "Código do produto", "ProductCode"),
+        new(ProgramColumn.QuietUninstall, "Common.QuietUninstall", "Desinstalador silencioso", "QuietUninstall"),
         new(ProgramColumn.Group, "Common.Group", "Grupo", "Group"),
         new(ProgramColumn.Note, "Common.Note", "Anotação", "Note"),
         new(ProgramColumn.RegistryKey, "Common.RegistryKey", "Chave do registro", "RegistryKey"),
@@ -130,6 +137,7 @@ public static class ProgramColumns
             case ProgramColumn.UninstallString: return program.UninstallString;
             case ProgramColumn.UninstallerKind: return program.Kind.ToString();
             case ProgramColumn.ProductCode: return program.ProductCode;
+            case ProgramColumn.QuietUninstall: return program.QuietUninstallCommand;
             case ProgramColumn.Group: return GroupOf(custom);
             case ProgramColumn.Note: return custom?.Comment ?? string.Empty;
             case ProgramColumn.RegistryKey: return program.RegistryKey;

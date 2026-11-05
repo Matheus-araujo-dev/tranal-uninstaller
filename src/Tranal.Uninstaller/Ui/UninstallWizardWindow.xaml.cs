@@ -387,8 +387,9 @@ public partial class UninstallWizardWindow : Window
         }
 
         StatusText.Text = Loc.Get("Wizard.RunningBuiltIn");
+        var silent = SilentUninstallCheck.IsChecked == true;
         foreach (var program in _programs)
-            _builtInResults.Add(await UninstallEngine.RunBuiltInUninstaller(program));
+            _builtInResults.Add(await UninstallEngine.RunBuiltInUninstaller(program, silent));
     }
 
     /// <summary>

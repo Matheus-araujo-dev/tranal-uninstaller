@@ -143,6 +143,10 @@ public static class ProgramScanner
         // por isso e classificado sempre — nao e um detalhe opcional.
         program.Kind = UninstallerClassifier.Classify(program);
 
+        // Com o tipo em maos, da para saber se existe um jeito conhecido de
+        // silenciar aquele desinstalador.
+        program.QuietUninstallCommand = QuietUninstall.Build(program);
+
         var estimatedKb = GetInt(sub, "EstimatedSize");
         if (estimatedKb > 0) program.SizeBytes = estimatedKb * 1024L;
 
@@ -348,13 +352,21 @@ public static class ProgramScanner
                 }
             }
 
+            // O comando de desinstalacao e o comando silencioso sao montados
+            // aqui, porque o MSI tem um switch silencioso proprio
+            // ("/qn") e nao ha como referenciar o objeto dentro do
+            // inicializador.
+            var msiUninstall = $@"MsiExec.exe /X{{{productCode}}}";
+            var msiQuiet = $@"{msiUninstall} /qn";
+
             yield return new InstalledProgram
             {
                 DisplayName = name.Trim(),
                 DisplayVersion = (GetString(product, "Version") ?? string.Empty).Trim(),
                 Publisher = string.Empty,
-                UninstallString = $@"MsiExec.exe /X{{{productCode}}}",
-                QuietUninstallString = $@"MsiExec.exe /X{{{productCode}}} /qn",
+                UninstallString = msiUninstall,
+                QuietUninstallString = msiQuiet,
+                QuietUninstallCommand = msiQuiet,
                 RegistryKey = productCode,
                 RegistryHive = "ClassesRoot",
                 RegistryPath = $@"HKEY_CLASSES_ROOT\Installer\Products\{productCode}",

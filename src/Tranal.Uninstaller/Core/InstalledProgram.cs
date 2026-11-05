@@ -54,6 +54,19 @@ public sealed class InstalledProgram
     /// </summary>
     public string ProductCode { get; set; } = string.Empty;
 
+    /// <summary>
+    /// O comando de desinstalacao silenciosa, quando existe um jeito
+    /// conhecido de silenciar este desinstalador.
+    ///
+    /// Vem do valor <c>QuietUninstallString</c> do registro quando ele
+    /// existe; senao, do switch da familia do desinstalador, escolhido pela
+    /// classificacao (<see cref="QuietUninstall"/>).
+    ///
+    /// O Tranal **nao** troca o desinstalador nativo por conta propria: ele
+    /// oferece o comando silencioso, e o usuario escolhe.
+    /// </summary>
+    public string QuietUninstallCommand { get; set; } = string.Empty;
+
     /// <summary>Data de instalacao como DateTime? para ordenacao por recencia.</summary>
     public DateTime? InstallDateValue { get; set; }
 

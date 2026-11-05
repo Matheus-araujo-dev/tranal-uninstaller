@@ -74,6 +74,41 @@ virou teste de regressão.
 (Chromium, Visual Studio, .NET, Riot, Electron) que não seguem empacotador
 conhecido. Classificá-los como se fossem seria inventar.
 
+### Desinstalação silenciosa (implementado — medido)
+
+O original tem a opção "perform a silent uninstallation"; o Tranal agora tem
+a mesma coisa, com o switch **escolhido pelo tipo do desinstalador** em vez de
+chutado.
+
+A tabela (`Core/QuietUninstall.cs`) é o comportamento observado de três
+concorrentes que mantêm a mesma lista — Bulk Crap Uninstaller 6.3.0,
+Uninstalr 3.2 e HiBit Uninstaller 4.0.10:
+
+| Família | Switch silencioso |
+|---|---|
+| Inno Setup | `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` |
+| NSIS | `/S` |
+| Windows Installer | `/quiet /qn /norestart` |
+| InstallShield | `/s /v"/qn"` (substitui o `/x{GUID}`) |
+| SDBInst | `/S` |
+
+A ordem de escolha: primeiro o `QuietUninstallString` do registro — quando
+existe, ele já é a resposta certa —; senão, o switch da família. Família sem
+switch conhecido fica **sem** comando silencioso: inventar um seria rodar o
+desinstalador do usuário com opções que ele não pediu.
+
+Três pontos de entrada: a coluna **"Desinstalador silencioso"** na lista, a
+marca **"Executar o desinstalador em silêncio"** no assistente e a opção
+`/silent` na CLI (`tranal /mu "prog" /mode safe /silent`).
+
+**Medido nesta máquina** (211 programas instalados): **185 com comando
+silencioso** — MsiExec 149/149, desconhecidos 19/42 (o registro traz o
+`QuietUninstallString` mesmo sem família conhecida), InnoSetup 9/9, NSIS 5/5,
+SDBInst 3/3, Steam 0/3 (a Steam não aceita desinstalação silenciosa).
+
+**O Tranal não troca o desinstalador nativo por conta própria:** ele oferece
+o comando silencioso, e quem decide é o usuário.
+
 ### Modos de desinstalação (medidos nas strings 4234–4237)
 
 O original tem quatro modos. No Tranal eles são **um único enum**

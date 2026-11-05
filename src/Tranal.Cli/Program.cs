@@ -366,7 +366,10 @@ public static class Program
         if (runBuiltIn)
         {
             Console.WriteLine("Executando o desinstalador nativo...");
-            results.Add(UninstallEngine.RunBuiltInUninstaller(target).GetAwaiter().GetResult());
+            var silent = flags.Contains("/silent");
+            if (silent)
+                Console.WriteLine("  (modo silencioso: o switch vem da tabela por tipo do desinstalador)");
+            results.Add(UninstallEngine.RunBuiltInUninstaller(target, silent).GetAwaiter().GetResult());
             foreach (var result in results) Console.WriteLine("  " + result.Describe());
             Console.WriteLine();
         }
@@ -907,6 +910,7 @@ public static class Program
         Console.WriteLine("Opções de varredura e remoção:");
         Console.WriteLine("/all      - Inclui as sobras de confiança média e baixa também na remoção");
         Console.WriteLine("/high     - Considera somente as sobras de alta confiança");
+        Console.WriteLine("/silent   - Executa o desinstalador nativo em silêncio (o switch vem da tabela por tipo)");
         Console.WriteLine("/recycle  - Envia arquivos e pastas para a Lixeira (padrão: conforme as preferências)");
         Console.WriteLine("/norecycle - Apaga arquivos e pastas de forma definitiva");
         Console.WriteLine("/backup   - Cria o ponto de restauração antes de remover (padrão: conforme as preferências)");

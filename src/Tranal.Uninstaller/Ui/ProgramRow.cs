@@ -45,6 +45,7 @@ public sealed class ProgramRow : INotifyPropertyChanged
     public string UninstallString => ProgramColumns.Value(ProgramColumn.UninstallString, Program, Custom);
     public string UninstallerKindText => ProgramColumns.Value(ProgramColumn.UninstallerKind, Program, Custom);
     public string ProductCodeText => ProgramColumns.Value(ProgramColumn.ProductCode, Program, Custom);
+    public string QuietUninstallText => ProgramColumns.Value(ProgramColumn.QuietUninstall, Program, Custom);
     public string InstallDate => ProgramColumns.Value(ProgramColumn.Date, Program, Custom);
     public string Bits => ProgramColumns.Value(ProgramColumn.Type, Program, Custom);
     public string SizeText => ProgramColumns.Value(ProgramColumn.Size, Program, Custom);

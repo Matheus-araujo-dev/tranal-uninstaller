@@ -57,6 +57,54 @@ também é **conservadora de propósito**: o casamento do NSIS é pelo nome
 confundido com o `uninstall.exe` do NSIS (foi exatamente o que aconteceu na
 primeira medição, e virou teste de regressão).
 
+### Novo: desinstalação silenciosa, com o switch escolhido pelo tipo
+
+Três concorrentes auditados (Bulk Crap Uninstaller, Uninstalr e HiBit)
+mantêm a mesma lista de switches de desinstalação silenciosa por família de
+empacotador. Como o Tranal agora **classifica** o tipo do desinstalador de
+cada programa, essa lista deixou de ser adivinhação e virou uma tabela:
+
+| Família | Switch silencioso |
+|---|---|
+| Inno Setup | `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` |
+| NSIS | `/S` |
+| Windows Installer | `/quiet /qn /norestart` |
+| InstallShield | `/s /v"/qn"` (substitui o `/x{GUID}`) |
+| SDBInst | `/S` |
+
+A regra de escolha: primeiro o valor `QuietUninstallString` do registro (quando
+existe, ele já é a resposta certa); senão, o switch da família.
+
+Apareceu uma coluna nova na lista, **"Desinstalador silencioso"**, e duas
+pontas para usar:
+
+- no **assistente**, a nova marca **"Executar o desinstalador em silêncio"**;
+- na **CLI**, a opção `/silent`:
+
+```
+tranal /mu "MeuApp" /mode safe /silent
+```
+
+**Medido nesta máquina** (211 programas instalados): **185 têm comando
+silencioso** —
+
+| Tipo | Programas | Com comando silencioso |
+|---|---|---|
+| `MsiExec` | 149 | **149** |
+| `Unknown` | 42 | 19 (o registro traz o `QuietUninstallString` mesmo sem família conhecida) |
+| `InnoSetup` | 9 | **9** |
+| `Nsis` | 5 | **5** |
+| `SdbInst` | 3 | **3** |
+| `Steam` | 3 | 0 (a Steam não aceita desinstalação silenciosa) |
+
+Ou seja: **87,7%** dos programas da máquina podem sair sem tocar em um botão.
+
+**O Tranal não troca o desinstalador nativo por conta própria.** Ele **oferece**
+o comando silencioso, e quem decide é o usuário. Um switch errado não é
+neutro — pode rodar o desinstalador com opções que ninguém pediu — e por
+isso família sem switch conhecido fica sem comando silencioso, em vez de
+receber um chute.
+
 ### Novo: cada sobra agora diz POR QUÊ é sobra
 
 A confiança sozinha diz o quanto o Tranal acredita num item, mas não diz

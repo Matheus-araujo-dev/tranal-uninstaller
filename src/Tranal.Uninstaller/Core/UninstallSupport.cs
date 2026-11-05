@@ -1051,12 +1051,27 @@ public static class UninstallEngine
         return (head, firstArgs);
     }
 
-    /// <summary>Executa o comando de desinstalacao nativo e aguarda o processo.</summary>
-    public static async Task<BuiltInUninstallResult> RunBuiltInUninstaller(InstalledProgram program)
+    /// <summary>
+    /// Executa o comando de desinstalacao nativo e aguarda o processo.
+    ///
+    /// Com <paramref name="silent"/> ligado, usa o comando silencioso
+    /// derivado pela classificacao do desinstalador
+    /// (<see cref="QuietUninstall"/>) quando existe; sem ele, vale o
+    /// comportamento de sempre: o <c>QuietUninstallString</c> do registro
+    /// quando houver, e o comando registrado caso contrario.
+    /// </summary>
+    /// <param name="program">O programa a desinstalar.</param>
+    /// <param name="silent">Usar o comando silencioso derivado.</param>
+    public static async Task<BuiltInUninstallResult> RunBuiltInUninstaller(
+        InstalledProgram program, bool silent = false)
     {
-        var command = !string.IsNullOrWhiteSpace(program.QuietUninstallString)
-            ? program.QuietUninstallString
-            : program.UninstallString;
+        var command = silent
+            ? (program.QuietUninstallCommand.Length > 0
+                ? program.QuietUninstallCommand
+                : program.UninstallString)
+            : (!string.IsNullOrWhiteSpace(program.QuietUninstallString)
+                ? program.QuietUninstallString
+                : program.UninstallString);
 
         if (string.IsNullOrWhiteSpace(command))
             return new BuiltInUninstallResult

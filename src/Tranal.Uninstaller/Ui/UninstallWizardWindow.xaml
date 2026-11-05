@@ -94,6 +94,8 @@
                      Visibility="Collapsed" />
           <CheckBox x:Name="FullRegistryBackupCheck" AutomationProperties.AutomationId="FullRegistryBackupCheck"
                     Content="{loc:Tr Wizard.FullRegistryBackupCheck}" Margin="0,0,0,4" />
+          <CheckBox x:Name="SilentUninstallCheck" AutomationProperties.AutomationId="SilentUninstallCheck"
+                    Content="{loc:Tr Wizard.Step2.Silent}" Margin="0,0,0,4" />
           <CheckBox x:Name="ScanAllAccountsCheck" AutomationProperties.AutomationId="ScanAllAccountsCheck"
                     Content="{loc:Tr Wizard.ScanAllAccountsCheck}" Margin="0,0,0,4" Visibility="Collapsed" />
           <CheckBox x:Name="UninstallAllAccountsCheck" AutomationProperties.AutomationId="UninstallAllAccountsCheck"
