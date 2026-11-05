@@ -298,6 +298,12 @@ nesta máquina — não são para serem "deduzidas" de novo.
   (`TranalUninstaller.exe --unregister-context-menu`), não pelo script do
   instalador: deixar o registro apontando para um executável apagado seria
   referência órfã.
+- **`postinstall` faz o instalador rodar o programa como o usuário NÃO
+  elevado.** O Tranal exige administrador, então o lançamento no fim da
+  instalação falhava com *"CreateProcess falhou; código 740"*. A entrada de
+  `[Run]` precisa de `runascurrentuser` para o programa herdar o token
+  elevado do instalador — e assim nem aparece um segundo pedido de UAC.
+  (Achado na validação real, não na leitura do script.)
 - **O desinstalador não apaga os dados do usuário** (comentários, grupos,
   preferências): eles moram em `%LOCALAPPDATA%` e não são do instalador.
 - **A assinatura é feita depois da compilação**, nunca antes: o Inno Setup

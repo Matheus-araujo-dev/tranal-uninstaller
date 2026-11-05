@@ -135,8 +135,13 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "
 ; Executa o programa no final (a caixa aparece na pagina de conclusao).
 ; A checagem e feita de novo, sobre o estado real do disco: se o runtime
 ; nao estiver presente, o programa nao abre.
+;
+; "runascurrentuser" e obrigatorio: a bandeira "postinstall" faz o
+; instalador rodar o programa como o usuario que NAO elevated, e o Tranal
+; exige administrador — sem essa bandeira o Windows barra o lancamento com
+; "CreateProcess falhou; codigo 740" e o programa nunca abre.
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; \
-    Flags: nowait postinstall skipifsilent; Check: RuntimeDisponivel
+    Flags: nowait postinstall skipifsilent runascurrentuser; Check: RuntimeDisponivel
 
 [UninstallRun]
 ; Remove a entrada do menu de contexto do Windows: o executavel sera
