@@ -34,6 +34,7 @@ documento diz **"não verificado"** e explica o motivo.
 | Bulk Crap Uninstaller 6.3.0 | [BCU.md](BCU.md) | ✅ auditado |
 | IObit Uninstaller 16.1.0.4 | [IOBIT.md](IOBIT.md) | ✅ auditado |
 | HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ auditado |
+| Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ auditado |
 | HiBit Uninstaller | — | em curso |
 | Geek Uninstaller | — | em curso |
 | Uninstalr | — | em curso |

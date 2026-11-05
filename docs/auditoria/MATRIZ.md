@@ -152,38 +152,39 @@ item aponta para a auditoria que o revelou.
 | 2 | **Atribuir sobras pela cadeia de desinstalação**, não só pelo nome | BCU C5 | Separa "a pasta do programa" de "a pasta **dele**". Errar aqui é apagar coisa de outro. |
 | 3 | ✅ **Justificativa textual por item de sobra** — enum `LeftoverReason` (11 motivos), coluna "Porquê" na lista de sobras e na saída da CLI; a tradução mora em `Core/Localization/LeftoverLabels.cs`, consumida pela tela e pela CLI | BCU C4 | O Tranal já tem 3 níveis; agora diz **por quê**. A regra de marcagem não mudou: só confiança alta entra na remoção. |
 | 4 | **Desinstalação silenciosa** — começar pela **tabela de switches por família de instalador** (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` para Inno, `/S` para NSIS, `/quiet /qn /norestart` para MSI, `/s /v"/qn"` para InstallShield), com a classificação já implementada como chave; depois, o gerador por automação de interface | BCU B2/B3 · **HiBit H.2** | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. O HiBit mostra que a tabela por família existe e é curta — com a classificação pronta, isso deixa de ser heurística. |
-| 5 | **Filtro Regex + lista de desinstalação em arquivo + desinstalação em lote roteirizável** | BCU D2/D3/D4 | É o que torna o Tranal usável em script e em grande escala. |
+| 5 | **Motor de desinstalação próprio**: rodar o desinstalador do programa **e** automatizar o que ele não faz (o Uninstalr é explícito: "most other uninstallers simply run the default uninstaller program"), com retomada após reinício | BCU B3 · **Uninstalr H.3** | É o que torna a desinstalação silenciosa confiável: em vez de rezar para o desinstalador aceitar `/S`, o Tranal aciona os controles. |
+| 6 | **Filtro Regex + lista de desinstalação em arquivo + desinstalação em lote roteirizável** | BCU D2/D3/D4 | É o que torna o Tranal usável em script e em grande escala. |
 
 ### F.2 🟡 Recurso — lacunas claras
 
 | # | Item | De onde veio |
 |---|---|---|
-| 6 | Desinstalar via MsiExec (GUID) | BCU B4 |
-| 7 | Desinstalar manualmente (pular o desinstalador e listar o que apagar) | BCU B5 |
-| 8 | Painel de progresso com pular / encerrar / rodar agora | BCU B10/B11 |
-| 9 | Detecção de Windows Features e Windows Updates | BCU A4/A5 |
-| 10 | Detecção de Steam, Chocolatey, Scoop | BCU A6/A7 |
-| 11 | Varredura de drives atrás de apps não registrados | BCU A9 |
-| 12 | Limpeza de pastas "Arquivos de Programas" vazias/pela metade | BCU C12 |
-| 13 | Comandos antes e depois da desinstalação | BCU B15 |
-| 14 | Verificação de certificado do desinstalador | BCU D8 |
-| 15 | Colunas novas: ✅ Tipo de desinstalador e ✅ Código do produto (implementados); ⬜ Desinstalador silencioso, Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
-| 16 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
-| 17 | Remoção definitiva de drivers | Revo E10 |
-| 18 | **Um switch de CLI por ferramenta** (o HiBit tem 19) + a forma longa com sufixo ` RUN` | HiBit H.2 |
+| 7 | Desinstalar via MsiExec (GUID) | BCU B4 |
+| 8 | Desinstalar manualmente (pular o desinstalador e listar o que apagar) | BCU B5 |
+| 9 | Painel de progresso com pular / encerrar / rodar agora | BCU B10/B11 |
+| 10 | Detecção de Windows Features e Windows Updates | BCU A4/A5 |
+| 11 | Detecção de Steam, Chocolatey, Scoop | BCU A6/A7 |
+| 12 | Varredura de drives atrás de apps não registrados | BCU A9 |
+| 13 | Limpeza de pastas "Arquivos de Programas" vazias/pela metade | BCU C12 |
+| 14 | Comandos antes e depois da desinstalação | BCU B15 |
+| 15 | Verificação de certificado do desinstalador | BCU D8 |
+| 16 | Colunas novas: ✅ Tipo de desinstalador e ✅ Código do produto (implementados); ⬜ Desinstalador silencioso, Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
+| 17 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
+| 18 | Remoção definitiva de drivers | Revo E10 |
+| 19 | **Um switch de CLI por ferramenta** (o HiBit tem 19) + a forma longa com sufixo ` RUN` | HiBit H.2 |
 
 ### F.3 🟢 Ganho pequeno
 
 | # | Item | De onde veio |
 |---|---|---|
-| 19 | Treemap | BCU D5 |
-| 20 | Legenda de cores | BCU D6 |
-| 21 | Painel lateral de configurações | BCU D18 |
-| 22 | Agrupamento automático por coluna | BCU D19 |
-| 23 | Renomear entrada / excluir entrada do registro / assumir propriedade | BCU D13/D14/D15 |
-| 24 | Copia avançada para a área de transferência | BCU D9 |
-| 25 | Exportar para script de desinstalação em lote | BCU D11 |
-| 26 | Classificação do usuário (estrelas) | BCU D7 |
+| 20 | Treemap | BCU D5 |
+| 21 | Legenda de cores | BCU D6 |
+| 22 | Painel lateral de configurações | BCU D18 |
+| 23 | Agrupamento automático por coluna | BCU D19 |
+| 24 | Renomear entrada / excluir entrada do registro / assumir propriedade | BCU D13/D14/D15 |
+| 25 | Copia avançada para a área de transferência | BCU D9 |
+| 26 | Exportar para script de desinstalação em lote | BCU D11 |
+| 27 | Classificação do usuário (estrelas) | BCU D7 |
 
 ### F.4 O que **não** fazer (decisão registrada)
 
@@ -269,6 +270,40 @@ o Revo se ganha por software.
 do fabricante — é um site de SEO que devolve HTML para qualquer URL. O
 domínio correto é **`hibitsoft.ir`**.
 
+### H.3 Uninstalr 3.2 — [UNINSTALR.md](UNINSTALR.md)
+
+| Recurso | Uninstalr | Tranal | Prioridade |
+|---|---|---|---|
+| **Motor de desinstalação próprio** (não só rodar o uninstaller do app) | ✅ | 🟡 | 🔴 **alta** |
+| **16 tipos de app** (Steam, GOG, Battle.net, Epic, Riot, itch.io, EA, Big Fish, Chocolatey, Ninite, PortableApps.com, portáteis) | ✅ | ⬜ | 🟡 |
+| **Retomar a desinstalação após reinício** (fluxo `RunOnce`) | ✅ | ⬜ | 🟡 |
+| **Detecção automática de caminhos a ignorar** (lixeira, `System Volume Information`, pastas de backup do sistema) | ✅ | ⬜ | 🟡 |
+| **Detecção de sobras por MuiCache / TypeLib / AppX ModelID** | ✅ | ⬜ | 🟡 |
+| **Desinstalação em lote** mesmo sem suporte a silent | ✅ | ⬜ | 🟡 |
+| **Tamanho em disco em tempo real** (não o valor do registro) | ✅ | 🟡 | 🟢 |
+| **Contagem final** ("N arquivos / N pastas / N chaves / N valores") | ✅ | ⬜ | 🟡 |
+| **Settings em duas colunas** (padrões para 1 app × muitos apps) | ✅ | ⬜ | 🟢 |
+| **Gerar `.bat`** para desinstalação em lote | ✅ | ⬜ | 🟢 |
+| **País de origem** do app (bandeira) | ✅ | ⬜ | 🟢 |
+| **Pré-visualização** com exclusão item a item | ✅ | 🟡 | — |
+| **Backup do registro** antes de remover | ⬜ **não tem** | ✅ | — 🟢 Tranal melhor |
+| **CLI de desinstalação** | ⬜ **nenhuma** | ✅ | — 🟢 Tranal melhor |
+
+**O dado que decide a estratégia de produto:** a versão **gratuita do Uninstalr
+tem exatamente os mesmos recursos da Pro** — a Pro só vende suporte técnico.
+É a prova de que um desinstalador completo **não precisa** de gate de versão
+paga. Isso reforça a estratégia do Tranal: nenhum recurso essencial atrás de
+pagamento.
+
+**A refutação que importa:** a literatura afirma que o Uninstalr tem
+`/S`, `/silent`, `/log`, `/minimize`, `/autoclose` e `/wait`. **Medido: não
+existe.** As flags `/quiet /silent /passive /verysilent` são passadas *para*
+desinstaladores de terceiros, e `/S` é do instalador NSIS. Quem construir
+uma CLI a partir dessa literatura constrói a errada.
+
+**A correção de domínio:** `instalr.com` é um produto homônimo de gestão de
+tarefas. O site do Uninstalr é **`uninstalr.com`**.
+
 ---
 
 ## G. Estado da auditoria
@@ -278,6 +313,7 @@ domínio correto é **`hibitsoft.ir`**.
 | Bulk Crap Uninstaller 6.3.0 | [BCU.md](BCU.md) | ✅ completo — 80 funcionalidades medidas, 5 linhas de comando, 6 categorias de sobras |
 | IObit Uninstaller 16.1.0.4 | [IOBIT.md](IOBIT.md) | ✅ completo — 142 funcionalidades medidas, 95 telas, 29 DLLs importadas |
 | HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ completo — 58 funcionalidades, 21+ ferramentas, 802 legendas pt-BR, 33 DLLs importadas |
+| Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ completo — 49 funcionalidades medidas, deep search de 25 min medido, 162 apps / 846 arquivos / 1.562 pastas / 394 chaves |
 | HiBit Uninstaller | — | 🔄 em curso |
 | Geek Uninstaller | — | 🔄 em curso |
 | Uninstalr | — | 🔄 em curso |
