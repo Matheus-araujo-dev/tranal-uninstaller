@@ -300,6 +300,20 @@ nesta máquina — não são para serem "deduzidas" de novo.
   referência órfã.
 - **O desinstalador não apaga os dados do usuário** (comentários, grupos,
   preferências): eles moram em `%LOCALAPPDATA%` e não são do instalador.
+- **A assinatura é feita depois da compilação**, nunca antes: o Inno Setup
+  regrava o executável e a assinatura seria perdida. `Assinar-Instalador` fica
+  no `publish-tranal.ps1` (uma regra, um lugar) e confere o **assinante** — o
+  `Status` do Windows virá `UnknownError` mesmo com a assinatura aplicada,
+  porque a raiz é autossinada e não está nas autoridades confiáveis da máquina.
+  Isso é esperado; o que não pode acontecer é ficar sem assinatura nenhuma.
+- **A chave privada do certificado nunca entra no repositório.** No CI ela vem
+  do secret `TRANAL_CERT_PFX` (base64) + `TRANAL_CERT_PASSWORD`; na máquina de
+  desenvolvimento, do repositório de certificados do usuário. O `.pfx` mora
+  **fora** do projeto (hoje em `E:\Projetos\_segredos\`). O `.cer` público é
+  versionado, em `installer/certificado/`.
+- **A regra de escolher o certificado**: `O=Tranal` no titular. Um `*Tranal*`
+  com chave privada, senão o primeiro. Sem isso, um certificado de teste com o
+  mesmo nome rouba a assinatura.
 
 ## Tema (armadilhas já vencidas)
 

@@ -22,7 +22,11 @@ param(
     [string]$Variant = 'gui',
 
     # Versao do .NET Desktop Runtime embutida no instalador.
-    [string]$RuntimeVersion = '10.0.14'
+    [string]$RuntimeVersion = '10.0.14',
+
+    # Certificado que assina o instalador. Se vier vazio, o certificado de
+    # assinatura da Tranal no repositorio de certificados do usuario e usado.
+    [string]$SigningThumbprint = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -96,6 +100,57 @@ function Get-Iscc {
     throw 'Inno Setup nao encontrado (ISCC.exe). Instale com: winget install JRSoftware.InnoSetup'
 }
 
+# O certificado que assina o instalador. A chave privada NUNCA entra no
+# repositorio do projeto: no CI ela chega por variavel de ambiente (secret),
+# na maquina de desenvolvimento ela fica no repositorio de certificados do
+# usuario.
+function Get-CertificadoDeAssinatura([string]$thumbprint) {
+    if ($thumbprint) {
+        $cert = Get-Item "Cert:\CurrentUser\My\$thumbprint" -ErrorAction SilentlyContinue
+        if ($cert) { return $cert }
+    }
+
+    # No CI o certificado chega como .pfx em base64 no ambiente.
+    $pfxBase64 = $env:TRANAL_CERT_PFX
+    $senha = $env:TRANAL_CERT_PASSWORD
+    if ($pfxBase64) {
+        $arquivo = Join-Path ([IO.Path]::GetTempPath()) 'tranal-codesign.pfx'
+        [IO.File]::WriteAllBytes($arquivo, [Convert]::FromBase64String($pfxBase64))
+        $segura = ConvertTo-SecureString $senha -AsPlainText -Force
+        $cert = Import-PfxCertificate -FilePath $arquivo -CertStoreLocation Cert:\CurrentUser\My -Password $segura
+        return $cert
+    }
+
+    # Na maquina de desenvolvimento: o certificado da Tranal ja instalado.
+    # A regra e "o certificado com O=Tranal no titular": e o que distingue o
+    # certificado de assinatura da Tranal de qualquer outro certificado de
+    # teste que esteja na loja.
+    $candidatos = Get-ChildItem Cert:\CurrentUser\My |
+        Where-Object { $_.Subject -like '*Tranal*' -and $_.HasPrivateKey }
+    $cert = $candidatos | Where-Object { $_.Subject -like '*O=Tranal*' } | Select-Object -First 1
+    if (-not $cert) { $cert = $candidatos | Select-Object -First 1 }
+    return $cert
+}
+
+# Assina o instalador. O "UnknownError" que o Windows devolve no status e o
+# esperado: a raiz e autossinada e nao esta nas authorities confiáveis da
+# maquina. O que interessa e o assinante: tem de ser a Tranal.
+function Assinar-Instalador([string]$arquivo, [string]$thumbprint) {
+    $cert = Get-CertificadoDeAssinatura $thumbprint
+    if (-not $cert) {
+        Write-Host "sem certificado de assinatura: o instalador sera publicado sem assinatura"
+        return
+    }
+
+    Set-AuthenticodeSignature -FilePath $arquivo -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+
+    $assinante = (Get-AuthenticodeSignature $arquivo).SignerCertificate
+    if (-not $assinante -or $assinante.Subject -notlike '*Tranal*') {
+        throw "A assinatura do instalador nao foi aplicada"
+    }
+    Write-Host "instalador assinado por: $($assinante.Subject)"
+}
+
 Push-Location $repoRoot
 try {
     switch ($Variant) {
@@ -159,6 +214,10 @@ try {
 
             & $iscc $defines $iss
             if ($LASTEXITCODE -ne 0) { throw "Falha ao compilar o instalador (exit $LASTEXITCODE)" }
+
+            # A assinatura vem depois da compilacao: assinar antes faria o
+            # Inno Setup regravar o executable e a assinatura seria perdida.
+            Assinar-Instalador (Join-Path $repoRoot 'publish\setup\TranalUninstaller-Setup.exe') $SigningThumbprint
 
             $expected = $null
             $target = 'publish\setup\TranalUninstaller-Setup.exe'

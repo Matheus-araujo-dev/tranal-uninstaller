@@ -82,22 +82,30 @@ O runtime é instalado **antes** de qualquer arquivo do programa e o código de 
 (`0` = sucesso, `3010` = sucesso mas precisa reiniciar). Se ele falhar, a instalação é
 **cancelada** e o computador fica como estava.
 
-### Aviso do antivírus
+### Aviso do antivírus e assinatura digital
 
-O instalador **não é assinado digitalmente** (assinar exige certificado pago). Alguns antivírus
-— especialmente McAfee — tratam instalador novo e sem assinatura como programa potencialmente
-indesejável e bloqueiam a execução. Isso é uma propriedade do instalador, não do Tranal.
+O instalador é **assinado digitalmente** com um certificado **autossinado** da Tranal
+(`installer/certificado/TranalUninstallerPro.cer`). Autossinado significa que a autoridade não é
+uma empresa de certificados — então, até o certificado ser instalado na máquina, o Windows mostra
+**"editor desconhecido"** em vez de "Tranal Uninstaller Pro".
 
-Duas saídas, para quem quiser o instalador sem aviso:
+Para o Windows mostrar o nome da Tranal (e o antivírus confiar no arquivo):
 
-1. **Assinar o instalador** com um certificado de código (o pipeline já tem um lugar para isso:
-   `tools\publish-tranal.ps1 -Variant setup` + uma assinatura no passo de publicação);
-2. Baixar o **`TranalUninstaller.exe`** autocontido (132 MB), que não é instalador e não costuma
-   ser marcado.
+1. baixe o `TranalUninstallerPro.cer` (está no repositório, em `installer/certificado`);
+2. clique duas vezes nele → **Instalar Certificado** → **Autoridades de Certificação Raiz
+   Confiáveis** → **Instalar**;
+3. abra o instalador de novo.
 
-Enquanto isso, o `.iss` usa compactação **zip** em vez de **LZMA**: medido nesta máquina, com
-LZMA o McAfee bloqueava e **apagava** o setup; com zip o bloqueio desaparece e o tamanho muda
-em 0,3% (o runtime já vem compactado).
+Sem esse passo o instalador continua funcionando: o Windows só avisa antes de abrir.
+
+A via sem custo extra é essa. A via definitiva é comprar um certificado de código de uma
+autoridade (DigiCert, SSL.com, Sectigo…): **a publicação já assina todo instalador**, então
+basta trocar o certificado do secret `TRANAL_CERT_PFX` e o aviso some para todo mundo.
+
+**Medido nesta máquina**: com compactação LZMA o McAfee bloqueava e **apagava** o instalador como
+"programa potencialmente indesejável" (falso positivo conhecido em instaladores com carga LZMA).
+Com `zip` o bloqueio desaparece e o tamanho muda 0,3% (o runtime já vem compactado). Assinar
+não piorou o resultado — o instalador assinado continua sendo aceito.
 
 ---
 

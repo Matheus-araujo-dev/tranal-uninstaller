@@ -69,16 +69,16 @@ jobs:
         shell: pwsh
         run: |
           $iscc = @(
-            "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
-            "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 6\ISCC.exe",
             "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
           ) | Where-Object { Test-Path $_ } | Select-Object -First 1
           if (-not $iscc) {
             Write-Host "Inno Setup nao encontrado; instalando pelo chocolatey"
             choco install innosetup --no-progress --yes
             $iscc = @(
-              "$env:ProgramFiles(x86)\Inno Setup 6\ISCC.exe",
-              "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+              "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+              "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
             ) | Where-Object { Test-Path $_ } | Select-Object -First 1
           }
           if (-not $iscc) { throw "Inno Setup nao encontrado no runner" }
@@ -86,6 +86,11 @@ jobs:
 
       - name: Montar o instalador (setup)
         shell: pwsh
+        env:
+          # Certificado de assinatura do instalador. A chave privada e um
+          # secret do repositorio: ela nunca entra no codigo.
+          TRANAL_CERT_PFX: ${{ secrets.TRANAL_CERT_PFX }}
+          TRANAL_CERT_PASSWORD: ${{ secrets.TRANAL_CERT_PASSWORD }}
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup
 

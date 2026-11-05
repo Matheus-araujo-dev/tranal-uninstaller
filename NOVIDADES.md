@@ -18,9 +18,15 @@ O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller
 - O **desinstalador** apaga o programa, os atalhos e a entrada do menu de contexto do Windows
   (deixá-la apontando para um executável apagado seria referência órfã). Ele **não** apaga os
   dados do usuário: comentários, grupos e preferências continuam na pasta de dados.
-- **Aviso do antivírus**: o instalador não é assinado digitalmente (assinar exige certificado
-  pago) e alguns antivírus — especialmente McAfee — bloqueiam instalador novo e sem assinatura.
-  Quem preferir pode baixar o `TranalUninstaller.exe` autocontido, que não é instalador.
+- **O instalador é assinado digitalmente** com um certificado autossinado da Tranal (o arquivo
+  público está em `installer/certificado/TranalUninstallerPro.cer`). Quem instalar esse
+  certificado na máquina vê "Tranal Uninstaller Pro" em vez de "editor desconhecido". A
+  publicação assina todo instalador automaticamente — trocar por um certificado de uma
+  autoridade é só substituir o secret do CI.
+- **Aviso do antivírus**: mesmo assinado, o instalador pode ser marcado por antivírus como
+  programa potencialmente indesejável (propriedade de instalador novo, não do Tranal). A
+  compactação do setup é **zip**, e não LZMA, por causa disso: medido nesta máquina, com LZMA o
+  McAfee bloqueava e apagava o instalador; com zip o bloqueio desaparece e o tamanho muda 0,3%.
 
 ### Correções
 

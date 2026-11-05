@@ -243,7 +243,7 @@ ser. O script é `installer/tranal.iss` (Inno Setup 6.7.3), compilado por
 | Atalho no Menu Iniciar e na Área de Trabalho | ✅ | ✅ (área de trabalho como tarefa opcional) | idem |
 | Desinstalador | ✅ | ✅ | idem |
 | Instalação sem dependência externa | ✅ | ✅ o runtime do .NET viaja dentro do setup | idem |
-| Assinatura digital do instalador | ✅ | ❌ **não assinado** (certificado pago) | — |
+| Assinatura digital do instalador | ✅ (autoridade) | ⚠️ **autossinada** — o Windows mostra "editor desconhecido" até o `.cer` ser instalado | `installer/certificado/TranalUninstallerPro.cer` |
 
 Números medidos nesta máquina:
 
