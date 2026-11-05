@@ -23,4 +23,11 @@
   <ItemGroup>
     <PackageReference Include="System.Management" Version="10.0.0" />
   </ItemGroup>
+
+  <!-- A suite de testes precisa de alguns membros internos (redirecionar a
+       pasta de backups e o arquivo de preferencias para um temporario, sem
+       tocar no ambiente de quem roda os testes). -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tranal.Tests" />
+  </ItemGroup>
 </Project>

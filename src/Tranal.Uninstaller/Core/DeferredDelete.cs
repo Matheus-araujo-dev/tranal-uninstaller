@@ -35,6 +35,13 @@ public static class DeferredDelete
         }
         catch { return false; }
 
+        // A propria fila de remocao pendente respeita as regras de protecao:
+        // um item em uso dentro de pasta de sistema nao pode ser agendado
+        // para sumir no proximo boot.
+        if (SafetyRules.IsProtectedFolder(full)
+            || SafetyRules.IsProtectedFolder(Path.GetDirectoryName(full) ?? string.Empty))
+            return false;
+
         try
         {
             return MoveFileEx(full, null, MovefileDelayUntilReboot | MovefileReplaceExisting);

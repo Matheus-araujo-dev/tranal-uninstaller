@@ -139,9 +139,15 @@ public class AppSettingsTests
     [Fact]
     public void GravarEOLerPreservaAsPreferencias()
     {
-        var original = AppSettingsStore.Current;
+        // O arquivo de preferencias do teste e um temporario: gravar no
+        // settings.json real perderia o estado do usuario se o processo
+        // morresse no meio do teste.
+        var temp = Path.Combine(Path.GetTempPath(), "tranal-settings-" + Guid.NewGuid().ToString("N")[..8] + ".json");
+
         try
         {
+            AppSettingsStore.FilePathOverride = temp;
+
             AppSettingsStore.Save(new AppSettings
             {
                 Theme = "Light",
@@ -158,7 +164,9 @@ public class AppSettingsTests
         }
         finally
         {
-            AppSettingsStore.Save(original);
+            AppSettingsStore.FilePathOverride = null;
+            try { if (File.Exists(temp)) File.Delete(temp); }
+            catch { /* o temporario e descartavel */ }
         }
     }
 }

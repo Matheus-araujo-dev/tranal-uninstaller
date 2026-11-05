@@ -111,8 +111,16 @@ public sealed class AppSettings
 /// <summary>Leitura e gravacao das <see cref="AppSettings"/>.</summary>
 public static class AppSettingsStore
 {
+    /// <summary>
+    /// Caminho alternativo do arquivo de preferencias. Existe para os testes:
+    /// sem ele, um teste que grava preferencias escreveria no arquivo real do
+    /// usuario e perderia o estado se o processo morresse no meio.
+    /// Nulo em uso normal.
+    /// </summary>
+    internal static string? FilePathOverride { get; set; }
+
     public static string FilePath =>
-        Path.Combine(RegistryBackup.DataDirectory, "settings.json");
+        FilePathOverride ?? Path.Combine(RegistryBackup.DataDirectory, "settings.json");
 
     private static AppSettings? _current;
 

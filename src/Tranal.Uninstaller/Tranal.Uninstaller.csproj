@@ -23,4 +23,9 @@
   <ItemGroup>
     <PackageReference Include="System.Management" Version="10.0.0" />
   </ItemGroup>
+
+  <!-- Mesma razao da CLI: os testes acessam alguns membros internos do nucleo. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tranal.Tests" />
+  </ItemGroup>
 </Project>

@@ -176,9 +176,9 @@ public static class HistoryCleaner
     {
         if (string.IsNullOrEmpty(categoryId)) return false;
 
-        return categoryId.StartsWith(TrackCleaner.CategoryBrowsers + ".", StringComparison.OrdinalIgnoreCase)
-            || categoryId.StartsWith(TrackCleaner.CategoryOffice + ".", StringComparison.OrdinalIgnoreCase)
-            || categoryId.StartsWith(TrackCleaner.CategoryWindows + ".", StringComparison.OrdinalIgnoreCase);
+        return categoryId.StartsWith(TrackCleaner.CategoryBrowsers + "-", StringComparison.OrdinalIgnoreCase)
+            || categoryId.StartsWith(TrackCleaner.CategoryOffice + "-", StringComparison.OrdinalIgnoreCase)
+            || categoryId.StartsWith(TrackCleaner.CategoryWindows + "-", StringComparison.OrdinalIgnoreCase);
     }
 
     // ---------------------------------------------------------------------

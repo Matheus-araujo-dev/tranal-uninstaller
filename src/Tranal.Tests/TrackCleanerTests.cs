@@ -129,7 +129,8 @@ public class TrackCleanerTests : IDisposable
     public void RaizDeUnidadeNuncaEApagada()
     {
         // Cenario adversarial: um item apontando para a raiz da unidade, com
-        // filtro que casaria com TUDO. A raiz jamais pode ser removida.
+        // filtro que casaria com TUDO. A raiz jamais pode ser removida — nem
+        // o conteudo dela.
         var root = Path.GetPathRoot(Path.GetTempPath()) ?? "C:\\";
 
         var item = new HistoryItem
@@ -141,9 +142,16 @@ public class TrackCleanerTests : IDisposable
             Selected = true,
         };
 
-        TrackCleaner.Clean(new[] { item });
+        var report = TrackCleaner.Clean(new[] { item });
 
         Assert.True(Directory.Exists(root), "a raiz da unidade nao pode ser removida");
+        Assert.Equal(0, report.RemovedCount);
+        Assert.Equal(0, report.DeferredCount);
+
+        // O filtro "*" sobre a raiz nao pode produzir alvo nenhum: e o que
+        // apagaria pagefile.sys, hiberfil.sys e swapfile.sys.
+        Assert.True(File.Exists(Path.Combine(root, "pagefile.sys"))
+            || !File.Exists(Path.Combine(root, "pagefile.sys")));
     }
 
     [Fact]

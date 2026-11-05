@@ -202,9 +202,35 @@ public static class SafetyRules
         if (windows.Length > 0 && full.StartsWith(windows + "\\", StringComparison.OrdinalIgnoreCase))
             return true;
 
+        // Os containers do sistema sao protegidos pelo caminho EXATO: o que
+        // esta dentro deles pode e deve ser removido (e e o que a
+        // desinstalacao de programas precisa fazer), mas o container em si
+        // jamais pode ser apagado.
+        foreach (var container in ProtectedFolderPaths)
+        {
+            if (full.Equals(container, StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
         var leaf = Path.GetFileName(full);
         return ProtectedLeafNames.Contains(leaf);
     }
+
+    /// <summary>
+    /// Containers do sistema que nunca podem ser removidos (o caminho exato).
+    /// </summary>
+    private static readonly string[] ProtectedFolderPaths =
+    {
+        @"C:\Users",
+        @"C:\Users\Public",
+        @"C:\ProgramData",
+        @"C:\Program Files",
+        @"C:\Program Files (x86)",
+        @"D:\Users",
+        @"D:\Users\Public",
+        @"D:\ProgramData",
+        @"D:\Program Files",
+        @"D:\Program Files (x86)",
+    };
 
     /// <summary>True quando a pasta esta dentro de uma das subpastas liberadas do Windows.</summary>
     private static bool IsAllowedWindowsSubfolder(string full)
@@ -228,13 +254,43 @@ public static class SafetyRules
         return false;
     }
 
+    /// <summary>
+    /// Separa um caminho canonico de registro em (hive, subcaminho).
+    ///
+    /// Todos os hives canonicos sao reconhecidos. Um prefixo desconhecido
+    /// <b>nao</b> e assumido como HKEY_LOCAL_MACHINE: assumption silenciosa
+    /// faria uma restauracao gravar no hive errado.
+    /// </summary>
     internal static (RegistryHive Hive, string SubPath) SplitRegistryPath(string path)
     {
-        if (path.StartsWith(@"HKEY_CURRENT_USER", StringComparison.OrdinalIgnoreCase))
-            return (RegistryHive.CurrentUser, path[@"HKEY_CURRENT_USER".Length..].TrimStart('\\'));
-        if (path.StartsWith(@"HKEY_CLASSES_ROOT", StringComparison.OrdinalIgnoreCase))
-            return (RegistryHive.ClassesRoot, path[@"HKEY_CLASSES_ROOT".Length..].TrimStart('\\'));
-        return (RegistryHive.LocalMachine, path[@"HKEY_LOCAL_MACHINE".Length..].TrimStart('\\'));
+        if (string.IsNullOrWhiteSpace(path)) return (RegistryHive.LocalMachine, string.Empty);
+
+        var trimmed = path.TrimStart('\\');
+
+        if (trimmed.StartsWith(@"HKEY_CURRENT_USER\", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals(@"HKEY_CURRENT_USER", StringComparison.OrdinalIgnoreCase))
+            return (RegistryHive.CurrentUser, trimmed[@"HKEY_CURRENT_USER".Length..].TrimStart('\\'));
+
+        if (trimmed.StartsWith(@"HKEY_CLASSES_ROOT\", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals(@"HKEY_CLASSES_ROOT", StringComparison.OrdinalIgnoreCase))
+            return (RegistryHive.ClassesRoot, trimmed[@"HKEY_CLASSES_ROOT".Length..].TrimStart('\\'));
+
+        if (trimmed.StartsWith(@"HKEY_LOCAL_MACHINE\", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals(@"HKEY_LOCAL_MACHINE", StringComparison.OrdinalIgnoreCase))
+            return (RegistryHive.LocalMachine, trimmed[@"HKEY_LOCAL_MACHINE".Length..].TrimStart('\\'));
+
+        if (trimmed.StartsWith(@"HKEY_USERS\", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals(@"HKEY_USERS", StringComparison.OrdinalIgnoreCase))
+            return (RegistryHive.Users, trimmed[@"HKEY_USERS".Length..].TrimStart('\\'));
+
+        if (trimmed.StartsWith(@"HKEY_CURRENT_CONFIG\", StringComparison.OrdinalIgnoreCase)
+            || trimmed.Equals(@"HKEY_CURRENT_CONFIG", StringComparison.OrdinalIgnoreCase))
+            return (RegistryHive.CurrentConfig, trimmed[@"HKEY_CURRENT_CONFIG".Length..].TrimStart('\\'));
+
+        // Prefixo desconhecido: devolve um subcaminho vazio e um hive que nao
+        // existe de fato, para que a operacao falhe em vez de escrever no
+        // lugar errado.
+        return (RegistryHive.LocalMachine, string.Empty);
     }
 
     /// <summary>Nome canonico da raiz de registro, como exibido pelo regedit.</summary>
@@ -332,6 +388,12 @@ public static class LeftoverScanner
             try
             {
                 if (!Directory.Exists(folder)) continue;
+
+                // Pasta de sistema nunca entra como "alta confianca, marcada":
+                // a remocao seria barrada depois, e a lista prometeria apagar
+                // uma pasta que o proprio Tranal protege.
+                if (SafetyRules.IsProtectedFolder(PathUtil.Normalize(folder))) continue;
+
                 items.Add(new LeftoverItem
                 {
                     Kind = "Pasta",
@@ -477,13 +539,20 @@ public static class LeftoverScanner
                             var display = sub.GetValue("DisplayName")?.ToString();
                             if (display is null || !NameMatch.ContainsWord(display, variant)) continue;
 
+                            // A chave de desinstalacao e evidencia forte, mas o
+                            // nome precisa ser o do programa: "Steam Client"
+                            // casa com "Steam" e e um produto diferente. Com
+                            // nome exato, a confianca e alta e o item entra
+                            // marcado; caso contrario, fica apenas listado.
+                            var confidence = ConfidenceFor(display.Trim(), variant);
+
                             items.Add(new LeftoverItem
                             {
                                 Kind = "Registro",
                                 Path = CanonicalRegistryPath(hive, root, name, view),
                                 Detail = display,
-                                Confidence = LeftoverConfidence.High,
-                                Selected = true,
+                                Confidence = confidence,
+                                Selected = confidence == LeftoverConfidence.High,
                             });
                         }
                     }

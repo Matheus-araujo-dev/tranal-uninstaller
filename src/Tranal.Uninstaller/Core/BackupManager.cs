@@ -144,9 +144,18 @@ public static class BackupManager
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    /// <summary>Diretorio raiz de todos os pontos de restauracao.</summary>
+    /// <summary>
+    /// Diretorio raiz de todos os pontos de restauracao.
+    ///
+    /// <see cref="RootDirectoryOverride"/> existe para os testes: sem ele, um
+    /// teste que exclui pontos de restauracao apagaria os pontos REAIS do
+    /// usuario.
+    /// </summary>
     public static string RootDirectory =>
-        Path.Combine(RegistryBackup.DataDirectory, "Backups");
+        RootDirectoryOverride ?? Path.Combine(RegistryBackup.DataDirectory, "Backups");
+
+    /// <summary>Diretorio alternativo dos pontos de restauracao (so para testes).</summary>
+    internal static string? RootDirectoryOverride { get; set; }
 
     /// <summary>
     /// Cria um novo ponto de restauracao vazio em disco.
@@ -254,7 +263,7 @@ public static class BackupManager
         var target = Path.Combine(point.FolderPath, "files", $"{point.Items.Count:0000}-{Path.GetFileName(full)}");
         try
         {
-            CopyDirectory(full, target);
+            CopyDirectory(full, target, overwrite: true);
             var size = MeasureDirectory(target);
 
             point.Items.Add(new BackupItem
@@ -373,7 +382,14 @@ public static class BackupManager
         return Encoding.UTF8.GetString(bytes);
     }
 
-    /// <summary>Apaga um ponto de restauracao (pasta inteira).</summary>
+    /// <summary>
+    /// Apaga um ponto de restauracao (pasta inteira).
+    ///
+    /// O manifesto e removido <b>por ultimo</b>: se a pasta estiver com arquivos
+    /// travados (DLLs carregadas), a exclusao falha mas o ponto continua
+    /// visivel na listagem e pode ser tentada de novo. Remover o manifesto
+    /// primeiro deixaria a pasta orfa e invisivel para o app.
+    /// </summary>
     public static bool Delete(string id)
     {
         if (string.IsNullOrWhiteSpace(id)) return false;
@@ -383,10 +399,50 @@ public static class BackupManager
             var folder = Path.Combine(RootDirectory, id);
             if (!Directory.Exists(folder)) return false;
 
+            var manifest = Path.Combine(folder, "manifest.json");
+            if (File.Exists(manifest)) File.Delete(manifest);
+
             Directory.Delete(folder, recursive: true);
             return true;
         }
         catch { return false; }
+    }
+
+    /// <summary>
+    /// Pastas de backup que sobraram sem manifesto: lixo de uma exclusao
+    /// anterior que falhou. Sao invisiveis para <see cref="List"/> e nunca
+    /// seriam removidas sozinhas.
+    /// </summary>
+    public static IReadOnlyList<string> ListOrphans()
+    {
+        var result = new List<string>();
+        if (!Directory.Exists(RootDirectory)) return result;
+
+        foreach (var dir in Directory.EnumerateDirectories(RootDirectory))
+        {
+            var manifest = Path.Combine(dir, "manifest.json");
+            if (!File.Exists(manifest)) result.Add(Path.GetFileName(dir));
+        }
+
+        return result;
+    }
+
+    /// <summary>Remove as pastas orfas (backup sem manifesto).</summary>
+    public static int DeleteOrphans()
+    {
+        var count = 0;
+        foreach (var id in ListOrphans())
+        {
+            try
+            {
+                var folder = Path.Combine(RootDirectory, id);
+                if (!Directory.Exists(folder)) continue;
+                Directory.Delete(folder, recursive: true);
+                count++;
+            }
+            catch { /* arquivo travado: fica para a proxima tentativa */ }
+        }
+        return count;
     }
 
     /// <summary>Apaga todos os pontos de restauracao.</summary>
@@ -421,9 +477,12 @@ public static class BackupManager
     /// </summary>
     public static RestoreResult Restore(RestorePoint point, IEnumerable<BackupItem>? selected = null)
     {
+        // A selecao e casada por identidade de conteudo (caminho + tipo), e
+        // nao por referencia: uma selecao montada a partir de outra leitura do
+        // manifesto precisa funcionar igual.
         var chosen = selected is null
             ? point.Items
-            : point.Items.Where(selected.Contains).ToList();
+            : point.Items.Where(item => selected.Any(s => SameItem(s, item))).ToList();
 
         var restored = 0;
         var failed = 0;
@@ -453,6 +512,14 @@ public static class BackupManager
         };
     }
 
+    /// <summary>
+    /// Duas entradas de backup sao a mesma quando apontam para o mesmo lugar
+    /// e tem o mesmo tipo.
+    /// </summary>
+    private static bool SameItem(BackupItem a, BackupItem b) =>
+        string.Equals(a.Kind, b.Kind, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.OriginalPath, b.OriginalPath, StringComparison.OrdinalIgnoreCase);
+
     private static bool RestoreItem(RestorePoint point, BackupItem item)
     {
         try
@@ -471,13 +538,26 @@ public static class BackupManager
         var target = item.OriginalPath;
         if (target.Length == 0) return false;
 
+        // O destino vem do manifesto em disco: antes de escrever, ele passa
+        // pelas mesmas regras que protegem a remocao. Um manifesto adulterado
+        // nao vira escrita arbitraria em disco.
+        if (item.Kind == "Pasta")
+        {
+            if (SafetyRules.IsProtectedFolder(target)) return false;
+        }
+        else if (SafetyRules.IsProtectedFolder(Path.GetDirectoryName(target) ?? string.Empty))
+        {
+            return false;
+        }
+
         var parent = Path.GetDirectoryName(target);
         if (!string.IsNullOrEmpty(parent)) Directory.CreateDirectory(parent);
 
         if (item.Kind == "Pasta")
         {
-            if (Directory.Exists(target)) Directory.Delete(target, recursive: true);
-            CopyDirectory(source, target);
+            // Mesclar, e nao apagar: o que foi criado depois do backup nao pode
+            // sumir em silencio quando o ponto e restaurado.
+            CopyDirectory(source, target, overwrite: false);
         }
         else
         {
@@ -507,9 +587,15 @@ public static class BackupManager
     {
         if (snapshot.KeyPath.Length == 0) return false;
 
+        // A chave de destino vem do manifesto: passa pelas mesmas regras que
+        // protegem a remocao antes de ser recriada.
+        if (SafetyRules.IsProtectedRegistryKey(snapshot.KeyPath)) return false;
+
         try
         {
             var (hive, sub) = SafetyRules.SplitRegistryPath(snapshot.KeyPath);
+            if (sub.Length == 0) return false;
+
             using var baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
 
             using var key = baseKey.CreateSubKey(sub, writable: true)
@@ -541,8 +627,17 @@ public static class BackupManager
             case RegistryValueKind.MultiString:
             {
                 var bytes = TryFromBase64(snapshot.Data) ?? Array.Empty<byte>();
-                var text = System.Text.Encoding.Unicode.GetString(bytes);
-                return text.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+                var text = Encoding.Unicode.GetString(bytes);
+
+                // O formato canonico e "str1\0str2\0...\0": o terminador final
+                // NUL fecha a lista. Remover todos os NUL perderia os elementos
+                // vazios que existem legitimamente no valor.
+                if (text.Length == 0) return Array.Empty<string>();
+
+                var parts = text.Split('\0');
+                var last = parts.Length - 1;
+                if (last >= 0 && parts[last].Length == 0) parts = parts[..last];
+                return parts;
             }
 
             default:
@@ -572,7 +667,7 @@ public static class BackupManager
             case RegistryValueKind.MultiString:
             {
                 var list = value as string[] ?? Array.Empty<string>();
-                var bytes = list.SelectMany(s => System.Text.Encoding.Unicode.GetBytes(s + "\0")).ToArray();
+                var bytes = list.SelectMany(s => Encoding.Unicode.GetBytes(s + "\0")).ToArray();
                 return Convert.ToBase64String(bytes);
             }
 
@@ -622,15 +717,19 @@ public static class BackupManager
         catch { return null; }
     }
 
-    private static void CopyDirectory(string source, string target)
+    private static void CopyDirectory(string source, string target, bool overwrite)
     {
         Directory.CreateDirectory(target);
 
         foreach (var file in Directory.EnumerateFiles(source))
-            File.Copy(file, Path.Combine(target, Path.GetFileName(file)), overwrite: true);
+        {
+            var destination = Path.Combine(target, Path.GetFileName(file));
+            if (!overwrite && File.Exists(destination)) continue;
+            File.Copy(file, destination, overwrite);
+        }
 
         foreach (var dir in Directory.EnumerateDirectories(source))
-            CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)));
+            CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)), overwrite);
     }
 
     private static long MeasureDirectory(string path)

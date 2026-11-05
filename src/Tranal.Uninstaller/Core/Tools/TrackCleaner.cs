@@ -346,7 +346,12 @@ public static class TrackCleaner
             {
                 case "Registro":
                 {
+                    if (SafetyRules.IsProtectedRegistryKey(entry.Path))
+                        return Fail(entry, "chave de registro protegida");
+
                     var (hive, sub) = SafetyRules.SplitRegistryPath(entry.Path);
+                    if (sub.Length == 0) return Fail(entry, "caminho de registro invalido");
+
                     using var baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
                     using var key = baseKey.OpenSubKey(sub);
                     if (key is null)
@@ -359,6 +364,9 @@ public static class TrackCleaner
                 case "Pasta":
                 {
                     var full = PathUtil.Normalize(entry.Path);
+                    if (SafetyRules.IsProtectedFolder(full))
+                        return Fail(entry, "pasta de sistema protegida");
+
                     if (!Directory.Exists(full)) return Absent(entry);
 
                     var targets = ResolveFolderTargets(entry);
@@ -397,6 +405,9 @@ public static class TrackCleaner
                 case "Arquivo":
                 {
                     var full = PathUtil.Normalize(entry.Path);
+                    if (SafetyRules.IsProtectedFolder(Path.GetDirectoryName(full) ?? string.Empty))
+                        return Fail(entry, "caminho de sistema protegido");
+
                     if (!File.Exists(full)) return Absent(entry);
 
                     try
@@ -449,12 +460,16 @@ public static class TrackCleaner
 
         try
         {
-            // A raiz de uma unidade so e alvo quando o filtro existe: apagar a
-            // raiz inteira jamais e aceitavel.
+            // A raiz de uma unidade NUNCA e alvo. O unico caso legitimo e o
+            // dos fragmentos do CHKDSK, que ficam na raiz e tem filtro proprio
+            // (".CHK"): qualquer outro filtro ali seria uma lista de alvos
+            // indevida.
             if (IsDriveRoot(full))
             {
+                if (entry.Filter == "*" || entry.Filter.Length == 0) return result;
                 if (!Directory.Exists(full)) return result;
-                foreach (var file in Directory.EnumerateFiles(full, entry.Filter))
+
+                foreach (var file in Directory.EnumerateFiles(full, entry.Filter, SearchOption.TopDirectoryOnly))
                     result.Add(file);
                 return result;
             }
@@ -593,6 +608,13 @@ public static class TrackCleaner
         Message = "já não existia",
     };
 
+    private static RemovalOutcome Fail(HistoryItem entry, string message) => new()
+    {
+        Item = ToLeftover(entry),
+        Status = RemovalStatus.Protected,
+        Message = message,
+    };
+
     private static bool RegistryKeyExists(string path)
     {
         try
@@ -615,6 +637,11 @@ public static class TrackCleaner
     {
         try
         {
+            // A raiz de uma unidade nao e varrida: a enumeracao recursiva
+            // Passing por C:\$Recycle.Bin e por tudo mais seria lenta e
+            // invariavelmente falharia em pasta sem permissao.
+            if (IsDriveRoot(path)) return 0;
+
             long total = 0;
             foreach (var file in Directory.EnumerateFiles(path, filter, SearchOption.AllDirectories))
                 total += new FileInfo(file).Length;

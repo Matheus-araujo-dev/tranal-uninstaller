@@ -74,44 +74,17 @@ public static class RecycleBin
         try
         {
             var code = SHFileOperation(ref op);
+
+            // Codigo 0 = tudo certo.
+            // 0x75 (117) = nao ha Lixeira no volume: com FOF_ALLOWUNDO, a
+            // shell APAGA em definitivo o que nao pode ser reciclado. Reportar
+            // "enviado para a Lixeira" seria mentira — quem chama precisa
+            // saber que o item sumiu de vez.
             return code == 0;
         }
         catch
         {
             return false;
-        }
-    }
-
-    /// <summary>
-    /// Envia varios itens para a Lixeira em uma unica operacao da shell.
-    /// Devolve a quantidade de itens efetivamente enviados.
-    /// </summary>
-    public static int SendMany(IEnumerable<string> paths)
-    {
-        var list = paths
-            .Select(PathUtil.Normalize)
-            .Where(p => p.Length > 0)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (list.Count == 0) return 0;
-
-        var op = new ShFileOpStruct
-        {
-            wFunc = FoDelete,
-            pFrom = string.Join("\0", list) + "\0\0",
-            pTo = null,
-            fFlags = FofSilent | FofNoConfirmation | FofAllowUndo | FofNoConfirmMkDir | FofNoErrorUi,
-        };
-
-        try
-        {
-            var code = SHFileOperation(ref op);
-            return code == 0 ? list.Count : 0;
-        }
-        catch
-        {
-            return 0;
         }
     }
 

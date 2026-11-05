@@ -127,14 +127,28 @@ public class LeftoverConfidenceTests
 /// <summary>
 /// O Gerenciador de Backups: ponto de restauracao por operacao, restauracao
 /// integral ou item a item, e exclusao por tempo.
+///
+/// Na colecao "backups" porque o diretorio dos pontos de restauracao e um
+/// estado global redirecionado: duas classes que o mexem ao mesmo tempo
+/// enxergam a raiz uma da outra.
 /// </summary>
+[Collection("backups")]
 public class BackupManagerTests : IDisposable
 {
     private readonly string _root = Path.Combine(
         Path.GetTempPath(), "tranal-backup-tests-" + Guid.NewGuid().ToString("N")[..8]);
 
+    public BackupManagerTests()
+    {
+        // Os pontos de restauracao do teste ficam num diretorio temporario:
+        // sem isso, "excluir todos" apagaria os pontos REAIS do usuario.
+        BackupManager.RootDirectoryOverride = _root;
+        Directory.CreateDirectory(_root);
+    }
+
     public void Dispose()
     {
+        BackupManager.RootDirectoryOverride = null;
         try { if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true); }
         catch { /* limpeza best effort */ }
     }
