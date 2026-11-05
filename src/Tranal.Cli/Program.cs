@@ -63,17 +63,18 @@ public static class Program
 
         // Alvo apontado pelo menu de contexto do Explorer:
         // tranal.exe --uninstall-target "<caminho do executavel>"
-        var targetIndex = Array.FindIndex(effective,
-            a => a.Equals("--uninstall-target", StringComparison.OrdinalIgnoreCase));
-        if (targetIndex >= 0)
+        var hasTargetArgument = Array.Exists(effective,
+            a => a.Equals(UninstallTargetArgument.Name, StringComparison.OrdinalIgnoreCase));
+        if (hasTargetArgument)
         {
-            if (targetIndex + 1 >= effective.Length)
+            var uninstallTarget = UninstallTargetArgument.Extract(effective);
+            if (uninstallTarget.Length == 0)
             {
                 Console.Error.WriteLine("Uso: tranal --uninstall-target \"<caminho do executavel>\"");
                 return 1;
             }
 
-            return RunUninstallTarget(effective[targetIndex + 1], elevated);
+            return RunUninstallTarget(uninstallTarget, elevated);
         }
 
         // Comandos com paridade de contrato com o RevoCmd/RevoUninPro:

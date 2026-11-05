@@ -107,4 +107,35 @@ public static class RecycleBin
 
         return File.Exists(full) || Directory.Exists(full);
     }
+
+    private const uint SherbNoConfirmation = 0x00000001;
+    private const uint SherbNoProgressUi = 0x00000002;
+    private const uint SherbNoSound = 0x00000004;
+
+    /// <summary>Todas as unidades (-10 = DRIVE_ANY).</summary>
+    private const int DriveAny = -10;
+
+    [DllImport("shell32.dll", SetLastError = true)]
+    private static extern int SHEmptyRecycleBin(IntPtr hwnd, int nRootDrive, uint dwFlags);
+
+    /// <summary>
+    /// Esvazia a Lixeira de todas as unidades.
+    ///
+    /// E o item "Empty the Recycle Bin" do Windows Tracks Cleaner do Revo.
+    /// Devolve <c>true</c> quando a operacao foi concluida.
+    /// </summary>
+    public static bool Empty()
+    {
+        try
+        {
+            var code = SHEmptyRecycleBin(
+                IntPtr.Zero, DriveAny, SherbNoConfirmation | SherbNoProgressUi | SherbNoSound);
+
+            return code == 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

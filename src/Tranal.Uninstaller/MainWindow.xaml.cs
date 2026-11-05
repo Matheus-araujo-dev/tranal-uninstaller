@@ -45,6 +45,11 @@ public partial class MainWindow : Window
         // Visibilidade dos paineis conforme as preferencias.
         ApplyLayout();
 
+        // As preferencias de layout tambem podem mudar pela janela de Opcoes:
+        // o painel tem de refletir a mudanca sem esperar o proximo arranque.
+        AppSettingsStore.Saved += OnSettingsSaved;
+        Closed += (_, _) => AppSettingsStore.Saved -= OnSettingsSaved;
+
         // Textos do codigo-behind tambem mudam com o idioma.
         Loc.LanguageChanged += (_, _) => RefreshLocalizedTexts();
         Loaded += async (_, _) => await ReloadAsync();
@@ -629,6 +634,21 @@ public partial class MainWindow : Window
     private void SetLayoutOption(Action<AppSettings> mutate)
     {
         AppSettingsStore.Update(mutate);
+        ApplyLayout();
+    }
+
+    /// <summary>
+    /// Reaplica o layout quando as preferencias mudam fora do submenu
+    /// "Paineis" — por exemplo, pela janela de Opcoes.
+    /// </summary>
+    private void OnSettingsSaved(object? sender, EventArgs e)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(ApplyLayout);
+            return;
+        }
+
         ApplyLayout();
     }
 

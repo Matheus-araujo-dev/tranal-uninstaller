@@ -1,4 +1,5 @@
 using System.IO;
+using System.ComponentModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Tranal.Uninstaller.Core;
@@ -8,8 +9,12 @@ namespace Tranal.Uninstaller.Ui;
 /// <summary>
 /// Uma linha da lista de programas: o modelo exibido + o icone extraido do campo
 /// DisplayIcon do registro (com fallback para um icone generico).
+///
+/// Implementa <see cref="INotifyPropertyChanged"/> porque a caixa de marcacao
+/// e ligada em modo bidirecional: sem a notificacao, uma alteracao feita por
+/// codigo deixa a tela mostrando o estado antigo.
 /// </summary>
-public sealed class ProgramRow
+public sealed class ProgramRow : INotifyPropertyChanged
 {
     public InstalledProgram Program { get; }
 
@@ -51,7 +56,22 @@ public sealed class ProgramRow
         }
     }
 
-    public bool IsChecked { get; set; } = true;
+    private bool _isChecked = true;
+
+    /// <summary>Caixa de marcacao da linha (indicador visual, como no Revo).</summary>
+    public bool IsChecked
+    {
+        get => _isChecked;
+        set
+        {
+            if (_isChecked == value) return;
+
+            _isChecked = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public ImageSource? Icon { get; }
 

@@ -24,7 +24,7 @@ public class TrackCleanerTests : IDisposable
         {
             Assert.False(string.IsNullOrWhiteSpace(item.CategoryId));
             Assert.False(string.IsNullOrWhiteSpace(item.Path));
-            Assert.Contains(item.Kind, new[] { "Arquivo", "Pasta", "Registro" });
+            Assert.Contains(item.Kind, new[] { "Arquivo", "Pasta", "Registro", "Lixeira" });
             Assert.True(
                 item.CategoryId.StartsWith("browsers-", StringComparison.OrdinalIgnoreCase)
                 || item.CategoryId.StartsWith("office-", StringComparison.OrdinalIgnoreCase)
@@ -39,6 +39,49 @@ public class TrackCleanerTests : IDisposable
         Assert.NotNull(TrackCleaner.Scan(TrackModule.Browsers));
         Assert.NotNull(TrackCleaner.Scan(TrackModule.Office));
         Assert.NotNull(TrackCleaner.Scan(TrackModule.Windows));
+    }
+
+    [Fact]
+    public void APastaDeDownloadsNaoEntraNaLimpezaDeRastros()
+    {
+        // A pasta de Downloads guarda arquivos do usuario, nao rastros. O
+        // original apaga o "historico de downloads" (que e o mesmo banco dos
+        // navegadores), nunca os arquivos baixados.
+        //
+        // Sem esta regra, "Limpar tudo" no limpador do Windows apagaria o que
+        // o usuario baixou.
+        var downloads = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+
+        foreach (var module in new[] { TrackModule.Browsers, TrackModule.Office, TrackModule.Windows })
+        {
+            var items = TrackCleaner.Scan(module);
+
+            Assert.DoesNotContain(items, item =>
+                item.Path.StartsWith(downloads, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
+    public void OWindowsCleanerTemOItemDeEsvaziarALixeira()
+    {
+        // "Empty the Recycle Bin" do Windows Tracks Cleaner do Revo.
+        var items = TrackCleaner.Scan(TrackModule.Windows);
+
+        Assert.Contains(items, item =>
+            item.CategoryId == "windows-recyclebin" && item.Kind == "Lixeira");
+    }
+
+    [Fact]
+    public void ORastroDaBarraDeEnderecosFicaNoModuloDoWindows()
+    {
+        // O Revo coloca "Clear the Printers, Computers and People Find
+        // History" (TypedPaths) no limpador do Windows, e no de navegadores.
+        var browsers = TrackCleaner.Scan(TrackModule.Browsers);
+        var windows = TrackCleaner.Scan(TrackModule.Windows);
+
+        Assert.DoesNotContain(browsers, item => item.CategoryId == "browsers-addressbar");
+        Assert.Contains(windows, item => item.CategoryId == "windows-typedpaths");
     }
 
     [Fact]

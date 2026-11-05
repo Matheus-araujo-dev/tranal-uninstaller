@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -51,17 +52,40 @@ public static class ToolViews
         _ => "Module.TracksWindows",
     };
 
-    /// <summary>Linha uniforme exibida pelas ferramentas de limpeza.</summary>
-    private sealed class ToolRow
+    /// <summary>
+    /// Linha uniforme exibida pelas ferramentas de limpeza.
+    ///
+    /// Implementa <see cref="INotifyPropertyChanged"/> porque a marcacao e
+    /// alterada por codigo (menu de contexto: "marcar todos" / "desmarcar
+    /// todos"). Sem a notificacao, a caixa de marcacao da tela continuaria
+    /// mostrando o estado antigo, mesmo com o modelo ja alterado.
+    /// </summary>
+    private sealed class ToolRow : INotifyPropertyChanged
     {
         public string Category { get; init; } = string.Empty;
         public string Kind { get; init; } = string.Empty;
         public string Path { get; init; } = string.Empty;
         public string Size { get; init; } = string.Empty;
-        public bool Selected { get; set; } = true;
+
+        private bool _selected = true;
+
+        /// <summary>True quando o item esta marcado para remocao.</summary>
+        public bool Selected
+        {
+            get => _selected;
+            set
+            {
+                if (_selected == value) return;
+
+                _selected = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Selected)));
+            }
+        }
 
         /// <summary>Item original do nucleo (a remocao usa o item canonico).</summary>
         public object Source { get; init; } = new();
+
+        public event PropertyChangedEventHandler? PropertyChanged;
     }
 
     // ------------------------------------------------------------------

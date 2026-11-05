@@ -225,3 +225,7 @@ Module.TracksOffice|Limpeza do Microsoft Office|Microsoft Office Cleaner
 Module.TracksWindows|Limpeza do Windows|Windows Cleaner
 ContextMenu.SearchWeb|Pesquisar {0} na web|Search for {0}
 ContextMenu.SearchWebNoSelection|Pesquisar na web|Search the web
+Desc.HistoryCleaner|A 'Limpeza de Histórico' do Tranal Uninstaller Pro limpa o histórico de execução, a área de transferência, os itens recentes e o histórico de pesquisa.|The 'History Cleaner' of Tranal Uninstaller Pro clears the run history, the clipboard, recent items and the search history.
+Desc.TracksBrowsers|A 'Limpeza de Navegadores' do Tranal Uninstaller Pro limpa o histórico dos navegadores: páginas visitadas, cookies, formulários, sessões e cache.|The 'Browsers Cleaner' of Tranal Uninstaller Pro clears browser history: visited pages, cookies, forms, sessions and cache.
+Desc.TracksOffice|A 'Limpeza do Microsoft Office' do Tranal Uninstaller Pro limpa os documentos recentes do Office.|The 'Microsoft Office Cleaner' of Tranal Uninstaller Pro clears recent Office documents.
+Desc.TracksWindows|A 'Limpeza do Windows' do Tranal Uninstaller Pro limpa os rastros do Windows: área de transferência, itens recentes, histórico de pesquisa, cache de miniaturas, arquivos temporários e a Lixeira.|The 'Windows Cleaner' of Tranal Uninstaller Pro clears Windows traces: clipboard, recent items, search history, thumbnail cache, temporary files and the Recycle Bin.

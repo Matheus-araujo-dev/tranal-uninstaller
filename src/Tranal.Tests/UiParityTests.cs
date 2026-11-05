@@ -144,4 +144,52 @@ public class UiParityTests
             Assert.Contains(id, ToolCatalog.All);
         }
     }
+
+    [Fact]
+    public void AListaDeFerramentasNotificaAMarcacao()
+    {
+        // O menu de contexto ("marcar todos" / "desmarcar todos") altera a
+        // marcacao por codigo. Sem INotifyPropertyChanged, a caixa de
+        // marcacao da tela continua mostrando o estado antigo, mesmo com o
+        // modelo ja alterado — foi o que aconteceu na medicao.
+        var source = FindRepoFile("src", "Tranal.Uninstaller", "Ui", "Tools", "ToolViews.cs");
+        Assert.NotNull(source);
+
+        var text = File.ReadAllText(source!);
+
+        Assert.Contains("INotifyPropertyChanged", text);
+        Assert.Contains("PropertyChangedEventArgs(nameof(Selected))", text);
+    }
+
+    [Fact]
+    public void AInterfaceAtendeOAlvoDoMenuDeContexto()
+    {
+        // O menu de contexto do Explorer chama o executavel grafico com
+        // "--uninstall-target <caminho>". Se a interface nao tratar o
+        // argumento, o clique apenas abre a janela principal e joga o alvo
+        // fora.
+        var source = FindRepoFile("src", "Tranal.Uninstaller", "App.xaml.cs");
+        Assert.NotNull(source);
+
+        var text = File.ReadAllText(source!);
+
+        Assert.Contains("UninstallTargetArgument.Extract", text);
+    }
+
+    [Fact]
+    public void OAlvoDoMenuDeContextoEExtraidoDoArgumento()
+    {
+        Assert.Equal(string.Empty, UninstallTargetArgument.Extract(new[] { "--outro" }));
+        Assert.Equal(string.Empty, UninstallTargetArgument.Extract(new[] { "--uninstall-target" }));
+        Assert.Equal(string.Empty, UninstallTargetArgument.Extract(null));
+
+        Assert.Equal(
+            @"C:\App\app.exe",
+            UninstallTargetArgument.Extract(new[] { "--uninstall-target", @"C:\App\app.exe" }));
+
+        // As aspas que o Explorer coloca no caminho nao podem sobrar.
+        Assert.Equal(
+            @"C:\App\app.exe",
+            UninstallTargetArgument.Extract(new[] { "--uninstall-target", "\"C:\\App\\app.exe\"" }));
+    }
 }

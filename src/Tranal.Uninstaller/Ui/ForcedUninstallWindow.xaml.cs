@@ -36,6 +36,21 @@ public partial class ForcedUninstallWindow : Window
     /// <summary>Caminho informado pelo usuario (vazio quando nada foi analisado).</summary>
     public string SelectedPath => PathBox.Text.Trim();
 
+    /// <summary>
+    /// Analisa o caminho informado.
+    ///
+    /// Usado quando o Tranal e aberto pelo menu de contexto do Explorer: o
+    /// alvo vem na linha de comando e a desinstalacao forcada ja comeca
+    /// funcionando, sem o usuario precisar colar o caminho.
+    /// </summary>
+    public void Analyze(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        PathBox.Text = path.Trim();
+        AnalyzeButton_Click(this, new RoutedEventArgs());
+    }
+
     /// <summary>True quando a remocao forcada foi concluida.</summary>
     public bool Removed { get; private set; }
 

@@ -84,7 +84,8 @@ Rastros cobertos (medidos nas strings 508–516 e 707–725):
 | Rastro | Original | Tranal |
 |---|---|---|
 | Páginas visitadas | `Clear History of Visited Internet Web Pages` | `browsers-history` |
-| Barra de endereços | `Delete Address Bar History` | `browsers-topsites`, `browsers-addressbar` |
+| Barra de endereços | `Delete Address Bar History` | `browsers-topsites` |
+| Histórico de impressoras/computadores/pessoas | `Clear the Printers, Computers and People Find History` | `windows-typedpaths` |
 | Temporários da internet | `Delete Temporary Internet Files` | `browsers-cache`, `browsers-codecache`, `browsers-gpucache`, `browsers-inetcache` |
 | Cookies | `Delete Cookies` | `browsers-cookies` |
 | Index.dat | `Delete Index.dat Files` (adiado para o reinício) | `browsers-indexdat` |
@@ -97,6 +98,8 @@ Rastros cobertos (medidos nas strings 508–516 e 707–725):
 | Diálogos Abrir/Salvar | `Clear the Common Dialog Open/Save Recent History` | `windows-opensave` |
 | Última pasta visitada | `Clear the Common Dialog Last Visited Folder History` | `windows-lastvisited` |
 | Área de transferência | `Empty the Clipboard` | `clipboard` (via API do user32) |
+| Esvaziar a Lixeira | `Empty the Recycle Bin` | `windows-recyclebin` (via `SHEmptyRecycleBin`) |
+| Última chave do Regedit | `Clear the Regedit Last Opened Key History` | `windows-regedit-lastkey` |
 | Miniaturas | `Delete Thumbnail Cache` | `windows-thumbnailcache` |
 | Temporários do Windows | `Delete Windows Temporary Files` | `windows-temp`, `windows-usertemp` |
 | Dumps de falha | `Delete crash memory dump files` | `windows-crashdumps`, `windows-minidump`, `windows-livekernel` |
@@ -194,8 +197,8 @@ mensagem do original tratam só das mensagens informativas e de aviso.
 | Medida | Valor |
 |---|---|
 | Build | 0 erros, 0 avisos |
-| Suíte de testes | **148 verdes**, 0 falhas |
-| Catálogos de idioma | **509 chaves** em pt-BR e en-US, em paridade |
+| Suíte de testes | **154 verdes**, 0 falhas |
+| Catálogos de idioma | **510 chaves** em pt-BR e en-US, em paridade |
 | Programas listados | 76 (18 em "Novos Programas", 58 em "Outros Programas") |
 | Varredura completa | 150 ms |
 | Ambiente do usuário | intocado pela suíte (comparação byte a byte antes/depois) |

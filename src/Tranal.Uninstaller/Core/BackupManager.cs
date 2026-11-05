@@ -476,7 +476,14 @@ public static class BackupManager
         }
 
         // sobrou alguma coisa?
-        foreach (var entry in SafeEnumerateEntries(folder))
+        var entries = SafeEnumerateEntries(folder);
+
+        // A enumeracao falhou: nao da para afirmar que a pasta esta vazia.
+        // O manifesto e preservado, porque um ponto sem manifesto e uma pasta
+        // orfa invisivel para o app.
+        if (entries is null) return false;
+
+        foreach (var entry in entries)
         {
             if (preserveFile is not null && IsSamePath(entry, preserveFile)) continue;
             return false;
@@ -518,11 +525,17 @@ public static class BackupManager
         return (files, directories);
     }
 
-    /// <summary>Lista o conteudo direto de uma pasta, sem falhar se ela sumiu.</summary>
-    private static List<string> SafeEnumerateEntries(string folder)
+    /// <summary>
+    /// Lista o conteudo direto de uma pasta.
+    ///
+    /// Devolve <c>null</c> quando a enumeracao falha: nesse caso nao da para
+    /// afirmar que a pasta esta vazia, e quem chama precisa conservar o
+    /// manifesto.
+    /// </summary>
+    private static List<string>? SafeEnumerateEntries(string folder)
     {
         try { return Directory.GetFileSystemEntries(folder).ToList(); }
-        catch { return new List<string>(); }
+        catch { return null; }
     }
 
     /// <summary>Apaga um arquivo, ignorando atributos de leitura e erros.</summary>

@@ -16,13 +16,11 @@ namespace Tranal.Uninstaller.Core.Topmost;
 /// <c>...\command</c>, no formato:
 /// <c>"&lt;exe do Tranal&gt;" --uninstall-target "%1"</c>.
 ///
-/// IMPORTANTE: esta classe NAO grava nada no registro. Ela apenas
-/// (<a cref="IsRegistered"/>) informa se a entrada existe, devolve o caminho do
-/// executavel e os argumentos a registrar
-/// (<a cref="BuildRegistration"/>) e gera o script .reg equivalente
-/// (<a cref="BuildRegistryScript"/>). A aplicacao do script no registro (e a
-/// integracao da CLI com o argumento <c>--uninstall-target</c>) fica a cargo
-/// de quem orquestra essas acoes.
+/// A gravacao e feita por <see cref="Apply"/>, que liga e desliga a entrada
+/// conforme a preferencia "Mostrar comandos no menu de contexto do Windows".
+/// As demais funcoes informam o estado (<see cref="IsRegistered"/>), devolvem
+/// o executavel e os argumentos a registrar (<see cref="BuildRegistration"/>)
+/// e geram o script .reg equivalente (<see cref="BuildRegistryScript"/>).
 ///
 /// Somente HKCU e usado: o nucleo do Tranal roda elevado e nao deve escrever
 /// no registro do sistema.

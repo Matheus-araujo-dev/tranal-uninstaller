@@ -1,4 +1,5 @@
 using System.IO;
+using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Settings;
 using Xunit;
@@ -11,8 +12,11 @@ namespace Tranal.Tests;
 /// paineis, menu de contexto e log do programa monitorado.
 /// </summary>
 [Collection("preferencias")]
-public class SettingsOptionsTests
+public class SettingsOptionsTests : IDisposable
 {
+    private readonly TempFolder _temp = new();
+
+    public void Dispose() => _temp.Dispose();
     [Fact]
     public void PadroesDasPreferenciasNovas()
     {
@@ -117,49 +121,120 @@ public class SettingsOptionsTests
     [Fact]
     public void VarreduraNormalSoMarcaAConfiancaAlta()
     {
-        var program = new InstalledProgram
+        var program = CreateFakeProgram(out var keyName);
+
+        try
         {
-            DisplayName = "Programa de Teste Tranal",
-            InstallLocation = @"C:\Arquivos de Programas\Programa de Teste Tranal",
-        };
+            var items = LeftoverScanner.Scan(program, UninstallMode.Advanced);
 
-        var items = LeftoverScanner.Scan(program, UninstallMode.Advanced);
+            // A varredura precisa achar alguma coisa: um teste que roda sobre
+            // uma lista vazia passa sem provar nada.
+            Assert.NotEmpty(items);
 
-        // Sem a opcao "marcar todas as sobras", so a confianca alta vem
-        // marcada: e a paridade com o "apagar apenas os itens em negrito" do
-        // Revo.
-        foreach (var item in items)
+            var baixa = items.Where(i => i.Confidence != LeftoverConfidence.High).ToList();
+            Assert.NotEmpty(baixa);
+
+            // Sem a opcao "marcar todas as sobras", so a confianca alta vem
+            // marcada: e a paridade com o "apagar apenas os itens em negrito"
+            // do Revo.
+            foreach (var item in baixa)
+            {
+                Assert.False(item.Selected,
+                    $"Item de confianca {item.Confidence} veio marcado sem a opcao: {item.Path}");
+            }
+        }
+        finally
         {
-            if (item.Confidence == LeftoverConfidence.High) continue;
-
-            Assert.False(item.Selected,
-                $"Item de confianca {item.Confidence} veio marcado sem a opcao: {item.Path}");
+            RemoveFakeRegistryKey(keyName);
         }
     }
 
     [Fact]
     public void MarcarTodasAsSobrasMarcaTodosOsItens()
     {
-        var program = new InstalledProgram
+        var program = CreateFakeProgram(out var keyName);
+
+        try
         {
-            DisplayName = "Programa de Teste Tranal",
-            InstallLocation = @"C:\Arquivos de Programas\Programa de Teste Tranal",
-        };
+            var items = LeftoverScanner.Scan(program, UninstallMode.Advanced, checkAllLeftovers: true);
 
-        var items = LeftoverScanner.Scan(program, UninstallMode.Advanced, checkAllLeftovers: true);
+            Assert.NotEmpty(items);
+            Assert.Contains(items, i => i.Confidence != LeftoverConfidence.High);
 
-        // A confianca continua sendo exibida; o que muda e a marcacao.
-        Assert.All(items, item => Assert.True(item.Selected));
+            // A confianca continua sendo exibida; o que muda e a marcacao.
+            Assert.All(items, item => Assert.True(item.Selected));
+        }
+        finally
+        {
+            RemoveFakeRegistryKey(keyName);
+        }
     }
 
     [Fact]
     public void ForcarDesinstalacaoAceitaMarcarTodasAsSobras()
     {
-        var items = LeftoverScanner.ScanForced(
-            @"C:\Arquivos de Programas\Programa de Teste Tranal\app.exe",
-            UninstallMode.Advanced,
-            checkAllLeftovers: true);
+        var program = CreateFakeProgram(out var keyName);
 
-        Assert.All(items, item => Assert.True(item.Selected));
+        try
+        {
+            var target = Path.Combine(program.InstallLocation, "app.exe");
+
+            var items = LeftoverScanner.ScanForced(target, UninstallMode.Advanced, checkAllLeftovers: true);
+
+            Assert.NotEmpty(items);
+            Assert.All(items, item => Assert.True(item.Selected));
+        }
+        finally
+        {
+            RemoveFakeRegistryKey(keyName);
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Fixture: um programa falso com sobra de verdade
+    // ---------------------------------------------------------------
+
+    private const string UninstallRoot = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+
+    /// <summary>
+    /// Cria um programa falso com sobra real:
+    ///
+    /// - uma pasta que existe (confianca alta, "Pasta de instalacao");
+    /// - uma chave de desinstalacao descartavel com o nome parecido (confianca
+    ///   media).
+    ///
+    /// Sem a chave, a varredura acharia so a pasta de alta confianca, e o
+    /// teste de "marcar todas as sobras" nao provaria nada.
+    /// </summary>
+    private InstalledProgram CreateFakeProgram(out string registryKeyName)
+    {
+        var folder = _temp.CreateSubFolder("Programa de Teste Tranal");
+        File.WriteAllText(Path.Combine(folder, "app.exe"), "conteudo");
+
+        registryKeyName = "TranalTeste_" + Guid.NewGuid().ToString("N")[..8];
+
+        using var root = Registry.CurrentUser.CreateSubKey(UninstallRoot);
+        using var key = root.CreateSubKey(registryKeyName);
+
+        // Nome parecido, mas nao igual: e o que produz confianca media.
+        key.SetValue("DisplayName", "Programa de Teste Tranal Helper");
+        key.SetValue("UninstallString", $"\"{Path.Combine(folder, "app.exe")}\" /x");
+
+        return new InstalledProgram
+        {
+            DisplayName = "Programa de Teste Tranal",
+            InstallLocation = folder,
+        };
+    }
+
+    /// <summary>Apaga a chave de registro descartavel do fixture.</summary>
+    private static void RemoveFakeRegistryKey(string keyName)
+    {
+        try
+        {
+            using var root = Registry.CurrentUser.OpenSubKey(UninstallRoot, writable: true);
+            root?.DeleteSubKeyTree(keyName, throwOnMissingSubKey: false);
+        }
+        catch { /* chave de teste ja removida */ }
     }
 }

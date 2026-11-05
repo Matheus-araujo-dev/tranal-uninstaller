@@ -39,10 +39,27 @@
   usado como cor de texto.
 - A entrada do menu de contexto do Windows deixou de ser registrada por padrão: ela é uma
   mudança visível no ambiente do usuário e passou a depender da opção.
+- **"Marcar todos" e "desmarcar todos" não mexiam nas caixas**: a marcação da linha é alterada
+  por código, e a linha não avisava a tela. O modelo mudava, a caixa ficava como estava — e o
+  pior caso era o inverso: "marcar todos" voltava a marcar o que o usuário tinha desmarcado, e
+  o item era apagado. Agora a linha avisa a mudança.
+- **A entrada do menu de contexto do Explorer não fazia nada**: ela chamava o executável
+  gráfico com `--uninstall-target`, que a interface ignorava. Agora a interface lê o argumento,
+  abre a desinstalação forçada e já com a análise feita.
+- **A pasta de Downloads entrava na limpeza de rastros**, marcada por padrão: "limpar tudo" no
+  limpador do Windows apagaria os arquivos baixados pelo usuário. O original apaga o *histórico*
+  de downloads (o mesmo banco dos navegadores), nunca os arquivos. A pasta saiu de lá.
+- **O histórico da barra de endereços estava no limpador errado**: o original coloca o rastro
+  `TypedPaths` no limpador do Windows ("Clear the Printers, Computers and People Find
+  History"), não no de navegadores.
+- **Faltavam dois itens do limpador do Windows**: "Esvaziar a Lixeira" e "Limpar o histórico da
+  última chave aberta no Regedit". Os dois existem agora.
+- As opções de layout feitas pela janela de Opções só valiam no próximo arranque: agora valem
+  na hora.
 
 ### Cobertura de testes
 
-A suíte passou de **106 para 148 testes**, todos verdes:
+A suíte passou de **106 para 154 testes**, todos verdes:
 
 - **Ferramentas novas**: Otimizador de Registro, Modo Portátil, menu de contexto do Explorer,
   janela principal flutuante e cliente de atualização.
@@ -51,6 +68,11 @@ A suíte passou de **106 para 148 testes**, todos verdes:
   divergir — é o teste que pega o defeito do Otimizador de Registro.
 - **Tema**: um brush de fundo não pode pintar texto.
 - **Regressões do Gerenciador de Backups**: exclusão com arquivo travado.
+- **Segurança da limpeza**: a pasta de Downloads não pode entrar na limpeza de rastros; o
+  `TypedPaths` fica no limpador do Windows; a Lixeira aparece como item do limpador do Windows.
+- **Cobertura real**: os testes de "marcar todas as sobras" agora montam um programa falso com
+  sobra de verdade (uma pasta e uma chave de desinstalação descartável). Antes eles rodavam
+  sobre uma lista vazia e passavam sem provar nada.
 
 A suíte continua **sem tocar o ambiente do usuário**: o estado do disco, dos backups, do
 registro pendente e das preferências foi comparado antes e depois — idêntico.

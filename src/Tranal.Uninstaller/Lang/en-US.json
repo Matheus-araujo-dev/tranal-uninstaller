@@ -175,7 +175,6 @@
     "Tool.History.ClearAll":  "Clear all",
     "Tool.History.Run":  "Run history",
     "Tool.History.Clipboard":  "Clipboard",
-    "Tool.History.Downloads":  "Downloads list",
     "Tool.History.Recent":  "Recent items",
     "Tool.History.Search":  "Search history",
     "Tool.History.Done":  "History cleared",
@@ -268,7 +267,6 @@
     "Cat.EventLogs":  "Event logs",
     "Cat.DnsCache":  "DNS cache",
     "Cat.Clipboard":  "Clipboard",
-    "Cat.Downloads":  "Downloads list",
     "Cat.Recent":  "Recent items",
     "Cat.Disk":  "Disk",
     "Cat.System":  "System",
@@ -287,7 +285,7 @@
     "Desc.AutorunManager":  "The \u0027Autorun Manager\u0027 of Tranal Uninstaller Pro manages the items that start automatically with Windows: Run registry keys, services, scheduled tasks and startup folders.",
     "Desc.JunkCleaner":  "The \u0027Junk Files Cleaner\u0027 of Tranal Uninstaller Pro scans and removes temporary files, caches, logs and thumbnails that take up unnecessary disk space.",
     "Desc.WindowsTools":  "The \u0027Windows Tools\u0027 of Tranal Uninstaller Pro give quick access to the native Windows utilities: disk cleanup, defragmentation, services, scheduled tasks, device manager and more.",
-    "Desc.HistoryCleaner":  "The \u0027History Cleaner\u0027 of Tranal Uninstaller Pro clears the run history, the clipboard, the downloads list, recent items and the search history.",
+    "Desc.HistoryCleaner":  "The \u0027History Cleaner\u0027 of Tranal Uninstaller Pro clears the run history, the clipboard, recent items and the search history.",
     "Desc.EvidenceRemover":  "The \u0027Evidence Remover\u0027 of Tranal Uninstaller Pro removes traces of use: prefetch, Explorer history, jump lists, recent documents, event logs and the DNS cache.",
     "Desc.UnrecoverableDelete":  "The \u0027Unrecoverable Delete\u0027 of Tranal Uninstaller Pro overwrites the content of the files before deleting them, so they cannot be recovered by data-recovery tools.",
     "Backup.Column.Name":  "Name",
@@ -507,5 +505,8 @@
     "Sidebar.GroupOptimization":  "Optimization",
     "Sidebar.GroupTracksCleaner":  "Tracks Cleaner",
     "ContextMenu.SearchWeb":  "Search for {0}",
-    "ContextMenu.SearchWebNoSelection":  "Search the web"
+    "ContextMenu.SearchWebNoSelection":  "Search the web",
+    "Desc.TracksWindows":  "The \u0027Windows Cleaner\u0027 of Tranal Uninstaller Pro clears Windows traces: clipboard, recent items, search history, thumbnail cache, temporary files and the Recycle Bin.",
+    "Desc.TracksBrowsers":  "The \u0027Browsers Cleaner\u0027 of Tranal Uninstaller Pro clears browser history: visited pages, cookies, forms, sessions and cache.",
+    "Desc.TracksOffice":  "The \u0027Microsoft Office Cleaner\u0027 of Tranal Uninstaller Pro clears recent Office documents."
 }

@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Topmost;
@@ -48,6 +49,17 @@ public partial class App : Application
         }
 
         window.Show();
+
+        // Entrada pelo menu de contexto do Explorer: o alvo vem na linha de
+        // comando. Sem este tratamento, o clique no Explorer apenas abria a
+        // janela principal e jogava o alvo fora.
+        var target = UninstallTargetArgument.Extract(e.Args);
+        if (target.Length > 0)
+        {
+            var forced = new ForcedUninstallWindow { Owner = window };
+            forced.Show();
+            forced.Analyze(target);
+        }
     }
 
     /// <summary>Grava a falha fatal em disco (a UI nao consegue mostrar o erro em sessao nao interativa).</summary>

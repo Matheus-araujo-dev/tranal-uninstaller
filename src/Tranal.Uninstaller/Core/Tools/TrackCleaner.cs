@@ -181,9 +181,9 @@ public static class TrackCleaner
         AddFolder(items, seen, "browsers-inetcache",
             "Arquivos temporários da internet", "Internet Explorer", inetCache);
 
-        AddRegistry(items, seen, "browsers-addressbar",
-            "Histórico da barra de endereços", "Windows",
-            $@"HKEY_CURRENT_USER\{ExplorerKey}\TypedPaths");
+        // O rastro da barra de enderecos (TypedPaths) fica no limpador do
+        // Windows: e onde o Revo o coloca ("Clear the Printers, Computers and
+        // People Find History").
 
         return items;
     }
@@ -300,6 +300,30 @@ public static class TrackCleaner
                 "Fragmentos recuperados pelo CHKDSK", drive, drive + "\\", filter: "*.CHK");
         }
 
+        // "Empty the Recycle Bin" do Windows Tracks Cleaner do Revo. E um item
+        // sintetico: nao existe caminho removivel, a operacao e a da propria
+        // Lixeira.
+        items.Add(new HistoryItem
+        {
+            Kind = "Lixeira",
+            Path = "Lixeira",
+            CategoryId = "windows-recyclebin",
+            Detail = "Esvaziar a Lixeira — todas as unidades",
+            SizeBytes = 0,
+            Selected = true,
+        });
+
+        // "Clear the Printers, Computers and People Find History": o Revo
+        // coloca este rastro no limpador do Windows, e no de navegadores.
+        AddRegistry(items, seen, "windows-typedpaths",
+            "Histórico de impressoras, computadores e pessoas", "Windows",
+            $@"HKEY_CURRENT_USER\{ExplorerKey}\TypedPaths");
+
+        // "Clear the Regedit Last Opened Key History".
+        AddRegistry(items, seen, "windows-regedit-lastkey",
+            "Histórico da última chave aberta no Regedit", "Windows",
+            $@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit");
+
         return items;
     }
 
@@ -344,6 +368,15 @@ public static class TrackCleaner
         {
             switch (entry.Kind)
             {
+                case "Lixeira":
+                {
+                    // Item sintetico: nao ha caminho removivel. A operacao e a
+                    // da propria Lixeira.
+                    return RecycleBin.Empty()
+                        ? new RemovalOutcome { Item = ToLeftover(entry), Status = RemovalStatus.Removed, Message = "lixeira esvaziada" }
+                        : Fail(entry, "nao foi possivel esvaziar a Lixeira");
+                }
+
                 case "Registro":
                 {
                     if (SafetyRules.IsProtectedRegistryKey(entry.Path))

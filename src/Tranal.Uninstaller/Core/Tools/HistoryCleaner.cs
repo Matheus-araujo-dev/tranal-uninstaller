@@ -41,8 +41,12 @@ public sealed class HistoryItem
 }
 
 /// <summary>
-/// Limpeza de historico: programas executados, area de transferencia, downloads,
+/// Limpeza de historico: programas executados, area de transferencia,
 /// recentes, historico de pesquisa e historico dos navegadores.
+///
+/// A pasta de Downloads do usuario NAO entra aqui: ela guarda arquivos do
+/// usuario, nao rastros. O original apaga o "historico de downloads" (que e
+/// o mesmo banco dos navegadores), nunca os arquivos baixados.
 ///
 /// Remocao: SEMPRE pelo motor canonico <see cref="UninstallEngine.RemoveLeftovers"/>,
 /// exceto a area de transferencia, que e um item sintetico tratado a parte
@@ -91,9 +95,6 @@ public static class HistoryCleaner
         try { AddClipboard(items, seen); }
         catch (Exception ex) { ToolLog.Error($"Falha ao preparar a limpeza da area de transferencia: {ex.Message}"); }
 
-        try { ScanDownloads(items, seen); }
-        catch (Exception ex) { ToolLog.Error($"Falha ao varrer os downloads: {ex.Message}"); }
-
         try { ScanRecent(items, seen); }
         catch (Exception ex) { ToolLog.Error($"Falha ao varrer os itens recentes: {ex.Message}"); }
 
@@ -119,15 +120,12 @@ public static class HistoryCleaner
         try { items.AddRange(TrackCleaner.Scan(module)); }
         catch (Exception ex) { ToolLog.Error($"Falha ao varrer os rastros: {ex.Message}"); }
 
-        // Area de transferencia, downloads, recentes e historico de pesquisa
-        // sao vestigios do Windows: eles ficam no limpador do Windows.
+        // Area de transferencia, recentes e historico de pesquisa sao vestigios
+        // do Windows: eles ficam no limpador do Windows.
         if (module != TrackModule.Windows) return items;
 
         try { AddClipboard(items, seen); }
         catch (Exception ex) { ToolLog.Error($"Falha ao preparar a limpeza da area de transferencia: {ex.Message}"); }
-
-        try { ScanDownloads(items, seen); }
-        catch (Exception ex) { ToolLog.Error($"Falha ao varrer os downloads: {ex.Message}"); }
 
         try { ScanRecent(items, seen); }
         catch (Exception ex) { ToolLog.Error($"Falha ao varrer os itens recentes: {ex.Message}"); }
@@ -236,39 +234,6 @@ public static class HistoryCleaner
             SizeBytes = 0,
             Selected = true,
         });
-    }
-
-    /// <summary>
-    /// Downloads: arquivos da pasta Downloads e a chave que guarda suas preferencias.
-    /// </summary>
-    private static void ScanDownloads(List<HistoryItem> items, HashSet<string> seen)
-    {
-        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
-        if (Directory.Exists(folder))
-        {
-            foreach (var file in SafeEnumerateFiles(folder, "*", SearchOption.TopDirectoryOnly))
-            {
-                try
-                {
-                    AddFile(items, seen, "downloads", PathUtil.Normalize(file));
-                }
-                catch (Exception ex)
-                {
-                    ToolLog.Error($"Falha ao inspecionar '{file}': {ex.Message}");
-                }
-            }
-        }
-
-        try
-        {
-            const string downloadFolder =
-                @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\DownloadFolder";
-            if (RegistryKeyExists(downloadFolder)) AddRegistry(items, seen, "downloads", downloadFolder);
-        }
-        catch (Exception ex)
-        {
-            ToolLog.Error($"Falha ao inspecionar a chave DownloadFolder: {ex.Message}");
-        }
     }
 
     /// <summary>

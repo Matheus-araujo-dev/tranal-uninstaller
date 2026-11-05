@@ -175,7 +175,6 @@
     "Tool.History.ClearAll":  "Limpar tudo",
     "Tool.History.Run":  "Histórico de execução",
     "Tool.History.Clipboard":  "Área de transferência",
-    "Tool.History.Downloads":  "Lista de downloads",
     "Tool.History.Recent":  "Itens recentes",
     "Tool.History.Search":  "Histórico de pesquisa",
     "Tool.History.Done":  "Histórico limpo",
@@ -268,7 +267,6 @@
     "Cat.EventLogs":  "Registros de eventos",
     "Cat.DnsCache":  "Cache DNS",
     "Cat.Clipboard":  "Área de transferência",
-    "Cat.Downloads":  "Lista de downloads",
     "Cat.Recent":  "Itens recentes",
     "Cat.Disk":  "Disco",
     "Cat.System":  "Sistema",
@@ -287,7 +285,7 @@
     "Desc.AutorunManager":  "O \u0027Gerenciador de Autorun\u0027 do Tranal Uninstaller Pro gerencia os itens que se iniciam automaticamente com o Windows: chaves de registro Run, serviços, tarefas agendadas e pastas de inicialização.",
     "Desc.JunkCleaner":  "A \u0027Limpeza de Arquivos Temporários\u0027 do Tranal Uninstaller Pro verifica e remove arquivos temporários, caches, logs e miniaturas que ocupam espaço desnecessário no disco.",
     "Desc.WindowsTools":  "As \u0027Ferramentas do Windows\u0027 do Tranal Uninstaller Pro dão acesso rápido às utilidades nativas do Windows: limpeza de disco, desfragmentação, serviços, tarefas agendadas, gerenciador de dispositivos e outros.",
-    "Desc.HistoryCleaner":  "A \u0027Limpeza de Histórico\u0027 do Tranal Uninstaller Pro limpa o histórico de execução, a área de transferência, a lista de downloads, os itens recentes e o histórico de pesquisa.",
+    "Desc.HistoryCleaner":  "A \u0027Limpeza de Histórico\u0027 do Tranal Uninstaller Pro limpa o histórico de execução, a área de transferência, os itens recentes e o histórico de pesquisa.",
     "Desc.EvidenceRemover":  "O \u0027Removedor de Evidências\u0027 do Tranal Uninstaller Pro remove rastros de uso: prefetch, histórico do Explorer, listas de salto, documentos recentes, registros de eventos e cache DNS.",
     "Desc.UnrecoverableDelete":  "A \u0027Exclusão Irrecuperável\u0027 do Tranal Uninstaller Pro sobrescreve o conteúdo dos arquivos antes de apagá-los, de modo que não possam ser recuperados por programas de recuperação de dados.",
     "Backup.Column.Name":  "Nome",
@@ -507,5 +505,8 @@
     "Sidebar.GroupOptimization":  "Otimização",
     "Sidebar.GroupTracksCleaner":  "Tracks Cleaner",
     "ContextMenu.SearchWeb":  "Pesquisar {0} na web",
-    "ContextMenu.SearchWebNoSelection":  "Pesquisar na web"
+    "ContextMenu.SearchWebNoSelection":  "Pesquisar na web",
+    "Desc.TracksWindows":  "A \u0027Limpeza do Windows\u0027 do Tranal Uninstaller Pro limpa os rastros do Windows: área de transferência, itens recentes, histórico de pesquisa, cache de miniaturas, arquivos temporários e a Lixeira.",
+    "Desc.TracksBrowsers":  "A \u0027Limpeza de Navegadores\u0027 do Tranal Uninstaller Pro limpa o histórico dos navegadores: páginas visitadas, cookies, formulários, sessões e cache.",
+    "Desc.TracksOffice":  "A \u0027Limpeza do Microsoft Office\u0027 do Tranal Uninstaller Pro limpa os documentos recentes do Office."
 }
