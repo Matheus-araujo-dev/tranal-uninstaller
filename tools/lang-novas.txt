@@ -1,0 +1,186 @@
+# Novas chaves de localizacao do Tranal Uninstaller Pro.
+# Formato: chave|pt-BR|en-US
+# Aplicar com: powershell -File tools\lang-adicionar.ps1
+# O script mescla as chaves nos catalogos Lang\pt-BR.json e Lang\en-US.json.
+
+Wizard.Mode.Title|Modo de desinstalação|Uninstall mode
+Wizard.Mode.Intro|Escolha o modo de desinstalação. O modo define o quanto fundo a varredura procura sobras.|Choose the uninstall mode. The mode defines how deep the leftover scan goes.
+Wizard.Mode.BuiltIn|Somente desinstalador nativo|Built-in uninstaller only
+Wizard.Mode.Safe|Seguro|Safe
+Wizard.Mode.Moderate|Moderado|Moderate
+Wizard.Mode.Advanced|Avançado|Advanced
+Wizard.Mode.BuiltInDesc|Executa apenas o desinstalador nativo do aplicativo, sem qualquer varredura adicional.|Runs only the application's built-in uninstaller, without any additional scanning.
+Wizard.Mode.SafeDesc|Executa o desinstalador nativo e procura sobras seguras de apagar. É o modo mais rápido.|Runs the built-in uninstaller and scans for leftovers that are safe to delete. This is the fastest mode.
+Wizard.Mode.ModerateDesc|Executa o desinstalador nativo e faz uma varredura estendida nos lugares mais comuns do Registro e do disco.|Runs the built-in uninstaller and performs an extended scan in the most common places of the registry and on the hard drive.
+Wizard.Mode.AdvancedDesc|Executa o desinstalador nativo e faz uma varredura profunda e completa no Registro e no disco. É o modo mais lento.|Runs the built-in uninstaller and performs a deep and thorough scan of the registry and the hard drive. This is the slowest mode.
+Wizard.Step3.Mode|Modo de desinstalação|Uninstall mode
+Wizard.Step4.Legend|Os itens em negrito têm alta confiança. Somente os itens marcados e seus subitens são excluídos.|Bold items have high confidence. Only checked items and their subitems are deleted.
+Wizard.Step4.SelectAll|Selecionar tudo|Select all
+Wizard.Step4.DeselectAll|Desmarcar tudo|Deselect all
+Wizard.Step4.RecycleBin|Enviar arquivos e pastas para a Lixeira|Send files and folders to the Recycle Bin
+Wizard.ScanSkipped|O modo selecionado não realiza varredura de sobras.|The selected mode does not scan for leftovers.
+Wizard.BuiltInFailed|A execução do desinstalador nativo falhou. O comando de desinstalação pode ser inválido.|Running the application's uninstaller failed. The uninstall command may be invalid.
+Wizard.BackupPointSaved|Ponto de restauração criado: {0}|Restore point created: {0}
+Wizard.RestorePointDisabled|A criação do ponto de restauração está desativada nas Opções.|Restore point creation is disabled in Options.
+Wizard.SummaryDeferred|Adiados para o próximo reinício: {0}|Deferred to the next restart: {0}
+Wizard.SummaryRecycleBin|Itens enviados para a Lixeira: {0}|Items sent to the Recycle Bin: {0}
+Backup.Title|Gerenciador de Backups|Backup Manager
+Backup.Column.Name|Nome|Name
+Backup.Column.Operation|Operação|Operation
+Backup.Column.Size|Tamanho|Size
+Backup.Column.Time|Hora|Time
+Backup.Column.Date|Data|Date
+Backup.Column.Items|Itens|Items
+Backup.Restore|Restaurar|Restore
+Backup.RestoreFull|Restaurar tudo|Restore all
+Backup.CustomRestore|Restauração personalizada|Custom restore
+Backup.Delete|Excluir|Delete
+Backup.DeleteAll|Excluir todos|Delete all
+Backup.DeleteByTime|Excluir por data|Delete by date
+Backup.Empty|Nenhum ponto de restauração disponível.|No restore points available.
+Backup.RestoreConfirm|Tem certeza de que deseja restaurar a operação {0} de {1}?|Are you sure that you want to restore the operation {0} of {1}?
+Backup.DeleteConfirm|Tem certeza de que deseja excluir o ponto de restauração {0}?|Are you sure that you want to delete the restore point {0}?
+Backup.DeleteAllConfirm|Tem certeza de que deseja excluir todos os pontos de restauração?|Are you sure that you want to delete all restore points?
+Backup.DeleteByTimePrompt|Excluir todos os backups anteriores a:|Delete all backups older than:
+Backup.Week|Uma semana|One week
+Backup.TwoWeeks|Duas semanas|Two weeks
+Backup.Days30|30 dias|30 days
+Backup.Days90|90 dias|90 days
+Backup.Days180|180 dias|180 days
+Backup.OneYear|Um ano|One year
+Backup.CustomDate|Data personalizada|Custom date
+Backup.RestoreDone|{0} item(ns) restaurado(s), {1} falha(s).|{0} item(s) restored, {1} failure(s).
+Backup.RestoreFailed|Falha ao ler os dados do backup.|Error reading the backup data.
+Backup.Operation.Registry|Itens de Registro|Registry items
+Backup.Operation.Files|Arquivos e Pastas|Files and folders
+Backup.Operation.Mixed|Registro e Arquivos|Registry and files
+Backup.RestorePointDataNotFound|Dados do ponto de restauração não encontrados.|Restore point data not found.
+Options.CreateRestorePoint|Criar um ponto de restauração do sistema antes da desinstalação|Create a system restore point before uninstall
+Options.OnlyBuiltIn|Executar apenas o desinstalador nativo|Only run the built-in uninstaller
+Options.DisableHistory|Desativar o recurso Histórico de Desinstalação|Disable the Uninstall History feature
+Options.ShowWebShortcuts|Mostrar atalhos de páginas web|Show web page shortcuts
+Options.AdvancedMode|Modo avançado|Advanced mode
+Options.CheckUpdate|Verificar por atualizações ao iniciar|Check for update on startup
+Options.AutoUpdate|Atualizar automaticamente em segundo plano|Update automatically in background
+Options.RecycleBin|Enviar arquivos e pastas removidos para a Lixeira|Send removed files and folders to the Recycle Bin
+Options.DeferRemoval|Adiar para o próximo reinício os itens que estão em uso|Defer removal of items in use to the next restart
+Options.BackupBeforeRemoval|Criar um backup antes de remover sobras|Create a backup before removing leftovers
+Options.PortableFolder|Usar pasta de armazenamento de dados personalizada|Use a custom data storage folder
+Options.FastLoading|Ativar modo de carregamento rápido|Enable fast loading mode
+Options.WebSearch|Mecanismo de busca na web|Web search engine
+Common.Confidence|Confiança|Confidence
+Common.High|Alta|High
+Common.Medium|Média|Medium
+Common.Low|Baixa|Low
+Common.SelectAll|Selecionar tudo|Select all
+Common.DeselectAll|Desmarcar tudo|Deselect all
+Common.Restore|Restaurar|Restore
+Common.Delete|Excluir|Delete
+Common.Operation|Operação|Operation
+Common.Size|Tamanho|Size
+Common.Time|Hora|Time
+Common.Date|Data|Date
+Status.Deferred|Adiado para o próximo reinício|Deferred to the next restart
+Status.RecycleBin|Enviado para a Lixeira|Sent to the Recycle Bin
+Status.HighConfidence|Alta confiança|High confidence
+Topmost.Title|Janela Principal Flutuante|Topmost Window
+Topmost.Hint|Arraste o alvo sobre uma janela, ícone ou item da barra de tarefas.|Drag the target over an opened window, icon or a taskbar item.
+Topmost.Exit|ENCERRAR|EXIT
+Topmost.Uninstall|Desinstalar|Uninstall
+Topmost.StopAutoStart|Impedir inicialização automática|Stop auto starting
+Topmost.KillProcess|Encerrar processo|Kill process
+Topmost.KillAndDelete|Encerrar e excluir processo|Kill and delete process
+Topmost.OpenFolder|Abrir pasta que contém o arquivo|Open containing folder
+Topmost.Info|Informações|Info
+Topmost.Properties|Propriedades|Properties
+Topmost.Size|Tamanho|Size
+Topmost.Size.Small|Pequeno|Small
+Topmost.Size.Middle|Médio|Middle
+Topmost.Size.Large|Grande|Large
+Topmost.Transparency|Transparência|Transparency
+Topmost.AlwaysOnTop|Sempre no topo|Always on top
+Topmost.DragDrop|Modo arrastar e soltar|Drag and drop mode
+Topmost.HunterMode|Modo Caçador|Hunter mode
+Topmost.OpenMainWindow|Abrir janela principal|Open main window
+Topmost.Options|Opções|Options
+Topmost.Unresolved|Não resolvido! Aponte para outra janela, ícone ou item da barra de tarefas.|Unresolved! Try to point to another window, icon or a taskbar item.
+Topmost.OnlyOneFile|Apenas um arquivo por vez é suportado!|Only one file at a time is supported!
+Topmost.DroppedFolder|Você soltou uma pasta; arraste um arquivo!|You have dropped a folder, please drag and drop a file!
+Topmost.UninstallOrRemove|Desinstalar ou remover:|Uninstall or remove:
+Topmost.CannotRunUninstall|Não é possível executar o comando de desinstalação!|Cannot run the uninstall command!
+Topmost.NoPackage|Nenhum pacote de instalação encontrado!|No installation package found!
+Topmost.AutoStartDisabled|O aplicativo está desativado para inicialização automática!|The target application is disabled from auto starting!
+Topmost.NotInStartup|O aplicativo não foi encontrado nos lugares comuns de inicialização!|The target application is not found in common startup places!
+ContextMenu.Commands|Comandos|Commands
+ContextMenu.Info|Informações|Info
+ContextMenu.SearchAt|Buscar em {0} por|Search at {0} for
+ContextMenu.InstallLocation|Local de instalação|Install location
+ContextMenu.OpenAbout|Abrir link Sobre...|Open About link...
+ContextMenu.OpenHelp|Abrir link de Ajuda...|Open Help link...
+ContextMenu.OpenUpdate|Abrir link de Atualização...|Open Update link...
+ContextMenu.OpenRegistryKey|Abrir chave de Registro...|Open Registry key...
+ContextMenu.Hide|Ocultar|Hide
+ContextMenu.Installed|Instalado|Installed
+ContextMenu.NotInstalled|Não instalado|Not installed
+ContextMenu.Enabled|Integrar ao menu de contexto do Windows Explorer|Integrate with the Windows Explorer context menu
+RegistryOptimizer.Title|Otimizador de Registro|Registry Optimizer
+RegistryOptimizer.SelectWhere|Selecione onde verificar|Select where to scan
+RegistryOptimizer.StartMenu|Menu Iniciar|Start menu
+RegistryOptimizer.Scan|Verificar|Scan
+RegistryOptimizer.Empty|Nenhuma entrada obsoleta encontrada.|No obsolete entries found.
+RegistryOptimizer.Found|{0} entrada(s) obsoleta(s) encontrada(s).|{0} obsolete entry(ies) found.
+RegistryOptimizer.RemoveSelected|Remover selecionadas|Remove selected
+RegistryOptimizer.Confirm|Tem certeza de que deseja remover as entradas selecionadas?|Are you sure that you want to delete the selected entries?
+RegistryOptimizer.Item|Entrada obsoleta|Obsolete entry
+Update.Title|Atualização|Update
+Update.CurrentVersion|Versão atual:|Current version:
+Update.LatestVersion|Última versão:|Latest version:
+Update.Checking|Verificando...|Checking...
+Update.Download|BAIXAR|DOWNLOAD
+Update.Downloading|Baixando...|Downloading...
+Update.NoUpdate|Nenhuma atualização disponível|No update available
+Update.ConnectionError|Erro de conexão...|Connection error...
+Update.Done|Concluído|Done
+Update.CheckFailed|Não foi possível verificar por atualizações. Sem conexão com a internet.|Checking for a new version failed. No internet connection.
+Portable.Title|Portabilidade|Portability
+Portable.CustomFolder|Usar pasta de armazenamento de dados personalizada|Use custom data storage folder
+Portable.FastLoading|Ativar modo de carregamento rápido|Enable fast loading mode
+Portable.FolderInaccessible|A pasta personalizada {0} está inacessível. Ela será alterada para {1}.|Your custom data storage folder {0} is inaccessible. It will be changed to {1}.
+Trace.Title|Registro de instalações monitoradas|Monitored installation log
+Trace.SaveLog|Salvar o log das mudanças monitoradas|Save the log of monitored system changes
+Trace.StopMonitoring|Parar de monitorar a instalação|Stop monitoring the installation
+Trace.NamePrompt|Digite um nome para o log:|Enter a name for the log:
+Trace.NameRequired|Digite um nome válido para o log!|Please enter a valid log name!
+Trace.Monitoring|O Tranal Uninstaller Pro está rastreando a instalação|Tranal Uninstaller Pro is tracing the installation
+Trace.Saving|O Tranal Uninstaller Pro está salvando os dados|Tranal Uninstaller Pro is saving data
+Trace.CancelConfirm|Tem certeza de que deseja cancelar o registro?|Are you sure you want to cancel the logging process?
+Cat.BrowsersHistory|Histórico do navegador|Web browser history
+Cat.BrowsersHistoryjournal|Diário do histórico do navegador|Browser history journal
+Cat.BrowsersTopsites|Histórico da barra de endereços|Address bar history
+Cat.BrowsersCookies|Cookies|Cookies
+Cat.BrowsersFormhistory|Histórico de formulários|Form history
+Cat.BrowsersSessions|Histórico de sessão|Session history
+Cat.BrowsersCache|Arquivos temporários da internet|Temporary internet files
+Cat.BrowsersCodecache|Cache de código|Code cache
+Cat.BrowsersGpucache|Cache da GPU|GPU cache
+Cat.BrowsersServiceworker|Cache de service workers|Service worker cache
+Cat.BrowsersIndexdat|Index.dat (Internet Explorer)|Index.dat (Internet Explorer)
+Cat.BrowsersInetcache|Arquivos temporários da Internet|Internet temporary files
+Cat.BrowsersAddressbar|Histórico da barra de endereços|Address bar history
+Cat.OfficeMru|Documentos recentes do Office|Office recent documents
+Cat.WindowsRecentdocs|Documentos recentes|Recent documents
+Cat.WindowsRunmru|Histórico do menu Iniciar|Start menu run history
+Cat.WindowsWordwheel|Histórico de pesquisa de arquivos|Find file history
+Cat.WindowsOpensave|Histórico de Abrir/Salvar|Open/Save recent history
+Cat.WindowsLastvisited|Última pasta visitada nos diálogos|Last visited folder history
+Cat.WindowsUserassist|Histórico de programas executados|Programs run history
+Cat.WindowsAppswitched|Histórico de troca de aplicativo|App switching history
+Cat.WindowsJumplist|Histórico do Alt+Tab|Alt+Tab history
+Cat.WindowsShellbags|Histórico de uso do Explorer|Explorer usage history
+Cat.WindowsThumbnailcache|Cache de miniaturas|Thumbnail cache
+Cat.WindowsCrashdumps|Dumps de memória de falha|Crash memory dumps
+Cat.WindowsMinidump|Mini dumps de falha|Minidumps
+Cat.WindowsLivekernel|Relatos de falha do kernel|Kernel failure reports
+Cat.WindowsTemp|Arquivos temporários do Windows|Windows temporary files
+Cat.WindowsUsertemp|Arquivos temporários do usuário|User temporary files
+Cat.WindowsChkdsk|Fragmentos recuperados pelo CHKDSK|CHKDSK recovered fragments

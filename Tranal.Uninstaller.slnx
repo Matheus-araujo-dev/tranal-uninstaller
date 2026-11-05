@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tranal.Cli/Tranal.Cli.csproj" />
+    <Project Path="src/Tranal.Uninstaller/Tranal.Uninstaller.csproj" />
+    <Project Path="src/Tranal.Tests/Tranal.Tests.csproj" />
+  </Folder>
+</Solution>

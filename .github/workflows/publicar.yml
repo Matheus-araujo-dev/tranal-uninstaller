@@ -1,0 +1,78 @@
+name: Publicar
+
+# A cada push na main, gera o TranalUninstaller.exe e atualiza a release "latest".
+# Ao criar uma tag (ex.: v1.0), gera tambem uma release fixa dessa versao.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: dotnet build Tranal.Uninstaller.slnx -c Release -nologo
+
+      - name: Testes
+        run: dotnet test Tranal.Uninstaller.slnx -c Release -nologo
+
+      - name: Publicar a GUI (arquivo unico, com o .NET embutido, exige administrador)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant gui
+
+      - name: Publicar a variante de pre-visualizacao (sem administrador)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant preview
+
+      - name: Publicar a CLI (arquivo unico, com o .NET embutido)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
+
+      - name: Montar pacote
+        shell: pwsh
+        run: |
+          Copy-Item LEIA-ME.txt publish\gui\LEIA-ME.txt
+          Compress-Archive -Path publish\gui\TranalUninstaller.exe, publish\gui\LEIA-ME.txt `
+            -DestinationPath TranalUninstaller.zip
+          Compress-Archive -Path publish\cli\tranal.exe -DestinationPath tranal-cli.zip
+
+      - name: Atualizar release "latest"
+        if: startsWith(github.ref, 'refs/heads/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $sha = "$env:GITHUB_SHA".Substring(0, 7)
+          gh release delete latest --cleanup-tag --yes
+          gh release create latest TranalUninstaller.zip tranal-cli.zip `
+            publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
+            --target $env:GITHUB_SHA --latest `
+            --title "Tranal Uninstaller Pro (versao mais recente)" --notes-file NOVIDADES.md
+
+      - name: Release da versao (tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create $env:GITHUB_REF_NAME TranalUninstaller.zip tranal-cli.zip `
+            publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
+            --title "Tranal Uninstaller Pro $env:GITHUB_REF_NAME" --generate-notes --latest=false

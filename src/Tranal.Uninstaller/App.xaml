@@ -1,0 +1,22 @@
+<Application x:Class="Tranal.Uninstaller.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnLastWindowClose">
+  <Application.Resources>
+    <ResourceDictionary>
+      <!-- Os dois temas sao carregados aqui, uma unica vez, por caminho
+           relativo (XAML). A troca de tema em runtime nao carrega nenhum
+           dicionario: ela escreve as brushes do tema escolhido em
+           Application.Resources, que e o caminho que o WPF notifica. -->
+      <ResourceDictionary x:Key="ThemeCatalog">
+        <ResourceDictionary x:Key="Dark" Source="Themes/Dark.xaml" />
+        <ResourceDictionary x:Key="Light" Source="Themes/Light.xaml" />
+      </ResourceDictionary>
+
+      <ResourceDictionary.MergedDictionaries>
+        <!-- Estilos comuns aos dois temas. -->
+        <ResourceDictionary Source="Themes/Styles.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

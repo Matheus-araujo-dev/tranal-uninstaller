@@ -1,0 +1,25 @@
+# Build
+bin/
+obj/
+publish/
+dist/
+dist-*/
+*.exe
+*.dll
+*.pdb
+*.zip
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local
+*.log
+*.reg
+
+# Payloads de terceiros analisados (nunca versionados)
+revo-extracted/
+revo-captures/
+revo-spec/strings-en.json

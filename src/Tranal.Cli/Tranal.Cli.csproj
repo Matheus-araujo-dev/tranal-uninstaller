@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Tranal.Cli</RootNamespace>
+    <AssemblyName>tranal</AssemblyName>
+    <Version>1.0.0</Version>
+    <Product>Tranal Uninstaller</Product>
+  </PropertyGroup>
+
+  <!-- Nucleo compartilhado com a aplicacao grafica (fonte compartilhada MSBuild). -->
+  <ItemGroup>
+    <Compile Include="..\Tranal.Uninstaller\Core\**\*.cs" LinkBase="Core" />
+  </ItemGroup>
+
+  <!-- Catalogos de idioma: os mesmos arquivos embarcados na aplicacao grafica. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\Tranal.Uninstaller\Lang\*.json" LinkBase="Lang" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+</Project>

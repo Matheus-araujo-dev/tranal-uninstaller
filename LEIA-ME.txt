@@ -1,0 +1,83 @@
+TRANAL UNINSTALLER PRO
+======================
+
+Desinstalador do Windows com varredura de sobras, backup restauravel e limpeza
+de rastros.
+
+Reimplementacao independente do Revo Uninstaller Pro. Codigo e marca proprios.
+
+
+O QUE ELE FAZ
+-------------
+
+  * Lista todos os programas instalados e desinstala em quatro modos de
+    profundidade (Somente, Seguro, Moderado, Avancado).
+
+  * Antes de remover, cria um ponto de restauracao com o conteudo real do
+    que vai sumir. Depois voce pode restaurar tudo, restaurar item a item ou
+    excluir os backups antigos.
+
+  * Arquivos e pastas sobras vao para a Lixeira. Chaves de registro sao
+    apagadas em definitivo. Item em uso fica agendado para o proximo
+    reinicio do Windows.
+
+  * Ferramentas: Gerenciador de Autorun, Limpeza de Arquivos Temporarios,
+    Ferramentas do Windows, Limpeza de Historico, Removedor de Evidencias,
+    Exclusao Irrecuperavel.
+
+  * Modulos: Programas Monitorados, Windows Apps, Extensoes do Navegador,
+    Base de Logs, Modo Cacador.
+
+
+COMO USAR
+---------
+
+  1. Abra o TranalUninstaller.exe. Ele pede permissao de administrador (UAC) —
+     e necessario para mexer em Program Files e no Registro do sistema.
+
+  2. Escolha o programa na lista e clique em "Desinstalar".
+
+  3. No assistente, escolha o modo de desinstalacao e revise as sobras
+     encontradas. Os itens em negrito tem alta confianca e sao os que o
+     Tranal considera seguros apagar.
+
+  4. Se algo for removido por engano, abra o Gerenciador de Backups e
+     restaure.
+
+
+LINHA DE COMANDO
+----------------
+
+  O arquivo tranal.exe (na pasta "cli" do pacote) e a mesma ferramenta sem
+  interface grafica:
+
+    tranal /m "*"                      lista os programas instalados
+    tranal /scan "Nome" /mode advanced  varre as sobras de um programa
+    tranal /mu "Nome" /mode moderate    desinstala
+    tranal /backup                      lista os pontos de restauracao
+    tranal /backup restore <id>         restaura um ponto de restauracao
+
+  Use "tranal /?" para a lista completa.
+
+
+REQUISITOS
+----------
+
+  Windows 10 ou 11, 64 bits.
+  Nada precisa ser instalado: o executavel ja traz o .NET embutido.
+
+
+AVISO
+-----
+
+  Este programa remove arquivos e chaves de registro. Revise a lista de sobras
+  antes de confirmar e use o Gerenciador de Backups quando tiver duvida.
+
+
+LICENCA
+-------
+
+  MIT. Sem garantia. Use por sua conta e risco.
+
+  Este programa e uma reimplementacao independente. Nao tem vinculo, afiliacao
+  ou endosso do Revo Uninstaller ou da VS Revo Group.

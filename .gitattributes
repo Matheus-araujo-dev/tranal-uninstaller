@@ -1,0 +1,23 @@
+# Normaliza o fim de linha: o repositorio guarda LF, o checkout no Windows
+# devolve CRLF. Evita diff inteiro quando um arquivo e editado em outra maquina.
+* text=auto
+
+# .NET
+*.cs text diff=csharp
+*.csproj text
+*.slnx text
+*.xaml text
+*.json text
+*.resx text
+
+# Scripts
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.py text eol=crlf
+
+# Documentacao
+*.md text
+*.txt text
+*.yml text
+*.yaml text
