@@ -35,6 +35,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | A3 | Detecção de **Windows Store Apps** | ✅ | ✅ | ✅ (122 MSIX) | — |
 | A4 | Detecção de **Windows Features** (WMI) | ⬜ | ✅ | ⬜ | 🟡 |
 | A5 | Detecção de **Windows Updates** (WUA) | ⬜ | ✅ | ⬜ | 🟡 |
+| A17 | **Remoção de extensões de navegador** com base maliciosa/ad | ⬜ | ⬜ | ⬜ | 🟡 |
 | A6 | Detecção de **aplicativos Steam** | ⬜ | ✅ | ⬜ | 🟡 |
 | A7 | Detecção de **Chocolatey / Scoop** | ⬜ | ✅ | ⬜ | 🟢 |
 | A8 | Detecção de **Oculus** | ⬜ | ✅ | ⬜ | 🟢 |
@@ -193,16 +194,54 @@ item aponta para a auditoria que o revelou.
 
 ---
 
+## H. O que cada concorrente acrescenta
+
+A matriz das seções A–E compara Revo e BCU com o Tranal, porque são os dois
+que definem o alvo (o Revo) e a referência de implementação (o BCU, open
+source). Os demais concorrentes entram aqui, pelo que **acrescentam** — é
+dessa coluna que saem as lacunas que só eles revelam.
+
+### H.1 IObit Uninstaller 16.1.0.4 — [IOBIT.md](IOBIT.md)
+
+| Recurso | IObit | Tranal | Prioridade |
+|---|---|---|---|
+| **Remoção de extensões de navegador** com base maliciosa/ad | ✅ | ⬜ | 🟡 alta |
+| **Bloatware Remover** (pré-instalados, Accessories, Windows Features) | ✅ | ⬜ | 🟡 |
+| **Bundleware**: detectar o que veio junto | ✅ | ⬜ | 🟡 |
+| **Desinstalar pelo log de instalação** | ✅ (PRO) | ⬜ | 🟡 |
+| **Stubborn Program Remover** (base de 4.000+ programas) | ✅ (PRO) | ⬜ | 🟢 |
+| **Force Uninstall+** (sem entrada de registro) | ✅ | 🟡 | 🟡 |
+| **Software Health** (painel único de 9 categorias) | ✅ | 🟡 | 🟢 |
+| **Desinstalar Windows Updates** | ✅ | ⬜ | 🟡 |
+| **Desinstalação em lote** (multi-seleção) | ✅ | ⬜ | 🟡 |
+| **Software Relocator** (mover entre discos) | ✅ | ⬜ | 🟢 |
+| **File Shredder** com 3 modos de sobrescrita | ✅ | ✅ | — |
+| Aviso de que o desinstalador "ainda vai deixar" resíduo | ✅ | ⬜ | 🟢 |
+| Aviso antes de apagar arquivo pessoal | ✅ | ⬜ | 🟡 |
+| **Drivers de kernel** (4 × 7 arquiteturas) | ✅ | ⬜ | — (decisão: não) |
+| **Linha de comando de desinstalação** | ⬜ **nenhum switch** | ✅ | — 🟢 Tranal melhor |
+
+**O achado que muda a prioridade de A4 e A5:** Windows Features e Windows
+Updates não são exclusividade do BCU — o IObit também os cobre, e o IObit é
+usado por muito mais gente. Os dois sobem de 🟡 para 🟡 **alta**.
+
+**O achado que reforça a decisão sobre driver:** o IObit precisa de 4
+drivers × 7 arquiteturas (28 binários) para remover arquivo em uso. O Tranal
+resolve com encerramento de processo e adiamento para o reinício. O custo de
+um driver agora está medido, não suposto.
+
+---
+
 ## G. Estado da auditoria
 
 | Software | Documento | Estado |
 |---|---|---|
 | Bulk Crap Uninstaller 6.3.0 | [BCU.md](BCU.md) | ✅ completo — 80 funcionalidades medidas, 5 linhas de comando, 6 categorias de sobras |
+| IObit Uninstaller 16.1.0.4 | [IOBIT.md](IOBIT.md) | ✅ completo — 142 funcionalidades medidas, 95 telas, 29 DLLs importadas |
 | HiBit Uninstaller | — | 🔄 em curso |
 | Geek Uninstaller | — | 🔄 em curso |
 | Uninstalr | — | 🔄 em curso |
-| IObit Uninstaller | — | 🔄 em curso |
-| Total Uninstall | — | ⏳ na fila |
+| Total Uninstall | — | 🔄 em curso |
 | Ashampoo UnInstaller | — | ⏳ na fila |
 | Uninstall Tool | — | ⏳ na fila |
 | Soft Organizer | — | ⏳ na fila |
