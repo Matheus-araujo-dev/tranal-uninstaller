@@ -33,7 +33,13 @@ function Reset-Intermediate([string]$projectDir) {
         $stashRoot = Join-Path $repoRoot 'publish'
         if (-not (Test-Path $stashRoot)) { [void][System.IO.Directory]::CreateDirectory($stashRoot) }
 
-        $stash = Join-Path $stashRoot ('_obj-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        # Um unico stash: com um nome por execucao, as pastas _obj-* se
+        # acumulavam a cada publish e nenhuma era removida.
+        $stash = Join-Path $stashRoot '_obj-anterior'
+        if (Test-Path $stash) {
+            try { [System.IO.Directory]::Delete($stash, $true) } catch { }
+        }
+
         Move-Item $obj $stash -Force
         Write-Host "obj anterior movido para $stash"
     }

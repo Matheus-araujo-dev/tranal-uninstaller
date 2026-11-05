@@ -42,6 +42,9 @@ public partial class MainWindow : Window
         // Telas de modulos e ferramentas registradas uma unica vez.
         ViewSetup.RegisterAll(this);
 
+        // Visibilidade dos paineis conforme as preferencias.
+        ApplyLayout();
+
         // Textos do codigo-behind tambem mudam com o idioma.
         Loc.LanguageChanged += (_, _) => RefreshLocalizedTexts();
         Loaded += async (_, _) => await ReloadAsync();
@@ -530,6 +533,8 @@ public partial class MainWindow : Window
         var topmost = CommandItem(Loc.Get("Cmd.TopmostWindow"), "CmdTopmostWindow", () => ShowTopmostWindow());
         menu.Items.Add(topmost);
 
+        menu.Items.Add(BuildPanelsMenu());
+
         var themeMenu = new MenuItem { Header = Loc.Get("Cmd.Theme") };
         themeMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ThemeDark"), "CmdThemeDark",
             () => ThemeManager.Apply(ThemeManager.Dark)));
@@ -559,6 +564,106 @@ public partial class MainWindow : Window
 
         menu.PlacementTarget = MainMenuButton;
         menu.IsOpen = true;
+    }
+
+    // ------------------------------------------------------------------
+    // Personalizacao do layout (visibilidade de paineis)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Monta o submenu "Paineis": mostrar ou esconder as partes da janela.
+    /// Equivale ao menu "Exibir" do Revo Uninstaller Pro, que controla a
+    /// barra de ferramentas principal, o painel de descricao, a barra de
+    /// status e o grupo de ferramentas da barra lateral.
+    /// </summary>
+    private MenuItem BuildPanelsMenu()
+    {
+        var panels = new MenuItem { Header = Loc.Get("Cmd.Panels") };
+        AutomationProperties.SetAutomationId(panels, "CmdPanels");
+
+        panels.Items.Add(CheckableMenuItem(
+            Loc.Get("Cmd.ShowMainToolbar"), "CmdShowMainToolbar",
+            () => AppSettingsStore.Current.ShowMainToolbar,
+            value => SetLayoutOption(s => s.ShowMainToolbar = value)));
+
+        panels.Items.Add(CheckableMenuItem(
+            Loc.Get("Cmd.ShowDescriptionPanel"), "CmdShowDescriptionPanel",
+            () => AppSettingsStore.Current.ShowDescriptionPanel,
+            value => SetLayoutOption(s => s.ShowDescriptionPanel = value)));
+
+        panels.Items.Add(CheckableMenuItem(
+            Loc.Get("Cmd.ShowStatusBar"), "CmdShowStatusBar",
+            () => AppSettingsStore.Current.ShowStatusBar,
+            value => SetLayoutOption(s => s.ShowStatusBar = value)));
+
+        panels.Items.Add(CheckableMenuItem(
+            Loc.Get("Cmd.ShowToolsToolbar"), "CmdShowToolsToolbar",
+            () => AppSettingsStore.Current.ShowToolsToolbar,
+            value => SetLayoutOption(s => s.ShowToolsToolbar = value)));
+
+        panels.Items.Add(new Separator());
+        panels.Items.Add(CommandItem(Loc.Get("Cmd.ResetLayout"), "CmdResetLayout", ResetLayout));
+
+        return panels;
+    }
+
+    /// <summary>
+    /// Aplica as preferencias de visibilidade dos paineis. E o equivalente ao
+    /// item "Restaurar as configuracoes dos paineis da janela principal" do
+    /// Revo quando o layout e redefinido.
+    /// </summary>
+    private void ApplyLayout()
+    {
+        var settings = AppSettingsStore.Current;
+
+        MainToolbarBorder.Visibility = settings.ShowMainToolbar ? Visibility.Visible : Visibility.Collapsed;
+        DescriptionPanelBorder.Visibility = settings.ShowDescriptionPanel ? Visibility.Visible : Visibility.Collapsed;
+        StatusBarBorder.Visibility = settings.ShowStatusBar ? Visibility.Visible : Visibility.Collapsed;
+
+        var toolsVisible = settings.ShowToolsToolbar ? Visibility.Visible : Visibility.Collapsed;
+        ToolsToolbarHeaderBorder.Visibility = toolsVisible;
+        ToolPanel.Visibility = toolsVisible;
+    }
+
+    /// <summary>Grava a preferencia de layout e reaplica na hora.</summary>
+    private void SetLayoutOption(Action<AppSettings> mutate)
+    {
+        AppSettingsStore.Update(mutate);
+        ApplyLayout();
+    }
+
+    /// <summary>Restaurou o layout padrao dos paineis.</summary>
+    private void ResetLayout()
+    {
+        AppSettingsStore.Update(settings =>
+        {
+            settings.ShowMainToolbar = true;
+            settings.ShowDescriptionPanel = true;
+            settings.ShowStatusBar = true;
+            settings.ShowToolsToolbar = true;
+        });
+
+        ApplyLayout();
+    }
+
+    /// <summary>
+    /// Item de menu marcavel ligado a uma preferencia. O item e reconstruido a
+    /// cada abertura do menu, entao o marcador reflete sempre o estado atual.
+    /// </summary>
+    private static MenuItem CheckableMenuItem(
+        string header, string automationId, Func<bool> isChecked, Action<bool> set)
+    {
+        var item = new MenuItem
+        {
+            Header = header,
+            IsCheckable = true,
+            IsChecked = isChecked(),
+        };
+
+        AutomationProperties.SetAutomationId(item, automationId);
+        item.Click += (_, _) => set(!isChecked());
+
+        return item;
     }
 
     /// <summary>Troca o idioma e persiste a preferencia.</summary>
@@ -638,8 +743,7 @@ public partial class MainWindow : Window
         var targets = selectedRows;
         if (targets.Count == 0)
         {
-            MessageBox.Show(this, Loc.Get("Status.NoSelection"),
-                "Tranal Uninstaller", MessageBoxButton.OK, MessageBoxImage.Information);
+            UserMessages.Information(this, Loc.Get("Status.NoSelection"));
             return;
         }
 

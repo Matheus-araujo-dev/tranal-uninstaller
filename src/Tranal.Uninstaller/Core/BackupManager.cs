@@ -400,9 +400,13 @@ public static class BackupManager
             if (!Directory.Exists(folder)) return false;
 
             var manifest = Path.Combine(folder, "manifest.json");
-            if (File.Exists(manifest)) File.Delete(manifest);
 
-            Directory.Delete(folder, recursive: true);
+            // 1) apaga o conteudo preservando o manifesto
+            if (!ClearFolderContent(folder, manifest)) return false;
+
+            // 2) agora sim: o manifesto e a propria pasta
+            if (File.Exists(manifest)) File.Delete(manifest);
+            Directory.Delete(folder, recursive: false);
             return true;
         }
         catch { return false; }
@@ -437,13 +441,119 @@ public static class BackupManager
             {
                 var folder = Path.Combine(RootDirectory, id);
                 if (!Directory.Exists(folder)) continue;
-                Directory.Delete(folder, recursive: true);
+                if (!ClearFolderContent(folder, null)) continue;
+                Directory.Delete(folder, recursive: false);
                 count++;
             }
             catch { /* arquivo travado: fica para a proxima tentativa */ }
         }
         return count;
     }
+
+    /// <summary>
+    /// Apaga o conteudo de uma pasta de backup, opcionalmente preservando um
+    /// arquivo (o manifesto).
+    ///
+    /// Devolve <c>false</c> quando sobrou algo — normalmente uma DLL carregada
+    /// que impede a exclusao. Nesse caso o manifesto permanece intacto e o
+    /// ponto de restauracao continua visivel na listagem, podendo ser tentado
+    /// de novo depois. E o que evita a pasta orfa e invisivel.
+    /// </summary>
+    private static bool ClearFolderContent(string folder, string? preserveFile)
+    {
+        var (files, directories) = CollectTree(folder);
+
+        foreach (var file in files)
+        {
+            if (preserveFile is not null && IsSamePath(file, preserveFile)) continue;
+            TryDeleteFile(file);
+        }
+
+        // das subpastas mais profundas para as mais rasas
+        foreach (var directory in directories.OrderByDescending(d => d.Length))
+        {
+            TryDeleteDirectory(directory);
+        }
+
+        // sobrou alguma coisa?
+        foreach (var entry in SafeEnumerateEntries(folder))
+        {
+            if (preserveFile is not null && IsSamePath(entry, preserveFile)) continue;
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Percorre a pasta recursivamente devolvendo arquivos e subpastas.
+    /// Uma subpasta inacessivel nao interrompe o percurso: ela simplesmente
+    /// nao entra na lista.
+    /// </summary>
+    private static (List<string> Files, List<string> Directories) CollectTree(string root)
+    {
+        var files = new List<string>();
+        var directories = new List<string>();
+        var pending = new Stack<string>();
+        pending.Push(root);
+
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+
+            try { files.AddRange(Directory.GetFiles(current)); }
+            catch { /* pasta inacessivel */ }
+
+            try
+            {
+                foreach (var directory in Directory.GetDirectories(current))
+                {
+                    directories.Add(directory);
+                    pending.Push(directory);
+                }
+            }
+            catch { /* pasta inacessivel */ }
+        }
+
+        return (files, directories);
+    }
+
+    /// <summary>Lista o conteudo direto de uma pasta, sem falhar se ela sumiu.</summary>
+    private static List<string> SafeEnumerateEntries(string folder)
+    {
+        try { return Directory.GetFileSystemEntries(folder).ToList(); }
+        catch { return new List<string>(); }
+    }
+
+    /// <summary>Apaga um arquivo, ignorando atributos de leitura e erros.</summary>
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            var attributes = File.GetAttributes(path);
+            if ((attributes & FileAttributes.ReadOnly) != 0)
+            {
+                File.SetAttributes(path, attributes & ~FileAttributes.ReadOnly);
+            }
+
+            File.Delete(path);
+        }
+        catch { /* arquivo travado: fica para a proxima tentativa */ }
+    }
+
+    /// <summary>Apaga uma pasta vazia, ignorando erros.</summary>
+    private static void TryDeleteDirectory(string path)
+    {
+        try { Directory.Delete(path, recursive: false); }
+        catch { /* pasta com conteudo ou travada */ }
+    }
+
+    /// <summary>Compara dois caminhos ignorando caixa e barra final.</summary>
+    private static bool IsSamePath(string left, string right) =>
+        string.Equals(
+            PathUtil.Normalize(left),
+            PathUtil.Normalize(right),
+            StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Apaga todos os pontos de restauracao.</summary>
     public static int DeleteAll()

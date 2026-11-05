@@ -11,23 +11,44 @@ using Tranal.Uninstaller.Ui.Shared;
 namespace Tranal.Uninstaller.Ui.Tools;
 
 /// <summary>
-/// Telas das 6 ferramentas do painel "Tools". Todas usam o mesmo painel generico
-/// (<see cref="ItemListPanel"/>): o que muda entre elas sao as colunas, os
-/// comandos e a fonte dos dados.
-/// </summary>
+    /// Telas das ferramentas do painel "Tools". Todas usam o mesmo painel generico
+    /// (<see cref="ItemListPanel"/>): o que muda entre elas sao as colunas, os
+    /// comandos e a fonte dos dados.
+    /// </summary>
 public static class ToolViews
 {
     /// <summary>Cria a tela da ferramenta pelo id usado na barra lateral.</summary>
     public static FrameworkElement Create(string toolId) => toolId switch
     {
-        "AutorunManager" => CreateAutorun(),
-        "JunkCleaner" => CreateJunk(),
-        "WindowsTools" => CreateWindowsTools(),
-        "HistoryCleaner" => CreateHistory(),
-        "EvidenceRemover" => CreateEvidence(),
-        "UnrecoverableDelete" => CreateUnrecoverable(),
-        "RegistryOptimizer" => CreateRegistryOptimizer(),
-        _ => new ItemListPanel(),
+        ToolCatalog.AutorunManager => CreateAutorun(),
+        ToolCatalog.JunkCleaner => CreateJunk(),
+        ToolCatalog.WindowsTools => CreateWindowsTools(),
+        ToolCatalog.HistoryCleaner => CreateHistory(),
+        ToolCatalog.TracksBrowsers => CreateHistory(TrackModule.Browsers),
+        ToolCatalog.TracksOffice => CreateHistory(TrackModule.Office),
+        ToolCatalog.TracksWindows => CreateHistory(TrackModule.Windows),
+        ToolCatalog.EvidenceRemover => CreateEvidence(),
+        ToolCatalog.UnrecoverableDelete => CreateUnrecoverable(),
+        ToolCatalog.RegistryOptimizer => CreateRegistryOptimizer(),
+        _ => CreateUnknown(toolId),
+    };
+
+    /// <summary>
+    /// Tela de uma ferramenta que o catalogo nao conhece. O erro fica no log
+    /// em vez de um painel vazio sem explicacao.
+    /// </summary>
+    private static FrameworkElement CreateUnknown(string toolId)
+    {
+        ToolLog.Error($"Ferramenta desconhecida: '{toolId}'.");
+        return new ItemListPanel();
+    }
+
+    /// <summary>Chave de idioma do titulo de cada modulo do Tracks Cleaner.</summary>
+    private static string ModuleTitleKey(TrackModule module) => module switch
+    {
+        TrackModule.Browsers => "Module.TracksBrowsers",
+        TrackModule.Office => "Module.TracksOffice",
+        _ => "Module.TracksWindows",
     };
 
     /// <summary>Linha uniforme exibida pelas ferramentas de limpeza.</summary>
@@ -282,14 +303,14 @@ public static class ToolViews
     // ------------------------------------------------------------------
     // Limpeza de historico
     // ------------------------------------------------------------------
-    private static FrameworkElement CreateHistory()
+    private static FrameworkElement CreateHistory(TrackModule? module = null)
     {
         var panel = new ItemListPanel();
         var rows = new ObservableCollection<ToolRow>();
         var items = new List<HistoryItem>();
 
         panel.Configure(
-            Loc.Get("Module.HistoryCleaner"),
+            module is null ? Loc.Get("Module.HistoryCleaner") : Loc.Get(ModuleTitleKey(module.Value)),
             new[]
             {
                 new ColumnDef { Header = "", Width = 34, IsCheckable = true },
@@ -309,9 +330,11 @@ public static class ToolViews
         panel.RunAsync(() => ScanAsync(panel, rows, items));
         return panel;
 
-        static async Task ScanAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<HistoryItem> items)
+        async Task ScanAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<HistoryItem> items)
         {
-            var found = await Task.Run(HistoryCleaner.Scan);
+            var found = await Task.Run(() => module is null
+                ? HistoryCleaner.Scan()
+                : HistoryCleaner.Scan(module.Value));
 
             items.Clear();
             items.AddRange(found);
@@ -332,7 +355,7 @@ public static class ToolViews
             panel.PanelStatus = Loc.Get("Status.Done") + $" — {rows.Count} item(ns)";
         }
 
-        static async Task ClearAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<HistoryItem> items, bool all)
+        async Task ClearAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<HistoryItem> items, bool all)
         {
             var selected = all
                 ? items

@@ -181,6 +181,62 @@ public static class ExplorerContextMenu
     }
 
     /// <summary>
+    /// Registra ou remove a entrada de menu de contexto do Windows conforme a
+    /// preferencia escolhida pelo usuario ("Mostrar comandos no menu de
+    /// contexto do Windows" do Revo).
+    ///
+    /// A gravacao e feita direto no registro (apenas HKCU), sem passar por um
+    /// script .reg. Devolve true quando o estado pedido esta em vigor.
+    /// </summary>
+    public static bool Apply(bool enabled)
+    {
+        if (!enabled) return RemoveRegistryScript();
+
+        try
+        {
+            var (executable, arguments) = BuildRegistration(GetTranalExecutablePath(), "%1");
+            if (executable.Length == 0) return false;
+
+            var description = RegistrationDescription;
+
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
+
+            using (var shell = baseKey.CreateSubKey(ShellKeyRelative))
+            {
+                if (shell is null) return false;
+
+                shell.SetValue(string.Empty, description);
+                shell.SetValue("MUIVerb", description);
+                shell.SetValue("Icon", executable);
+            }
+
+            using (var command = baseKey.CreateSubKey(CommandKeyRelative))
+            {
+                if (command is null) return false;
+
+                command.SetValue(string.Empty, BuildCommandLine(executable, arguments));
+            }
+
+            // O script .reg e apenas uma copia legivel do que foi gravado.
+            try
+            {
+                var script = RegistryScriptPath;
+                var dir = Path.GetDirectoryName(script);
+                if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                File.WriteAllText(script, BuildRegistryScript(executable));
+            }
+            catch { /* a copia do script e opcional */ }
+
+            return IsRegistered();
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao registrar a entrada do menu de contexto: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// True quando o executavel informado corresponde a um programa instalado.
     /// </summary>
     public static bool IsInstalled(string executablePath)

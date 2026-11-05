@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -61,7 +62,8 @@ public partial class ForcedUninstallWindow : Window
 
         StatusText.Text = Loc.Get("Status.Scanning");
 
-        var items = LeftoverScanner.ScanForced(path, UninstallMode.Advanced);
+        var items = LeftoverScanner.ScanForced(
+            path, UninstallMode.Advanced, AppSettingsStore.Current.CheckAllLeftoversByDefault);
 
         _leftovers.Clear();
         foreach (var item in items) _leftovers.Add(item);

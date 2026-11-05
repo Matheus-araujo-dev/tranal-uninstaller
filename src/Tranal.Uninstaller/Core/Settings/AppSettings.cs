@@ -106,6 +106,59 @@ public sealed class AppSettings
     /// ainda nao esta instalado. Vazio significa busca na web padrao.
     /// </summary>
     public string WebSearchEngine { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Marca todos os itens de sobra por padrao, inclusive os de confianca
+    /// media e baixa. Corresponde a opcao "Marcar todos os itens restantes por
+    /// padrao" do Revo Uninstaller Pro.
+    ///
+    /// Padrao: <c>false</c> — como no Revo, so a confianca alta vem marcada.
+    /// A confianca de cada item continua sendo exibida: apenas a marcacao
+    /// inicial muda.
+    /// </summary>
+    public bool CheckAllLeftoversByDefault { get; set; }
+
+    /// <summary>
+    /// Nao exibe as mensagens de informacao do aplicativo.
+    /// Corresponde a opcao "Ocultar mensagens de informacao" do Revo.
+    /// </summary>
+    public bool SkipInformationMessages { get; set; }
+
+    /// <summary>
+    /// Nao exibe as mensagens de aviso do aplicativo.
+    /// Corresponde a opcao "Ocultar mensagens de aviso" do Revo.
+    /// </summary>
+    public bool SkipWarningMessages { get; set; }
+
+    /// <summary>Mostra o cabecalho principal da janela. Padrao: <c>true</c>.</summary>
+    public bool ShowMainToolbar { get; set; } = true;
+
+    /// <summary>Mostra o painel de descricao. Padrao: <c>true</c>.</summary>
+    public bool ShowDescriptionPanel { get; set; } = true;
+
+    /// <summary>Mostra a barra de status. Padrao: <c>true</c>.</summary>
+    public bool ShowStatusBar { get; set; } = true;
+
+    /// <summary>Mostra o grupo de ferramentas na barra lateral. Padrao: <c>true</c>.</summary>
+    public bool ShowToolsToolbar { get; set; } = true;
+
+    /// <summary>
+    /// Mostra os comandos do Tranal no menu de contexto do Windows.
+    /// Corresponde a opcao "Mostrar comandos no menu de contexto do Windows"
+    /// do Revo.
+    ///
+    /// Padrao: <c>false</c> — registrar uma entrada para todos os arquivos do
+    /// Explorer e uma mudanca visivel no ambiente do usuario: ela so acontece
+    /// quando o usuario liga a opcao.
+    /// </summary>
+    public bool ShowContextMenuCommands { get; set; }
+
+    /// <summary>
+    /// Apaga o registro do programa monitorado depois da desinstalacao.
+    /// Corresponde a opcao "Apagar o log do programa monitorado apos a
+    /// desinstalacao" do Revo.
+    /// </summary>
+    public bool DeleteTracedLogAfterUninstall { get; set; }
 }
 
 /// <summary>Leitura e gravacao das <see cref="AppSettings"/>.</summary>
@@ -196,5 +249,8 @@ public static class SettingsFileFormat
         + "createRestorePointBeforeUninstall, onlyRunBuiltInUninstaller, disableUninstallHistory, "
         + "showWebPageShortcuts, advancedMode, checkForUpdateOnStartup, updateAutomatically, "
         + "sendFilesToRecycleBin, deferRemovalToNextRestart, backupBeforeRemoval, "
-        + "portableDataFolder, fastLoadingMode, webSearchEngine";
+        + "portableDataFolder, fastLoadingMode, webSearchEngine, "
+        + "checkAllLeftoversByDefault, skipInformationMessages, skipWarningMessages, "
+        + "showMainToolbar, showDescriptionPanel, showStatusBar, showToolsToolbar, "
+        + "showContextMenuCommands, deleteTracedLogAfterUninstall";
 }

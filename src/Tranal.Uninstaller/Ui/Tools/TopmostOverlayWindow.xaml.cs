@@ -464,8 +464,7 @@ public partial class TopmostOverlayWindow : Window
     {
         try
         {
-            MessageBox.Show(this, text, Loc.Get("Topmost.Title"),
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            UserMessages.Information(this, text, Loc.Get("Topmost.Title"));
         }
         catch
         {

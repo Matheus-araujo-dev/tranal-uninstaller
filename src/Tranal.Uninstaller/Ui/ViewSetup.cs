@@ -1,3 +1,4 @@
+using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Ui.Modules;
 using Tranal.Uninstaller.Ui.Tools;
 
@@ -19,12 +20,12 @@ public static class ViewSetup
         ViewRegistry.Register("LogsDatabase", () => ModuleViews.Create("LogsDatabase", host));
         ViewRegistry.Register("HunterMode", () => ModuleViews.Create("HunterMode", host));
 
-        // Ferramentas
-        ViewRegistry.Register("AutorunManager", () => ToolViews.Create("AutorunManager"));
-        ViewRegistry.Register("JunkCleaner", () => ToolViews.Create("JunkCleaner"));
-        ViewRegistry.Register("WindowsTools", () => ToolViews.Create("WindowsTools"));
-        ViewRegistry.Register("HistoryCleaner", () => ToolViews.Create("HistoryCleaner"));
-        ViewRegistry.Register("EvidenceRemover", () => ToolViews.Create("EvidenceRemover"));
-        ViewRegistry.Register("UnrecoverableDelete", () => ToolViews.Create("UnrecoverableDelete"));
+        // Ferramentas: a lista vem do catalogo do nucleo (fonte unica), para
+        // que nenhum botao da barra lateral fique sem a tela correspondente.
+        foreach (var id in ToolCatalog.All)
+        {
+            var toolId = id;
+            ViewRegistry.Register(toolId, () => ToolViews.Create(toolId));
+        }
     }
 }

@@ -76,7 +76,7 @@ O original tem quatro modos. No Tranal eles são **um único enum**
 | `EvidenceRemoverPro` / `Evidence Remover` | 18 | ✅ | `Core/Tools/EvidenceRemover.cs` |
 | `Unrecoverable Delete` / `UnrecoverableDeletePro` | 18 | ✅ | `Core/Tools/UnrecoverableDelete.cs` |
 | `Junk Files Cleaner Tool` / `JunkFilesCleanerPro` / `Junk Files Cleaner Options` | 36 | ✅ | `Core/Tools/JunkCleaner.cs` |
-| `Context Menu Junk Files Cleaner` | 8 | 🟡 | a ferramenta existe; o item de menu no Explorer ainda não |
+| `Context Menu Junk Files Cleaner` | 8 | ✅ | `Ui/Shared/ItemListPanel.xaml.cs` — menu de contexto da lista das ferramentas: marcar/desmarcar todos, marcar/desmarcar os selecionados, abrir a pasta que contém, propriedades e "pesquisar {termo} na web" |
 | `WindowsCleanerPro` | 1 | ✅ | cache de miniaturas — `TrackCleaner` (módulo `Windows`) |
 
 Rastros cobertos (medidos nas strings 508–516 e 707–725):
@@ -111,7 +111,7 @@ Rastros cobertos (medidos nas strings 508–516 e 707–725):
 |---|---|---|---|
 | `Auto Run Manager Pro` / `Autorun List` / `Autorun Toolbar` | 53 | ✅ | `Core/Tools/AutorunManager.cs` — 346 itens reais nesta máquina |
 | `WindowsToolsPro` / `WinTools` | 53 | ✅ | `Core/Tools/WindowsToolsCatalog.cs` |
-| `Outlook Control` | 11 | 🟡 | limpeza de rastros coberta; o painel de controle do Outlook não é separado |
+| `Outlook Control` | 11 | ✅ | árvore de ferramentas da barra lateral (`Core/ToolCatalog.cs`): Otimização → Otimizador de Registro, Tracks Cleaner → Navegadores / Microsoft Office / Windows, mais Autorun, Evidências, Exclusão irrecuperável, Ferramentas do Windows e Arquivos temporários |
 | `Registry Optimizer` | 2 | ✅ | `Core/Tools/RegistryOptimizer.cs` — "Select where to scan: Start menu" |
 
 ---
@@ -121,7 +121,7 @@ Rastros cobertos (medidos nas strings 508–516 e 707–725):
 | Seção do original | Strings | Tranal | Onde |
 |---|---|---|---|
 | `Topmost Window` | 34 | ✅ | `Core/Topmost/TopmostTargetResolver.cs`, `Ui/Tools/TopmostOverlayWindow.*` |
-| `ContextMenu Uninstaller` | 9 | ✅ | `Core/Topmost/ExplorerContextMenu.cs` |
+| `ContextMenu Uninstaller` | 9 | ✅ | `Core/Topmost/ExplorerContextMenu.cs` — a entrada é registrada de verdade em `HKCU\Software\Classes\*\shell`, e a preferência "Mostrar comandos no menu de contexto do Windows" liga e desliga na hora |
 
 Ações do overlay medidas nas strings 4011–4035: `EXIT`, `Uninstall`, `Stop Auto
 Starting`, `Kill Process`, `Kill and Delete Process`, `Open Containing Folder`,
@@ -136,8 +136,27 @@ top`, `Drag and Drop Mode`, `Hunter Mode`, `Open Main Window`.
 |---|---|---|---|
 | `Windows Apps` | 20 | ✅ | `Core/Modules/WindowsApps.cs` — 122 pacotes MSIX reais |
 | `Browser Extensions` | 23 | ✅ | `Core/Modules/BrowserExtensions.cs` — Chrome/Edge/Firefox/Opera, `__MSG_*` resolvido |
-| `General App` | 147 | 🟡 | opções gerais, temas, idiomas, filtros — sem o painel de "favoritos"/personalização completo |
+| `General App` | 147 | 🟡 | personalização do layout (visibilidade de painéis + "Restaurar layout padrão"), marcar todas as sobras por padrão, ocultar mensagens de informação/aviso, menu de contexto do Windows e apagar o log do programa monitorado — `Core/Settings/AppSettings.cs` e `Ui/OptionsWindow.*`. **Falta**: a personalização fina de barras de ferramentas (arrastar/reordenar), a cor própria dos diálogos e a tela de ativação, que não se aplicam a uma reimplementação independente |
 | `Common` | 31 | ✅ | dicionário e rotulos compartilhados |
+
+### Opções do `General App` traduzidas para o Tranal
+
+Medidas nas strings 16004–16009 (visibilidade de painéis), 16031–16032 (mensagens),
+16039–16041 (exibição), 16059–16063 (comportamento) e 16104–16106 (restaurar layout).
+
+| Opção do original | Tranal | Onde |
+|---|---|---|
+| "View → Menu Bar / Main Toolbar / Description Panel / Status Bar / Tools Toolbar" | submenu **Painéis** com quatro marcas + "Restaurar layout padrão" | `MainWindow.xaml.cs` (`BuildPanelsMenu`, `ApplyLayout`, `ResetLayout`) |
+| "Reset main window panels settings" / "Reset successful!" | "Restaurar layout padrão" | idem |
+| "Check mark all leftovers by default" | "Marcar todas as sobras por padrão" | `LeftoverScanner.Scan(..., checkAllLeftovers)` |
+| "Skip information messages" / "Skip warning messages" | "Ocultar mensagens de informação / de aviso" | `Ui/UserMessages.cs` |
+| "Show commands in Windows context menu" | "Mostrar comandos no menu de contexto do Windows" (opt-in) | `Core/Topmost/ExplorerContextMenu.cs` (`Apply`) |
+| "Delete traced program log after uninstall" | "Apagar o log do programa monitorado após a desinstalação" | `Ui/UninstallWizardWindow.xaml.cs` |
+| "Export All Settings" / "Import All Settings" | persistência em `settings.json` | `Core/Settings/AppSettings.cs` |
+| "Create daily full Registry backup" | ⬜ fora de escopo: exige um serviço/agendador do Windows | — |
+
+A confirmação de uma ação destrutiva **nunca** é omitida: as opções de
+mensagem do original tratam só das mensagens informativas e de aviso.
 
 ---
 
@@ -169,3 +188,14 @@ top`, `Drag and Drop Mode`, `Hunter Mode`, `Open Main Window`.
 - Ao implementar algo, a linha muda **neste arquivo** e no `NOVIDADES.md`.
 - O inventário bruto de strings **não** é versionado: é material de análise.
   O que fica no repositório é o fato derivado.
+
+### Estado medido na última rodada
+
+| Medida | Valor |
+|---|---|
+| Build | 0 erros, 0 avisos |
+| Suíte de testes | **148 verdes**, 0 falhas |
+| Catálogos de idioma | **509 chaves** em pt-BR e en-US, em paridade |
+| Programas listados | 76 (18 em "Novos Programas", 58 em "Outros Programas") |
+| Varredura completa | 150 ms |
+| Ambiente do usuário | intocado pela suíte (comparação byte a byte antes/depois) |

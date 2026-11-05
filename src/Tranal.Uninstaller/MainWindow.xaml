@@ -25,7 +25,7 @@
           <RowDefinition Height="52" />   <!-- botoes -->
           <RowDefinition Height="46" />   <!-- instalar com -->
           <RowDefinition Height="*" />    <!-- modulos -->
-          <RowDefinition Height="24" />   <!-- cabecalho ferramentas -->
+          <RowDefinition Height="Auto" /> <!-- cabecalho ferramentas -->
           <RowDefinition Height="Auto" /> <!-- ferramentas -->
         </Grid.RowDefinitions>
 
@@ -151,7 +151,8 @@
         </StackPanel>
 
         <!-- cabecalho do grupo de ferramentas -->
-        <Border Grid.Row="6" Background="{DynamicResource ToolBarBrush}"
+        <Border Grid.Row="6" x:Name="ToolsToolbarHeaderBorder" MinHeight="24"
+                Background="{DynamicResource ToolBarBrush}"
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
           <TextBlock Text="{loc:Tr Sidebar.Tools}" Margin="10,0" VerticalAlignment="Center" FontWeight="SemiBold" />
         </Border>
@@ -179,25 +180,11 @@
               <TextBlock Text="{loc:Tr Module.WindowsTools}" />
             </StackPanel>
           </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="HistoryCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolHistoryCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.HistoryCleaner}" />
-            </StackPanel>
-          </Button>
           <Button Style="{StaticResource ModuleButton}" Tag="EvidenceRemover" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolEvidenceRemover">
             <StackPanel Orientation="Horizontal">
               <TextBlock Text="&#x1F52B;" Margin="0,0,8,0" />
               <TextBlock Text="{loc:Tr Module.EvidenceRemover}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="RegistryOptimizer" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolRegistryOptimizer">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C3;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.RegistryOptimizer}" />
             </StackPanel>
           </Button>
           <Button Style="{StaticResource ModuleButton}" Tag="UnrecoverableDelete" Click="ToolButton_Click"
@@ -207,6 +194,51 @@
               <TextBlock Text="{loc:Tr Module.UnrecoverableDelete}" />
             </StackPanel>
           </Button>
+
+          <!-- Tracks Cleaner: os tres modulos separados, como no Revo -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupTracksCleaner}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="HistoryCleaner" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolHistoryCleaner">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5D0;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.HistoryCleaner}" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource ModuleButton}" Tag="TracksBrowsers" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolTracksBrowsers">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F310;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.TracksBrowsers}" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource ModuleButton}" Tag="TracksOffice" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolTracksOffice">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4C4;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.TracksOffice}" />
+            </StackPanel>
+          </Button>
+          <Button Style="{StaticResource ModuleButton}" Tag="TracksWindows" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolTracksWindows">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1FA9F;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.TracksWindows}" />
+            </StackPanel>
+          </Button>
+
+          <!-- Otimizacao -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupOptimization}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="RegistryOptimizer" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolRegistryOptimizer">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C3;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.RegistryOptimizer}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>
@@ -214,14 +246,14 @@
     <!-- ================= AREA PRINCIPAL ================= -->
     <Grid Grid.Column="1">
       <Grid.RowDefinitions>
-        <RowDefinition Height="30" />
+        <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
         <RowDefinition Height="Auto" />
-        <RowDefinition Height="24" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <!-- cabecalho do modulo + botao de menu -->
-      <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}"
+      <Border Grid.Row="0" x:Name="MainToolbarBorder" MinHeight="30" Background="{DynamicResource HeaderBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
         <Grid>
           <Grid.ColumnDefinitions>
@@ -303,7 +335,7 @@
       </Grid>
 
       <!-- painel de descricao -->
-      <Border Grid.Row="2" Background="{DynamicResource DescriptionBrush}"
+      <Border Grid.Row="2" x:Name="DescriptionPanelBorder" Background="{DynamicResource DescriptionBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
         <DockPanel>
           <Grid DockPanel.Dock="Top" Height="22">
@@ -321,7 +353,7 @@
       </Border>
 
       <!-- barra de status -->
-      <Border Grid.Row="3" Background="{DynamicResource StatusBarBrush}"
+      <Border Grid.Row="3" x:Name="StatusBarBorder" MinHeight="24" Background="{DynamicResource StatusBarBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
         <TextBlock x:Name="StatusText" Margin="8,0" VerticalAlignment="Center" FontSize="11" />
       </Border>

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -53,6 +54,188 @@ public partial class ItemListPanel : UserControl
     public ItemListPanel()
     {
         InitializeComponent();
+
+        BuildContextMenu();
+    }
+
+    // ------------------------------------------------------------------
+    // Menu de contexto da lista
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Menu de contexto da lista: marcacao em lote e os verbos do shell.
+    /// Corresponde ao menu de contexto do "Junk Files Cleaner" do Revo, que
+    /// deixa marcar e desmarcar os itens direto da lista.
+    /// </summary>
+    private void BuildContextMenu()
+    {
+        var menu = new ContextMenu();
+
+        menu.Items.Add(ContextItem("ContextMenu.CheckAllItems", "CtxCheckAll",
+            () => SetChecked(true, selectedOnly: false)));
+        menu.Items.Add(ContextItem("ContextMenu.UncheckAllItems", "CtxUncheckAll",
+            () => SetChecked(false, selectedOnly: false)));
+        menu.Items.Add(ContextItem("ContextMenu.CheckSelectedItems", "CtxCheckSelected",
+            () => SetChecked(true, selectedOnly: true)));
+        menu.Items.Add(ContextItem("ContextMenu.UncheckSelectedItems", "CtxUncheckSelected",
+            () => SetChecked(false, selectedOnly: true)));
+
+        menu.Items.Add(new Separator());
+
+        menu.Items.Add(ContextItem("ContextMenu.OpenContainingFolder", "CtxOpenContainingFolder",
+            OpenContainingFolder));
+        menu.Items.Add(ContextItem("ContextMenu.Properties", "CtxProperties",
+            ShowProperties));
+
+        // "Search at %s for": o rotulo mostra o nome do item selecionado, como
+        // no original. O texto e montado quando o menu abre.
+        var search = ContextItem("ContextMenu.SearchWeb", "CtxSearchWeb", SearchWeb);
+        menu.Items.Add(search);
+
+        menu.Opened += (_, _) =>
+        {
+            var term = SelectedTerm();
+            search.Header = term.Length > 0
+                ? Loc.Get("ContextMenu.SearchWeb", term)
+                : Loc.Get("ContextMenu.SearchWebNoSelection");
+            search.IsEnabled = term.Length > 0;
+        };
+
+        ItemsList.ContextMenu = menu;
+    }
+
+    private static MenuItem ContextItem(string key, string automationId, Action action)
+    {
+        var item = new MenuItem { Header = Loc.Get(key) };
+        AutomationProperties.SetAutomationId(item, automationId);
+        item.Click += (_, _) => action();
+        return item;
+    }
+
+    /// <summary>
+    /// Marca ou desmarca os itens da lista. Com <c>selectedOnly</c> valente so
+    /// os itens selecionados na lista sao alterados; sem ele, todos.
+    /// </summary>
+    private void SetChecked(bool value, bool selectedOnly)
+    {
+        var source = selectedOnly ? ItemsList.SelectedItems : ItemsList.Items;
+
+        foreach (var item in source)
+        {
+            TrySetChecked(item, value);
+        }
+    }
+
+    /// <summary>
+    /// Define a marcacao de um item. Cada ferramenta usa um tipo de linha
+    /// proprio: a marcacao e procurada pelo nome da propriedade ("Selected" ou
+    /// "IsChecked") ou pela interface <see cref="ISelectableRow"/>.
+    /// </summary>
+    private static bool TrySetChecked(object? item, bool value)
+    {
+        if (item is null) return false;
+
+        if (item is ISelectableRow selectable)
+        {
+            selectable.IsChecked = value;
+            return true;
+        }
+
+        var property = item.GetType().GetProperty("Selected")
+            ?? item.GetType().GetProperty("IsChecked");
+        if (property is null || !property.CanWrite) return false;
+
+        property.SetValue(item, value);
+        return true;
+    }
+
+    /// <summary>Caminho do primeiro item selecionado, quando houver.</summary>
+    private string? SelectedPath()
+    {
+        foreach (var item in ItemsList.SelectedItems)
+        {
+            if (item is null) continue;
+
+            var value = item.GetType().GetProperty("Path")?.GetValue(item) as string;
+            if (!string.IsNullOrWhiteSpace(value)) return value;
+        }
+
+        return null;
+    }
+
+    /// <summary>Abre a pasta que contem o item selecionado.</summary>
+    private void OpenContainingFolder()
+    {
+        var path = SelectedPath();
+        if (path is null) return;
+
+        try
+        {
+            var folder = System.IO.Directory.Exists(path)
+                ? path
+                : System.IO.Path.GetDirectoryName(path) ?? string.Empty;
+
+            if (folder.Length == 0) return;
+
+            Process.Start(new ProcessStartInfo("explorer.exe", "/select,\"" + path + "\"")
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch { /* o shell nao aceitou o caminho: nada a fazer */ }
+    }
+
+    /// <summary>Abre as propriedades do item selecionado.</summary>
+    private void ShowProperties()
+    {
+        var path = SelectedPath();
+        if (path is null) return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true, Verb = "properties" });
+        }
+        catch
+        {
+            // Nem todo manipulador tem o verbo "properties": nesse caso o
+            // item e apenas selecionado no Explorer.
+            try { OpenContainingFolder(); }
+            catch { /* nada a fazer */ }
+        }
+    }
+
+    /// <summary>
+    /// Procura o item selecionado na web. E o item "Search at %s for" do
+    /// menu de contexto do Revo: o termo e o nome do arquivo ou da pasta.
+    /// </summary>
+    private void SearchWeb()
+    {
+        var term = SelectedTerm();
+        if (term.Length == 0) return;
+
+        var url = Core.WebSearch.BuildUrl(term, Core.Settings.AppSettingsStore.Current.WebSearchEngine);
+        if (url.Length == 0) return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch { /* o navegador padrao nao aceitou o endereco */ }
+    }
+
+    /// <summary>Nome do item selecionado, sem a extensao (o termo da busca).</summary>
+    private string SelectedTerm()
+    {
+        var path = SelectedPath();
+        if (path is null) return string.Empty;
+
+        try
+        {
+            return System.IO.Directory.Exists(path)
+                ? System.IO.Path.GetFileName(path.TrimEnd('\\'))
+                : System.IO.Path.GetFileNameWithoutExtension(path);
+        }
+        catch { return string.Empty; }
     }
 
     /// <summary>Titulo exibido na faixa superior.</summary>

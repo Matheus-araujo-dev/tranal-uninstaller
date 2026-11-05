@@ -1,5 +1,62 @@
 # Novidades
 
+## v1.1 — fechar as lacunas do REA e a cobertura das ferramentas
+
+### Novas funcionalidades (medidas nas strings do original)
+
+- **Painéis visíveis ou ocultos**: submenu **Painéis** no menu principal com o cabeçalho
+  principal, o painel de descrição, a barra de status e as ferramentas da barra lateral —
+  e **Restaurar layout padrão**. É o menu "Exibir" do Revo (strings 16004–16009, 16104–16106).
+- **Marcar todas as sobras por padrão**: opção do Revo que passa a marcar também a
+  confiança média e baixa. Continua valendo o padrão do original — só a alta confiança vem
+  marcada — e a confiança de cada item continua sendo exibida.
+- **Ocultar mensagens de informação e de aviso**: as duas opções do original. A confirmação
+  de uma ação destrutiva nunca é omitida.
+- **Menu de contexto do Windows Explorer**: a entrada "desinstalar com o Tranal" passa a ser
+  **registrada de verdade** (antes o script era só gerado) e a preferência **Mostrar comandos
+  no menu de contexto do Windows** liga e desliga na hora. É opt-in: nada é registrado sem o
+  usuário pedir.
+- **Apagar o log do programa monitorado após a desinstalação**.
+- **Tracks Cleaner em três limpadores separados** — Navegadores, Microsoft Office e Windows —
+  como no original, com os 32 rastros de navegador medidos nesta máquina.
+- **Menu de contexto das listas das ferramentas**: marcar/desmarcar todos, marcar/desmarcar os
+  selecionados, abrir a pasta que contém, propriedades e **pesquisar {termo} na web**.
+- **Mecanismo de busca na web** funcionando de verdade (Google, Bing, DuckDuckGo, Yahoo) — a
+  preferência existia, mas nada a consumia.
+
+### Correções
+
+- **O Otimizador de Registro nunca foi registrado**: o botão estava na barra lateral, mas a
+  tela não existia no registro de telas — o clique abria um **painel vazio**. Agora o catálogo
+  de ferramentas mora no núcleo (`Core/ToolCatalog.cs`) e é a fonte única da barra lateral, do
+  registro de telas e da suíte de testes.
+- **Excluir um backup com arquivo travado** apagava o manifesto antes da pasta: com um arquivo
+  em uso, a exclusão falhava e deixava uma pasta órfã invisível para o aplicativo. A correção
+  existia só no comentário do código; agora está implementada e tem teste.
+- **Os rótulos de grupo da barra lateral ficavam invisíveis**: usavam `GroupHeaderBrush`, que é
+  a cor de **fundo** do cabeçalho de grupo, como cor de texto. A chave existia nos dois temas,
+  então nada acusou — o texto é que não aparecia. Agora há teste que reprova brush de fundo
+  usado como cor de texto.
+- A entrada do menu de contexto do Windows deixou de ser registrada por padrão: ela é uma
+  mudança visível no ambiente do usuário e passou a depender da opção.
+
+### Cobertura de testes
+
+A suíte passou de **106 para 148 testes**, todos verdes:
+
+- **Ferramentas novas**: Otimizador de Registro, Modo Portátil, menu de contexto do Explorer,
+  janela principal flutuante e cliente de atualização.
+- **Preferências**: padrão, gravação/recarga e compatibilidade com um `settings.json` antigo.
+- **Paridade de interface**: a barra lateral, o catálogo de ferramentas e as telas não podem
+  divergir — é o teste que pega o defeito do Otimizador de Registro.
+- **Tema**: um brush de fundo não pode pintar texto.
+- **Regressões do Gerenciador de Backups**: exclusão com arquivo travado.
+
+A suíte continua **sem tocar o ambiente do usuário**: o estado do disco, dos backups, do
+registro pendente e das preferências foi comparado antes e depois — idêntico.
+
+---
+
 ## v1.0 — primeira rodada completa de paridade
 
 ### Desinstalação

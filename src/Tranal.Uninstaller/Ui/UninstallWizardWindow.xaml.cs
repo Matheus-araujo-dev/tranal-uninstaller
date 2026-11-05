@@ -7,6 +7,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Ui;
@@ -60,6 +61,14 @@ public partial class UninstallWizardWindow : Window
     private int _survivors;
     private RemovalReport? _report;
     private string _summary = string.Empty;
+
+    /// <summary>
+    /// Opcao "marcar todos os itens restantes por padrao" do Revo: quando
+    /// ligada, a varredura marca tambem os itens de confianca media e baixa.
+    /// Lida das preferencias no momento da varredura.
+    /// </summary>
+    private static bool CheckAllLeftovers =>
+        AppSettingsStore.Current.CheckAllLeftoversByDefault;
 
     /// <summary>Cria o assistente para a lista de programas informada.</summary>
     /// <param name="programs">Programas a desinstalar.</param>
@@ -223,7 +232,7 @@ public partial class UninstallWizardWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, "Tranal Uninstaller", MessageBoxButton.OK, MessageBoxImage.Warning);
+            UserMessages.Warning(this, ex.Message);
         }
     }
 
@@ -238,7 +247,7 @@ public partial class UninstallWizardWindow : Window
         _mode = SelectedMode;
 
         _analysis = await Task.Run(() => _programs
-            .SelectMany(p => LeftoverScanner.Scan(p, _mode))
+            .SelectMany(p => LeftoverScanner.Scan(p, _mode, CheckAllLeftovers))
             .ToList());
 
         StatusText.Text = Loc.Get("Wizard.Analyzed", _analysis.Count);
@@ -295,7 +304,9 @@ public partial class UninstallWizardWindow : Window
         StatusText.Text = Loc.Get("Wizard.Scanning");
 
         var items = UninstallModes.Scans(_mode)
-            ? await Task.Run(() => _programs.SelectMany(p => LeftoverScanner.Scan(p, _mode)).ToList())
+            ? await Task.Run(() => _programs
+                .SelectMany(p => LeftoverScanner.Scan(p, _mode, CheckAllLeftovers))
+                .ToList())
             : new List<LeftoverItem>();
 
         _leftovers.Clear();
@@ -338,6 +349,43 @@ public partial class UninstallWizardWindow : Window
                 Failed = _report.FailedCount + _report.ProtectedCount,
             });
         }
+
+        // "Apagar o log do programa monitorado apos a desinstalacao": o log da
+        // base de logs que corresponde aos programas desinstalados deixa de
+        // existir quando a preferencia esta ligada.
+        if (AppSettingsStore.Current.DeleteTracedLogAfterUninstall)
+        {
+            DeleteTracedLogsOf(name);
+        }
+    }
+
+    /// <summary>
+    /// Apaga os logs da base de logs cujo nome do programa casa com os
+    /// programas desinstalados.
+    /// </summary>
+    private void DeleteTracedLogsOf(string programNames)
+    {
+        try
+        {
+            var names = programNames
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(n => n.Trim())
+                .Where(n => n.Length > 0)
+                .ToList();
+
+            if (names.Count == 0) return;
+
+            foreach (var install in TracedPrograms.List())
+            {
+                if (string.IsNullOrWhiteSpace(install.ProgramName)) continue;
+
+                var matches = names.Any(n =>
+                    string.Equals(n, install.ProgramName, StringComparison.OrdinalIgnoreCase));
+
+                if (matches) TraceStore.Delete(install);
+            }
+        }
+        catch { /* apagar log nunca pode derrubar a desinstalacao */ }
     }
 
     /// <summary>

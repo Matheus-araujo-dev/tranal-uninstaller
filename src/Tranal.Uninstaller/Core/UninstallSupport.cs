@@ -358,7 +358,11 @@ public static class LeftoverScanner
             .ToList();
     }
 
-    public static List<LeftoverItem> Scan(InstalledProgram program, UninstallMode mode)
+    /// <summary>
+    /// Varre o sistema por restos de um programa removido.
+    /// </summary>
+    public static List<LeftoverItem> Scan(
+        InstalledProgram program, UninstallMode mode, bool checkAllLeftovers = false)
     {
         var items = new List<LeftoverItem>();
 
@@ -408,7 +412,17 @@ public static class LeftoverScanner
 
         // Deduplicacao canonica: a mesma pasta/registro descoberta por caminhos
         // diferentes (ex.: "C:\App" e "C:\App\") aparece uma unica vez.
-        return Deduplicate(items);
+        var result = Deduplicate(items);
+
+        // Opcao "marcar todos os itens restantes por padrao" do Revo: a
+        // marcacao inicial passa a incluir a confianca media e baixa. A
+        // confianca de cada item continua visivel na lista.
+        if (checkAllLeftovers)
+        {
+            foreach (var item in result) item.Selected = true;
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -417,7 +431,8 @@ public static class LeftoverScanner
     /// o usuario informa o executavel ou a pasta e o Tranal procura tudo que
     /// estiver relacionado ao nome informado.
     /// </summary>
-    public static List<LeftoverItem> ScanForced(string path, UninstallMode mode)
+    public static List<LeftoverItem> ScanForced(
+        string path, UninstallMode mode, bool checkAllLeftovers = false)
     {
         var full = PathUtil.Normalize(path);
         if (full.Length == 0) return new List<LeftoverItem>();
@@ -451,7 +466,7 @@ public static class LeftoverScanner
             InstallLocation = installLocation,
         };
 
-        var items = new List<LeftoverItem>(Scan(synthetic, mode));
+        var items = new List<LeftoverItem>(Scan(synthetic, mode, checkAllLeftovers));
 
         // O proprio alvo informado entra na lista (a protecao contra pastas de
         // sistema continua valendo em UninstallEngine.RemoveLeftovers).
@@ -482,7 +497,16 @@ public static class LeftoverScanner
         }
         catch { }
 
-        return Deduplicate(items);
+        var result = Deduplicate(items);
+
+        // O alvo informado ja entra marcado; a opcao "marcar todos" garante
+        // que os itens achados pelo nome tambem venham marcados.
+        if (checkAllLeftovers)
+        {
+            foreach (var item in result) item.Selected = true;
+        }
+
+        return result;
     }
 
     /// <summary>Deduplica por tipo + caminho canonico.</summary>

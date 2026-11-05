@@ -53,6 +53,33 @@
         <CheckBox x:Name="AutoUpdateCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.AutoUpdate}"
                   AutomationProperties.AutomationId="OptAutoUpdate" />
+        <CheckBox x:Name="SkipInformationCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.SkipInformation}"
+                  AutomationProperties.AutomationId="OptSkipInformation" />
+        <CheckBox x:Name="SkipWarningCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.SkipWarning}"
+                  AutomationProperties.AutomationId="OptSkipWarning" />
+        <CheckBox x:Name="ShowContextMenuCommandsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowContextMenuCommands}"
+                  AutomationProperties.AutomationId="OptShowContextMenuCommands" />
+        <CheckBox x:Name="DeleteTracedLogCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.DeleteTracedLog}"
+                  AutomationProperties.AutomationId="OptDeleteTracedLog" />
+
+        <!-- Layout: visibilidade dos paineis da janela principal -->
+        <TextBlock x:Name="LayoutSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
+        <CheckBox x:Name="ShowMainToolbarCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowMainToolbar}"
+                  AutomationProperties.AutomationId="OptShowMainToolbar" />
+        <CheckBox x:Name="ShowDescriptionPanelCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowDescriptionPanel}"
+                  AutomationProperties.AutomationId="OptShowDescriptionPanel" />
+        <CheckBox x:Name="ShowStatusBarCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowStatusBar}"
+                  AutomationProperties.AutomationId="OptShowStatusBar" />
+        <CheckBox x:Name="ShowToolsToolbarCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowToolsToolbar}"
+                  AutomationProperties.AutomationId="OptShowToolsToolbar" />
 
         <!-- Preferencias de desinstalacao -->
         <TextBlock x:Name="UninstallSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
@@ -74,6 +101,9 @@
         <CheckBox x:Name="BackupBeforeRemovalCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.BackupBeforeRemoval}"
                   AutomationProperties.AutomationId="OptBackupBeforeRemoval" />
+        <CheckBox x:Name="CheckAllLeftoversCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.CheckAllLeftovers}"
+                  AutomationProperties.AutomationId="OptCheckAllLeftovers" />
 
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />

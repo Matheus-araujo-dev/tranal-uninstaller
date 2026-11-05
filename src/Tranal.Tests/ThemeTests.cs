@@ -116,6 +116,50 @@ public class ThemeTests
     }
 
     /// <summary>
+    /// Uma cor de fundo nao pode pintar texto.
+    ///
+    /// Regressao do defeito encontrado nesta rodada: os rotulos de grupo da
+    /// barra lateral usavam <c>GroupHeaderBrush</c> (que e a cor de fundo do
+    /// cabecalho de grupo) como <c>Foreground</c>. A chave existia nos dois
+    /// temas, entao nenhum teste acusou nada — mas o texto ficava invisivel
+    /// na tela.
+    ///
+    /// A regra: so os brushes de texto (o nome comeca com "Text", "Title" ou
+    /// "TitleText") podem ser usados como <c>Foreground</c>.
+    /// </summary>
+    [Fact]
+    public void CorDeFundoNaoPodePintarTexto()
+    {
+        var pattern = new Regex(
+            "Foreground\\s*=\\s*\"\\{DynamicResource\\s+(?<key>[A-Za-z0-9_.]+)\\}",
+            RegexOptions.Compiled);
+
+        var found = new List<string>();
+
+        foreach (var xaml in EnumerateXamlFiles())
+        {
+            if (xaml.Contains(@"\Themes\")) continue;
+
+            var text = File.ReadAllText(xaml);
+            text = CommentPattern.Replace(text, string.Empty);
+
+            foreach (Match match in pattern.Matches(text))
+            {
+                var key = match.Groups["key"].Value;
+
+                var isTextBrush = key.Contains("Text", StringComparison.Ordinal);
+                if (!isTextBrush)
+                {
+                    found.Add($"{Path.GetFileName(xaml)}: Foreground usa '{key}', que nao e um brush de texto");
+                }
+            }
+        }
+
+        Assert.True(found.Count == 0,
+            "Brushes de fundo usados como cor de texto:\n" + string.Join("\n", found.Distinct()));
+    }
+
+    /// <summary>
     /// Tudo o que a interface pode referenciar: as cores dos dois temas
     /// (Themes/Dark.xaml e Themes/Light.xaml) e os estilos compartilhados
     /// (Themes/Styles.xaml).

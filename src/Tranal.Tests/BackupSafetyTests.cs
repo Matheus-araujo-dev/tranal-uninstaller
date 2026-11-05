@@ -310,6 +310,48 @@ public class BackupSafetyTests : IDisposable
     // ---------------------------------------------------------------
 
     [Fact]
+    public void PontoComArquivoTravadoContinuaVisivelNaListagem()
+    {
+        // A exclusao de um ponto apaga o CONTEUDO primeiro e so depois o
+        // manifesto. Se o manifesto fosse apagado primeiro, um arquivo
+        // travado deixaria a pasta orfa e invisivel para o app.
+        var origem = _temp.CreateFile("original.txt", "conteudo");
+        var point = BackupManager.Create("Travado", BackupManager.OperationFiles);
+        Assert.True(BackupManager.AddFile(point, origem));
+        BackupManager.Save(point);
+
+        // trava o arquivo copiado dentro da pasta do backup
+        var copiado = Path.Combine(point.FolderPath, point.Items[0].BackupPath);
+        using var trava = new FileStream(copiado, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        Assert.False(BackupManager.Delete(point.Id));
+
+        // o manifesto sobreviveu: o ponto continua listavel e nao virou orfao
+        Assert.Contains(BackupManager.List(), p => p.Id == point.Id);
+        Assert.DoesNotContain(point.Id, BackupManager.ListOrphans());
+    }
+
+    [Fact]
+    public void PontoComArquivoTravadoSomeDepoisDeLiberado()
+    {
+        var origem = _temp.CreateFile("original.txt", "conteudo");
+        var point = BackupManager.Create("Travado", BackupManager.OperationFiles);
+        Assert.True(BackupManager.AddFile(point, origem));
+        BackupManager.Save(point);
+
+        var copiado = Path.Combine(point.FolderPath, point.Items[0].BackupPath);
+        var trava = new FileStream(copiado, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        Assert.False(BackupManager.Delete(point.Id));
+        trava.Dispose();
+
+        // liberada a trava, a segunda tentativa apaga tudo
+        Assert.True(BackupManager.Delete(point.Id));
+        Assert.DoesNotContain(BackupManager.List(), p => p.Id == point.Id);
+        Assert.False(Directory.Exists(Path.Combine(BackupManager.RootDirectory, point.Id)));
+    }
+
+    [Fact]
     public void PastaSemManifestoEOrfaEDetectada()
     {
         var folder = Path.Combine(BackupManager.RootDirectory, "orfão-sem-manifesto");

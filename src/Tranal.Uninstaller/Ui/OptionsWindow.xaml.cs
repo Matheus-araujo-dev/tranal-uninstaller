@@ -19,6 +19,9 @@ public partial class OptionsWindow : Window
     /// <summary>Titulo do grupo de preferencias de armazenamento.</summary>
     private static string StorageSection => Loc.Get("Options.StorageSection");
 
+    /// <summary>Titulo do grupo de preferencias de layout.</summary>
+    private static string LayoutSection => Loc.Get("Options.LayoutSection");
+
     /// <summary>Cria a janela de opcoes e carrega os valores atuais.</summary>
     public OptionsWindow()
     {
@@ -30,6 +33,7 @@ public partial class OptionsWindow : Window
         // Titulos de grupo que ainda nao existem no catalogo de idiomas.
         UninstallSectionText.Text = UninstallSection;
         StorageSectionText.Text = StorageSection;
+        LayoutSectionText.Text = LayoutSection;
 
         foreach (var language in LanguageCatalog.All)
         {
@@ -54,6 +58,15 @@ public partial class OptionsWindow : Window
         FastLoadingCheck.IsChecked = settings.FastLoadingMode;
         CheckUpdateCheck.IsChecked = settings.CheckForUpdateOnStartup;
         AutoUpdateCheck.IsChecked = settings.UpdateAutomatically;
+        SkipInformationCheck.IsChecked = settings.SkipInformationMessages;
+        SkipWarningCheck.IsChecked = settings.SkipWarningMessages;
+        ShowContextMenuCommandsCheck.IsChecked = settings.ShowContextMenuCommands;
+        DeleteTracedLogCheck.IsChecked = settings.DeleteTracedLogAfterUninstall;
+
+        ShowMainToolbarCheck.IsChecked = settings.ShowMainToolbar;
+        ShowDescriptionPanelCheck.IsChecked = settings.ShowDescriptionPanel;
+        ShowStatusBarCheck.IsChecked = settings.ShowStatusBar;
+        ShowToolsToolbarCheck.IsChecked = settings.ShowToolsToolbar;
 
         CreateRestorePointCheck.IsChecked = settings.CreateRestorePointBeforeUninstall;
         OnlyBuiltInCheck.IsChecked = settings.OnlyRunBuiltInUninstaller;
@@ -61,6 +74,7 @@ public partial class OptionsWindow : Window
         RecycleBinCheck.IsChecked = settings.SendFilesToRecycleBin;
         DeferRemovalCheck.IsChecked = settings.DeferRemovalToNextRestart;
         BackupBeforeRemovalCheck.IsChecked = settings.BackupBeforeRemoval;
+        CheckAllLeftoversCheck.IsChecked = settings.CheckAllLeftoversByDefault;
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -101,6 +115,15 @@ public partial class OptionsWindow : Window
             s.FastLoadingMode = FastLoadingCheck.IsChecked == true;
             s.CheckForUpdateOnStartup = CheckUpdateCheck.IsChecked == true;
             s.UpdateAutomatically = AutoUpdateCheck.IsChecked == true;
+            s.SkipInformationMessages = SkipInformationCheck.IsChecked == true;
+            s.SkipWarningMessages = SkipWarningCheck.IsChecked == true;
+            s.ShowContextMenuCommands = ShowContextMenuCommandsCheck.IsChecked == true;
+            s.DeleteTracedLogAfterUninstall = DeleteTracedLogCheck.IsChecked == true;
+
+            s.ShowMainToolbar = ShowMainToolbarCheck.IsChecked == true;
+            s.ShowDescriptionPanel = ShowDescriptionPanelCheck.IsChecked == true;
+            s.ShowStatusBar = ShowStatusBarCheck.IsChecked == true;
+            s.ShowToolsToolbar = ShowToolsToolbarCheck.IsChecked == true;
 
             s.CreateRestorePointBeforeUninstall = CreateRestorePointCheck.IsChecked == true;
             s.OnlyRunBuiltInUninstaller = OnlyBuiltInCheck.IsChecked == true;
@@ -108,6 +131,7 @@ public partial class OptionsWindow : Window
             s.SendFilesToRecycleBin = RecycleBinCheck.IsChecked == true;
             s.DeferRemovalToNextRestart = DeferRemovalCheck.IsChecked == true;
             s.BackupBeforeRemoval = BackupBeforeRemovalCheck.IsChecked == true;
+            s.CheckAllLeftoversByDefault = CheckAllLeftoversCheck.IsChecked == true;
 
             s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();
@@ -115,6 +139,9 @@ public partial class OptionsWindow : Window
 
         ThemeManager.Apply(theme);
         Loc.SetLanguage(language);
+
+        // A entrada no menu de contexto do Windows entra em vigor na hora.
+        Core.Topmost.ExplorerContextMenu.Apply(AppSettingsStore.Current.ShowContextMenuCommands);
 
         DialogResult = true;
         Close();

@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
+using Tranal.Uninstaller.Core.Topmost;
 using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui;
 
@@ -25,6 +26,10 @@ public partial class App : Application
         // assim a primeira pintura ja sai no tema/idioma corretos.
         Loc.SetLanguage(AppSettingsStore.Current.Language);
         ThemeManager.ApplyStored();
+
+        // A entrada no menu de contexto do Windows segue a preferencia
+        // "Mostrar comandos no menu de contexto do Windows" do Revo.
+        ExplorerContextMenu.Apply(AppSettingsStore.Current.ShowContextMenuCommands);
 
         // Sonda de diagnostico dos recursos de tema (so com a variavel de
         // ambiente ligada): grava o resultado em %TEMP%\tranal-theme-probe.txt.

@@ -196,3 +196,32 @@ Options.UninstallSection|Desinstalação|Uninstall
 Options.StorageSection|Armazenamento|Storage
 Module.RegistryOptimizer|Otimizador de Registro|Registry Optimizer
 Common.Detail|Detalhe|Detail
+Cmd.Panels|Painéis|Panels
+Cmd.ShowMainToolbar|Cabeçalho principal|Main toolbar
+Cmd.ShowDescriptionPanel|Painel de descrição|Description panel
+Cmd.ShowStatusBar|Barra de status|Status bar
+Cmd.ShowToolsToolbar|Ferramentas da barra lateral|Sidebar tools
+Cmd.ResetLayout|Restaurar layout padrão|Reset layout to default
+ContextMenu.CheckAllItems|Marcar todos|Check all items
+ContextMenu.UncheckAllItems|Desmarcar todos|Uncheck all items
+ContextMenu.CheckSelectedItems|Marcar selecionados|Check selected items
+ContextMenu.UncheckSelectedItems|Desmarcar selecionados|Uncheck selected items
+ContextMenu.OpenContainingFolder|Abrir pasta que contém|Open containing folder
+ContextMenu.Properties|Propriedades|Properties
+Options.LayoutSection|Layout|Layout
+Options.CheckAllLeftovers|Marcar todas as sobras por padrão|Check all leftovers by default
+Options.SkipInformation|Ocultar mensagens de informação|Hide information messages
+Options.SkipWarning|Ocultar mensagens de aviso|Hide warning messages
+Options.ShowContextMenuCommands|Mostrar comandos no menu de contexto do Windows|Show commands in the Windows context menu
+Options.DeleteTracedLog|Apagar o log do programa monitorado após a desinstalação|Delete the traced program log after uninstall
+Options.ShowMainToolbar|Mostrar cabeçalho principal|Show main toolbar
+Options.ShowDescriptionPanel|Mostrar painel de descrição|Show description panel
+Options.ShowStatusBar|Mostrar barra de status|Show status bar
+Options.ShowToolsToolbar|Mostrar ferramentas da barra lateral|Show sidebar tools
+Sidebar.GroupTracksCleaner|Tracks Cleaner|Tracks Cleaner
+Sidebar.GroupOptimization|Otimização|Optimization
+Module.TracksBrowsers|Limpeza de Navegadores|Browsers Cleaner
+Module.TracksOffice|Limpeza do Microsoft Office|Microsoft Office Cleaner
+Module.TracksWindows|Limpeza do Windows|Windows Cleaner
+ContextMenu.SearchWeb|Pesquisar {0} na web|Search for {0}
+ContextMenu.SearchWebNoSelection|Pesquisar na web|Search the web

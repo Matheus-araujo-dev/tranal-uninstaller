@@ -104,6 +104,41 @@ public static class HistoryCleaner
     }
 
     /// <summary>
+    /// Varre apenas um modulo do Tracks Cleaner.
+    ///
+    /// E o equivalente aos tres limpadores separados do Revo ("Browsers
+    /// Cleaner", "Microsoft Office Cleaner" e "Windows Cleaner"). A
+    /// interpretacao do que e um rastro continua sendo uma so: o
+    /// <see cref="TrackCleaner"/>.
+    /// </summary>
+    public static IReadOnlyList<HistoryItem> Scan(TrackModule module)
+    {
+        var items = new List<HistoryItem>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        try { items.AddRange(TrackCleaner.Scan(module)); }
+        catch (Exception ex) { ToolLog.Error($"Falha ao varrer os rastros: {ex.Message}"); }
+
+        // Area de transferencia, downloads, recentes e historico de pesquisa
+        // sao vestigios do Windows: eles ficam no limpador do Windows.
+        if (module != TrackModule.Windows) return items;
+
+        try { AddClipboard(items, seen); }
+        catch (Exception ex) { ToolLog.Error($"Falha ao preparar a limpeza da area de transferencia: {ex.Message}"); }
+
+        try { ScanDownloads(items, seen); }
+        catch (Exception ex) { ToolLog.Error($"Falha ao varrer os downloads: {ex.Message}"); }
+
+        try { ScanRecent(items, seen); }
+        catch (Exception ex) { ToolLog.Error($"Falha ao varrer os itens recentes: {ex.Message}"); }
+
+        try { ScanSearchHistory(items, seen); }
+        catch (Exception ex) { ToolLog.Error($"Falha ao varrer o historico de pesquisa: {ex.Message}"); }
+
+        return items;
+    }
+
+    /// <summary>
     /// Limpa os vestigios selecionados e devolve o relatorio canonico.
     /// </summary>
     public static RemovalReport Clear(IEnumerable<HistoryItem> items)

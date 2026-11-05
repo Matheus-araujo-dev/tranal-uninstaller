@@ -92,6 +92,21 @@ Baseline de avisos: **0**. Qualquer aviso novo é regressão.
   texto vai por código.
 - `ItemContainerStyle="{StaticResource {x:Type ListViewItem}}"` só funciona se
   existir um `Style TargetType="ListViewItem"` no dicionário de estilos.
+- **Um brush de fundo não pode pintar texto.** `GroupHeaderBrush`, `PanelBrush`,
+  `HeaderBrush` etc. são superfícies. Só os brushes de texto (nome com `Text`)
+  podem ir no `Foreground`. Há teste que reprova o uso trocado.
+
+## Ferramentas e telas (paridade que não pode quebrar)
+
+- **O catálogo de ferramentas mora no núcleo** (`Core/ToolCatalog.cs`). A barra
+  lateral, o registro de telas (`Ui/ViewSetup.cs`) e a suíte de testes consomem
+  essa lista — não escreva a lista de novo em outro lugar.
+- **Toda ferramenta da barra lateral precisa de uma tela.** Um botão sem tela
+  registrada abre um painel vazio, sem aviso: foi exatamente o defeito do
+  Otimizador de Registro. `UiParityTests` cobre isso.
+- **A suíte de testes não referencia o projeto WPF** (o núcleo é compilado
+  também na CLI; referenciar os dois criaria dois tipos `Core` diferentes).
+  Por isso a conferência da camada de interface é feita sobre o fonte em disco.
 
 ## Publicar
 

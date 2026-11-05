@@ -216,7 +216,7 @@ public sealed class AutoUpdateClient
     /// Interpreta o conteudo do feed: JSON com os campos de versao/URL/notas ou
     /// texto simples com a versao.
     /// </summary>
-    private static UpdateCheckResult ParseFeed(string body)
+    internal static UpdateCheckResult ParseFeed(string body)
     {
         if (string.IsNullOrWhiteSpace(body)) return Failed(Loc.Get("Update.CheckFailed"));
 
