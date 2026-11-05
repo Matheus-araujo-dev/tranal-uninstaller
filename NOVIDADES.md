@@ -54,3 +54,35 @@
   por XAML, e a troca escreve as brushes em `Application.Resources`.
 - A extensão de navegador com `__MSG_APP_NAME__` aparecia com o token cru. Agora o nome é
   resolvido pelo `default_locale` do `manifest.json`, sem diferenciar caixa.
+
+### Revisão adversarial do núcleo
+
+O núcleo passou por uma revisão adversarial completa (16 defeitos, 2 deles críticos), e o que
+foi corrigido:
+
+**Críticos**
+- O roteamento dos rastros de limpeza casava pelo separador errado, e os 29 rastros caíam no
+  motor que apaga a **pasta inteira** em vez do conteúdo. Agora todos passam pelo Tracks Cleaner.
+- A raiz de uma unidade era tratável com filtro curinga — o que apagaria `pagefile.sys`,
+  `hiberfil.sys` e `swapfile.sys` e os agendaria para o próximo boot. A raiz nunca é mais alvo.
+
+**Altos**
+- A restauração escrevia onde o manifesto mandasse, sem revalidar a proteção. Um manifesto
+  adulterado não vira mais escrita arbitrária em disco.
+- Restaurar uma pasta **apagava** o que existia no destino: dado criado depois do backup sumia
+  em silêncio. Agora a restauração mescla.
+- A suíte de testes apagava os pontos de restauração **reais** do usuário e gravava o
+  `settings.json` real. Agora tudo aponta para um diretório temporário.
+
+**Médios e baixos**
+- A seleção de restauração casava por referência e virava no-op silencioso.
+- `REG_MULTI_SZ` perdia os elementos vazios do meio da lista.
+- Um prefixo de registro desconhecido era assumido como `HKEY_LOCAL_MACHINE`.
+- A chave de desinstalação de um produto homônimo ("Steam Client" para "Steam") vinha como alta
+  confiança e marcada para remoção.
+- Excluir um backup com arquivo travado deixava uma pasta órfã invisível para o aplicativo.
+- "Lixeira indisponível" deixou de ser reportado como se o item tivesse ido para a Lixeira.
+- Os containers do sistema (`C:\Users\Public`, `C:\ProgramData`) são protegidos pelo caminho
+  exato — sem impedir a desinstalação de programas dentro de `Program Files`.
+
+Cada defeito tem um teste de regressão. A suíte passou de 91 para **106 testes**, todos verdes.

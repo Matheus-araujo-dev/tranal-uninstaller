@@ -219,7 +219,7 @@ rápido e mecanismo de busca na web.
 
 ## Testes
 
-`src/Tranal.Tests` (xUnit): **91 testes, todos verdes**.
+`src/Tranal.Tests` (xUnit): **106 testes, todos verdes**.
 
 Incluem verificações adversariais que valem mais que cobertura de linha:
 
@@ -231,6 +231,10 @@ Incluem verificações adversariais que valem mais que cobertura de linha:
 - a resolução de nomes `__MSG_*` das extensões de navegador, com `default_locale` e busca sem
   diferenciar caixa, em árvore temporária isolada;
 - os quatro modos de desinstalação, a regra de confiança e o modo "Somente" não varrendo nada;
+- **a restauração revalidando a proteção**: um manifesto adulterado não vira escrita arbitrária em disco;
+- **a raiz de uma unidade nunca é alvo**, nem com filtro curinga;
+- **os testes isolados do ambiente**: rodam em diretório temporário e não tocam os pontos de
+  restauração nem as preferências do usuário;
 - ida e volta de valores de registro no backup (String, ExpandString, DWord, QWord, Binary,
   MultiString) e restauração de arquivo, pasta e chave.
 
@@ -251,7 +255,7 @@ tranal-uninstaller/
 │   │   ├── Ui/                      # painel genérico, assistente, backups, ferramentas, módulos
 │   │   └── Core/                    # scanner, exportadores, backup, sobras, ferramentas, módulos
 │   ├── Tranal.Cli/                  # tranal.exe (CLI)
-│   └── Tranal.Tests/                # xUnit (83 testes)
+│   └── Tranal.Tests/                # xUnit (106 testes)
 ├── docs/                            # especificação medida e mapa de paridade
 ├── tools/                           # publicação e ferramentas de medição
 └── publish/
