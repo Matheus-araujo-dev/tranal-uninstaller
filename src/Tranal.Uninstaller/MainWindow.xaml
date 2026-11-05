@@ -8,6 +8,24 @@
         FontFamily="{DynamicResource UiFont}" FontSize="12"
         UseLayoutRounding="True">
 
+  <Window.Resources>
+    <!--
+      O template da coluna do nome: caixa de marcacao, icone e nome.
+      A grade da lista e montada em codigo (o usuario escolhe quais colunas
+      quer ver), mas o template continua aqui: um DataTemplate escrito em
+      codigo e ilegivel.
+    -->
+    <DataTemplate x:Key="ProgramNameTemplate">
+      <StackPanel Orientation="Horizontal">
+        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"
+                  Margin="0,0,6,0" />
+        <Image Source="{Binding Icon}" Width="16" Height="16" Stretch="Uniform"
+               VerticalAlignment="Center" Margin="0,0,6,0" />
+        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+      </StackPanel>
+    </DataTemplate>
+  </Window.Resources>
+
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="212" />
@@ -77,6 +95,17 @@
 
               <TextBlock Text="{loc:Tr Sidebar.FilterByDrive}" FontWeight="SemiBold" Margin="4,2" />
               <StackPanel x:Name="DriveFilterPanel" Margin="8,0,0,4" />
+
+              <!--
+                "Hidden" (15362) do Revo: mostra os componentes que o Windows
+                esconde por padrao. E a mesma preferencia de "Mostrar
+                componentes do sistema" das Opcoes — uma regra, dois lugares
+                para chegar nela.
+              -->
+              <TextBlock Text="{loc:Tr Sidebar.FilterByHidden}" FontWeight="SemiBold" Margin="4,6,0,2" />
+              <CheckBox x:Name="HiddenFilterCheck" Content="{loc:Tr Sidebar.Hidden}" Margin="8,0,0,4"
+                        AutomationProperties.AutomationId="FilterHidden"
+                        Checked="HiddenFilter_Changed" Unchecked="HiddenFilter_Changed" />
             </StackPanel>
           </Border>
         </Popup>
@@ -277,40 +306,16 @@
           <ListView x:Name="ProgramsList" BorderThickness="0"
                     Background="{DynamicResource PanelBrush}"
                     AlternationCount="2"
-                    SelectionMode="Single">
-            <ListView.View>
-              <GridView>
-                <GridViewColumn Header="Programa" Width="250">
-                  <GridViewColumn.CellTemplate>
-                    <DataTemplate>
-                      <StackPanel Orientation="Horizontal">
-                        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"
-                                  Margin="0,0,6,0" />
-                        <Image Source="{Binding Icon}" Width="16" Height="16" Stretch="Uniform"
-                               VerticalAlignment="Center" Margin="0,0,6,0" />
-                        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                      </StackPanel>
-                    </DataTemplate>
-                  </GridViewColumn.CellTemplate>
-                </GridViewColumn>
-                <GridViewColumn Header="Tamanho" Width="95"
-                                DisplayMemberBinding="{Binding SizeText}" />
-                <GridViewColumn Header="Versão" Width="130"
-                                DisplayMemberBinding="{Binding DisplayVersion}" />
-                <GridViewColumn Header="Tipo" Width="70"
-                                DisplayMemberBinding="{Binding Bits}" />
-                <GridViewColumn Header="Data" Width="85"
-                                DisplayMemberBinding="{Binding InstallDate}" />
-                <GridViewColumn Header="Empresa" Width="150"
-                                DisplayMemberBinding="{Binding Publisher}" />
-                <GridViewColumn Header="Página inicial" Width="160"
-                                DisplayMemberBinding="{Binding UrlInfoAbout}" />
-                <GridViewColumn Header="Comentários" Width="170"
-                                DisplayMemberBinding="{Binding Comments}" />
-                <GridViewColumn Header="Desinstalador" Width="220"
-                                DisplayMemberBinding="{Binding UninstallString}" />
-              </GridView>
-            </ListView.View>
+                    SelectionMode="Single"
+                    PreviewMouseRightButtonDown="ProgramsList_PreviewMouseRightButtonDown">
+            <!--
+              A grade (ListView.View) e montada em codigo: o usuario escolhe
+              quais colunas quer ver (o "Columns" do Revo, 15054) e o XAML
+              seria uma segunda copia do catalogo de colunas.
+            -->
+            <ListView.ContextMenu>
+              <ContextMenu x:Name="ProgramContextMenu" Opened="ProgramContextMenu_Opened" />
+            </ListView.ContextMenu>
 
             <ListView.GroupStyle>
               <GroupStyle>

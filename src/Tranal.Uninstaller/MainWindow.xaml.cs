@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
@@ -20,6 +21,15 @@ public partial class MainWindow : Window
     private readonly ObservableCollection<ProgramRow> _all = new();
     private readonly ICollectionView _view;
     private string _module = "AllPrograms";
+
+    /// <summary>
+    /// Aviso sobre o arquivo de preferencias do usuario (comentarios,
+    /// grupos, icones). Vazio quando esta tudo bem.
+    ///
+    /// O aviso fica na barra de status: e o lugar onde a janela ja diz o que
+    /// esta acontecendo, e nao some sozinho.
+    /// </summary>
+    private string _avisoPreferencias = string.Empty;
 
     public MainWindow()
     {
@@ -37,7 +47,9 @@ public partial class MainWindow : Window
         _view.SortDescriptions.Add(new SortDescription(nameof(ProgramRow.DisplayName),
             ListSortDirection.Ascending));
 
-        SetupColumnHeaders();
+        // A grade nasce do catalogo de colunas: e o usuario que escolhe
+        // quais colunas quer ver.
+        BuildProgramColumns();
 
         // Telas de modulos e ferramentas registradas uma unica vez.
         ViewSetup.RegisterAll(this);
@@ -73,6 +85,16 @@ public partial class MainWindow : Window
         foreach (var program in programs)
             _all.Add(new ProgramRow(program));
 
+        // O arquivo de preferencias do usuario pode estar invalido (e foi
+        // preservado) ou travado (e nao deu para ler). Nao avisar deixaria
+        // comentarios e grupos sumirem sem explicacao.
+        _avisoPreferencias = ProgramCustomizationStore.LastLoad switch
+        {
+            LoadState.Preserved => Loc.Get("ProgramData.Corrupted"),
+            LoadState.Unreadable => Loc.Get("ProgramData.Unreadable"),
+            _ => string.Empty,
+        };
+
         ApplyFilter();
         UpdateStatus();
     }
@@ -83,6 +105,7 @@ public partial class MainWindow : Window
         var visible = _view.Cast<ProgramRow>().Count();
         StatusText.Text = $"{Loc.Get("Status.Installations")}: {total}";
         if (visible != total) StatusText.Text += $"   ({Loc.Get("Status.Showing")} {visible})";
+        if (_avisoPreferencias.Length > 0) StatusText.Text += $"   — {_avisoPreferencias}";
     }
 
     // ------------------------------------------------------------------
@@ -125,7 +148,31 @@ public partial class MainWindow : Window
     private void FilterButton_Click(object sender, RoutedEventArgs e)
     {
         PopulateDriveFilters();
+
+        // O interruptor "Hidden" mostra o mesmo estado das Opcoes: se ele
+        // mudar la, aqui tambem muda.
+        HiddenFilterCheck.IsChecked = AppSettingsStore.Current.ShowSystemComponents;
+
         FilterPopup.IsOpen = !FilterPopup.IsOpen;
+    }
+
+    /// <summary>
+    /// O filtro "Hidden" (15362): liga ou desliga os componentes do sistema
+    /// na listagem. E a preferencia de "Mostrar componentes do sistema" das
+    /// Opcoes — as duas telas mexem no mesmo interruptor.
+    /// </summary>
+    private async void HiddenFilter_Changed(object sender, RoutedEventArgs e)
+    {
+        var mostrar = HiddenFilterCheck.IsChecked == true;
+
+        var settings = AppSettingsStore.Current;
+        if (settings.ShowSystemComponents == mostrar) return;
+
+        settings.ShowSystemComponents = mostrar;
+        AppSettingsStore.Save(settings);
+
+        // A lista muda de conteudo: e preciso varrer de novo.
+        await ReloadAsync();
     }
 
     private void PopulateDriveFilters()
@@ -210,32 +257,45 @@ public partial class MainWindow : Window
     private readonly Dictionary<GridViewColumn, string> _columnProperties = new();
 
     /// <summary>
-    /// Propriedade ordenavel de cada coluna, na MESMA ordem das colunas do XAML.
-    /// O cabecalho e localizado e nao serve como chave estavel; o indice e.
+    /// Qual coluna do catalogo cada coluna da grade representa. E o que liga
+    /// a coluna da tela (montada em codigo) ao catalogo de colunas.
     /// </summary>
-    private static readonly string[] ColumnSortProperties =
-    {
-        nameof(ProgramRow.DisplayName),
-        nameof(ProgramRow.SizeText),
-        nameof(ProgramRow.DisplayVersion),
-        nameof(ProgramRow.Bits),
-        nameof(ProgramRow.InstallDate),
-        nameof(ProgramRow.Publisher),
-        nameof(ProgramRow.UrlInfoAbout),
-        nameof(ProgramRow.Comments),
-        nameof(ProgramRow.UninstallString),
-    };
-
+    private readonly Dictionary<GridViewColumn, ProgramColumn> _columnIds = new();
     /// <summary>
-    /// Chave de traducao do cabecalho de cada coluna, na MESMA ordem das colunas
-    /// do XAML. GridViewColumn.Header NAO e uma DependencyProperty: nao aceita
-    /// binding, entao o texto e atribuido em codigo.
+    /// Monta a grade da lista com as colunas escolhidas pelo usuario.
+    ///
+    /// O catalogo de colunas e a fonte: a grade nasce dele e nao de uma
+    /// lista escrita no XAML — assim a lista da tela e a exportacao nunca
+    /// discordam sobre o que e uma coluna.
     /// </summary>
-    private static readonly string[] ColumnHeaderKeys =
+    private void BuildProgramColumns()
     {
-        "Common.Program", "Common.Size", "Common.Version", "Common.Type", "Common.Date",
-        "Common.Publisher", "Common.Homepage", "Common.Comments", "Common.UninstallString",
-    };
+        var visiveis = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
+
+        var template = (DataTemplate)Resources["ProgramNameTemplate"];
+        var grid = ProgramColumnLayout.Build(visiveis, template);
+
+        // A grade anterior morre aqui: os mapas sao refeitos para nao
+        // guardar colunas que ja nao existem.
+        _columnIds.Clear();
+        _columnProperties.Clear();
+
+        for (var i = 0; i < grid.Columns.Count && i < visiveis.Count; i++)
+            _columnIds[grid.Columns[i]] = visiveis[i];
+
+        ProgramsList.View = grid;
+
+        SetupColumnHeaders();
+
+        // O modo de visualizacao e um estado da tela, nao uma preferencia de
+        // colunas: ele e reaplicado depois da grade, para nao se perder quando
+        // a grade e reconstruida (troca de idioma, escolha de colunas).
+        ApplyViewMode(_viewMode);
+    }
+
+    /// <summary>A coluna do catalogo que uma coluna da grade representa.</summary>
+    private ProgramColumn ColumnIdOf(GridViewColumn column) =>
+        _columnIds.TryGetValue(column, out var id) ? id : ProgramColumn.Name;
 
     /// <summary>
     /// A propriedade ordenavel vem do indice da coluna (o cabecalho e localizado e
@@ -245,15 +305,13 @@ public partial class MainWindow : Window
     {
         if (ProgramsList.View is not GridView grid) return;
 
-        for (var index = 0; index < grid.Columns.Count; index++)
+        foreach (var column in grid.Columns)
         {
-            var column = grid.Columns[index];
-            if (index < ColumnSortProperties.Length)
-                _columnProperties[column] = ColumnSortProperties[index];
+            var property = ProgramColumnLayout.SortPropertyOf(ColumnIdOf(column));
+            if (property is not null) _columnProperties[column] = property;
 
             // Cabecalho traduzido (propriedade CLR simples, sem binding).
-            if (index < ColumnHeaderKeys.Length)
-                column.Header = Loc.Get(ColumnHeaderKeys[index]);
+            column.Header = ProgramColumns.Label(ColumnIdOf(column));
 
             var header = new GridViewColumnHeader { Content = column.Header, Tag = column };
             header.Style = (Style)FindResource("ListViewHeaderStyle");
@@ -283,68 +341,107 @@ public partial class MainWindow : Window
 
     private ContextMenu BuildColumnMenu()
     {
-        _columnMenu ??= new ContextMenu();
-        _columnMenu.Opened += (_, _) => PopulateColumnMenu(_columnMenu);
-        PopulateColumnMenu(_columnMenu);
+        if (_columnMenu is null)
+        {
+            _columnMenu = new ContextMenu();
+
+            // O menu e montado quando abre, porque o item depende da coluna
+            // clicada: o mesmo menu serve a todos os cabecalhos. O handler e
+            // registrado uma vez so — registrar a cada coluna faria o menu se
+            // reconstruir varias vezes a cada abertura.
+            _columnMenu.Opened += (_, _) => PopulateColumnMenu(_columnMenu);
+        }
+
         return _columnMenu;
     }
 
+    /// <summary>
+    /// O menu do cabecalho de uma coluna: "Remove This Column" (15055) e o
+    /// alinhamento (15056 a 15060).
+    /// </summary>
     private void PopulateColumnMenu(ContextMenu menu)
     {
         menu.Items.Clear();
 
-        if (ProgramsList.View is GridView grid)
-        {
-            var index = 0;
-            foreach (var column in grid.Columns)
-            {
-                var title = _columnProperties.TryGetValue(column, out var property)
-                    ? TitleForProperty(property)
-                    : column.Header?.ToString() ?? string.Empty;
+        // O cabecalho que abriu o menu diz qual coluna ele e.
+        var header = menu.PlacementTarget as GridViewColumnHeader;
+        if (header?.Tag is not GridViewColumn column) return;
 
-                // AutomationId estavel por coluna: "ColDisplayName", "ColSizeText"...
-                var automationId = property is not null ? $"Col{property}" : $"Col{index}";
+        var id = ColumnIdOf(column);
 
-                var item = new MenuItem
-                {
-                    Header = title,
-                    IsCheckable = true,
-                    IsChecked = column.Width > 0,
-                };
-                AutomationProperties.SetAutomationId(item, automationId);
-
-                var target = column;
-                var originalWidth = column.Width;
-                item.Click += (_, _) =>
-                {
-                    target.Width = item.IsChecked ? originalWidth : 0;
-                };
-                menu.Items.Add(item);
-                index++;
-            }
-        }
+        var remove = CommandItem(Loc.Get("Cmd.RemoveColumn"), "CmdRemoveColumn", () => HideColumn(column));
+        // A coluna do nome nunca some: sem ela a lista perde o sentido.
+        remove.IsEnabled = id != ProgramColumn.Name;
+        menu.Items.Add(remove);
 
         menu.Items.Add(new Separator());
-        var align = new MenuItem { Header = "Realinhar texto" };
-        align.Items.Add(MenuItemFor("Esquerda", "AlignLeft", () => SetAlignment(HorizontalAlignment.Left)));
-        align.Items.Add(MenuItemFor("Centro", "AlignCenter", () => SetAlignment(HorizontalAlignment.Center)));
-        align.Items.Add(MenuItemFor("Direita", "AlignRight", () => SetAlignment(HorizontalAlignment.Right)));
+
+        var align = new MenuItem { Header = Loc.Get("Cmd.Alignment") };
+        AutomationProperties.SetAutomationId(align, "CmdAlignment");
+        align.Items.Add(MenuItemFor(Loc.Get("Cmd.AlignLeft"), "AlignLeft", () => SetAlignment(HorizontalAlignment.Left)));
+        align.Items.Add(MenuItemFor(Loc.Get("Cmd.AlignCenter"), "AlignCenter", () => SetAlignment(HorizontalAlignment.Center)));
+        align.Items.Add(MenuItemFor(Loc.Get("Cmd.AlignRight"), "AlignRight", () => SetAlignment(HorizontalAlignment.Right)));
+        align.Items.Add(MenuItemFor(Loc.Get("Cmd.BestFit"), "BestFit", () => BestFit(column)));
         menu.Items.Add(align);
     }
 
-    private static string TitleForProperty(string property) => property switch
+    /// <summary>
+    /// Esconde uma coluna da lista (15055). A escolha vai para as
+    /// preferencias e a grade nasce de novo sem ela.
+    /// </summary>
+    private void HideColumn(GridViewColumn column)
     {
-        nameof(ProgramRow.DisplayName) => Loc.Get("Common.Program"),
-        nameof(ProgramRow.SizeText) => Loc.Get("Common.Size"),
-        nameof(ProgramRow.DisplayVersion) => Loc.Get("Common.Version"),
-        nameof(ProgramRow.Bits) => Loc.Get("Common.Type"),
-        nameof(ProgramRow.InstallDate) => Loc.Get("Common.Date"),
-        nameof(ProgramRow.Publisher) => Loc.Get("Common.Publisher"),
-        nameof(ProgramRow.UrlInfoAbout) => Loc.Get("Common.Homepage"),
-        nameof(ProgramRow.Comments) => Loc.Get("Common.Comments"),
-        nameof(ProgramRow.UninstallString) => Loc.Get("Common.UninstallString"),
-        _ => property,
-    };
+        var id = ColumnIdOf(column);
+        if (id == ProgramColumn.Name) return;
+
+        var visiveis = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns)
+            .Where(c => c != id);
+
+        SetVisibleColumns(visiveis);
+    }
+
+    /// <summary>
+    /// Grava quais colunas a lista mostra. E o unico lugar que decide isso: a
+    /// janela de colunas e o "Remove This Column" passam por aqui.
+    /// </summary>
+    private void SetVisibleColumns(IEnumerable<ProgramColumn> visible)
+    {
+        var escolhidas = visible.ToHashSet();
+
+        var settings = AppSettingsStore.Current;
+        settings.HiddenColumns = ProgramColumns.All
+            .Where(c => c.Id != ProgramColumn.Name && !escolhidas.Contains(c.Id))
+            .Select(c => c.Id.ToString())
+            .ToList();
+        AppSettingsStore.Save(settings);
+
+        BuildProgramColumns();
+    }
+
+    /// <summary>
+    /// Ajusta a largura da coluna ao maior conteudo (15060: "Best Fit").
+    /// A largura vale enquanto a janela estiver aberta: o Revo tambem nao
+    /// grava a largura das colunas nas preferencias.
+    /// </summary>
+    private void BestFit(GridViewColumn column)
+    {
+        var id = ColumnIdOf(column);
+
+        var maior = ProgramColumns.Label(id).Length;
+        foreach (var row in _view.Cast<ProgramRow>())
+        {
+            var texto = ProgramColumns.Value(id, row.Program, row.Custom);
+            if (texto.Length > maior) maior = texto.Length;
+        }
+
+        var largura = Math.Clamp(maior * 8 + 24, 48, 600);
+        column.Width = largura;
+
+        // A largura fica guardada: voltar para o modo "Detalhes" reescrevia
+        // todas as larguras com o valor padrao e o ajuste do usuario
+        // sumia — ele acabara de apertar "Best Fit" e nao via nada acontecer.
+        _columnWidths[id] = largura;
+    }
 
     private void SetAlignment(HorizontalAlignment alignment)
     {
@@ -427,6 +524,9 @@ public partial class MainWindow : Window
         _view.Refresh();
         UpdateStatus();
 
+        // Os cabecalhos das colunas sao traduzidos: a grade nasce de novo.
+        BuildProgramColumns();
+
         // As telas de modulo/ferramenta sao recriadas: os cabecalhos das colunas
         // sao fixados no momento da criacao do painel.
         if (_module != "AllPrograms")
@@ -468,15 +568,25 @@ public partial class MainWindow : Window
         menu.Items.Add(new Separator());
 
         var viewMenu = new MenuItem { Header = Loc.Get("Cmd.View") };
+        AutomationProperties.SetAutomationId(viewMenu, "CmdViewMenu");
         viewMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ViewDetails"), "CmdViewDetails", () => ApplyViewMode("Details")));
         viewMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ViewList"), "CmdViewList", () => ApplyViewMode("List")));
         viewMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ViewIcons"), "CmdViewIcons", () => ApplyViewMode("Icons")));
         menu.Items.Add(viewMenu);
 
+        // As colunas da lista (15054) e o gerenciador de grupos (15001) ficam
+        // no mesmo menu do Revo.
+        var columns = CommandItem(Loc.Get("Cmd.Columns"), "CmdColumns", ShowColumns);
+        menu.Items.Add(columns);
+
+        var groups = CommandItem(Loc.Get("Cmd.GroupsManager"), "CmdGroupsManager", ShowGroupsManager);
+        menu.Items.Add(groups);
+
         var exportMenu = new MenuItem { Header = Loc.Get("Cmd.ExportList") };
-        foreach (var format in new[] { "TXT", "CSV", "HTML", "XML" })
+        AutomationProperties.SetAutomationId(exportMenu, "CmdExportMenu");
+        foreach (var (format, extension, labelKey) in ExportFormats)
         {
-            var item = CommandItem(format, $"CmdExport{format}", () => ExportList(format));
+            var item = CommandItem(Loc.Get(labelKey), $"CmdExport{format}", () => ExportList(format));
             exportMenu.Items.Add(item);
         }
         menu.Items.Add(exportMenu);
@@ -507,19 +617,53 @@ public partial class MainWindow : Window
     private static MenuItem MenuItemFor(string header, string automationId, Action action) =>
         CommandItem(header, automationId, action);
 
+    /// <summary>
+    /// O modo de visualizacao da lista (Detalhes, Lista, Icones). E estado da
+    /// tela, nao preferencia: as colunas escondidas continuam escondidas nas
+    /// preferencias, e o modo e reaplicado quando a grade e reconstruida.
+    /// </summary>
+    private string _viewMode = "Details";
+
+    /// <summary>
+    /// A largura escolhida pelo usuario (Best Fit). E estado da tela, como o
+    /// modo de visualizacao: vale enquanto a janela estiver aberta.
+    /// </summary>
+    private readonly Dictionary<ProgramColumn, double> _columnWidths = new();
+
+    /// <summary>
+    /// Aplica o modo de visualizacao.
+    ///
+    /// Detalhes mostra todas as colunas do catalogo; Lista mostra o nome e a
+    /// versao; Icones mostra so o nome. O modo nao mexe nas preferencias: as
+    /// colunas que o usuario escondeu continuam escondidas.
+    /// </summary>
     private void ApplyViewMode(string mode)
     {
         var grid = ProgramsList.View as GridView;
         if (grid is null) return;
 
-        // List/Icons usam a mesma grade, apenas com menos colunas visiveis.
-        var widths = mode switch
-        {
-            "List" => new[] { 320d, 95d, 130d },
-            _ => new[] { 90d, 90d, 90d },
-        };
+        _viewMode = mode;
+
         for (var i = 0; i < grid.Columns.Count; i++)
-            grid.Columns[i].Width = i < widths.Length ? widths[i] : 0;
+        {
+            var id = ColumnIdOf(grid.Columns[i]);
+
+            grid.Columns[i].Width = mode switch
+            {
+                "List" => id switch
+                {
+                    ProgramColumn.Name => 320,
+                    ProgramColumn.Version => 130,
+                    _ => 0,
+                },
+                "Icons" => id == ProgramColumn.Name ? 220 : 0,
+                // A largura que o usuario ajustou vale: o "Best Fit" nao pode
+                // sumir quando o modo de visualizacao muda.
+                _ => _columnWidths.TryGetValue(id, out var largura)
+                    ? largura
+                    : ProgramColumnLayout.WidthOf(id),
+            };
+        }
     }
 
     // ------------------------------------------------------------------
@@ -537,6 +681,15 @@ public partial class MainWindow : Window
 
         var excludeList = CommandItem(Loc.Get("Cmd.ExcludeList"), "CmdExcludeList", () => ShowExcludeList());
         menu.Items.Add(excludeList);
+
+        // "Columns" do Revo (15054): o usuario escolhe quais colunas a lista
+        // mostra — e a escolha fica salva.
+        var columns = CommandItem(Loc.Get("Cmd.Columns"), "CmdColumns", () => ShowColumns());
+        menu.Items.Add(columns);
+
+        // "Groups Manager" do Revo (15001).
+        var groups = CommandItem(Loc.Get("Cmd.GroupsManager"), "CmdGroupsManager", () => ShowGroupsManager());
+        menu.Items.Add(groups);
 
         var topmost = CommandItem(Loc.Get("Cmd.TopmostWindow"), "CmdTopmostWindow", () => ShowTopmostWindow());
         menu.Items.Add(topmost);
@@ -715,6 +868,199 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// O clique direito na lista seleciona a linha apontada.
+    ///
+    /// Sem isso, o menu de contexto age sobre a linha selecionada antes —
+    /// e o usuario acabaria anotando o programa errado, sem nenhum aviso.
+    /// </summary>
+    private void ProgramsList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var origem = e.OriginalSource as DependencyObject;
+        while (origem is not null and not ListViewItem)
+        {
+            origem = VisualTreeHelper.GetParent(origem);
+        }
+
+        if (origem is ListViewItem item && item.DataContext is ProgramRow row)
+            ProgramsList.SelectedItem = row;
+    }
+
+    /// <summary>
+    /// O menu de contexto do programa: comentario, icone e grupos.
+    ///
+    /// Corresponde ao "Add Comment" (15216), "Edit Comment" (15217), "Change
+    /// Icon" (15079), "Add to Group" (15080) e "Remove from Group" (15081)
+    /// do Revo.
+    /// </summary>
+    private void ProgramContextMenu_Opened(object sender, RoutedEventArgs e)
+    {
+        var menu = ProgramContextMenu;
+        menu.Items.Clear();
+
+        if (ProgramsList.SelectedItem is not ProgramRow row) return;
+
+        var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
+        var temComentario = custom is not null && custom.Comment.Length > 0;
+
+        var comment = CommandItem(
+            Loc.Get(temComentario ? "Cmd.EditComment" : "Cmd.AddComment"),
+            "CmdAddComment",
+            () => EditComment(row));
+        menu.Items.Add(comment);
+
+        var icon = CommandItem(Loc.Get("Cmd.ChangeIcon"), "CmdChangeIcon", () => ChangeIcon(row));
+        menu.Items.Add(icon);
+
+        menu.Items.Add(new Separator());
+
+        var grupos = ProgramCustomizationStore.Groups;
+
+        var addGroup = new MenuItem { Header = Loc.Get("Cmd.AddToGroup") };
+        AutomationProperties.SetAutomationId(addGroup, "CmdAddToGroup");
+
+        var removeGroup = new MenuItem { Header = Loc.Get("Cmd.RemoveFromGroup") };
+        AutomationProperties.SetAutomationId(removeGroup, "CmdRemoveFromGroup");
+
+        if (grupos.Count == 0)
+        {
+            // Cada submenu recebe a sua propria instancia: um MenuItem nao
+            // pode ter dois pais logicos, e a excecao apareceria no meio da
+            // montagem do menu — antes dos submenus virarem parte dele.
+            addGroup.Items.Add(NoGroupsItem());
+            removeGroup.Items.Add(NoGroupsItem());
+        }
+        else
+        {
+            foreach (var group in grupos)
+            {
+                var dentro = custom is not null
+                    && custom.Groups.Any(g => string.Equals(g, group, StringComparison.OrdinalIgnoreCase));
+
+                var addItem = CommandItem(group, $"CmdAddGroup{group}", () => AddToGroup(row, group));
+                addItem.IsCheckable = true;
+                addItem.IsChecked = dentro;
+                addGroup.Items.Add(addItem);
+
+                var removeItem = CommandItem(group, $"CmdRemoveGroup{group}", () => RemoveFromGroup(row, group));
+                removeItem.IsCheckable = true;
+                removeItem.IsChecked = dentro;
+                removeGroup.Items.Add(removeItem);
+            }
+        }
+
+        menu.Items.Add(addGroup);
+        menu.Items.Add(removeGroup);
+    }
+
+    /// <summary>
+    /// O item que aparece no submenu de grupos quando ainda nao existe
+    /// nenhum. Cada submenu recebe o seu: um item de menu nao pode ter dois
+    /// pais logicos.
+    /// </summary>
+    private static MenuItem NoGroupsItem()
+    {
+        var item = new MenuItem { Header = Loc.Get("Cmd.NoGroups") };
+        item.IsEnabled = false;
+        return item;
+    }
+
+    /// <summary>Escreve (ou apaga) o comentario do usuario sobre o programa.</summary>
+    private void EditComment(ProgramRow row)
+    {
+        var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
+
+        var dialog = new CommentWindow(custom?.Comment ?? string.Empty) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        if (!ProgramCustomizationStore.SetComment(row.Program, dialog.Comment))
+        {
+            ShowSaveError();
+            return;
+        }
+
+        ReloadProgramRows();
+    }
+
+    /// <summary>Escolhe o icone do programa.</summary>
+    private void ChangeIcon(ProgramRow row)
+    {
+        var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
+
+        var dialog = new IconPickerWindow(BuildIconChoices(), custom?.IconPath ?? row.Program.IconPath) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        if (!ProgramCustomizationStore.SetIcon(row.Program, dialog.SelectedIconIndex, dialog.SelectedIconPath))
+        {
+            ShowSaveError();
+            return;
+        }
+
+        ReloadProgramRows();
+    }
+
+    /// <summary>
+    /// Avisa que a preferencia nao pode ser gravada. Sem isto o usuario veria
+    /// o comentario na lista e ele sumiria ao fechar o aplicativo.
+    /// </summary>
+    private void ShowSaveError()
+    {
+        StatusText.Text = Loc.Get("ProgramData.SaveError");
+        MessageBox.Show(this,
+            Loc.Get("ProgramData.SaveError"),
+            Loc.Get("App.Title"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
+
+    /// <summary>
+    /// A galeria de icones: os icones que ja existem na maquina — os dos
+    /// programas instalados. Uma galeria de icones pronta seria material de
+    /// terceiros; a do Tranal usa o que o proprio Windows ja tem.
+    /// </summary>
+    private List<IconChoice> BuildIconChoices()
+    {
+        var choices = new List<IconChoice>();
+        var vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in _all)
+        {
+            var path = row.Program.IconPath;
+            if (string.IsNullOrWhiteSpace(path) || !vistos.Add(path)) continue;
+
+            choices.Add(new IconChoice
+            {
+                Path = path,
+                Name = row.DisplayName,
+                Image = IconPickerWindow.LoadIcon(path),
+            });
+        }
+
+        return choices;
+    }
+
+    private void AddToGroup(ProgramRow row, string group)
+    {
+        if (!ProgramCustomizationStore.AddToGroup(row.Program, group))
+        {
+            ShowSaveError();
+            return;
+        }
+
+        ReloadProgramRows();
+    }
+
+    private void RemoveFromGroup(ProgramRow row, string group)
+    {
+        if (!ProgramCustomizationStore.RemoveFromGroup(row.Program, group))
+        {
+            ShowSaveError();
+            return;
+        }
+
+        ReloadProgramRows();
+    }
+
+    /// <summary>
     /// Abre o Gerenciador da lista de exclusoes: as pastas, arquivos e chaves
     /// de registro que o Tranal nunca vai remover.
     /// </summary>
@@ -722,6 +1068,52 @@ public partial class MainWindow : Window
     {
         var dialog = new ExcludeListWindow { Owner = this };
         dialog.ShowDialog();
+    }
+
+    /// <summary>
+    /// Abre a janela de escolha de colunas da lista (o "Columns" do Revo,
+    /// 15054). A escolha e salva: reabrir o Tranal mostra as mesmas colunas.
+    /// </summary>
+    private void ShowColumns()
+    {
+        var visiveis = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
+
+        var dialog = new ColumnsWindow(forExport: false, initial: visiveis) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        SetVisibleColumns(dialog.SelectedColumns);
+    }
+
+    /// <summary>
+    /// Abre o Gerenciador de grupos (o "Groups Manager" do Revo, 15001).
+    /// </summary>
+    private void ShowGroupsManager()
+    {
+        var dialog = new GroupsManagerWindow { Owner = this };
+        dialog.ShowDialog();
+
+        // Os grupos podem ter mudado: a lista mostra o grupo do programa.
+        ReloadProgramRows();
+    }
+
+    /// <summary>Recarrega as linhas da lista, preservando a selecao e os filtros.</summary>
+    private void ReloadProgramRows()
+    {
+        var selecionados = ProgramsList.SelectedItem as ProgramRow;
+        var nome = selecionados?.DisplayName;
+
+        var programs = _all.Select(r => r.Program).ToList();
+        _all.Clear();
+        foreach (var program in programs) _all.Add(new ProgramRow(program));
+
+        ApplyFilter();
+        UpdateStatus();
+
+        if (nome is not null)
+        {
+            var row = _all.FirstOrDefault(r => string.Equals(r.DisplayName, nome, StringComparison.OrdinalIgnoreCase));
+            if (row is not null) ProgramsList.SelectedItem = row;
+        }
     }
 
     /// <summary>
@@ -738,27 +1130,67 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
     // Exportacao
     // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Os formatos de exportacao. O rotulo vem do catalogo de idiomas
+    /// (15062 a 15065) e a extensao do arquivo e fixa, para o arquivo
+    /// exportado continuar legivel por qualquer ferramenta.
+    /// </summary>
+    private static readonly (string Format, string Extension, string LabelKey)[] ExportFormats =
+    {
+        ("TXT", "txt", "Cmd.ExportTxt"),
+        ("CSV", "csv", "Cmd.ExportCsv"),
+        ("HTML", "html", "Cmd.ExportHtml"),
+        ("XML", "xml", "Cmd.ExportXml"),
+    };
+
     private void ExportList(string format)
     {
+        // O usuario escolhe as colunas da exportacao (15066: "Select the
+        // columns you want to export:"). Sem nenhuma coluna, a exportacao
+        // nao acontece (15298).
+        var visiveis = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
+        var columns = new ColumnsWindow(forExport: true, initial: visiveis) { Owner = this };
+        if (columns.ShowDialog() != true) return;
+
+        var extensao = ExtensionOf(format);
+
         var save = new SaveFileDialog
         {
-            Filter = $"{format} (*.{format.ToLowerInvariant()})|*.{format.ToLowerInvariant()}",
-            FileName = $"tranal-lista.{format.ToLowerInvariant()}",
+            Filter = $"{format} (*.{extensao})|*.{extensao}",
+            FileName = $"tranal-lista.{extensao}",
         };
         if (save.ShowDialog(this) != true) return;
 
         var rows = _view.Cast<ProgramRow>().ToList();
+        var selecionadas = columns.SelectedColumns;
         var content = format switch
         {
-            "CSV" => Exporters.ToCsv(rows.Select(r => r.Program)),
-            "HTML" => Exporters.ToHtml(rows.Select(r => r.Program)),
-            "XML" => Exporters.ToXml(rows.Select(r => r.Program)),
-            _ => Exporters.ToText(rows.Select(r => r.Program)),
+            "CSV" => Exporters.ToCsv(rows.Select(r => r.Program), selecionadas),
+            "HTML" => Exporters.ToHtml(rows.Select(r => r.Program), selecionadas),
+            "XML" => Exporters.ToXml(rows.Select(r => r.Program), selecionadas),
+            _ => Exporters.ToText(rows.Select(r => r.Program), selecionadas),
         };
 
-        File.WriteAllText(save.FileName, content, System.Text.Encoding.UTF8);
+        // Falha ao gravar e avisada: a excecao engolida pelo
+        // DispatcherUnhandledException deixaria o usuario sem saber por que
+        // o arquivo nao apareceu.
+        try
+        {
+            File.WriteAllText(save.FileName, content, System.Text.Encoding.UTF8);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"{Loc.Get("ProgramData.ExportError")} ({ex.Message})";
+            return;
+        }
+
         StatusText.Text = $"{Loc.Get("Status.Exported")}: {save.FileName}";
     }
+
+    /// <summary>A extensao do arquivo de um formato de exportacao.</summary>
+    private static string ExtensionOf(string format) =>
+        ExportFormats.FirstOrDefault(f => f.Format == format).Extension ?? format.ToLowerInvariant();
 
     // ------------------------------------------------------------------
     // Desinstalacao

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
         Title="Opcoes" SizeToContent="Height" Width="440"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
         UseLayoutRounding="True">
 

@@ -1,0 +1,48 @@
+<Window x:Class="Tranal.Uninstaller.Ui.ColumnsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Colunas" Height="440" Width="380"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" UseLayoutRounding="True">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- pergunta -->
+      <RowDefinition Height="*" />      <!-- colunas -->
+      <RowDefinition Height="Auto" />   <!-- aviso -->
+      <RowDefinition Height="Auto" />   <!-- botoes -->
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" x:Name="PromptText" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+    <ListView Grid.Row="1" x:Name="ColumnsList" AutomationProperties.AutomationId="ColumnsList"
+              Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+              SelectionMode="Single">
+      <ListView.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal">
+            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                      IsEnabled="{Binding CanToggle}"
+                      VerticalAlignment="Center"
+                      AutomationProperties.AutomationId="{Binding Id}" />
+            <TextBlock Text="{Binding Label}" Margin="8,0,0,0" VerticalAlignment="Center" />
+          </StackPanel>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+
+    <TextBlock Grid.Row="2" x:Name="WarningText" TextWrapping="Wrap" Margin="0,8,0,0"
+               Visibility="Collapsed" Foreground="{DynamicResource TextDimBrush}" />
+
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="OkButton" Content="{loc:Tr Common.Ok}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="ColumnsOk"
+              Click="OkButton_Click" />
+      <Button x:Name="CancelButton" Content="{loc:Tr Common.Cancel}" Style="{StaticResource FlatButton}"
+              AutomationProperties.AutomationId="ColumnsCancel"
+              Click="CancelButton_Click" />
+    </StackPanel>
+  </Grid>
+</Window>

@@ -22,6 +22,11 @@ public partial class FirstRunWindow : Window
 
     private void ThemeRadio_Changed(object sender, RoutedEventArgs e)
     {
+        // O "Checked" dispara durante o carregamento do XAML, antes de o botao
+        // existir: sem esta guarda, a partida a frio (sem arquivo de
+        // preferencias) terminava em excecao e o aplicativo nao abria.
+        if (OkButton is null) return;
+
         // Apenas sincroniza o destaque visual da opcao marcada.
         OkButton.IsDefault = true;
     }

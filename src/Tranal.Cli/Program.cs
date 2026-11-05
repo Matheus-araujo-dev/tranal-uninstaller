@@ -939,6 +939,7 @@ public static class Program
         Console.WriteLine("tranal /autorun              - Lista os itens de inicialização automática (chaves, serviços, tarefas)");
         Console.WriteLine("tranal /tools                - Lista as ferramentas nativas do Windows");
         Console.WriteLine("tranal /export \"caminho\" [/txt|/html|/csv|/xml] - Exporta a listagem de programas");
+        Console.WriteLine("tranal /export \"caminho\" /csv /columns \"Program,Version,Note\" - Exporta só as colunas pedidas");
         Console.WriteLine("tranal /hunter \"caminho\"       - Resolve um atalho/executável para o programa instalado");
         Console.WriteLine("tranal /lang [código]        - Mostra ou define o idioma da interface");
         Console.WriteLine("tranal /theme [dark|light]   - Mostra ou define o tema da interface");

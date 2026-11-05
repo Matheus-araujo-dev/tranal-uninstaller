@@ -25,6 +25,15 @@ public sealed class AppSettings
     /// <summary>Janela de "Novos Programas" em dias (medido: 7 no Revo).</summary>
     public int NewProgramsDays { get; set; } = 7;
 
+    /// <summary>
+    /// Colunas escondidas na lista de programas.
+    ///
+    /// Corresponde ao "Columns" (15054) e "Remove This Column" (15055) do
+    /// Revo: o usuario escolhe quais colunas quer ver. A coluna do nome
+    /// nunca some — sem ela a lista perde o sentido.
+    /// </summary>
+    public List<string> HiddenColumns { get; set; } = new();
+
     /// <summary>Ultimos programas desinstalados (menu de acesso rapido).</summary>
     public List<string> RecentPrograms { get; set; } = new();
 
@@ -286,7 +295,8 @@ public static class SettingsFileFormat
 {
     public static string Describe() =>
         "settings.json (JSON UTF-8): theme, language, showSystemComponents, "
-        + "showWindowsApps, newProgramsDays, recentPrograms[], firstRunCompleted, "
+        + "showWindowsApps, newProgramsDays, hiddenColumns[], recentPrograms[], "
+        + "firstRunCompleted, "
         + "createRestorePointBeforeUninstall, onlyRunBuiltInUninstaller, disableUninstallHistory, "
         + "showWebPageShortcuts, advancedMode, checkForUpdateOnStartup, updateAutomatically, "
         + "sendFilesToRecycleBin, deferRemovalToNextRestart, backupBeforeRemoval, "

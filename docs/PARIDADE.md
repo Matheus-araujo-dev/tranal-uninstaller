@@ -21,7 +21,7 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ fora de escopo
 | `UninstallerPro` | 331 | 🟡 | `Ui/UninstallWizardWindow.*` — assistente de 5 etapas, 4 modos, lista de sobras com confiança, resumo por contagem |
 | `Scan After Uninstall` | 63 | ✅ | `Core/UninstallSupport.cs` (`LeftoverScanner`), `Core/Removal.cs`, `Core/RecycleBin.cs`, `Core/DeferredDelete.cs` |
 | `Uninstaller Options` | 6 | ✅ | `Ui/OptionsWindow.*` — ponto de restauração do sistema, somente o desinstalador nativo, desativar histórico, atalhos de páginas web |
-| `Uninstaller List` | 10 | ✅ | `MainWindow.xaml` — lista com 9 colunas, grupos, ordenação |
+| `Uninstaller List` | 10 | ✅ | `MainWindow.xaml` — lista montada a partir do catálogo de colunas (`Core/ProgramColumns.cs`), grupos, ordenação por cabeçalho |
 | `Uninstaller Toolbar` | 29 | ✅ | `MainWindow.xaml` — barra de ferramentas e "Mais Comandos" |
 | `Uninstaller StatusBar` | 2 | ✅ | `MainWindow.xaml` — barra de status com contagens |
 | `UninstallHistory` | 33 | ✅ | `Core/UninstallHistory.cs` — histórico persistente, desativável pelas opções |
@@ -132,6 +132,102 @@ usuário, mas o conteúdo sai item a item. O relatório mostra os dois lados:
 
 O item em uso é contado **e** agendado para o próximo reinício, como a
 regra do projeto exige: `Item em uso → adiado para o próximo reinício`.
+
+### Lote 2 — colunas, grupos, comentários e ícones (strings 15001, 15054–15060, 15066, 15070–15072, 15079–15081, 15173, 15216–15217, 15239–15240, 15281–15285, 15298, 15360–15364, 15366)
+
+| Recurso do original | Strings | Tranal | Onde |
+|---|---|---|---|
+| "Columns" | 15054 | janela de escolha das colunas da lista (a coluna do nome é fixa) | `Ui/ColumnsWindow.*`, `Core/ProgramColumns.cs` |
+| "Remove This Column" | 15055 | "Remover esta coluna" no menu do cabeçalho | `MainWindow.xaml.cs` (`HideColumn`) |
+| "Alignment" / "Left" / "Center" / "Right" / "Best Fit" | 15056–15060 | submenu do cabeçalho; "Ajustar ao conteúdo" mede o maior texto da coluna | `MainWindow.xaml.cs` (`SetAlignment`, `BestFit`) |
+| "Select the columns you want to export:" | 15066 | a mesma janela de colunas, no modo exportação — e, na CLI, `/export "caminho" /columns "Program,Version"` | `Ui/ColumnsWindow.*`, `Core/ProgramColumns.cs` |
+| "You must select at least one column to export!" | 15298 | a exportação não acontece sem uma coluna | `ColumnsWindow.OkButton_Click` |
+| "Group name:" / "Add" / "Group" | 15070–15072 | gerenciador de grupos + coluna "Grupo" | `Ui/GroupsManagerWindow.*`, `Core/ProgramCustomization.cs` |
+| "Groups Manager" | 15001 | "Gerenciador de Grupos" no menu "Mais Comandos" | `MainWindow.xaml.cs` |
+| "Add new Group" | 15173 | botão "Adicionar" do gerenciador | `ProgramCustomizationStore.CreateGroup` |
+| "Change Icon" / "Choose Icon" / "Select an icon from the list:" / "File path:" / "Icon index" | 15079, 15282, 15284, 15283, 15240 | galeria com os ícones que já existem na máquina + caminho de arquivo | `Ui/IconPickerWindow.*` |
+| "Add Comment" / "Edit Comment" / "Enter your comment:" | 15216–15217, 15281 | menu de contexto do programa + coluna "Anotação" | `Ui/CommentWindow.*` |
+| "Add to Group" / "Remove from Group" | 15080–15081 | submenus do menu de contexto do programa | `MainWindow.xaml.cs` |
+| "Hidden" | 15362 | interruptor no popup de filtros, sobre a mesma preferência das Opções | `AppSettings.ShowSystemComponents` |
+| "Do you want to keep your preferences? Icons, comments, groups, etc." | 15364 | as preferências ficam em disco; a pergunta nunca é feita | `Core/ProgramCustomization.cs` (`program-data.json`) |
+
+**O catálogo de colunas é um só.** `Core/ProgramColumns.cs` é a única fonte que
+sabe quais colunas existem, como elas se chamam na tela (traduzido) e como se
+chamam no arquivo exportado (fixo, para o arquivo continuar legível por
+qualquer ferramenta). A lista da tela e a exportação consomem essa fonte — não
+existe uma segunda lista de colunas em cada um dos dois lugares, e o valor de
+uma coluna na tela é o mesmo que vai para o arquivo: as duas coisas passam por
+`ProgramColumns.Value`.
+
+**Renomear um grupo leva os programas junto.** Um grupo renomeado que deixasse
+os programas órfãos seria uma perda de informação; apagar um grupo, pelo
+contrário, **não** apaga programa nenhum — o grupo é classificação, não
+desinstalação.
+
+**A anotação do usuário é uma coluna própria.** Os "Comentários" do instalador
+(vindos do registro) e a anotação do usuário são colunas diferentes ("Comentários"
+e "Anotação"): o Revo não tem como verificável um sobrescrita do comentário do
+instalador.
+
+**A galeria de ícones usa o que a máquina já tem.** Os ícones dos programas
+instalados e o caminho de um arquivo — copiar uma galeria de terceiros seria
+distribuir material de terceiros.
+
+**O filtro "Hidden" é a mesma preferência das Opções.** O interruptor do popup de
+filtros e a caixa "Mostrar componentes do sistema" das Opções mexem no mesmo
+`AppSettings.ShowSystemComponents`: uma regra, dois lugares para chegar nela.
+
+**O conjunto padrão da exportação é fixo.** A exportação usa, quando o usuário não
+escolhe colunas, o conjunto do original — nome, versão, tipo, data, empresa,
+página inicial, comentários, comando de desinstalação e chave do registro. Ele
+não é o catálogo inteiro: o formato do arquivo exportado não pode mudar quando o
+usuário mexe nas colunas da tela. Na CLI, `/export "caminho" /columns
+"Program,Version,Note"` escolhe as colunas; os nomes aceitos são os do arquivo
+exportado (fixos, independentes do idioma), e é por isso que o comando é
+roteirizável.
+
+**O CSV e o XML usam o nome fixo da coluna; o HTML usa o título traduzido.** O
+CSV e o XML são lidos por ferramenta — o nome não pode mudar com o idioma. O
+HTML é lido por gente.
+
+### Partida a frio (medido)
+
+O primeiro arranque — sem `settings.json` — é um caminho que o Revo também
+faz, e no Tranal ele **não funcionava**. Duas falhas de ordenação, uma atrás
+da outra, impediam o aplicativo de abrir:
+
+| Defeito | Sintoma | Correção |
+|---|---|---|
+| O `Checked` do botão de tema dispara durante o `InitializeComponent` | `NullReferenceException` no arranque | Guarda no handler (`OkButton is null`) |
+| O diálogo de primeiro lançamento apontava como `Owner` uma janela que ainda não tinha sido exibida | `InvalidOperationException` — o WPF recusa | O diálogo abre sem `Owner`, centralizado na tela |
+| Durante a pergunta de tema o diálogo é a única janela do app | O app terminaria no fim da pergunta (`ShutdownMode`) | `OnExplicitShutdown` durante a pergunta, restaurado depois |
+
+O tema continua sendo aplicado **antes** da primeira pintura da janela
+principal: a escolha não gera "flash".
+
+**O primeiro arranque é conferido de ponta a ponta**, e não só por leitura de
+fonte: `tools/test-cold-start.ps1` sobe o aplicativo de verdade sem o arquivo
+de preferências, confere o diálogo de tema, a gravação da preferência e a
+janela principal, e devolve as preferências de quem rodou o teste.
+
+### Integridade das preferências por programa (medido)
+
+O `program-data.json` é o arquivo onde ficam os comentários, os ícones e os
+grupos do usuário. Perder esse arquivo é perder trabalho dele, e por isso as
+garantias são explícitas:
+
+| Situação | Comportamento |
+|---|---|
+| Arquivo ausente | Estado normal de primeira execução |
+| Arquivo ilegível (JSON inválido) | Preservado como `program-data.json.corrompido`; o aplicativo avisa na barra de status e começa do zero |
+| Arquivo que deserializa mas não serve (`{"Programs": null}`, item nulo na lista) | Preservado do mesmo jeito — JSON válido não é o mesmo que JSON utilizável |
+| Arquivo que não deu para ler (aberto por outro processo) | **Não** é renomeado: ele não está corrompido. A próxima gravação guarda a versão anterior em `.bak` |
+| Gravação falha | O `.bak` anterior **não** é descartado: se a cópia falhar, a gravação é abortada em vez de sobrescrever sem backup |
+| Exportação | É uma operação de leitura: não renomeia nem altera o arquivo do usuário |
+
+A distinção entre "não deu para gravar" e "já existe um grupo com esse nome"
+também é explícita: as operações de grupo devolvem `GroupResult`, e a janela
+mostra a mensagem correspondente.
 
 ---
 
@@ -284,8 +380,10 @@ mensagem do original tratam só das mensagens informativas e de aviso.
 | Medida | Valor |
 |---|---|
 | Build | 0 erros, 0 avisos |
-| Suíte de testes | **211 verdes**, 0 falhas |
-| Catálogos de idioma | **546 chaves** em pt-BR e en-US, em paridade |
-| Programas listados | 76 (18 em "Novos Programas", 58 em "Outros Programas") |
+| Suíte de testes | **302 verdes**, 0 falhas |
+| Mutation check (defeito volta, o teste precisa reprovar) | **9 de 9** detectados |
+| Partida a frio (de ponta a ponta, com o aplicativo de verdade) | **OK** — diálogo de tema, preferência gravada, janela principal, nenhuma exceção nova |
+| Catálogos de idioma | **601 chaves** em pt-BR e en-US, em paridade |
+| Programas listados | 77 (19 em "Novos Programas", 58 em "Outros Programas"); 210 com os componentes do sistema à mostra |
 | Varredura completa | 150 ms |
 | Ambiente do usuário | intocado pela suíte (comparação byte a byte antes/depois) |

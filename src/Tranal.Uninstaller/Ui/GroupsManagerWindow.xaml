@@ -1,0 +1,65 @@
+<Window x:Class="Tranal.Uninstaller.Ui.GroupsManagerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Gerenciador de grupos" Height="480" Width="460"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" UseLayoutRounding="True">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- titulo -->
+      <RowDefinition Height="*" />      <!-- grupos -->
+      <RowDefinition Height="Auto" />   <!-- entrada -->
+      <RowDefinition Height="Auto" />   <!-- comandos -->
+      <RowDefinition Height="Auto" />   <!-- status -->
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}" CornerRadius="3" Padding="10,8">
+      <StackPanel>
+        <TextBlock Text="{loc:Tr Groups.Title}" FontWeight="Bold"
+                   Foreground="{DynamicResource TitleTextBrush}" FontSize="14" />
+        <TextBlock Text="{loc:Tr Groups.Header}" Margin="0,3,0,0" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextDimBrush}" />
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="1">
+      <ListView x:Name="GroupsList" AutomationProperties.AutomationId="GroupsList"
+                Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                AlternationCount="2" SelectionMode="Single" />
+      <TextBlock x:Name="EmptyText" Text="{loc:Tr Groups.Empty}" HorizontalAlignment="Center"
+                 VerticalAlignment="Center" Visibility="Collapsed"
+                 Foreground="{DynamicResource TextDimBrush}" />
+    </Grid>
+
+    <StackPanel Grid.Row="2" Margin="0,10,0,0">
+      <TextBlock Text="{loc:Tr Groups.GroupName}" Margin="0,0,0,4" />
+      <StackPanel Orientation="Horizontal">
+        <TextBox x:Name="NameBox" Width="300" VerticalContentAlignment="Center"
+                 AutomationProperties.AutomationId="GroupNameBox" />
+        <Button x:Name="AddButton" Content="{loc:Tr Groups.Add}" Style="{StaticResource FlatButton}"
+                Margin="6,0,0,0" AutomationProperties.AutomationId="GroupAdd"
+                Click="AddButton_Click" />
+      </StackPanel>
+    </StackPanel>
+
+    <WrapPanel Grid.Row="3" Margin="0,10,0,0">
+      <Button x:Name="RenameButton" Content="{loc:Tr Groups.Rename}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="GroupRename"
+              Click="RenameButton_Click" />
+      <Button x:Name="DeleteButton" Content="{loc:Tr Groups.Delete}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="GroupDelete"
+              Click="DeleteButton_Click" />
+      <Button x:Name="CloseButton" Content="{loc:Tr Common.Close}" Style="{StaticResource FlatButton}"
+              AutomationProperties.AutomationId="GroupsClose"
+              Click="CloseButton_Click" IsCancel="True" />
+    </WrapPanel>
+
+    <Border Grid.Row="4" Background="{DynamicResource StatusBarBrush}" CornerRadius="3" Padding="8,5" Margin="0,10,0,0">
+      <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="GroupsStatus" TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextDimBrush}" />
+    </Border>
+  </Grid>
+</Window>

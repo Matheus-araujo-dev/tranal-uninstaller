@@ -164,11 +164,13 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 
 | Área | Status |
 |---|---|
-| Layout principal (sidebar de módulos, lista com 9 colunas, grupos, painel de descrição, status bar) | ✅ idêntico ao Revo |
+| Layout principal (sidebar de módulos, lista com 12 colunas, grupos, painel de descrição, status bar) | ✅ idêntico ao Revo |
 | Busca em tempo real por nome / editora / comentários | ✅ |
-| Agrupamento "Novos Programas" / "Outros Programas" | ✅ (18 = 18 do Revo, 17 coincidentes) |
+| Agrupamento "Novos Programas" / "Outros Programas" | ✅ (19 = 19 do Revo, 18 coincidentes) |
 | Visões Detalhes / Lista / Ícones | ✅ (troca de colunas) |
-| Exportação TXT / CSV / HTML / XML | ✅ |
+| **Colunas customizáveis** (janela "Colunas" + "Remover esta coluna" no cabeçalho + "Ajustar ao conteúdo") | ✅ a escolha fica nas preferências |
+| Exportação TXT / CSV / HTML / XML **com escolha de colunas** | ✅ |
+| **Grupos de programas** (gerenciador + "Adicionar ao grupo" / "Remover do grupo") | ✅ renomear leva os programas junto |
 | Assistente de desinstalação em 5 etapas | ✅ |
 | **Quatro modos de desinstalação** (Somente / Seguro / Moderado / Avançado) | ✅ |
 | **Varredura antes e depois** da desinstalação, com confiança por item | ✅ |
@@ -181,7 +183,7 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 | Elevação `requireAdministrator` na GUI | ✅ (manifesto verificado no publish) |
 | **Temas claro / escuro** com troca em runtime | ✅ (verificado nos dois sentidos) |
 | **48 idiomas** no seletor (mesmos do Revo) | ✅ catálogo completo |
-| **Tradução de 2 idiomas** (pt-BR, en-US, 546 chaves cada) | ✅ os outros 46 com fallback honesto |
+| **Tradução de 2 idiomas** (pt-BR, en-US, 601 chaves cada) | ✅ os outros 46 com fallback honesto |
 | **Filtros** por tipo / tamanho / unidade | ✅ |
 | Menu "Mais Comandos" completo + menu principal (Opções / Tema / Idioma / Sair) | ✅ |
 | **Janela Principal Flutuante** (overlay arrastável sobre janela/ícone/barra de tarefas) | ✅ |
@@ -205,7 +207,10 @@ demanda** só quando a operação exige (ex.: remoção em `Program Files`).
 | **Varredura em todas as contas do Windows** (outros perfis do `ProfileList`) | ✅ (itens de outra conta não vêm marcados) |
 | **Backup completo do registro** (todos os hives em `.reg` + script de restauração) | ✅ antes de qualquer remoção |
 | **Remoção que nunca atravessa atalho** (junction, symlink, ponto de montagem) | ✅ o alvo do link fica intacto |
+| **Comentário e ícone por programa** (comentário do usuário e galeria de ícones da própria máquina) | ✅ em `program-data.json` |
+| **Filtro "Hidden"** (componentes do sistema na listagem) | ✅ a mesma preferência das Opções |
 | CLI do app gráfico (`/mu`, `/scan`, `/mode`, `/backup`, `/export`, `/wa`, `/be`, `/autorun`, `/tools`, `/hunter`, `/lang`, `/theme`, `/new`, `/exclude`, `--uninstall-target`) | ✅ |
+| Exportação pela CLI com escolha de colunas (`/export "caminho" /csv /columns "Program,Version,Note"`) | ✅ os nomes são os do arquivo, fixos em qualquer idioma |
 
 O mapa completo de paridade, seção a seção do produto original, está em
 [`docs/PARIDADE.md`](docs/PARIDADE.md). A especificação que serviu de base está em
@@ -215,20 +220,23 @@ O mapa completo de paridade, seção a seção do produto original, está em
 
 `%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\settings.json` — tema, idioma, mostrar
 componentes de sistema, mostrar Windows Apps, janela de "Novos Programas", programas recentes,
-ponto de restauração do sistema antes de desinstalar, somente o desinstalador nativo,
-desativar o histórico, atalhos de páginas web, modo avançado, atualização automática, Lixeira,
-adiamento para o próximo reinício, backup antes de remover, pasta de dados portátil, carregamento
-rápido e mecanismo de busca na web.
+colunas escondidas da lista, ponto de restauração do sistema antes de desinstalar, somente o
+desinstalador nativo, desativar o histórico, atalhos de páginas web, modo avançado, atualização
+automática, Lixeira, adiamento para o próximo reinício, backup antes de remover, pasta de dados
+portátil, carregamento rápido e mecanismo de busca na web.
 
 A lista de exclusões mora em um arquivo próprio,
 `%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\exclude-list.json`, e é editada tanto pela
 janela do gerenciador quanto pela CLI (`/exclude`).
 
+As preferências por programa (comentário, ícone e grupos) ficam em
+`%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\program-data.json`.
+
 ---
 
 ## Testes
 
-`src/Tranal.Tests` (xUnit): **211 testes, todos verdes**.
+`src/Tranal.Tests` (xUnit): **302 testes, todos verdes**.
 
 Incluem verificações adversariais que valem mais que cobertura de linha:
 
@@ -244,8 +252,22 @@ Incluem verificações adversariais que valem mais que cobertura de linha:
 - **a raiz de uma unidade nunca é alvo**, nem com filtro curinga;
 - **os testes isolados do ambiente**: rodam em diretório temporário e não tocam os pontos de
   restauração nem as preferências do usuário;
+- **a integridade do `program-data.json`**: arquivo ilegível ou inutilizável é preservado como
+  `.corrompido` (e o aplicativo avisa), a cópia de segurança não é descartada, o temporário não
+  sobra na pasta de dados, e a exportação — que é uma leitura — não mexe no arquivo do usuário;
+- **a partida a frio**: o diálogo de primeiro lançamento não pode apontar como `Owner` uma janela
+  que ainda não foi exibida, e o modo de encerramento do app é trocado durante a pergunta de tema;
 - ida e volta de valores de registro no backup (String, ExpandString, DWord, QWord, Binary,
   MultiString) e restauração de arquivo, pasta e chave.
+
+O primeiro arranque também é conferido **de ponta a ponta**, com o aplicativo de verdade:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-cold-start.ps1
+```
+
+O script guarda as preferências de quem roda, sobe o aplicativo sem o `settings.json`, confere o
+diálogo de tema, a gravação da preferência e a janela principal, e devolve as preferências no final.
 
 ---
 
@@ -260,11 +282,11 @@ tranal-uninstaller/
 │   │   ├── App.xaml(.cs)            # catálogo de temas + estilos
 │   │   ├── Themes/                  # Dark.xaml, Light.xaml (cores) + Styles.xaml (estilos)
 │   │   ├── Theming/ThemeManager.cs  # troca de tema em runtime
-│   │   ├── Lang/                    # pt-BR.json, en-US.json (546 chaves cada)
+│   │   ├── Lang/                    # pt-BR.json, en-US.json (601 chaves cada)
 │   │   ├── Ui/                      # painel genérico, assistente, backups, ferramentas, módulos
 │   │   └── Core/                    # scanner, exportadores, backup, sobras, ferramentas, módulos
 │   ├── Tranal.Cli/                  # tranal.exe (CLI)
-│   └── Tranal.Tests/                # xUnit (106 testes)
+│   └── Tranal.Tests/                # xUnit (302 testes)
 ├── docs/                            # especificação medida e mapa de paridade
 ├── tools/                           # publicação e ferramentas de medição
 └── publish/

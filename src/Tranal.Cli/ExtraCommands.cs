@@ -196,7 +196,13 @@ public static class ExtraCommands
         var destination = ValueAfter(args, "/export");
         if (string.IsNullOrWhiteSpace(destination))
         {
-            Console.Error.WriteLine("Uso: tranal /export \"caminho\" [/txt|/html|/csv|/xml]");
+            Console.Error.WriteLine("Uso: tranal /export \"caminho\" [/txt|/html|/csv|/xml] [/columns \"Program,Version\"]");
+            return 1;
+        }
+
+        if (!TryResolveColumns(ValueAfter(args, "/columns"), out var columns, out var erro))
+        {
+            Console.Error.WriteLine(erro);
             return 1;
         }
 
@@ -207,10 +213,10 @@ public static class ExtraCommands
         });
 
         string content;
-        if (flags.Contains("/html")) content = Exporters.ToHtml(programs);
-        else if (flags.Contains("/csv")) content = Exporters.ToCsv(programs);
-        else if (flags.Contains("/xml")) content = Exporters.ToXml(programs);
-        else content = Exporters.ToText(programs);
+        if (flags.Contains("/html")) content = Exporters.ToHtml(programs, columns);
+        else if (flags.Contains("/csv")) content = Exporters.ToCsv(programs, columns);
+        else if (flags.Contains("/xml")) content = Exporters.ToXml(programs, columns);
+        else content = Exporters.ToText(programs, columns);
 
         try
         {
@@ -224,6 +230,44 @@ public static class ExtraCommands
 
         Console.WriteLine($"Lista exportada: {destination} ({programs.Count} entradas)");
         return 0;
+    }
+
+    /// <summary>
+    /// As colunas pedidas na linha de comando.
+    ///
+    /// Os nomes são os do arquivo exportado (Program, Version, Note...), fixos e
+    /// independentes do idioma da interface — é o que torna o comando
+    /// roteirizável. Null quando o usuário não pediu colunas: vale o conjunto
+    /// fixo da exportação (<see cref="Exporters.DefaultColumns"/>), que é o
+    /// mesmo do Revo — e não o catálogo inteiro de colunas da tela, que o
+    /// usuário pode mudar a qualquer momento.
+    /// </summary>
+    private static bool TryResolveColumns(
+        string? raw,
+        out IReadOnlyList<ProgramColumn>? columns,
+        out string? error)
+    {
+        columns = null;
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(raw)) return true;
+
+        var nomes = raw.Split(',', ';')
+            .Select(s => s.Trim())
+            .Where(s => s.Length > 0)
+            .ToArray();
+
+        if (!ProgramColumns.TryParse(nomes, out var escolhidas, out var desconhecida))
+        {
+            error = desconhecida.Length == 0
+                ? "Nenhuma coluna informada em /columns."
+                : $"Coluna desconhecida: '{desconhecida}'. Colunas válidas: "
+                    + string.Join(", ", ProgramColumns.All.Select(c => c.ExportName));
+            return false;
+        }
+
+        columns = escolhidas;
+        return true;
     }
 
     // ------------------------------------------------------------------

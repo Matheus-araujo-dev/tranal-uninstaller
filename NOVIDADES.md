@@ -1,5 +1,127 @@
 # Novidades
 
+## v1.4 — partida a frio corrigida e integridade das preferências por programa
+
+### Correções
+
+- **O aplicativo não abria na primeira execução.** Sem o arquivo de preferências
+  (`settings.json`), duas coisas que só aparecem nesse caminho derrubavam o
+  arranque: o `Checked` do botão de tema disparava durante o carregamento do
+  XAML, antes de o botão existir, e o diálogo de primeiro lançamento apontava
+  como proprietária uma janela que ainda não tinha sido exibida (o WPF recusa
+  isso). O aplicativo agora abre, pergunta o tema, grava a preferência e mostra
+  a janela principal — e a primeira pintura já sai no tema escolhido.
+- **Um arquivo de preferências que deserializa mas não serve não derruba mais a
+  listagem.** `{"Programs": null}` era aceito como se fosse válido, e o arquivo
+  do usuário era sobrescrito na gravação seguinte. Agora lista nula ou item nulo
+  na lista tratam o arquivo como corrompido: ele é preservado como
+  `program-data.json.corrompido`, o aplicativo avisa na barra de status e
+  começa do zero.
+- **O arquivo corrompido não é mais renomeado por uma simples exportação.**
+  A exportação é uma operação de leitura: ela lê o arquivo do usuário por conta
+  própria e não mexe nele.
+- **A cópia de segurança não é mais descartada.** Quando a troca atômica não é
+  possível, a versão anterior é copiada para `.bak` **antes** da substituição —
+  e, se a cópia falhar, a gravação é abortada, em vez de sobrescrever o arquivo
+  sem backup. O arquivo temporário também não sobra mais na pasta de dados.
+- **"Já existe um grupo com esse nome" não aparece mais quando o problema é
+  outro.** O gerenciador de grupos distingue conflito de nome de falha de
+  gravação, e a falha de gravação é avisada. Renomear ou apagar que falham
+  desfazem a mudança na tela.
+- **O "Ajustar ao conteúdo" não se perde ao trocar de modo.** Voltar para
+  "Detalhes" mantinha a largura que o usuário acabara de ajustar.
+- **O título do Gerenciador de grupos acompanha o idioma** da interface.
+- **A janela principal não fica sem ícone** quando o arquivo escolhido não
+  carrega como imagem: o carregamento do ícone passou a ter um código só.
+
+### Testes
+
+- 302 testes verdes. O primeiro arranque é conferido de ponta a ponta por
+  `tools/test-cold-start.ps1`, que sobe o aplicativo de verdade sem o arquivo de
+  preferências e devolve as preferências de quem rodou o teste.
+
+## v1.3 — colunas customizáveis, exportação com escolha de colunas, grupos, comentário e ícone
+
+Funcionalidades levantadas no inventário do original (strings 15001, 15054–15060,
+15066, 15070–15072, 15079–15081, 15173, 15216–15217, 15239–15240, 15281–15285,
+15298, 15360–15364 e 15366 do `lang\english.ini` do Revo Pro 5.5.4).
+
+### Novas funcionalidades
+
+- **Colunas customizáveis** — a janela "Colunas" (15054) escolhe quais colunas a
+  lista mostra; a coluna do nome é fixa (sem ela a lista perde o sentido). O menu do
+  cabeçalho traz "Remover esta coluna" (15055) e o alinhamento (15056–15060),
+  incluindo "Ajustar ao conteúdo", que mede o maior texto da coluna. A escolha fica
+  nas preferências: reabrir o Tranal mostra as mesmas colunas.
+- **Exportação com escolha de colunas** — "Select the columns you want to export:"
+  (15066) abre a mesma janela de colunas. Sem nenhuma coluna marcada a exportação
+  não acontece (15298). O CSV exportado carrega a anotação e o grupo do programa,
+  exatamente como a tela mostra.
+- **Grupos** — "Groups Manager" (15001), "Group name:" (15070) e "Add" (15071):
+  o gerenciador cria, renomeia e apaga grupos, e o menu de contexto do programa
+  tem "Adicionar ao grupo" (15080) e "Remover do grupo" (15081). Renomear um grupo
+  leva os programas junto; apagar um grupo **não** apaga programa nenhum — o grupo
+  é classificação, não desinstalação.
+- **Comentário por programa** — "Add Comment" (15216), "Edit Comment" (15217) e
+  "Enter your comment:" (15281). A anotação do usuário é uma coluna própria
+  ("Anotação"), separada dos "Comentários" que vêm do registro.
+- **Ícone por programa** — "Change Icon" (15079), "Choose Icon" (15282), "Select an
+  icon from the list:" (15284) e "File path:" (15283). A galeria é montada com os
+  ícones que já existem na máquina (os dos programas instalados) e também aceita
+  um caminho de arquivo.
+- **Filtro "Hidden"** (15362) — interruptor no popup de filtros que mostra os
+  componentes do sistema. É a mesma preferência de "Mostrar componentes do
+  sistema" das Opções: uma regra, dois lugares para chegar nela.
+- As preferências por programa ficam em `program-data.json`, ao lado das demais
+  preferências; as colunas escondidas ficam em `settings.json`.
+
+### Correções
+
+- **O clique direito na lista seleciona a linha apontada.** Sem isso, o menu de
+  contexto agia sobre a linha selecionada antes — e o usuário acabaria anotando o
+  programa errado, sem nenhum aviso.
+- **O menu de contexto não quebrava mais quando não havia nenhum grupo.** O item
+  "(nenhum grupo criado ainda)" era o mesmo objeto nos dois submenus, e um item de
+  menu não pode ter dois pais: a exceção era engolida e o menu abria sem
+  "Adicionar ao grupo" e "Remover do grupo".
+- **`program-data.json` não perde mais nada.** A gravação é atômica (o conteúdo
+  vai para um arquivo temporário e só então substitui o original) e deixa uma
+  cópia `.bak`. Um arquivo ilegível é preservado como `program-data.json.corrompido`
+  em vez de ser sobrescrito pela gravação seguinte.
+- **Falha ao gravar é avisada.** O comentário aparecia na lista e sumia ao fechar
+  o aplicativo, sem nenhum aviso; agora a interface diz que não foi possível
+  salvar.
+- **A lista e a exportação não podem discordar sobre o valor de uma coluna.** O
+  catálogo de colunas (`Core/ProgramColumns.cs`) é a única fonte que sabe quais
+  colunas existem e que valor elas têm; as duas telas consomem essa fonte.
+- **A versão vazia aparece como "No Version"**, como no original, na lista e na
+  exportação.
+- **O modo de visualização (Detalhes/Lista/Ícones) sobrevive** à reconstrução da
+  grade: trocar de idioma ou de colunas não devolve a lista ao layout "Detalhes".
+- **Um arquivo que não tem ícone não substitui o ícone do programa**: o caminho
+  escolhido é recusado e o ícone original continua valendo.
+- **A identidade de um programa passou a incluir a visão do registro (32/64
+  bits)**: a mesma subchave existe nas duas visões, e a anotação de uma não pode
+  aparecer na outra.
+- **O Gerenciador de Grupos ganhou botão de fechar.** A janela só saía pelo X da
+  moldura, ao contrário de todas as outras do aplicativo.
+- **A coluna do nome passou a ordenar** como no original.
+
+### Mudança de formato: a exportação
+
+O `tranal /export` passa a usar **um conjunto fixo de colunas** (o do original:
+nome, versão, tipo, data, empresa, página inicial, comentários, comando de
+desinstalação e chave do registro) quando o usuário não escolhe nenhuma, em vez
+de despejar o catálogo inteiro. Quem quiser escolher usa
+`/export "caminho" /csv /columns "Program,Version,Note"`.
+
+O CSV e o XML mantêm os nomes fixos das colunas (iguais em qualquer idioma); o
+HTML passou a usar os títulos traduzidos, porque quem lê HTML é gente. No XML, o
+elemento do registro passou a se chamar `<Entry>`: o elemento da coluna do nome é
+`<Program>`, e um `<Program><Program>` confundiria quem lê o arquivo.
+
+---
+
 ## v1.2 — lista de exclusões, processos em execução, todas as contas e backup do registro
 
 Quatro funcionalidades que faltavam para fechar a paridade de segurança e de

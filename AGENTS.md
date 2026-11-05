@@ -153,6 +153,108 @@ Baseline de avisos: **0**. Qualquer aviso novo é regressão.
   parâmetros posicionais: quatro parâmetros (modo e três booleanos) fazem
   qualquer chamada errada trocar o modo por um booleano.
 
+## Colunas, grupos e preferências por programa (regras do Lote 2)
+
+- **O catálogo de colunas mora no núcleo** (`Core/ProgramColumns.cs`) e é a
+  **única** fonte que sabe quais colunas existem, como elas se chamam na tela e
+  qual é o valor de cada uma. A lista da tela (`Ui/ProgramColumnLayout.cs`) e a
+  exportação (`Core/Exporters.cs`) consomem essa fonte — não escreva uma segunda
+  lista de colunas, nem um segundo mapa de rótulos.
+- **O valor de uma coluna é o mesmo na tela e no arquivo exportado.** As duas
+  coisas passam por `ProgramColumns.Value`; `ProgramRow` sóaliases para ele.
+- **O nome da coluna no arquivo exportado é fixo** (`ProgramColumnInfo.ExportName`):
+  o arquivo tem de continuar legível por qualquer ferramenta, independente do
+  idioma da interface. O rótulo da tela vem do catálogo de idiomas.
+- **A coluna do nome nunca some** — nem na lista nem no "Remover esta coluna".
+  Sem ela a lista perde o sentido.
+- **Uma coluna, uma escrita.** As colunas escondidas vivem em
+  `AppSettings.HiddenColumns`; tanto a janela "Colunas" quanto o "Remover esta
+  coluna" passam por `MainWindow.SetVisibleColumns`. Não grave a preferência em
+  dois lugares.
+- **A grade da lista é montada em código**, não em XAML: o usuário escolhe as
+  colunas, e um `GridView` escrito no XAML seria uma segunda cópia do catálogo
+  que divergiria do primeiro na primeira alteração.
+- **O clique direito seleciona a linha apontada**
+  (`ProgramsList_PreviewMouseRightButtonDown`). Sem isso, o menu de contexto age
+  sobre a linha selecionada antes e o usuário anota o programa errado.
+- **As preferências por programa** (comentário, ícone, grupos) ficam em
+  `program-data.json`, via `ProgramCustomizationStore`. Renomear um grupo **leva
+  os programas junto**; apagar um grupo **não** apaga programa nenhum — o grupo é
+  classificação, não desinstalação.
+- **A identidade de um programa é a chave do registro** (`RegistryPath` →
+  `RegistryKey` → nome exibido). É ela que casa o programa com a anotação.
+- **A anotação do usuário é uma coluna própria** ("Anotação"), separada dos
+  "Comentários" que vêm do registro.
+- **A galeria de ícones usa o que já existe na máquina** (os ícones dos programas
+  instalados) e aceita um caminho de arquivo. Não copie galeria de terceiros.
+- **O filtro "Hidden" e as Opções mexem na mesma preferência**
+  (`AppSettings.ShowSystemComponents`). Uma regra, dois lugares para chegar nela.
+- **A gravação das preferências por programa é atômica** (temporário + troca) e
+  deixa uma cópia `.bak`. Um arquivo ilegível é preservado como
+  `program-data.json.corrompido` — nunca sobrescrito. Perder comentário e grupo
+  do usuário sem aviso não é aceitável.
+- **Falha ao gravar é avisada.** `SetComment`/`SetIcon`/`CreateGroup`/… devolvem
+  `bool`; quem chama precisa checar e mostrar o erro. Senão o usuário vê o
+  comentário na lista e ele sumir ao fechar o aplicativo.
+- **A identidade de um programa inclui a visão do registro** (32/64 bits): a
+  mesma subchave existe nas duas visões e são entradas diferentes.
+- **O conjunto padrão da exportação é fixo e escrito à mão**
+  (`Exporters.DefaultColumns`). O formato do arquivo exportado não pode depender
+  do catálogo de colunas da tela, que o usuário pode mudar.
+- **O CSV e o XML usam o nome fixo da coluna; o HTML usa o título traduzido.**
+  CSV e XML são lidos por ferramenta; HTML é lido por gente.
+- **O modo de visualização é estado da tela, não preferência.** Ele é reaplicado
+  depois de a grade ser reconstruída — senão trocar de idioma devolve a lista ao
+  layout "Detalhes".
+- **A largura ajustada com "Best Fit" também é estado da tela.** Voltar para o
+  modo "Detalhes" não pode reescrever a largura e apagar o ajuste que o usuário
+  acabou de fazer.
+- **Um `program-data.json` que deserializa mas não serve também é corrompido.**
+  `{"Programs": null}` deserializa sem erro e derrubaria a listagem inteira no
+  próximo arranque. O guarda vale para a raiz **e** para as listas: lista nula
+  ou item nulo na lista tornam o arquivo inutilizável, e inutilizável é
+  preservado como `.corrompido` como o ilegível.
+- **A exportação é uma operação de leitura.** Ela lê o arquivo do usuário por
+  conta própria (`ProgramCustomizationStore.PeekAll`) e não pode renomear o
+  arquivo corrompido de quem só queria exportar a lista.
+- **Falha de gravação e conflito de nome são coisas diferentes.**
+  `CreateGroup`/`RenameGroup`/`DeleteGroup` devolvem `GroupResult`: quem chama
+  precisa distinguir "já existe" de "não deu para gravar" — a mensagem errada
+  faz o usuário procurar um problema que não existe.
+- **Renomear/apagar que falham desfazem a mudança na memória.** Sem isso a tela
+  mostraria o nome novo enquanto o disco ainda teria o antigo.
+- **O fallback da troca atômica guarda o `.bak` antes de substituir.** Se a
+  cópia não der, a gravação é abortada — é melhor avisar do que fingir que
+  houve backup. E o temporário nunca sobra na pasta de dados.
+- **A suíte não mexe no arquivo do usuário.** Um `Reload()` com o override nulo
+  leria o `program-data.json` real — e, se ele estivesse corrompido, o
+  renomearia. Use `ProgramCustomizationStore.ResetForTests()`.
+
+## Partida a frio (regras do primeiro arranque)
+
+O primeiro arranque — sem `settings.json` — tem regras que **só aparecem nesse
+caminho**. A suíte não referencia o projeto WPF, então elas são conferidas
+sobre o fonte e, de ponta a ponta, por `tools/test-cold-start.ps1`.
+
+- **A janela principal ainda não foi exibida quando o diálogo de primeiro
+  lançamento aparece.** O WPF recusa um `Owner` que não tenha sido exibido
+  (`InvalidOperationException`), e o aplicativo **não abre**. O diálogo abre
+  sem `Owner` e se centraliza na tela (`WindowStartupLocation="CenterScreen"`).
+- **Durante a pergunta de tema o diálogo é a única janela do app.** Com o modo
+  "encerrar na última janela fechada" (`ShutdownMode.OnLastWindowClose`) o
+  aplicativo terminaria no fim da pergunta. `App.PerguntarTemaNoPrimeiroLancamento`
+  troca o modo por `OnExplicitShutdown` durante a pergunta e o restaura depois.
+- **O `Checked` do `RadioButton` dispara durante o `InitializeComponent`**, antes
+  de o botão existir: um handler que toca campos ainda não inicializados
+  estoura `NullReferenceException`. Os handlers de `Checked`/`Unchecked`
+  precisam de guarda (`if (OkButton is null) return;`).
+- **O tema é aplicado antes de a janela principal ser exibida** — assim a
+  primeira pintura já sai com o tema escolhido, sem "flash".
+
+O teste de ponta a ponta (`tools/test-cold-start.ps1`) sobe o aplicativo de
+verdade sem o arquivo de preferências, confere o diálogo, a gravação da
+preferência e a janela principal, e devolve as preferências de quem rodou.
+
 ## Tema (armadilhas já vencidas)
 
 - **Cores de texto nunca fixas no XAML** fora de `Themes/Dark.xaml` e
@@ -162,6 +264,15 @@ Baseline de avisos: **0**. Qualquer aviso novo é regressão.
 - **Não carregue dicionário XAML em runtime por pack URI** — a segunda carga
   do mesmo arquivo lança `IOException`. Os temas são carregados uma vez, por
   XAML, e a troca escreve as brushes em `Application.Resources`.
+- **`[System.IO.File]::Copy` preserva o carimbo de tempo do original.** Depois de
+  restaurar um arquivo assim, o MSBuild julga que ele não mudou e **não
+  recompila** — o teste seguinte roda contra o binário velho. Ao restaurar,
+  atualize o `LastWriteTime`.
+- **O texto exibido pelas ferramentas pode omitir caracteres.** O `read` e a
+  saída do bash às vezes mostram um texto diferente do conteúdo real do arquivo
+  (uma palavra pode aparecer partida por um espaço). Confirme texto crítico
+  **por bytes** — busca da sequência exata ou contagem por regex —, não pela
+  leitura.
 - `GridViewColumn.Header` e `Window.Title` **não são DependencyProperty**: o
   texto vai por código.
 - `ItemContainerStyle="{StaticResource {x:Type ListViewItem}}"` só funciona se

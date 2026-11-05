@@ -5,33 +5,65 @@ using Tranal.Uninstaller.Core;
 
 namespace Tranal.Uninstaller.Core;
 
-/// <summary>Exportacao da lista de programas nos formatos aceitos pelo Revo.</summary>
+/// <summary>
+/// Exportacao da lista de programas nos formatos aceitos pelo Revo.
+///
+/// As colunas exportadas sao escolhidas pelo usuario (15066: "Select the
+/// columns you want to export:") e vêm do catalogo unico de colunas
+/// (<see cref="ProgramColumns"/>) — o mesmo que a lista da tela usa. Nao
+/// existe uma segunda interpretacao do que e uma coluna.
+/// </summary>
 public static class Exporters
 {
-    public static string ToText(IEnumerable<InstalledProgram> programs)
+    /// <summary>
+    /// As colunas exportadas quando o usuario nao escolhe nenhuma.
+    ///
+    /// E o conjunto do Revo: nome, versao, tipo, data, empresa, pagina inicial,
+    /// comentarios, comando de desinstalacao e chave do registro. Fixo e
+    /// explicito — o formato do arquivo exportado nao pode depender do
+    /// catalogo de colunas da tela, que o usuario pode mudar.
+    /// </summary>
+    public static IReadOnlyList<ProgramColumn> DefaultColumns { get; } = new[]
     {
+        ProgramColumn.Name,
+        ProgramColumn.Version,
+        ProgramColumn.Type,
+        ProgramColumn.Date,
+        ProgramColumn.Company,
+        ProgramColumn.HomePage,
+        ProgramColumn.Comments,
+        ProgramColumn.UninstallString,
+        ProgramColumn.RegistryKey,
+    };
+
+    public static string ToText(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
+    {
+        var sel = columns ?? DefaultColumns;
+        var anotacoes = ProgramCustomizationStore.PeekAll();
         var sb = new StringBuilder();
         foreach (var p in programs)
-            sb.AppendLine($"{p.DisplayName} - {p.VersionOrNoVersion}");
+            sb.AppendLine(string.Join(" - ", sel.Select(c => ProgramColumns.Value(c, p, CustomizationOf(p, anotacoes)))));
         return sb.ToString();
     }
 
-    public static string ToCsv(IEnumerable<InstalledProgram> programs)
+    public static string ToCsv(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
     {
+        var sel = columns ?? DefaultColumns;
+        var anotacoes = ProgramCustomizationStore.PeekAll();
         var sb = new StringBuilder();
-        sb.AppendLine("Program;Version;Type;Date;Company;HomePage;Comments;UninstallString;RegistryKey");
+        sb.AppendLine(string.Join(";", sel.Select(c => ExportNameOf(c))));
         foreach (var p in programs)
         {
             sb.AppendLine(string.Join(";",
-                Csv(p.DisplayName), Csv(p.VersionOrNoVersion), Csv(p.Bits), Csv(p.InstallDate),
-                Csv(p.Publisher), Csv(p.UrlInfoAbout), Csv(p.Comments),
-                Csv(p.UninstallString), Csv(p.RegistryKey)));
+                sel.Select(c => Csv(ProgramColumns.Value(c, p, CustomizationOf(p, anotacoes))))));
         }
         return sb.ToString();
     }
 
-    public static string ToHtml(IEnumerable<InstalledProgram> programs)
+    public static string ToHtml(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
     {
+        var sel = columns ?? DefaultColumns;
+        var anotacoes = ProgramCustomizationStore.PeekAll();
         var sb = new StringBuilder();
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html lang=\"pt-BR\"><head><meta charset=\"utf-8\">");
@@ -40,22 +72,21 @@ public static class Exporters
         sb.AppendLine("table{border-collapse:collapse;width:100%}th,td{border:1px solid #2e2e2e;padding:4px 8px}");
         sb.AppendLine("th{background:#3c3c3c;text-align:left}tr:nth-child(even){background:#5a5a5a}</style>");
         sb.AppendLine("</head><body><h1>Programas instalados</h1><table>");
-        sb.AppendLine("<tr><th>Programa</th><th>Tamanho</th><th>Versão</th><th>Tipo</th><th>Data</th>"
-            + "<th>Empresa</th><th>Página Inicial</th><th>Comentários</th><th>Desinstalador</th></tr>");
+        sb.AppendLine("<tr>" + string.Join("", sel.Select(c => $"<th>{Html(ProgramColumns.Label(c))}</th>")) + "</tr>");
         foreach (var p in programs)
         {
             sb.AppendLine("<tr>"
-                + $"<td>{Html(p.DisplayName)}</td><td>{Html(p.SizeText)}</td><td>{Html(p.VersionOrNoVersion)}</td>"
-                + $"<td>{Html(p.Bits)}</td><td>{Html(p.InstallDate)}</td><td>{Html(p.Publisher)}</td>"
-                + $"<td>{Html(p.UrlInfoAbout)}</td><td>{Html(p.Comments)}</td>"
-                + $"<td>{Html(p.UninstallString)}</td></tr>");
+                + string.Join("", sel.Select(c => $"<td>{Html(ProgramColumns.Value(c, p, CustomizationOf(p, anotacoes)))}</td>"))
+                + "</tr>");
         }
         sb.AppendLine("</table></body></html>");
         return sb.ToString();
     }
 
-    public static string ToXml(IEnumerable<InstalledProgram> programs)
+    public static string ToXml(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
     {
+        var sel = columns ?? DefaultColumns;
+        var anotacoes = ProgramCustomizationStore.PeekAll();
         var settings = new XmlWriterSettings { Indent = true, Encoding = new UTF8Encoding(false) };
         using var stream = new MemoryStream();
         using (var writer = XmlWriter.Create(stream, settings))
@@ -64,22 +95,44 @@ public static class Exporters
             writer.WriteAttributeString("exported", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"));
             foreach (var p in programs)
             {
-                writer.WriteStartElement("Program");
-                writer.WriteElementString("Name", p.DisplayName);
-                writer.WriteElementString("Version", p.VersionOrNoVersion);
-                writer.WriteElementString("Size", p.SizeText);
-                writer.WriteElementString("Type", p.Bits);
-                writer.WriteElementString("Date", p.InstallDate);
-                writer.WriteElementString("Company", p.Publisher);
-                writer.WriteElementString("HomePage", p.UrlInfoAbout);
-                writer.WriteElementString("Comments", p.Comments);
-                writer.WriteElementString("UninstallString", p.UninstallString);
-                writer.WriteElementString("RegistryKey", p.RegistryKey);
+                // O registro e um "Entry": as colunas sao os elementos, com o
+                // nome fixo da coluna. O elemento do registro nao pode ter o
+                // mesmo nome da coluna "Program".
+                writer.WriteStartElement("Entry");
+                foreach (var c in sel)
+                    writer.WriteElementString(ExportNameOf(c), ProgramColumns.Value(c, p, CustomizationOf(p, anotacoes)));
                 writer.WriteEndElement();
             }
             writer.WriteEndElement();
         }
         return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    /// <summary>
+    /// O nome da coluna no CSV e no XML: fixo e independente do idioma, para
+    /// o arquivo continuar legivel por qualquer ferramenta. O HTML, que e
+    /// lido por gente, usa o rotulo traduzido.
+    /// </summary>
+    private static string ExportNameOf(ProgramColumn column) => ProgramColumns.Info(column).ExportName;
+
+    /// <summary>
+    /// A anotacao do usuario sobre o programa.
+    ///
+    /// A lista vem de <see cref="ProgramCustomizationStore.PeekAll"/>: uma
+    /// leitura que nao mexe no arquivo do usuario. A exportacao e uma
+    /// operacao de leitura — renomear o arquivo corrompido de quem so queria
+    /// exportar a lista seria efeito colateral inaceitavel.
+    /// </summary>
+    private static ProgramCustomization? CustomizationOf(
+        InstalledProgram program, IReadOnlyList<ProgramCustomization> anotacoes)
+    {
+        var key = ProgramCustomizationStore.KeyOf(program);
+        foreach (var item in anotacoes)
+        {
+            if (string.Equals(item.Key, key, StringComparison.OrdinalIgnoreCase)) return item;
+        }
+
+        return null;
     }
 
     private static string Csv(string? value)

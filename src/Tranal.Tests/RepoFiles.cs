@@ -37,4 +37,39 @@ internal static class RepoFiles
         Assert.NotNull(path);
         return File.ReadAllText(path!);
     }
+
+    /// <summary>
+    /// O corpo de um metodo do fonte.
+    ///
+    /// As verificacoes de interface sao feitas sobre o fonte (a suite nao
+    /// referencia o WPF). Ancorar a assercao no metodo evita que um "contem"
+    /// solto passe por causa de outra ocorrencia da mesma frase no arquivo.
+    /// </summary>
+    public static string Metodo(string codigo, string nome)
+    {
+        // A definicao, e nao a chamada: um metodo chamado antes de ser
+        // definido apareceria primeiro na busca por texto.
+        var definicao = new System.Text.RegularExpressions.Regex(
+            $@"(?:void|bool|string|int|MenuItem|ContextMenu|IReadOnlyList<[^>]+>|List<[^>]+>)\s+{System.Text.RegularExpressions.Regex.Escape(nome)}\s*\(",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+        var achado = definicao.Match(codigo);
+        Assert.True(achado.Success, $"definicao de '{nome}' nao encontrada");
+
+        var abre = codigo.IndexOf('{', achado.Index);
+        Assert.True(abre >= 0, $"corpo de '{nome}' nao encontrado");
+
+        var profundidade = 0;
+        for (var i = abre; i < codigo.Length; i++)
+        {
+            if (codigo[i] == '{') profundidade++;
+            else if (codigo[i] == '}')
+            {
+                profundidade--;
+                if (profundidade == 0) return codigo[achado.Index..(i + 1)];
+            }
+        }
+
+        return codigo[achado.Index..];
+    }
 }

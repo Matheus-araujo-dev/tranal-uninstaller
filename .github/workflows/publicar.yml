@@ -41,6 +41,19 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant preview
 
+      # O primeiro arranque (sem o arquivo de preferencias) sobuga em dois
+      # defeitos de ordenacao que nao aparecem no caminho normal. O teste
+      # sobe o aplicativo de verdade: no runner nao ha area de trabalho
+      # interativa como na maquina de desenvolvimento, entao a falha NAO
+      # bloqueia a release — mas ela fica visivel no resultado do passo, e
+      # as mesmas regras sao cobertas por teste de unidade (ColdStartTests).
+      - name: Partida a frio (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-cold-start.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe
+
       - name: Publicar a CLI (arquivo unico, com o .NET embutido)
         shell: pwsh
         run: |

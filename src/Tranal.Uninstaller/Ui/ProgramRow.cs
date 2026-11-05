@@ -1,7 +1,5 @@
-using System.IO;
 using System.ComponentModel;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Tranal.Uninstaller.Core;
 
 namespace Tranal.Uninstaller.Ui;
@@ -18,21 +16,45 @@ public sealed class ProgramRow : INotifyPropertyChanged
 {
     public InstalledProgram Program { get; }
 
+    /// <summary>
+    /// A anotacao do usuario sobre o programa (comentario, icone, grupos).
+    /// Nulo quando o programa ainda nao foi anotado.
+    /// </summary>
+    public ProgramCustomization? Custom { get; }
+
     public ProgramRow(InstalledProgram program)
     {
         Program = program;
-        Icon = LoadIcon(program.IconPath);
+
+        Custom = ProgramCustomizationStore.Has(program) ? ProgramCustomizationStore.For(program) : null;
+
+        // O icone escolhido pelo usuario tem precedencia sobre o icone do
+        // proprio programa (o "Change Icon" do Revo, 15079). Se o caminho
+        // escolhido nao carregar, o icone do programa continua valendo: sem
+        // icone nenhum, o usuario perderia a referencia do programa.
+        var escolhido = string.IsNullOrWhiteSpace(Custom?.IconPath) ? null : Custom!.IconPath;
+        Icon = (escolhido is not null ? IconPickerWindow.LoadIcon(escolhido) : null)
+            ?? IconPickerWindow.LoadIcon(program.IconPath);
     }
 
-    public string DisplayName => Program.DisplayName;
-    public string DisplayVersion => Program.DisplayVersion;
-    public string Publisher => Program.Publisher;
-    public string UrlInfoAbout => Program.UrlInfoAbout;
-    public string Comments => Program.Comments;
-    public string UninstallString => Program.UninstallString;
-    public string InstallDate => Program.InstallDate;
-    public string Bits => Program.Bits;
-    public string SizeText => Program.SizeText;
+    public string DisplayName => ProgramColumns.Value(ProgramColumn.Name, Program, Custom);
+    public string DisplayVersion => ProgramColumns.Value(ProgramColumn.Version, Program, Custom);
+    public string Publisher => ProgramColumns.Value(ProgramColumn.Company, Program, Custom);
+    public string UrlInfoAbout => ProgramColumns.Value(ProgramColumn.HomePage, Program, Custom);
+    public string Comments => ProgramColumns.Value(ProgramColumn.Comments, Program, Custom);
+    public string UninstallString => ProgramColumns.Value(ProgramColumn.UninstallString, Program, Custom);
+    public string InstallDate => ProgramColumns.Value(ProgramColumn.Date, Program, Custom);
+    public string Bits => ProgramColumns.Value(ProgramColumn.Type, Program, Custom);
+    public string SizeText => ProgramColumns.Value(ProgramColumn.Size, Program, Custom);
+
+    /// <summary>Os grupos que o usuario criou para este programa (15072: "Group").</summary>
+    public string UserGroup => ProgramColumns.Value(ProgramColumn.Group, Program, Custom);
+
+    /// <summary>A anotacao do usuario sobre este programa (15216: "Add Comment").</summary>
+    public string UserNote => ProgramColumns.Value(ProgramColumn.Note, Program, Custom);
+
+    /// <summary>A chave do registro de desinstalacao do programa.</summary>
+    public string RegistryKeyText => ProgramColumns.Value(ProgramColumn.RegistryKey, Program, Custom);
 
     /// <summary>
     /// Janela de "programas novos". O Revo usa o par "New programs type" / "New Days"
@@ -74,22 +96,4 @@ public sealed class ProgramRow : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ImageSource? Icon { get; }
-
-    private static ImageSource? LoadIcon(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
-        try
-        {
-            var uri = new Uri(path, UriKind.Absolute);
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.UriSource = uri;
-            image.CacheOption = BitmapCacheOption.OnLoad;
-            image.DecodePixelWidth = 32;
-            image.EndInit();
-            image.Freeze();
-            return image;
-        }
-        catch { return null; }
-    }
 }

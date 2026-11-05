@@ -40,13 +40,9 @@ public partial class App : Application
         var window = new MainWindow();
 
         // Escolha de tema no primeiro lancamento (como no Revo Pro).
-        if (!AppSettingsStore.Current.FirstRunCompleted)
-        {
-            var dialog = new FirstRunWindow { Owner = window };
-            if (dialog.ShowDialog() == true)
-                ThemeManager.Apply(dialog.SelectedTheme);
-            AppSettingsStore.Update(s => s.FirstRunCompleted = true);
-        }
+        // Precisa acontecer ANTES de a janela principal ser exibida: assim a
+        // primeira pintura ja sai com o tema escolhido.
+        PerguntarTemaNoPrimeiroLancamento();
 
         window.Show();
 
@@ -59,6 +55,39 @@ public partial class App : Application
             var forced = new ForcedUninstallWindow { Owner = window };
             forced.Show();
             forced.Analyze(target);
+        }
+    }
+
+    /// <summary>
+    /// Pergunta o tema na primeira execucao, como o Revo Pro faz.
+    ///
+    /// Duas condicoes da partida a frio (sem arquivo de preferencias):
+    ///  1. A janela principal ainda nao foi exibida, e o WPF nao aceita uma
+    ///     janela nao exibida como Owner -&gt; o dialogo abre sem Owner.
+    ///  2. Durante a pergunta o dialogo e a unica janela do app: com o modo
+    ///     "encerrar na ultima janela fechada" o app terminaria ao fim da
+    ///     pergunta. O modo e trocado durante a pergunta e restaurado em
+    ///     seguida.
+    ///
+    /// O tema e aplicado aqui, antes de a janela principal ser exibida: assim
+    /// a primeira pintura ja sai com o tema escolhido.
+    /// </summary>
+    private void PerguntarTemaNoPrimeiroLancamento()
+    {
+        var modoAnterior = ShutdownMode;
+        ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+        try
+        {
+            if (AppSettingsStore.Current.FirstRunCompleted) return;
+
+            var dialog = new FirstRunWindow();
+            if (dialog.ShowDialog() == true)
+                ThemeManager.Apply(dialog.SelectedTheme);
+            AppSettingsStore.Update(s => s.FirstRunCompleted = true);
+        }
+        finally
+        {
+            ShutdownMode = modoAnterior;
         }
     }
 
