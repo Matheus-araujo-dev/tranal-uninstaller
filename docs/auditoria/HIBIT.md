@@ -122,31 +122,52 @@ os limpadores (`Empty_Folder_Cleaner_Schedule`, `Junk_Files_Cleaner_Schedule`,
 ### 3.1 A tabela de switches silenciosos
 
 O binário traz uma **tabela de switches de desinstalação silenciosa por
-instalador**, consecutively:
+aplicativo**: o nome do programa vem seguido, na tabela de strings, do switch
+que aquele programa aceita. Trecho medido em `strings-main.txt`:
 
 ```
-/silent
-/silent /norestart
---force-uninstall
-/AUTO /SILENT
--uninstall
+ESET Security
+Malwarebytes
+IrfanView
+/silent                ← o switch do IrfanView
+Google Chrome
+/silent /norestart     ← o switch do Google Chrome
+Brave
+--force-uninstall      ← o switch do Brave
+Yandex
+SumatraPDF
+XAMPP
+--mode unattended      ← o switch do XAMPP
+WinRAR
+/AUTO /SILENT          ← o switch do WinRAR
+Avidemux VC++
+Spotify
+Smart Switch
+Avast Secure Browser
+Torrent
+Unifab
+DVDFab
+Adobe Creative Cloud
+-uninstall             ← o switch do Adobe Creative Cloud
 ```
 
-E, para o MSI:
-
-```
-MsiExec.exe /quiet /qn /norestart /X
-```
+**Leitura honesta:** o pareamento "programa → switch" é feito por
+proximidade na tabela de strings. Para a maioria é inequívoco (o switch vem
+imediatamente após o nome e antes do próximo nome), mas em alguns casos —
+`Yandex`, `SumatraPDF`, `Avidemux VC++`, `Spotify` — o switch pode
+pertencer ao programa anterior. A tabela **existe**; o pareamento exato
+precisa de confirmação em execução.
 
 **Esta é a peça mais acionável de toda a auditoria do HiBit.** Ela combina
 exatamente com a classificação de desinstalador que o Tranal acabou de
 implementar: já sabemos *de que família* é o desinstalador de cada programa
-(`UninstallerKind`), e o HiBit mostra que existe uma **tabela de switches
-silenciosos por família**. Fechar o item "desinstalação silenciosa" do
-backlog deixa de ser adivinhação.
+(`UninstallerKind`), e existe uma **tabela de switches silenciosos** — ora
+por programa (HiBit), ora por família (BCU, Uninstalr). Fechar o item
+"desinstalação silenciosa" do backlog deixa de ser adivinhação.
 
----
-
+O **modo silencioso do próprio HiBit** é sinalizado internamente por
+`SilentMod` e pelo valor de registro `QuietUninstallString` — não por switch
+de linha de comando.
 ## 4. Interface
 
 Delphi/VCL. A janela principal (`TUninstaller`, 1005×670) **esconde** enquanto
@@ -175,7 +196,22 @@ Revo.
 | `/UNINSTALLIT` | executa o desinstalador **e** o fluxo completo de sobras |
 | `/FORCE` | desinstalação forçada (`HiBitUninstallerForce` + `RunOnce`) |
 | `/INSTALL` | abre o Monitor de Instalação no alvo |
-| `/SILENT` | modo silencioso do desinstalador do HiBit |
+
+### 5.1.1 O que **não** é switch do HiBit
+
+Uma correção importante, porque a leitura apressada do binário erra:
+
+| String | Dono real |
+|---|---|
+| `/SILENT` | **não é switch do HiBit** — é o argumento passado ao **instalador da versão antiga** durante a atualização (`NetworkError` \| ` /SILENT` \| `(OldVersion).exe` \| `HiBitUninstaller-Portable.exe` \| `CheckingNewVersion`) |
+| `/AUTO` | faz parte do par **`/AUTO /SILENT`** da tabela de switches silenciosos **por aplicativo** (programas do tipo Inno Setup) |
+| `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` | flags do **instalador Inno Setup** que o HiBit passa ao baixar a nova versão |
+| `MsiExec.exe /quiet /qn /norestart /X` | remoção de produto **MSI** |
+| `MsiExec.exe /I` | **modificar/reparar** produto MSI |
+
+O **modo silencioso do próprio HiBit** é sinalizado internamente por
+`SilentMod` e pelo valor de registro **`QuietUninstallString`** — não por
+switch de linha de comando.
 
 ### 5.2 Um switch por ferramenta
 
