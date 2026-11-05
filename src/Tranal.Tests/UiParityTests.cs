@@ -122,10 +122,15 @@ public class UiParityTests
     [Fact]
     public void TodaFerramentaTemTituloNoCatalogoDeIdioma()
     {
+        // O catalogo e carregado sob demanda. O teste nao pode depender de
+        // outra classe ter carregado antes: a ordem de execucao dos testes
+        // nao e garantida, e no CI esta classe rodou antes das demais.
+        var catalog = Loc.Load(Loc.DefaultLanguage);
+
         foreach (var id in ToolCatalog.All)
         {
             var key = "Module." + id;
-            Assert.NotEqual(key, Loc.Get(key));
+            Assert.True(catalog.ContainsKey(key), $"Falta a chave '{key}' no catalogo de idioma.");
         }
     }
 
