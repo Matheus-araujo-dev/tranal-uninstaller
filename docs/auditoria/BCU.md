@@ -283,12 +283,12 @@ em `src/Tranal.Uninstaller/Core/`).
 
 | # | Recurso do BCU | Tranal hoje | Prioridade |
 |---|---|---|---|
-| 1 | **Classificar o desinstalador** (14 tipos: MsiExec, Inno, NSIS, InstallShield, SDBInst, Steam, Store, WinFeature, WinUpdate, Chocolatey, Oculus, PowerShell, Simple Delete) e escolher a estratégia por tipo | não classifica; roda a cadeia do registro e varre por nome | 🔴 alta |
+| 1 | ✅ **Classificar o desinstalador** (12 tipos implementados em `Core/UninstallerKind.cs`: MsiExec, Inno, NSIS, InstallShield, SDBInst, Steam, Store, Chocolatey, Oculus, PowerShell, Simple Delete e desconhecido; Windows Feature e Windows Update dependem de detectores que ainda não existem) | não classifica; roda a cadeia do registro e varre por nome | — feita |
 | 2 | **Atribuir sobras pelo desinstalador** (item explicitamente citado na cadeia) e não só pelo nome | varre por nome e variantes | 🔴 alta |
 | 3 | **Níveis de confiança com justificativa** (5 níveis + motivo por item) | 3 níveis, sem justificativa visível | 🔴 alta |
 | 4 | **Desinstalação silenciosa com geração de silencioso** (inclusive por automação de interface) | modo `builtin` roda o desinstalador como veio | 🔴 alta |
 | 5 | **Filtro avançado por condições** (Regex, 6 métodos de comparação, alvo = propriedade, negação, Incluir/Excluir) | filtros rápidos + popup de filtros | 🟡 média |
-| 6 | **Colunas**: o BCU tem 18, o Tranal tem 12 | faltam Tipo de desinstalador, Desinstalador silencioso, Localização do desinstalador, Fonte da instalação, Componente do sistema, Protegido, GUID/ProductCode, Inicialização, Classificação do usuário | 🟡 média |
+| 6 | **Colunas**: o BCU tem 18, o Tranal tem 14 | ✅ implementadas: Tipo de desinstalador e Código do produto. Faltam Desinstalador silencioso, Localização do desinstalador, Fonte da instalação, Componente do sistema, Protegido, Inicialização, Classificação do usuário | 🟡 média |
 | 7 | **Detecção de fontes além do registro**: Store Apps, Windows Features, Windows Updates, Steam, Chocolatey, Scoop, Oculus, varredura de drives | só Windows Store Apps (`Core/Modules/WindowsApps.cs`, 122 pacotes MSIX) | 🟡 média |
 | 8 | **Desinstalar via MsiExec** pelo GUID | não | 🟡 média |
 | 9 | **Desinstalação simultânea** com prevenção de colisão | não | 🟡 média |
@@ -381,9 +381,11 @@ Field 4.345, AssemblyRef 40, resources 5, SHA-256
 
 ## 8. Decisões que este documento obriga
 
-1. **O Tranal passa a classificar o desinstalador.** É o eixo do BCU e o que
+1. ✅ **O Tranal passa a classificar o desinstalador.** É o eixo do BCU e o que
    habilita quase tudo o mais (silencioso, MsiExec, Store App, órfão). A
    coluna "Tipo de desinstalador" vira a primeira coluna nova do catálogo.
+   **Implementado** em `Core/UninstallerKind.cs` — 12 tipos, medidos nos 211
+   programas desta máquina.
 2. **A confiança ganha justificativa.** O `LeftoverConfidence` do Tranal
    (3 níveis) continua, mas passa a produzir uma frase por item — o mesmo
    que o BCU faz com `ConfidencePart_*`. A lista de sobras mostra o *porquê*.

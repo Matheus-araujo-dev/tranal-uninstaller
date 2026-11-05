@@ -37,6 +37,23 @@ public sealed class InstalledProgram
     /// <summary>True quando veio do catalogo MSI (installer de pacote).</summary>
     public bool IsMsi { get; set; }
 
+    /// <summary>
+    /// O tipo do desinstalador, classificado por <see cref="UninstallerClassifier"/>.
+    ///
+    /// Nao e um detalhe cosmetico: e o que decide a estrategia de
+    /// desinstalacao (o <c>ProductCode</c> de um MSI, o caminho do
+    /// desinstalador de um Inno Setup, a ausencia de desinstalador de um
+    /// aplicativo da Store).
+    /// </summary>
+    public UninstallerKind Kind { get; set; } = UninstallerKind.Unknown;
+
+    /// <summary>
+    /// O codigo do produto (GUID) do Windows Installer, quando existe.
+    /// Vem do valor <c>ProductCode</c> do registro ou e extraido do comando
+    /// de desinstalacao.
+    /// </summary>
+    public string ProductCode { get; set; } = string.Empty;
+
     /// <summary>Data de instalacao como DateTime? para ordenacao por recencia.</summary>
     public DateTime? InstallDateValue { get; set; }
 

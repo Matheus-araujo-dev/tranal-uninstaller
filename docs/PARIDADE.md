@@ -26,6 +26,54 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ fora de escopo
 | `Uninstaller StatusBar` | 2 | ✅ | `MainWindow.xaml` — barra de status com contagens |
 | `UninstallHistory` | 33 | ✅ | `Core/UninstallHistory.cs` — histórico persistente, desativável pelas opções |
 
+### Classificação do desinstalador (implementado — medido)
+
+O original não tem uma seção própria para isso, mas a auditoria dos
+concorrentes mostrou que é a peça que faltava: sem saber **que tipo** de
+desinstalador o programa tem, não há como escolher a estratégia. O Tranal
+classifica cada programa lido do registro em `Core/UninstallerKind.cs`
+(`UninstallerClassifier`).
+
+| Tipo | Regra de reconhecimento |
+|---|---|
+| `MsiExec` | o registro tem `WindowsInstaller=1`, ou o comando é `msiexec` |
+| `InnoSetup` | o executável do comando é `unins000.exe` |
+| `Nsis` | o executável do comando é `uninstall.exe` |
+| `InstallShield` | o caminho tem "InstallShield", ou é `setup.exe /x{…}` |
+| `SdbInst` | o comando é o `sdbinst.exe` |
+| `StoreApp` | a pasta de instalação está em `WindowsApps` |
+| `Steam` / `Chocolatey` / `Oculus` | a loja aparece no comando |
+| `PowerShell` | o desinstalador é um script |
+| `SimpleDelete` | o comando só apaga arquivos (`cmd /c rmdir`) |
+| `Unknown` | desinstalador de fabricante, sem empacotador conhecido |
+
+Duas colunas novas saem disso: **Tipo de desinstalador** e **Código do
+produto** (o GUID do Windows Installer), em `Core/ProgramColumns.cs`. O valor
+da coluna é o identificador fixo do tipo — a coluna exportada continua legível
+por qualquer ferramenta, e a tela não ganha uma segunda tradução que possa
+divergir do código.
+
+Medido nesta máquina (211 programas instalados):
+
+| Tipo | Programas |
+|---|---|
+| `MsiExec` | 149 (todos com o código do produto preenchido) |
+| `Unknown` | 42 |
+| `InnoSetup` | 9 |
+| `Nsis` | 5 |
+| `SdbInst` | 3 |
+| `Steam` | 3 |
+
+**O casamento do NSIS é pelo nome do arquivo, não por substring.** A primeira
+medição classificou o "EA app" como NSIS — o desinstalador dele se chama
+`EAUninstall.exe`, que contém a palavra "uninstall" mas não é o
+`uninstall.exe` do NSIS. Passou a ser o nome do arquivo o critério, e o caso
+virou teste de regressão.
+
+**O "desconhecido" é honesto.** Os 42 são desinstaladores de fabricante
+(Chromium, Visual Studio, .NET, Riot, Electron) que não seguem empacotador
+conhecido. Classificá-los como se fossem seria inventar.
+
 ### Modos de desinstalação (medidos nas strings 4234–4237)
 
 O original tem quatro modos. No Tranal eles são **um único enum**

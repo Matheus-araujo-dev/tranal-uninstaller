@@ -31,7 +31,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | # | Funcionalidade | Revo | BCU | Tranal | Prioridade |
 |---|---|---|---|---|---|
 | A1 | Enumeração pelo registro (32 e 64 bits) | ✅ | ✅ | ✅ | — |
-| A2 | **Classificação do desinstalador** (MsiExec, Inno, NSIS, InstallShield, SDBInst, Steam, Store, WinFeature, WinUpdate, Chocolatey, Oculus, PowerShell, Simple Delete) | 🟡 | ✅ (14 tipos) | ⬜ | 🔴 |
+| A2 | **Classificação do desinstalador** (MsiExec, Inno, NSIS, InstallShield, SDBInst, Steam, Store, WinFeature, WinUpdate, Chocolatey, Oculus, PowerShell, Simple Delete) | 🟡 | ✅ (14 tipos) | ✅ (12 tipos) | — |
 | A3 | Detecção de **Windows Store Apps** | ✅ | ✅ | ✅ (122 MSIX) | — |
 | A4 | Detecção de **Windows Features** (WMI) | ⬜ | ✅ | ⬜ | 🟡 |
 | A5 | Detecção de **Windows Updates** (WUA) | ⬜ | ✅ | ⬜ | 🟡 |
@@ -97,7 +97,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 
 | # | Funcionalidade | Revo | BCU | Tranal | Prioridade |
 |---|---|---|---|---|---|
-| D1 | **Colunas customizáveis** | ✅ | ✅ (18 fixas) | ✅ (12) | 🟡 (mais colunas) |
+| D1 | **Colunas customizáveis** | ✅ | ✅ (18 fixas) | ✅ (14) | 🟡 (mais colunas) |
 | D2 | **Filtro por Regex** e condições (incluir/excluir, negação) | ⬜ | ✅ | ⬜ | 🟡 |
 | D3 | **Lista de desinstalação em arquivo** (`.bcul`) | ⬜ | ✅ | ⬜ | 🟡 |
 | D4 | **Desinstalação em lote roteirizável** pela linha de comando | ⬜ | ✅ | ⬜ | 🟡 |
@@ -147,7 +147,7 @@ item aponta para a auditoria que o revelou.
 
 | # | Item | De onde veio | Por quê |
 |---|---|---|---|
-| 1 | **Classificar o desinstalador** (enum `UninstallerKind`) e escolher a estratégia por tipo | BCU A2 | Habilita silencioso, MsiExec, Store App, órfão, PowerShell. É o eixo de tudo. |
+| 1 | ✅ **Classificar o desinstalador** (enum `UninstallerKind`, em `Core/UninstallerKind.cs`) — 12 tipos, medidos nos 211 programas desta máquina | BCU A2 | Habilita silencioso, MsiExec, Store App, órfão, PowerShell. É o eixo de tudo. |
 | 2 | **Atribuir sobras pela cadeia de desinstalação**, não só pelo nome | BCU C5 | Separa "a pasta do programa" de "a pasta **dele**". Errar aqui é apagar coisa de outro. |
 | 3 | **Justificativa textual por item de sobra** | BCU C4 | O Tranal já tem 3 níveis; falta dizer **por quê**. Custa pouco e muda a confiança do usuário. |
 | 4 | **Desinstalação silenciosa** com gerador (inclusive por automação de interface) | BCU B2/B3 | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. |
@@ -166,7 +166,7 @@ item aponta para a auditoria que o revelou.
 | 12 | Limpeza de pastas "Arquivos de Programas" vazias/pela metade | BCU C12 |
 | 13 | Comandos antes e depois da desinstalação | BCU B15 |
 | 14 | Verificação de certificado do desinstalador | BCU D8 |
-| 15 | Colunas novas: Tipo de desinstalador, Desinstalador silencioso, Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
+| 15 | Colunas novas: ✅ Tipo de desinstalador e ✅ Código do produto (implementados); ⬜ Desinstalador silencioso, Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
 | 16 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
 | 17 | Remoção definitiva de drivers | Revo E10 |
 

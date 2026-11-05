@@ -32,6 +32,15 @@ public enum ProgramColumn
     /// <summary>Comando de desinstalacao.</summary>
     UninstallString,
 
+    /// <summary>
+    /// Tipo do desinstalador (Windows Installer, Inno Setup, NSIS...).
+    /// O valor e o identificador fixo do tipo, independente do idioma.
+    /// </summary>
+    UninstallerKind,
+
+    /// <summary>Codigo do produto (GUID) do Windows Installer.</summary>
+    ProductCode,
+
     /// <summary>Grupo criado pelo usuario (15072: "Group").</summary>
     Group,
 
@@ -77,6 +86,8 @@ public static class ProgramColumns
         new(ProgramColumn.HomePage, "Common.Homepage", "Página inicial", "HomePage"),
         new(ProgramColumn.Comments, "Common.Comments", "Comentários", "Comments"),
         new(ProgramColumn.UninstallString, "Common.UninstallString", "Desinstalador", "UninstallString"),
+        new(ProgramColumn.UninstallerKind, "Common.UninstallerKind", "Tipo de desinstalador", "UninstallerKind"),
+        new(ProgramColumn.ProductCode, "Common.ProductCode", "Código do produto", "ProductCode"),
         new(ProgramColumn.Group, "Common.Group", "Grupo", "Group"),
         new(ProgramColumn.Note, "Common.Note", "Anotação", "Note"),
         new(ProgramColumn.RegistryKey, "Common.RegistryKey", "Chave do registro", "RegistryKey"),
@@ -117,6 +128,8 @@ public static class ProgramColumns
             case ProgramColumn.HomePage: return program.UrlInfoAbout;
             case ProgramColumn.Comments: return program.Comments;
             case ProgramColumn.UninstallString: return program.UninstallString;
+            case ProgramColumn.UninstallerKind: return program.Kind.ToString();
+            case ProgramColumn.ProductCode: return program.ProductCode;
             case ProgramColumn.Group: return GroupOf(custom);
             case ProgramColumn.Note: return custom?.Comment ?? string.Empty;
             case ProgramColumn.RegistryKey: return program.RegistryKey;

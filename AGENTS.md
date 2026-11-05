@@ -321,6 +321,27 @@ nesta máquina — não são para serem "deduzidas" de novo.
   com chave privada, senão o primeiro. Sem isso, um certificado de teste com o
   mesmo nome rouba a assinatura.
 
+## Classificação do desinstalador (regra do núcleo)
+
+O tipo do desinstalador mora em **um lugar só**: o enum `UninstallerKind` e a
+função `UninstallerClassifier` em `Core/UninstallerKind.cs`. Nenhum outro
+arquivo reimplementa o reconhecimento — quem precisar do tipo consome o enum.
+
+- **O valor da coluna é o identificador fixo** (`MsiExec`, `InnoSetup`,
+  `Nsis`…), não um texto traduzido. A coluna exportada continua legível por
+  qualquer ferramenta, em qualquer idioma, e a tela não ganha uma segunda
+  tradução que possa divergir do código.
+- **O reconhecimento casa pelo nome do arquivo do executável**, não por
+  substring da linha de comando: `EAUninstall.exe` não é o `uninstall.exe` do
+  NSIS. O caso foi medido na máquina e virou teste de regressão.
+- **A classificação descreve; ela não decide o que é removido.** Nenhuma
+  regra pode, sozinha, marcar um item de sobra para remoção.
+- **"Desconhecido" é resposta legítima.** Os desinstaladores de fabricante
+  (Chromium, Visual Studio, .NET, Electron) não seguem empacotador
+  conhecido; classificá-los como se fossem seria inventar.
+- Cada tipo do enum precisa ser produzido por alguma regra — há teste que
+  garante isso, para o enum não ganhar membro morto.
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do

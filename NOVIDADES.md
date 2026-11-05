@@ -2,6 +2,61 @@
 
 ## v1.4 — partida a frio corrigida, integridade das preferências por programa e instalador
 
+### Novo: o Tranal agora sabe que tipo de desinstalador cada programa tem
+
+Até aqui o Tranal tratava todo desinstalador do mesmo jeito: rodava a cadeia de
+desinstalação como vinha do registro e procurava sobras pelo nome do programa.
+A auditoria de concorrentes mostrou que essa é a lacuna de estrutura mais
+importante — é o que o Bulk Crap Uninstaller faz de diferente, e é o que
+destrava a desinstalação silenciosa, o desinstalador por MsiExec e a
+geração de desinstalador para programa sem desinstalador.
+
+Agora cada programa é **classificado** pelo tipo do desinstalador:
+
+| Tipo | Como é reconhecido |
+|---|---|
+| `MsiExec` | o registro tem `WindowsInstaller=1` ou o comando é `msiexec` |
+| `InnoSetup` | o desinstalador é o `unins000.exe` |
+| `Nsis` | o desinstalador é o `uninstall.exe` |
+| `InstallShield` | o caminho tem "InstallShield" ou é `setup.exe /x{…}` |
+| `SdbInst` | o comando é o `sdbinst.exe` |
+| `StoreApp` | a pasta de instalação está no `WindowsApps` |
+| `Steam`, `Chocolatey`, `Oculus` | a loja aparece no comando |
+| `PowerShell` | o desinstalador é um script |
+| `SimpleDelete` | o comando só apaga arquivos (`cmd /c rmdir`) |
+
+Apareceram **duas colunas novas** na lista: "Tipo de desinstalador" e
+"Código do produto" (o GUID do Windows Installer). Também dá para pedir as
+duas na exportação, pela CLI:
+
+```
+tranal /export "C:\lista.csv" /csv /columns "Program,UninstallerKind,ProductCode"
+```
+
+O valor da coluna é o **identificador fixo** do tipo (`MsiExec`, `InnoSetup`,
+`Nsis`…), e não um texto traduzido: a coluna exportada continua legível por
+qualquer ferramenta, em qualquer idioma, e a tela não ganha uma segunda
+tradução que possa divergir do código.
+
+**Medido nesta máquina** (211 programas instalados):
+
+| Tipo | Programas |
+|---|---|
+| `MsiExec` | 149 (todos com o código do produto preenchido) |
+| `Unknown` | 42 |
+| `InnoSetup` | 9 |
+| `Nsis` | 5 |
+| `SdbInst` | 3 |
+| `Steam` | 3 |
+
+O "desconhecido" é honesto: são os desinstaladores de fabricante (Chromium,
+Visual Studio, .NET, Riot, Electron) que não seguem nenhum empacotador
+conhecido — classificá-los como se fossemseria inventar. A classificação
+também é **conservadora de propósito**: o casamento do NSIS é pelo nome
+**do arquivo**, não por substring, para que um `EAUninstall.exe` não seja
+confundido com o `uninstall.exe` do NSIS (foi exatamente o que aconteceu na
+primeira medição, e virou teste de regressão).
+
 ### Novo: instalador (setup)
 
 O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller-Setup.exe`

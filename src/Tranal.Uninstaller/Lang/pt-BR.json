@@ -36,6 +36,8 @@
     "Common.Comments":  "Comentários",
     "Common.InstallLocation":  "Local de instalação",
     "Common.UninstallString":  "Comando de desinstalação",
+    "Common.UninstallerKind":  "Tipo de desinstalador",
+    "Common.ProductCode":  "Código do produto",
     "Common.RegistryKey":  "Chave do registro",
     "Common.Installer":  "Instalador",
     "Common.Homepage":  "Página inicial",

@@ -36,6 +36,8 @@
     "Common.Comments":  "Comments",
     "Common.InstallLocation":  "Install location",
     "Common.UninstallString":  "Uninstall command",
+    "Common.UninstallerKind":  "Uninstaller type",
+    "Common.ProductCode":  "Product code",
     "Common.RegistryKey":  "Registry key",
     "Common.Installer":  "Installer",
     "Common.Homepage":  "Homepage",

@@ -131,6 +131,18 @@ public static class ProgramScanner
             Installer = (GetString(sub, "InstallSource") ?? string.Empty).Trim(),
         };
 
+        // O codigo do produto vem do valor "ProductCode" do registro; quando
+        // o registro nao tem o valor, ele e extraido do comando de
+        // desinstalacao (que no MSI e "MsiExec.exe /X{GUID}").
+        var productCode = (GetString(sub, "ProductCode") ?? string.Empty).Trim();
+        if (productCode.Length == 0)
+            productCode = UninstallerClassifier.ExtractProductCode(uninstallString);
+        program.ProductCode = productCode;
+
+        // O tipo do desinstalador decide a estrategia de desinstalacao, e
+        // por isso e classificado sempre — nao e um detalhe opcional.
+        program.Kind = UninstallerClassifier.Classify(program);
+
         var estimatedKb = GetInt(sub, "EstimatedSize");
         if (estimatedKb > 0) program.SizeBytes = estimatedKb * 1024L;
 
@@ -351,6 +363,8 @@ public static class ProgramScanner
                 Installer = installSource,
                 Comments = localPackage,
                 Bits = "32-bits",
+                Kind = UninstallerKind.MsiExec,
+                ProductCode = productCode,
             };
         }
     }
