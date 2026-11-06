@@ -18,7 +18,7 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ fora de escopo
 
 | Seção do original | Strings | Tranal | Onde |
 |---|---|---|---|
-| `UninstallerPro` | 331 | 🟡 | assistente de 5 etapas, 4 modos, lista de sobras com confiança, resumo por contagem — **item a item medido na seção "Fechamento das 🟡 do Revo"**; o que falta é desinstalação em lote, os três avisos de segurança, o log com tipo de mudança, Excel/impressão e o modelo de alinhamento de coluna |
+| `UninstallerPro` | 331 | ✅ | item a item medido na seção "Fechamento das 🟡 do Revo": assistente de 5 etapas, 4 modos, lista de sobras com confiança, desinstalação em lote, os três avisos de segurança, log com tipo de mudança, Excel/impressão e alinhamento de coluna — **todos implementados** |
 | `Scan After Uninstall` | 63 | ✅ | `Core/UninstallSupport.cs` (`LeftoverScanner`), `Core/MsiInstallLog.cs` (atribuição pela cadeia do instalador), `Core/Removal.cs`, `Core/RecycleBin.cs`, `Core/DeferredDelete.cs` |
 | `Uninstaller Options` | 6 | ✅ | `Ui/OptionsWindow.*` — ponto de restauração do sistema, somente o desinstalador nativo, desativar histórico, atalhos de páginas web |
 | `Uninstaller List` | 10 | ✅ | `MainWindow.xaml` — lista montada a partir do catálogo de colunas (`Core/ProgramColumns.cs`), grupos, ordenação por cabeçalho |
@@ -427,7 +427,7 @@ coberto, e isso agora está medido contra o código do `src/`.
 | "Traced Programs" e "All Programs", grupos New/Others, filtro "novos programas nos últimos N dias" | 15002–15003, 15067–15076, 15129 | ✅ | `Core/Modules/TracedPrograms.cs`, `Core/Settings/AppSettings.cs:26` (`NewProgramsDays`) |
 | Gerenciador de grupos: criar, renomear, mover, adicionar e remover programas | 15001, 15005, 15050–15053, 15070–15072, 15080–15081, 15173 | ✅ | `Ui/GroupsManagerWindow.xaml.cs` |
 | Colunas da lista: remover coluna, alinhar (esquerda/centro/direita), "Best Fit" | 15054–15060 | ✅ | `MainWindow.xaml.cs:386-398` (menu do cabeçalho: "Remover esta coluna", submenu "Alinhar" e "Ajustar ao conteúdo"), `:440` (`BestFit`), `:460` (`SetAlignment`) |
-| Exportar a lista: TXT, HTML e **Microsoft Excel**, com escolha de quais colunas exportar | 15061–15066, 15098, 15298 | 🟡 | `Core/Exporters.cs` exporta **TXT/CSV/HTML/XML** (`ToText`, `ToCsv`, `ToHtml`, `ToXml`) — **sem Excel**; a escolha de colunas existe |
+| Exportar a lista: TXT, HTML e **Microsoft Excel**, com escolha de quais colunas exportar | 15061–15066, 15098, 15298 | ✅ | `Core/Reporting/ReportFormats.cs` (`ToExcel`: SpreadsheetML 2003, XML puro, abre no Excel sem o Office instalado) e `Core/Exporters.cs` (TXT/CSV/HTML/XML); a escolha de colunas existe |
 | Backup do registro + ponto de restauração antes de desinstalar, com opção de pular | 15162–15167, 15227–15230, 15307–15308 | ✅ | `Core/FullRegistryBackup.cs`, `Core/UninstallSupport.cs:1170`, `Core/Settings/AppSettings.cs:48,211` |
 | Apagar para a lixeira, para a pasta de backup ou permanentemente | 15130–15133 | ✅ | `Core/RecycleBin.cs`, `Core/BackupManager.cs`, `Core/Settings/AppSettings.cs:86` |
 | Adiar para o próximo reinício (fila oficial de renomeação) | 15144, 15222 | ✅ | `Core/DeferredDelete.cs` |
@@ -440,23 +440,23 @@ coberto, e isso agora está medido contra o código do `src/`.
 | Comentar o programa, trocar o ícone, renomear | 15005, 15079, 15216–15217, 15281–15286 | ✅ | `Core/ProgramCustomization.cs` |
 | Varredura em **todas as contas do Windows** e desinstalação em todas as contas | 15345, 15352–15353 | ✅ | `Core/Settings/AppSettings.cs:180,187,197` |
 | **Desinstalação em lote / "Quick Uninstall"** | 15200–15214, 15267 | ✅ | `MainWindow.xaml` — a lista passou de `SelectionMode="Single"` para `"Extended"`; a confirmação do lote é `UserMessages.Confirm` (nunca omitida) e traduzida (`Cmd.UninstallManyConfirm`) |
-| **Continuar a desinstalação interrompida por reinício** | 15318 | ⬜ | — |
+| **Continuar a desinstalação interrompida por reinício** | 15318 | ✅ | `Core/Automation/UninstallSession.cs` (a sessão é gravada de forma atômica a cada etapa e pode ser retomada; `UninstallPlan.cs` monta o plano) |
 | **Aviso: "pastas abaixo podem conter dados do usuário e documentos"** | 15359 | ✅ | `Core/UninstallAdvisories.cs` (`UserDataAdvisory`) — painel de aviso na etapa da lista de sobras e aviso na CLI |
 | **Aviso: "remover este produto pode fazer recursos do Windows ou outros softwares pararem de funcionar"** | 15365 | ✅ | `Core/UninstallAdvisories.cs` (`SystemComponentAdvisory`) — confirmação **não** omitível antes de rodar o desinstalador |
 | **Aviso: "programas instalados na mesma pasta — as sobras de todos serão encontradas"** | 15337–15338 | ✅ | `Core/UninstallAdvisories.cs` (`SharedInstallLocationAdvisory`) — confirmação **não** omitível antes de rodar o desinstalador |
 | **Log de remoção por item, com código de erro** | (o Uninstall Tool grava esse log; o Revo mostra as contagens) | ✅ | `Core/RemovalLog.cs` — a regra, o CSV, o JSON e o nome do arquivo; `Core/Removal.cs` (`RemovalOutcome.ErrorCode`) recebe o código do Windows (5 = acesso negado, 32 = arquivo em uso). O log vai para `%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\removal-logs` |
-| **Log com tipo de mudança** (Created / Deleted / Renamed / Overwritten / Unknown) e nome/dado antigo | 15247–15255 | ⬜ | `TracePayload` (`TraceStore.cs:502`) guarda **só** `Files`, `Folders` e `RegistryKeys` — não sabe o que foi renomeado nem sobrescrito |
-| **Editar chave e valor de registro dentro do log** | 15256–15264, 15289 | ⬜ | — |
-| **Unir logs** de um mesmo programa | 15312–15314 | ⬜ | — |
-| **Usar o log correspondente durante a desinstalação** | 15266, 15291–15296 | 🟡 | o Tranal usa o log do **instalador MSI** (`Core/MsiInstallLog.cs`), não um log de rastreio correlacionado |
-| **Incluir / excluir processos do rastreio** | 15105–15107, 16035–16037 | ⬜ | — |
-| **Backup completo do registro todo dia** | 16059 | ⬜ | `Core/FullRegistryBackup.cs` só roda sob demanda, antes da desinstalação |
+| **Log com tipo de mudança** (Created / Deleted / Renamed / Overwritten / Unknown) e nome/dado antigo | 15247–15255 | ✅ | `Core/Tracing/TraceEntry.cs` (o tipo, o caminho antigo e o novo e o dado anterior) e `Core/Tracing/TraceLogV2.cs`; o `TracePayload` legado continua lendo o log antigo |
+| **Editar chave e valor de registro dentro do log** | 15256–15264, 15289 | ✅ | `Core/Reporting/TraceLogExporter.cs` (`TraceLogEditor`: acrescenta e remove entrada de arquivo, pasta e chave de registro) |
+| **Unir logs** de um mesmo programa | 15312–15314 | ✅ | `Core/Tracing/TraceLogV2.cs` (`ToTracedInstall` funde os logs do mesmo programa num registro só) |
+| **Usar o log correspondente durante a desinstalação** | 15266, 15291–15296 | ✅ | `Core/Tracing/ForensicAnalyzer.cs` (`BuildPlan` monta o plano de remoção a partir do log, com a procedência de cada item marcada) e `Ui/Tracing/TracingWindow.xaml` |
+| **Incluir / excluir processos do rastreio** | 15105–15107, 16035–16037 | ✅ | `Core/Tracing/TraceProcessPolicy.cs` (`Include`/`Exclude`/`IncludePath`/`ExcludePath`/`ShouldObserve`) |
+| **Backup completo do registro todo dia** | 16059 | ✅ | `Core/Recovery/DailyRegistryBackup.cs` (`RunIfDue`: uma vez por dia, com marcador da última execução); o formato continua sendo o do `Core/FullRegistryBackup.cs` |
 | **Install Programs** (instalar monitorando) | 15160–15161, 15311, 15328–15333, 16020, 16022 | ⬜ | o Tranal não instala — ver a decisão no item 8 do backlog |
 | **Logs Database** (base de logs na web da Revo) | 15182–15193, 15273–15280 | ⬜ | serviço online proprietário — ver a decisão no item 8 do backlog |
-| **Print / Print Preview / Print Setup** | 16001–16003 | ⬜ | grep `PrintDialog`/`PrintPreview` = **0** |
+| **Print / Print Preview / Print Setup** | 16001–16003 | ✅ | `Core/Reporting/PrintLayout.cs` (a paginação) e `Ui/Reporting/ReportingWindow.xaml` (imprimir, com a visualização antes) |
 | **Rebuild cache file** | 15175–15176 | ⬜ | o Tranal não mantém cache de detalhes |
-| Filtro da lista por **tamanho, tipo, unidade e ocultos** | 15360–15363, 15366 | ✅ | `MainWindow.xaml.cs:125` (`MatchesSize`, `MatchesType`, `MatchesDrive`) |
-| "Set the focus on Traced Programs on startup", "Show check boxes in Details view", "Open the Uninstall Wizard maximized" | 15129, 15334, 15170 | 🟡 | equivalentes existem em forma parecida, não com o mesmo nome |
+| Filtro da lista por **tamanho, tipo, unidade e ocultos** | 15360–15363, 15366 | ✅ | `Core/Appearance/ProgramFilters.cs` (`ProgramFilterSet` — a regra mora no núcleo): o popup, a caixa de busca e o painel lateral editam o mesmo conjunto |
+| "Set the focus on Traced Programs on startup", "Show check boxes in Details view", "Open the Uninstall Wizard maximized" | 15129, 15334, 15170 | ✅ | a preferência `FocusTracedProgramsOnStartup`, a coluna de caixas de seleção da visualização de detalhes (`Ui/ProgramColumnLayout.cs`, `CheckColumnWidth`) e o `WindowState="Maximized"` do assistente (`Ui/UninstallWizardWindow.xaml`) |
 
 #### `General App` — 147 strings
 
@@ -469,17 +469,17 @@ coberto, e isso agora está medido contra o código do `src/`.
 | Mostrar comandos no menu de contexto do Windows | 16062 | ✅ | `Core/Topmost/ExplorerContextMenu.cs` |
 | Pasta de backup, "back up deleted Registry items" e "back up deleted files and folders" | 16024–16026 | ✅ | `Core/BackupManager.cs`, `Core/FullRegistryBackup.cs` |
 | Todos os módulos do menu File (Autorun, Junk Files, Windows Tools, Browsers, Office, Evidence Remover, Unrecoverable Delete, Backup Manager) | 16010–16019 | ✅ | `Core/ToolCatalog.cs`, `Core/Tools/*` |
-| **Visual theme** — 10 skins (Blue, Grey, Black, Silver, Native, Native 2, Native Smooth, Dark Grey, Blue 2, Dark Mode) | 16038, 16042–16048, 16064–16065, 16099 | 🟡 | `Theming/ThemeManager.cs` — o Tranal tem **dois** (Dark/Light), sem skins nem cor de fundo/seleção configurável |
-| **Cor personalizada** (fundo, seleção, texto, botões, diálogos) | 16071–16075, 16133, 16150–16153 | ⬜ | — |
+| **Visual theme** — 10 skins (Blue, Grey, Black, Silver, Native, Native 2, Native Smooth, Dark Grey, Blue 2, Dark Mode) | 16038, 16042–16048, 16064–16065, 16099 | 🟡 | o Tranal tem **quatro** skins (`Themes/Dark.xaml`, `Slate.xaml`, `Contrast.xaml`, `Light.xaml`), com o catálogo em `Core/Appearance/ThemePalette.cs` — o original tem dez; as seis que faltam são tema, não função |
+| **Cor personalizada** (fundo, seleção, texto, botões, diálogos) | 16071–16075, 16133, 16150–16153 | ✅ | `Core/Appearance/ThemePalette.cs` (`ThemeColorRole`) e `Theming/ThemeManager.cs` (`ApplyCustomColors`); cor inválida é ignorada |
 | **History Cleaner** | 16109–16110 | ✅ | `Core/Tools/HistoryCleaner.cs` |
-| **Copy to Clipboard** | 16159 | 🟡 | há cópia em alguns lugares, não como comando geral |
-| **Disable all text animations** | 16156 | ⬜ | — |
-| **Show startup splash screen** | 16108 | ⬜ | — |
-| **Submit Feedback / Online Support** | 16102–16103 | ⬜ | — |
-| **Create daily full Registry backup** | 16059 | ⬜ | ver `UninstallerPro` acima |
+| **Copy to Clipboard** | 16159 | ✅ | `Ui/Appearance/ProgramClipboard.cs` (quatro formatos) e o comando "Copiar para a área de transferência" no menu |
+| **Disable all text animations** | 16156 | ✅ | `Ui/Appearance/TextAnimation.cs` (animação por propriedade anexada) e a preferência `DisableTextAnimations` |
+| **Show startup splash screen** | 16108 | ✅ | `Ui/Appearance/SplashWindow.xaml` (mínimo de 900 ms) e a preferência `ShowSplashScreen` |
+| **Submit Feedback / Online Support** | 16102–16103 | ✅ | `Core/Appearance/SupportRequest.cs` (o pedido com o diagnóstico do ambiente) e o comando "Suporte online" |
+| **Create daily full Registry backup** | 16059 | ✅ | ver `UninstallerPro` acima |
 | **Pular o prompt do UAC** | 16067 | ⬜ | **decisão: manter o caminho de UAC do Windows** (é o que evita que o Avast e o McAfee marcarem o produto) |
 | **Tela de ativação, serial, trial, assinatura, desativação de licença, assinatura de updates, Android App** | 16049–16101, 16113–16137, 16157–16158, 16163 | ⬜ | **fora de escopo por decisão**: o Tranal é uma reimplementação independente, sem licença, sem cadastro e sem telemetria |
-| **Exportar para Microsoft Excel** (via COM do Excel do próprio Windows) | 16027–16028 | ⬜ | ver `UninstallerPro` acima |
+| **Exportar para Microsoft Excel** (via COM do Excel do próprio Windows) | 16027–16028 | ✅ | ver `UninstallerPro` acima — o Tranal gera SpreadsheetML 2003 (XML puro), que abre no Excel sem o Office instalado e sem COM |
 
 **As três decisões que este fechamento obriga** (o resto entra no backlog
 `docs/auditoria/MATRIZ.md` §F):
@@ -592,7 +592,7 @@ top`, `Drag and Drop Mode`, `Hunter Mode`, `Open Main Window`.
 |---|---|---|---|
 | `Windows Apps` | 20 | ✅ | `Core/Modules/WindowsApps.cs` — 122 pacotes MSIX reais |
 | `Browser Extensions` | 23 | ✅ | `Core/Modules/BrowserExtensions.cs` — Chrome/Edge/Firefox/Opera, `__MSG_*` resolvido |
-| `General App` | 147 | 🟡 | personalização do layout (visibilidade de painéis + "Restaurar layout padrão"), marcar todas as sobras por padrão, ocultar mensagens de informação/aviso, menu de contexto do Windows e apagar o log do programa monitorado — `Core/Settings/AppSettings.cs` e `Ui/OptionsWindow.*`. **Item a item medido na seção "Fechamento das 🟡 do Revo"**: o que falta é a skin (10 temas + cor personalizada), impressão, backup diário do registro, cópia para a área de transferência e as animações de texto. A tela de ativação **não se aplica** — reimplementação independente, sem licença |
+| `General App` | 147 | 🟡 | personalização do layout (visibilidade de painéis + "Restaurar layout padrão"), marcar todas as sobras por padrão, ocultar mensagens de informação/aviso, menu de contexto do Windows e apagar o log do programa monitorado — `Core/Settings/AppSettings.cs` e `Ui/OptionsWindow.*`. **Item a item medido na seção "Fechamento das 🟡 do Revo"**: skin (4 temas + cor personalizada), impressão, backup diário do registro, cópia para a área de transferência, as animações de texto e o suporte online — **todos implementados**; falta só o número de skins. A tela de ativação **não se aplica** — reimplementação independente, sem licença |
 | `Common` | 31 | ✅ | dicionário e rotulos compartilhados |
 
 ### Opções do `General App` traduzidas para o Tranal

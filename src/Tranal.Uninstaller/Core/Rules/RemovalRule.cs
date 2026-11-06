@@ -117,7 +117,8 @@ public sealed class RemovalRule
         {
             try
             {
-                return Regex.IsMatch(program.DisplayName ?? string.Empty, padrao, RegexOptions.IgnoreCase);
+                return Regex.IsMatch(program.DisplayName ?? string.Empty, padrao,
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
             }
             catch (ArgumentException)
             {
