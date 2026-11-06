@@ -54,6 +54,12 @@ public partial class UninstallWizardWindow : Window
     // Estado acumulado do fluxo, consumido pela etapa 5 (resumo).
     private List<LeftoverItem> _analysis = new();
     private List<BuiltInUninstallResult> _builtInResults = new();
+
+    /// <summary>
+    /// O log do instalador de cada programa, capturado antes do desinstalador
+    /// nativo. E o que permite dizer que um item e sobra de verdade.
+    /// </summary>
+    private Dictionary<InstalledProgram, MsiInstallLog> _installLogs = new();
     private string _backupFile = string.Empty;
     private string _backupError = string.Empty;
     private bool _restorePointCreated;
@@ -328,6 +334,18 @@ public partial class UninstallWizardWindow : Window
         StatusText.Text = Loc.Get("Wizard.Analyzing");
         _mode = SelectedMode;
 
+        // O log do instalador e capturado AQUI, antes do desinstalador nativo:
+        // o pacote .msi sai do cache assim que a desinstalacao termina, e
+        // depois disso nao ha mais o que ler. E ele que permite dizer que um
+        // item e sobra de verdade, e nao apenas uma pasta de nome parecido.
+        if (UninstallModes.Scans(_mode))
+        {
+            _installLogs = await Task.Run(() => _programs
+                .Select(p => (Program: p, Log: MsiInstallLogReader.Capture(p)))
+                .Where(x => x.Log is not null)
+                .ToDictionary(x => x.Program, x => x.Log!));
+        }
+
         _analysis = await Task.Run(() => _programs
             .SelectMany(p => LeftoverScanner.Scan(p, BuildScanOptions()))
             .ToList());
@@ -400,9 +418,19 @@ public partial class UninstallWizardWindow : Window
     {
         StatusText.Text = Loc.Get("Wizard.Scanning");
 
+        // O log do instalador so vale depois que o desinstalador nativo rodou
+        // e deu certo: antes disso o programa continua instalado e o log
+        // descreveria o programa inteiro como sobra.
+        var uninstalled = _builtInResults.Count > 0 && _builtInResults.All(r => r.Uninstalled);
+
         var items = UninstallModes.Scans(_mode)
             ? await Task.Run(() => _programs
-                .SelectMany(p => LeftoverScanner.Scan(p, BuildScanOptions()))
+                .SelectMany(p => LeftoverScanner.Scan(
+                    p,
+                    BuildScanOptions(),
+                    MsiInstallLogReader.UsableAfter(
+                        _installLogs.TryGetValue(p, out var log) ? log : null,
+                        uninstalled)))
                 .ToList())
             : new List<LeftoverItem>();
 

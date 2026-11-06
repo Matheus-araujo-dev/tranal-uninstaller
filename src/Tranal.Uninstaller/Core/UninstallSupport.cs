@@ -83,6 +83,17 @@ public enum LeftoverReason
 
     /// <summary>E o encerramento de um processo do programa.</summary>
     ProcessTermination,
+
+    /// <summary>
+    /// O proprio instalador do programa registrou este item e ele continua
+    /// no sistema depois que o desinstalador nativo rodou.
+    ///
+    /// Este e o motivo mais forte que existe: nao e casamento de nome, e o
+    /// registro do instalador. Vale para os produtos do Windows Installer
+    /// (149 dos 211 programas desta maquina), em que o pacote .msi descreve
+    /// arquivo por arquivo o que gravou.
+    /// </summary>
+    InstallerLog,
 }
 
 public sealed class LeftoverItem
@@ -429,9 +440,14 @@ public static class LeftoverScanner
 
     /// <summary>
     /// Varre o sistema por restos de um programa removido.
+    ///
+    /// O <paramref name="installLog"/> e o registro do instalador, capturado
+    /// ANTES do desinstalador nativo: e ele que permite dizer que um item
+    /// e sobra de verdade, e nao apenas uma pasta cujo nome se parece com o
+    /// do programa. Sem o log, a varredura continua funcionando pelo nome.
     /// </summary>
     public static List<LeftoverItem> Scan(
-        InstalledProgram program, LeftoverScanOptions options)
+        InstalledProgram program, LeftoverScanOptions options, MsiInstallLog? installLog = null)
     {
         var items = new List<LeftoverItem>();
 
@@ -453,6 +469,19 @@ public static class LeftoverScanner
 
         foreach (var variant in variants)
             ScanFolders(variant, options, items);
+
+        // Atribuicao pela cadeia de desinstalacao: o proprio instalador do
+        // programa registrou o que gravou, e o item continua no sistema
+        // depois que o desinstalador nativo rodou.
+        //
+        // Esta fonte e mais forte que o casamento por nome — e por isso entra
+        // depois, para que a deduplicacao prefira o registro do instalador
+        // quando o mesmo item aparece pelas duas vias.
+        if (installLog is not null)
+        {
+            foreach (var item in MsiInstallLogReader.FindLeftovers(installLog))
+                items.Add(item);
+        }
 
         // A propria pasta de instalacao e sempre candidata: o nome dela nem sempre
         // contem o nome do programa (ex.: "VS Revo Group" para "Revo Uninstaller Pro").

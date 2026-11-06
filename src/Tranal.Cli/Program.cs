@@ -362,6 +362,13 @@ public static class Program
         // Registry backup before uninstalling", 15162).
         var fullBackup = CreateFullRegistryBackup(options);
 
+        // O log do instalador e capturado ANTES do desinstalador nativo: o
+        // pacote .msi sai do cache assim que a desinstalacao termina, e
+        // depois disso nao ha mais o que ler. E ele que permite dizer que um
+        // item e sobra de verdade, e nao apenas uma pasta de nome parecido.
+        MsiInstallLog? installLog = null;
+        if (UninstallModes.Scans(mode)) installLog = MsiInstallLogReader.Capture(target);
+
         var results = new List<BuiltInUninstallResult>();
         if (runBuiltIn)
         {
@@ -382,7 +389,13 @@ public static class Program
         {
             var scanOptions = BuildScanOptions(flags, mode);
 
-            items = LeftoverScanner.Scan(target, scanOptions);
+            // O log do instalador so vale depois que o desinstalador nativo
+            // rodou e deu certo: antes disso o programa continua instalado e
+            // o log descreveria o programa inteiro como sobra.
+            var uninstalled = results.Count > 0 && results.All(r => r.Uninstalled);
+
+            items = LeftoverScanner.Scan(
+                target, scanOptions, MsiInstallLogReader.UsableAfter(installLog, uninstalled));
             PrintOtherAccountSummary(items, scanOptions);
             Console.WriteLine($"Sobras encontradas: {items.Count}");
 

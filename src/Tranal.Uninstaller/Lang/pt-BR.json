@@ -338,6 +338,7 @@
     "Common.Reason.ObsoleteShortcut":  "É um atalho obsoleto do Menu Iniciar",
     "Common.Reason.History":  "Veio do histórico de remoção do Tranal",
     "Common.Reason.ProcessTermination":  "É o encerramento de um processo do programa",
+    "Common.Reason.InstallerLog":  "O instalador do programa registrou este item e ele sobrou",
     "Common.DeselectAll":  "Desmarcar tudo",
     "ContextMenu.Info":  "Informações",
     "Topmost.Size.Middle":  "Médio",

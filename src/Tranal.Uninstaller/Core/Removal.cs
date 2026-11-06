@@ -196,6 +196,16 @@ public sealed class BuiltInUninstallResult
 
     public bool Succeeded => Started && ExitCode == 0;
 
+    /// <summary>
+    /// True quando o desinstalador nativo rodou e o programa saiu do sistema.
+    ///
+    /// O Windows Installer devolve 3010 quando a desinstalacao foi feita mas
+    /// ainda precisa de reinicio: do ponto de vista das sobras, ela deu
+    /// certo — e e por isso que a conferencia das sobras pelo log do
+    /// instalador so vale com esta condicao.
+    /// </summary>
+    public bool Uninstalled => Started && (ExitCode == 0 || ExitCode == 3010);
+
     public string Describe()
     {
         if (!Started)

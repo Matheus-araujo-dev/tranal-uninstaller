@@ -338,6 +338,7 @@
     "Common.Reason.ObsoleteShortcut":  "It is an obsolete Start Menu shortcut",
     "Common.Reason.History":  "It comes from Tranal's own removal history",
     "Common.Reason.ProcessTermination":  "It is the termination of a program process",
+    "Common.Reason.InstallerLog":  "The program's own installer registered this item and it was left behind",
     "Common.DeselectAll":  "Deselect all",
     "ContextMenu.Info":  "Info",
     "Topmost.Size.Middle":  "Middle",

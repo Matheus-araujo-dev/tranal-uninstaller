@@ -41,6 +41,7 @@ public static class LeftoverLabels
         LeftoverReason.ObsoleteShortcut => "Common.Reason.ObsoleteShortcut",
         LeftoverReason.History => "Common.Reason.History",
         LeftoverReason.ProcessTermination => "Common.Reason.ProcessTermination",
+        LeftoverReason.InstallerLog => "Common.Reason.InstallerLog",
         LeftoverReason.Unknown => "Common.Reason.Unknown",
         _ => "Common.Reason.Unknown",
     });
