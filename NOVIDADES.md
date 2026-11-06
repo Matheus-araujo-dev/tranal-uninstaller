@@ -318,6 +318,44 @@ A regra mora em `Core/RemovalLog.cs` — o código de erro, o CSV, o JSON e o
 nome do arquivo são decididos em um lugar só, e a interface e a CLI consomem
 o mesmo resultado.
 
+### Medido: de onde vêm os 195 MB da interface
+
+O dono pediu para reduzir o consumo de memória da GUI. A resposta honesta,
+medida em 5 execuções pareadas com a janela maximizada em 2560×1392:
+
+| | WorkingSet | Private |
+|---|---|---|
+| App com a lista **vazia** | **149,8 MB** | — |
+| App com a lista pintada (78 linhas × 15 colunas) | 201,4 MB | — |
+| Heap do GC | — | **20 MB** |
+| Total realmente alocado pelo app | — | **42 MB** |
+
+Ou seja: **74% dos 195 MB são o piso do WPF** — tema, superfície de render e
+cache de glifos — e **não** código do Tranal. O aplicativo aloca 42 MB. A
+lista pintada custa +51,6 MB porque as 78 linhas × 15 colunas são todas
+visíveis: o WPF renderiza todas, e sem mudar o visual não há como reduzir.
+
+Duas correções entraram mesmo assim, porque removem desperdício real:
+
+- **O decodificador não recebe mais executável**: 43 das 78 linhas apontam
+  para EXE somando **1,94 GB** (Chrome 4,19 MB, Brave 4,09 MB). Antes cada
+  EXE ia inteiro para o `BitmapImage` e só então falhava, sem virar ícone.
+  Agora a assinatura do arquivo é conferida antes de decodificar.
+- **As listas virtualizam** (`CanContentScroll="True"` +
+  `VirtualizingStackPanel` em modo `Recycling`). Antes, `CanContentScroll=False`
+  jogava o painel no layout **não-virtualizado**: 78/78 containers realizados e
+  1.187 `TextBlock` — mesmo com o painel recycling, as 78 linhas cabem todas
+  nos 1.269 px de viewport, então o ganho nesta máquina é de **0 MB**. É rede
+  de proteção para listas maiores (o `WindowsApps` tem 122 pacotes e o
+  `Autorun` ~346 itens).
+
+**Veredicto:** na memória de repouso desta máquina as duas mudanças rendem
+**0,16%** — abaixo do que seria justo prometer. Elas valem pelo que impedem
+(crescimento sem limite em listas maiores e 1,94 GB devolvidos ao decoder),
+não pelo repouso. E o número que importa para a decisão: **reduzir a
+memória da GUI não é um trabalho de código do Tranal** — é o piso do WPF, e
+para mudá-lo seria preciso trocar de framework de interface.
+
 ### Novo: ícone próprio do aplicativo
 
 O Tranal não tinha ícone próprio: o executável saía sem nenhum. Agora tem
