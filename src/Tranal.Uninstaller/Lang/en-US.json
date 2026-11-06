@@ -661,5 +661,6 @@
     "ProgramData.ExportError":  "Could not write the exported file. Check the path and the folder permissions.",
     "Sidebar.GroupSystem":  "System",
     "Desc.SystemManagement":  "The permissions each program leaves in Windows, the services, scheduled tasks, drivers and the software health.",
-    "Module.SystemManagement":  "System Management"
+    "Module.SystemManagement":  "System Management",
+    "Cmd.Discovery":  "System discovery"
 }

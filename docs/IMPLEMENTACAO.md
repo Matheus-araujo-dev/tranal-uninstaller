@@ -119,13 +119,13 @@ exista uma segunda porta de exportação.
 
 | Lote | Itens | Situação |
 |---|---|---|
-| A | 8 | em andamento |
+| A | 8 | ✅ entregue (Core/Automation/, CLI /plan, /batch, /switches) |
 | B | 9 | em andamento |
 | C+D | 6 | em andamento |
-| E | 6 | em andamento |
-| F | 5 | planejado |
-| G | 7 | planejado |
-| H | 14 | planejado |
-| já entregue | 9 | ✅ (§F: 1, 2, 3, 4, 27, 28, 40, 47 e a classificação) |
+| E | 6 | ✅ entregue (Core/Discovery/, janela de descoberta) |
+| F | 5 | ✅ entregue (Core/Management/, painel "Gestão do Sistema") |
+| G | 7 | em andamento |
+| H | 14 | em andamento (H1: colunas, treemap, legenda, agrupamento, estrelas) |
+| já entregue antes | 8 | ✅ (§F: 1, 2, 3, 4, 27, 28, 40, 47) |
 
-**55 itens pendentes** no início desta execução.
+**27 dos 64 itens entregues**; 37 pendentes no início desta execução.

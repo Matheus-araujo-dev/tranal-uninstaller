@@ -447,6 +447,94 @@ caminho, resultado e **código de erro**. A regra mora em
   `System.IO.Directory` dentro da classe, e `Directory.CreateDirectory(...)`
   passaria a tentar criar uma pasta chamada "CreateDirectory".
 
+## O plano de desinstalação e a retomada (regra do núcleo)
+
+- **O plano mora em `Core/Automation/UninstallPlan.cs`** e a ordem das etapas
+  é a do Revo: comando antes → desinstalador nativo → varredura → remoção →
+  comando depois. O `UninstallPlanBuilder` monta; o `UninstallPlanExecutor`
+  percorre. Ninguém mais escreve essa ordem.
+- **A falha de uma etapa não engole as outras.** O executor devolve o
+  resultado de cada etapa; quem chama decide o que fazer com a que falhou.
+- **A retomada mora em `Core/Automation/UninstallSession.cs`**, e a gravação é
+  **atômica** (temporário + troca), como a das preferências por programa. A
+  sessão grava o passo **concluído**; a retomada começa pelo passo seguinte
+  e não repete o que já deu certo.
+- **O que não foi feito**: dirigir a interface do desinstalador de terceiros
+  (o sentido do Uninstalr) exigiria automação de interface. Está declarado no
+  `RELATORIO` do lote e no item 5 da `MATRIZ.md` — não é esquecimento.
+
+## Os três comandos do usuário (regra do núcleo)
+
+- **O modelo é `Core/Automation/RemovalProgress.cs`** e é testável sem
+  interface: quem decide o que "pular" significa é o modelo, não a tela.
+- **Pular** = pular a etapa atual. No assistente, pular a varredura remove
+  **menos** (só o que a análise inicial já conhecia) — é a ação mais segura
+  que existe.
+- **Encerrar** = abortar a operação. No assistente, o assistente fecha e nada
+  mais é removido.
+- **Rodar agora** = tirar o adiamento para o próximo reinício
+  (`RemovalProgress.ApplyRunNow`). As demais opções da remoção permanecem as
+  que o usuário escolheu.
+- **A janela do painel é sem dono modal**: o assistente continua vivo
+  enquanto ela está aberta, porque é o assistente que avança as etapas e
+  fecha a janela no fim. Se o assistente fechar, a janela vai junto.
+
+## A lista em arquivo e a desinstalação em lote (regra do núcleo)
+
+- **`Core/Automation/BatchList.cs`** é a única porta: uma regra por linha,
+  nome exato ou `regex:` seguido de expressão regular.
+- **Regex inválida é recusada com a mensagem e o número da linha** — nunca
+  com exceção crua.
+- **A CLI faz dry-run por padrão**: `tranal /batch "arquivo"` só lista o que
+  casou; `tranal /batch "arquivo" /remove` executa. A listagem sem efeito é o
+  que permite conferir a expressão regular antes de ela rodar.
+- **A desinstalação em lote usa o mesmo fluxo da desinstalação avulsa**
+  (`Program.UninstallProgram`): avisos, ponto de restauração, backup do
+  registro, desinstalador nativo, varredura, remoção e histórico. As duas não
+  podem divergir em nada.
+
+## A correlação das permissões que um programa deixa (regra do núcleo)
+
+- **`Core/Management/AppPermissionManager.cs`** é o único lugar que junta
+  serviço, inicialização, menu de contexto e tarefa agendada **de um mesmo
+  programa**. A pergunta do usuário é uma só — "o que este programa deixa
+  rodando?" — e a resposta é uma lista só.
+- **A correlação é pelo caminho do executável**, e o casamento é por
+  **prefixo com separador**: `C:\App` casa com `C:\App\app.exe` e **não** com
+  `C:\App2\app.exe`.
+- **A extração do executável mora em `Core/Management/ExecutablePath.cs`** e
+  é a mesma para serviço, tarefa, inicialização e menu de contexto. Caminho
+  sem aspas e com espaço no nome só é resolvido pelo **prefixo mais longo
+  que existe no disco** — cortar no primeiro espaço daria `C:\Program`.
+- **A pasta de instalação vem do registro mesmo que ela não exista mais**: um
+  programa cujos arquivos foram apagados ainda tem a pasta registrada, e é
+  por ela que se descobre o que ele deixou no sistema.
+- **Serviço protegido não é removido.** Os serviços dos quais o Windows
+  depende para subir a sessão, a rede, a agenda e a proteção do sistema são
+  recusados antes da tentativa — e o serviço do Windows é marcado pelo
+  **fabricante**, não pelo assinante (o WHCP assina driver de todo mundo).
+
+## Listagem que não depende do idioma do sistema (regra do núcleo)
+
+- **Serviços** vêm do WMI (`Win32_Service`), não do `sc.exe`: a saída do
+  `sc.exe` está em português nesta máquina e um catálogo que só funciona em
+  inglês está quebrado.
+- **Tarefas agendadas** vêm da leitura dos XML de
+  `%SystemRoot%\System32\Tasks`, não do `schtasks.exe`: o `schtasks` traz o
+  cabeçalho no idioma do sistema; o XML da tarefa é a definição oficial e
+  está sempre em inglês. **A ação** é com o `schtasks.exe`, que é o Windows
+  tratando o próprio arquivo.
+- **Pacotes de driver** vêm do `pnputil.exe`, lidos pelo **nome publicado**
+  (`oemNN.inf`), que tem formato fixo. O rótulo das colunas muda com o
+  idioma; o nome do pacote, não.
+
+## O catálogo de switches por ferramenta (regra do núcleo)
+
+- **`Core/Automation/CliToolSwitch.cs`** é a fonte única: nome curto, nome
+  longo e a forma longa que executa a ferramenta (o `RUN` do HiBit).
+- **A CLI lista com `tranal /switches`** e a ajuda usa a mesma lista. Um
+  switch que existe em um lugar existe nos dois.
+
 ## A suíte de testes não compila o projeto WPF (verificação obrigatória)
 
 A suíte **não referencia** o projeto gráfico: o Core é compilado por **fonte

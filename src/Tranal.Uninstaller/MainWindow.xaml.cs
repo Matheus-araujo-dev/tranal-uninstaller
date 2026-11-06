@@ -13,6 +13,7 @@ using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui;
+using Tranal.Uninstaller.Ui.Discovery;
 
 namespace Tranal.Uninstaller;
 
@@ -599,6 +600,12 @@ public partial class MainWindow : Window
         }
         menu.Items.Add(exportMenu);
 
+        // A descoberta do sistema: pacotes MSI, recursos do Windows, gerenciadores
+        // de pacotes, varredura de drives, pastas vazias e assinatura do
+        // desinstalador. E o que responde "o que mais esta instalado aqui".
+        var discovery = CommandItem(Loc.Get("Cmd.Discovery"), "CmdDiscovery", ShowDiscovery);
+        menu.Items.Add(discovery);
+
         menu.Items.Add(new Separator());
         var options = CommandItem(Loc.Get("Cmd.Options"), "CmdOptions", () => ShowOptions());
         menu.Items.Add(options);
@@ -608,6 +615,18 @@ public partial class MainWindow : Window
 
         menu.PlacementTarget = MoreCommandsButton;
         menu.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Abre a janela de descoberta do sistema.
+    ///
+    /// A janela **mostra**: nada e desinstalado, nada e apagado. E o lugar
+    /// onde o usuario ve o que existe na maquina alem do Painel de Controle.
+    /// </summary>
+    private void ShowDiscovery()
+    {
+        var window = new DiscoveryWindow { Owner = this };
+        window.ShowDialog();
     }
 
     /// <summary>

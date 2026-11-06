@@ -661,5 +661,6 @@
     "ProgramData.ExportError":  "Não foi possível gravar o arquivo exportado. Verifique o caminho e as permissões da pasta.",
     "Sidebar.GroupSystem":  "Sistema",
     "Desc.SystemManagement":  "As permissões que cada programa deixa no Windows, os serviços, as tarefas agendadas, os drivers e a saúde do software.",
-    "Module.SystemManagement":  "Gestão do Sistema"
+    "Module.SystemManagement":  "Gestão do Sistema",
+    "Cmd.Discovery":  "Descoberta do sistema"
 }

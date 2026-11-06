@@ -7,9 +7,11 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Markup;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Settings;
+using Tranal.Uninstaller.Ui.Automation;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -48,6 +50,22 @@ public partial class UninstallWizardWindow : Window
     private readonly bool _quick;
     private readonly ObservableCollection<LeftoverItem> _leftovers = new();
     private int _step;
+
+    /// <summary>
+    /// O painel de progresso da desinstalacao (modelo de nucleo).
+    ///
+    /// E ele quem traduz os tres comandos do usuario — pular, encerrar e rodar
+    /// agora — em acoes do assistente. O modelo e o unico que sabe o que
+    /// "pular" significa; a tela so mostra.
+    /// </summary>
+    private RemovalProgress? _progress;
+
+    /// <summary>
+    /// A janela do painel de progresso. E **sem dono modal**: o assistente
+    /// continua vivo enquanto ela esta aberta, porque e o assistente que
+    /// avanca as etapas e fecha a janela no fim.
+    /// </summary>
+    private AutomationWindow? _progressWindow;
 
     /// <summary>Nomes das 5 etapas, no mesmo ordem do Revo.</summary>
     private static string[] StepNames => new[]
@@ -115,6 +133,11 @@ public partial class UninstallWizardWindow : Window
         List<InstalledProgram> programs, bool quick, IReadOnlyList<InstalledProgram>? allPrograms = null)
     {
         InitializeComponent();
+
+        // O painel de progresso e uma janela a parte: se o assistente fechar
+        // (cancelar, ou a janela principal fechar), a janela do painel vai
+        // junto. Uma janela orfa na area de trabalho e pior do que nenhuma.
+        Closed += (_, _) => CloseProgressPanel();
 
         // Window.Title e GridViewColumn.Header nao aceitam binding: texto via codigo.
         Title = Loc.Get("Wizard.Title");
@@ -270,6 +293,7 @@ public partial class UninstallWizardWindow : Window
                 StatusText.Text = UninstallModes.Scans(_mode)
                     ? Loc.Get("Wizard.ScanNotice")
                     : Loc.Get("Wizard.ScanSkipped");
+                OpenProgressPanel();
                 break;
 
             case 3:
@@ -489,12 +513,27 @@ public partial class UninstallWizardWindow : Window
     {
         StatusText.Text = Loc.Get("Wizard.Scanning");
 
+        // "Encerrar" no painel de progresso aborta a operacao: o assistente
+        // fecha e nada mais e removido.
+        if (_progress?.StopRequested == true)
+        {
+            Close();
+            return;
+        }
+
+        // "Pular" no painel de progresso pula a **varredura**: o que for
+        // removido e o que a analise inicial ja conhecia, e nada mais. E a
+        // acao mais segura que existe — remove menos, nunca mais.
+        var skipScan = _progress?.ConsumeSkip() ?? false;
+        if (skipScan)
+            StatusText.Text = Loc.Get("Wizard.ScanSkipped");
+
         // O log do instalador so vale depois que o desinstalador nativo rodou
         // e deu certo: antes disso o programa continua instalado e o log
         // descreveria o programa inteiro como sobra.
         var uninstalled = _builtInResults.Count > 0 && _builtInResults.All(r => r.Uninstalled);
 
-        var items = UninstallModes.Scans(_mode)
+        var items = (!skipScan && UninstallModes.Scans(_mode))
             ? await Task.Run(() => _programs
                 .SelectMany(p => LeftoverScanner.Scan(
                     p,
@@ -530,11 +569,20 @@ public partial class UninstallWizardWindow : Window
         StatusText.Text = Loc.Get("Wizard.Removing");
 
         var name = string.Join(", ", _programs.Select(p => p.DisplayName));
-        var options = _removalOptions;
+
+        // "Rodar agora" no painel de progresso tira o adiamento para o
+        // proximo reinicio: o que estiver em uso e tentado agora. As demais
+        // opcoes permanecem as que o usuario escolheu.
+        var options = _progress is not null
+            ? _progress.ApplyRunNow(_removalOptions)
+            : _removalOptions;
 
         _report = await Task.Run(() =>
             UninstallEngine.RemoveLeftovers(_leftovers, options, _fullRegistryBackup));
         _summary = BuildSummary(_report);
+
+        // O painel de progresso cumpriu o seu papel: a janela fecha aqui.
+        CloseProgressPanel();
 
         // O log de remocao por item: o que saiu, o que nao saiu e o codigo de
         // erro de cada um. E a resposta para "por que aquele arquivo nao foi
@@ -571,6 +619,45 @@ public partial class UninstallWizardWindow : Window
         {
             DeleteTracedLogsOf(name);
         }
+    }
+
+    /// <summary>
+    /// Abre o painel de progresso da desinstalacao.
+    ///
+    /// O painel mostra as etapas do plano e devolve os tres comandos do
+    /// usuario — pular, encerrar e rodar agora. A janela e **sem dono
+    /// modal**: o assistente continua vivo enquanto ela esta aberta, porque
+    /// e o assistente que avanca as etapas e fecha a janela no fim.
+    ///
+    /// Na desinstalacao rapida o painel nao abre: ali o usuario pediu
+    /// que a desinstalacao fosse direto, sem painel nenhum.
+    /// </summary>
+    private void OpenProgressPanel()
+    {
+        if (_quick || _programs.Count == 0) return;
+        if (_progressWindow is not null) return;
+
+        var plan = UninstallPlanBuilder.Build(_programs[0], _mode);
+
+        _progress = new RemovalProgress();
+        _progressWindow = new AutomationWindow(_progress, plan)
+        {
+            Owner = this,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+        };
+
+        _progressWindow.Show();
+    }
+
+    /// <summary>
+    /// Fecha o painel de progresso, se estiver aberto.
+    /// </summary>
+    private void CloseProgressPanel()
+    {
+        if (_progressWindow is null) return;
+
+        _progressWindow.Close();
+        _progressWindow = null;
     }
 
     /// <summary>
