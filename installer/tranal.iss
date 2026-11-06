@@ -92,6 +92,9 @@ MinVersion=10.0
 LicenseFile={#LicenseFile}
 UninstallDisplayName={#AppName}
 UninstallDisplayIcon={app}\{#AppExeName}
+; O icone do setup e o mesmo do programa: o .ico e gerado por
+; tools\gerar-icone.ps1 e entra no executavel via ApplicationIcon.
+SetupIconFile={#RepoRoot}\src\Tranal.Uninstaller\Assets\Tranal.ico
 CloseApplications=yes
 RestartApplications=no
 SetupLogging=yes
@@ -126,10 +129,12 @@ Source: "{#AppPayloadDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createalls
 Source: "{#RuntimeFile}"; DestDir: "{tmp}"; Flags: dontcopy
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
+; O icone dos atalhos sai do proprio executavel, que ja carrega o icone do
+; programa — assim nao ha um arquivo .ico extra para instalar.
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"
 Name: "{group}\{cm:Desinstalar}"; Filename: "{uninstallexe}"
 Name: "{group}\{cm:PaginaInicial}"; Filename: "{#AppHomeUrl}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\{#AppExeName}"; Tasks: desktopicon
 
 [Run]
 ; Executa o programa no final (a caixa aparece na pagina de conclusao).

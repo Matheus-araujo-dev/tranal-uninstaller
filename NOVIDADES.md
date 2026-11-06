@@ -295,6 +295,46 @@ Dois detalhes que vieram junto:
   isso, um lote de vinte virava um a cada clique. E o menu de contexto passou a
   agir sobre a linha **clicada**, e não sobre a primeira selecionada.
 
+### Novo: ícone próprio do aplicativo
+
+O Tranal não tinha ícone próprio: o executável saía sem nenhum. Agora tem
+um, **gerado** — o desenho mora em `tools/gerar-icone.ps1`, então ele pode
+ser refinado e reproduzido a qualquer momento:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\gerar-icone.ps1
+```
+
+- Um cartão quadrado arredondado com gradiente azul e, dentro dele, uma
+  lixeira branca geométrica. Detalhe fino só a partir de 24 px — abaixo
+  disso viraria borra.
+- São **7 resoluções** (16, 24, 32, 48, 64, 128 e 256 px) num `.ico` de
+  12.637 bytes.
+- O ícone entra no executável (`ApplicationIcon`), no instalador
+  (`SetupIconFile`) e nos atalhos do Menu Iniciar e da área de trabalho
+  (`IconFilename`, tirado do próprio executável — não há um `.ico` extra
+  para instalar).
+
+### Certificado de código pago: trocar é só trocar dois secrets
+
+O pipeline **já assina** toda publicação. O certificado de hoje é
+autossinado, e o Windows avisa por isso. Para trocar por um de autoridade
+comprada (SSL.com, DigiCert, Sectigo), **não há mudança de código**:
+
+1. Exporte o `.pfx` do certificado, **com a chave privada**, e converta
+   para base64.
+2. No repositório do GitHub, em *Settings → Secrets and variables → Actions*:
+   - `TRANAL_CERT_PFX` = o base64 do `.pfx`;
+   - `TRANAL_CERT_PASSWORD` = a senha do `.pfx`.
+3. Publique. `tools/publish-tranal.ps1` importa o `.pfx` na loja do usuário e
+   assina o instalador com SHA256.
+
+O que muda com um certificado de verdade: o aviso do Windows some, o
+instalador passa a mostrar "editor desconhecido" para quem não tem a CA
+instalada, e o SmartScreen deixa de marcar o arquivo logo no começo. O que
+**não** muda: o instalador continua sendo `zip` e não `LZMA`, porque o
+bloqueio do McAfee vinha da compactação, não da assinatura.
+
 ### Correções
 
 - **O aplicativo não abria na primeira execução.** Sem o arquivo de preferências

@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Tranal.Uninstaller</RootNamespace>
     <AssemblyName>TranalUninstaller</AssemblyName>
-    <ApplicationIcon />
+    <ApplicationIcon>Assets\Tranal.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>1.4.0</Version>
     <Company>Tranal</Company>
