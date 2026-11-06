@@ -86,7 +86,37 @@ public class Lote2UiParityTests
         // lugar do arquivo, e um "contem" solto passaria mesmo sem o metodo.
         var metodo = RepoFiles.Metodo(code, "ProgramsList_PreviewMouseRightButtonDown");
 
-        Assert.Contains("ProgramsList.SelectedItem = row;", metodo);
+        // A linha apontada entra na selecao.
+        Assert.Contains("ProgramsList.SelectedItems.Add(row);", metodo);
+
+        // E a selecao e multipla (desinstalacao em lote): clicar com o botao
+        // direito em uma linha JA selecionada nao descarta as outras. Sem
+        // esse guarda, um lote de 20 programas viraria 1 a cada clique.
+        Assert.Contains("if (!ProgramsList.SelectedItems.Cast<ProgramRow>().Contains(row))", metodo);
+
+        // O menu de contexto age sobre a linha clicada, e nao sobre a
+        // primeira linha selecionada.
+        Assert.Contains("_contextRow = row;", metodo);
+    }
+
+    [Fact]
+    public void AListaPrincipalAceitaSelecaoMultiplaParaDesinstalacaoEmLote()
+    {
+        var xaml = Read("src", "Tranal.Uninstaller", "MainWindow.xaml");
+        var code = Read("src", "Tranal.Uninstaller", "MainWindow.xaml.cs");
+
+        // Sem selecao multipla, o caminho de desinstalacao em lote nunca chega
+        // a N > 1: o codigo perguntaria "Deseja desinstalar 1 programa?".
+        Assert.Contains("SelectionMode=\"Extended\"", xaml);
+        Assert.DoesNotContain("SelectionMode=\"Single\"", xaml);
+
+        // O alvo da desinstalacao e a selecao inteira.
+        Assert.Contains("ProgramsList.SelectedItems.Cast<ProgramRow>().ToList()", code);
+
+        // E a confirmacao do lote nunca e omitida pelas preferencias de
+        // mensagem: e a pergunta que antecede a remocao.
+        Assert.Contains("UserMessages.Confirm(this, message)", code);
+        Assert.Contains("Cmd.UninstallManyConfirm", code);
     }
 
     [Fact]

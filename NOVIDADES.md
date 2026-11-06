@@ -275,6 +275,26 @@ Duas decisões de projeto que vieram junto:
   programa, que é justamente o que a desinstalação deve apagar — e um aviso
   constante não é aviso nenhum.
 
+### Novo: desinstalação em lote de verdade
+
+A lista da janela principal passou a aceitar **seleção múltipla** (Ctrl e
+Shift, ou Ctrl+A). O caminho de desinstalação em lote **existia** no código —
+inclusive com a pergunta "Deseja desinstalar N programas?" — mas a lista era
+`SelectionMode="Single"`, então o N nunca passava de 1.
+
+Agora dá para selecionar vinte programas e removê-los em bloco, que é o
+"Batch Force Removal" do Uninstall Tool e o "Quick Uninstall" do Revo.
+
+Dois detalhes que vieram junto:
+
+- A confirmação do lote passa por `UserMessages.Confirm`, que **nunca** é
+  omitida pelas preferências de mensagem, e a mensagem foi traduzida
+  (`Cmd.UninstallManyConfirm`) — antes era um texto fixo em português dentro
+  de uma interface que pode estar em inglês.
+- O clique direito em uma linha **já selecionada** não descarta as outras: sem
+  isso, um lote de vinte virava um a cada clique. E o menu de contexto passou a
+  agir sobre a linha **clicada**, e não sobre a primeira selecionada.
+
 ### Correções
 
 - **O aplicativo não abria na primeira execução.** Sem o arquivo de preferências

@@ -179,7 +179,7 @@ item aponta para a auditoria que o revelou.
 | 24 | **Desinstalação Forçada** como modo explícito, e **Desinstalação Personalizada** por palavra-chave | **Wise H.5** |
 | 25 | Gerenciador de permissões de app: serviço, inicialização, menu de contexto, tarefa agendada | **Wise H.5** |
 | 26 | **Motor de regras em arquivo + base de regras por aplicativo** — `Core/Rules/` com o **formato** que o Total Uninstall mediu (623 elementos, 6 categorias, `Include`/`Exclude`) e as **regras por app** que o Wise mantém à mão (595 perfis, 2.379 caminhos). A regra fica **em um lugar só** e `Core/UninstallSupport.cs` + `Core/Tools/JunkCleaner.cs` passam a **consumir** — hoje os dois duplicam o julgamento | **Wise H.5** · **Total Uninstall H.6** |
-| 27 | **Desinstalação em lote na interface** (seleção múltipla → remover em bloco) — o Uninstall Tool tem Batch Force Removal e Batch Remove Entries; o Total Uninstall também tem. Grep `Batch` no `src/` = **0 ocorrências** | **Uninstall Tool H.7** · **Total Uninstall H.6** |
+| 27 | ✅ **Desinstalação em lote na interface** (seleção múltipla → remover em bloco) — a lista principal passou de `SelectionMode="Single"` para `"Extended"` (`MainWindow.xaml`), e o caminho de lote **existia** mas nunca chegava a N > 1. A confirmação do lote passou a usar `UserMessages.Confirm` (nunca omitida) e a mensagem foi traduzida (`Cmd.UninstallManyConfirm`) | **Uninstall Tool H.7** · **Total Uninstall H.6** |
 | 28 | **Log de remoção por item, com código de erro** — `Core/MsiInstallLog.cs` é *leitor*; falta o *escritor*. Um log por operação, com o código de erro e a explicação, é o que o dono vai perguntar quando algo der errado | **Uninstall Tool H.7** · **Geek H.4** |
 | 29 | **Exportar a varredura de sobras** (não só a lista) em XML — `Core/Exporters.cs` exporta a *lista* de programas; a **varredura** é o que serve para auditoria | **Uninstall Tool H.7** |
 | 30 | **Fluxo de snapshot pré/pós-instalação com comparação A×B** — `SystemSnapshot.Diff` existe, mas `SnapshotDiff` só expõe `NewFiles`/`NewFolders`/`NewRegistryKeys`: **não cobre modificados nem removidos**, e o snapshot não é guardado | **Total Uninstall H.6** |
@@ -199,7 +199,7 @@ item aponta para a auditoria que o revelou.
 | 44 | **Unir logs** de um mesmo programa num log só | **Revo** §Fechamento das 🟡 |
 | 45 | **Exportar para Microsoft Excel** (o Revo usa o COM do Excel do próprio Windows) | **Revo** §Fechamento das 🟡 — hoje o Tranal exporta TXT/CSV/HTML/XML |
 | 46 | **Imprimir a lista** (imprimir / visualizar antes / imprimir) | **Revo** §Fechamento das 🟡 · **Total Uninstall H.6** |
-| 47 | **Alinhar coluna + "Best Fit" + remover coluna** — o `ProgramColumnInfo` (`Core/ProgramColumns.cs:68`) não tem alinhamento e todas as colunas aparecem sempre | **Revo** §Fechamento das 🟡 |
+| 47 | ✅ **Alinhar coluna + "Best Fit" + remover coluna** — já existia: `MainWindow.xaml.cs:386-398` (menu do cabeçalho), `:440` (`BestFit`), `:460` (`SetAlignment`). **A medição inicial errou** ao olhar só `Core/ProgramColumns.cs` — o alinhamento é uma questão de **exibição**, e por isso mora na janela, não no modelo | **Revo** §Fechamento das 🟡 |
 | 48 | **Incluir / excluir processos do rastreio** | **Revo** §Fechamento das 🟡 |
 | 49 | **Backup completo do registro todo dia** — hoje `Core/FullRegistryBackup.cs` só roda sob demanda, antes da desinstalação | **Revo** §Fechamento das 🟡 |
 

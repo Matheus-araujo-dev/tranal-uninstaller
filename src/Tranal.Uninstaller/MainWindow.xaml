@@ -306,7 +306,7 @@
           <ListView x:Name="ProgramsList" BorderThickness="0"
                     Background="{DynamicResource PanelBrush}"
                     AlternationCount="2"
-                    SelectionMode="Single"
+                    SelectionMode="Extended"
                     PreviewMouseRightButtonDown="ProgramsList_PreviewMouseRightButtonDown">
             <!--
               A grade (ListView.View) e montada em codigo: o usuario escolhe

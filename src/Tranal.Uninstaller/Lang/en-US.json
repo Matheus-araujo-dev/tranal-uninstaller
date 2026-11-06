@@ -345,6 +345,7 @@
     "Advisory.SharedInstallLocation":  "These programs are installed in the same folder ({0}). Leftovers from all of them may be found — and deleted together.",
     "Advisory.SystemComponent":  "Removing this program may cause some Windows features or other software to stop working properly.",
     "Advisory.UserData":  "The folders below may contain user data and documents: {0}",
+    "Cmd.UninstallManyConfirm":  "Do you want to uninstall {0} programs?",
     "Common.DeselectAll":  "Deselect all",
     "ContextMenu.Info":  "Info",
     "Topmost.Size.Middle":  "Middle",

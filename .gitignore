@@ -5,6 +5,7 @@ publish/
 dist/
 dist-*/
 bin-verif/
+bin-check/
 *.exe
 *.dll
 *.pdb

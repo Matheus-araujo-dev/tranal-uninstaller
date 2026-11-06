@@ -408,6 +408,25 @@ discordam sobre o que precisa ser avisado.
   de mensagem (`UserMessages.Confirm`). As preferências tratam só das
   mensagens informativas e de aviso.
 
+## O alvo da desinstalação em lote (regra do núcleo)
+
+A lista da janela principal é `SelectionMode="Extended"`: a desinstalação em
+lote usa a **seleção**, e só a seleção.
+
+As caixas de marcação da linha são **apenas indicador visual** (como no
+Revo) e **nunca** definem o alvo. A razão é medida: `ProgramRow.IsChecked`
+começa em `true` (`Ui/ProgramRow.cs:84`), então toda linha nasce marcada. Se
+a caixa definisse o alvo, uma única ação removeria **todos** os programas.
+
+Consequências que precisam ser lembradas quando se mexe na lista:
+
+- O clique direito em uma linha **já selecionada** não descarta as outras
+  (`MainWindow.xaml.cs`, `ProgramsList_PreviewMouseRightButtonDown`).
+- O menu de contexto age sobre a linha **clicada** (`_contextRow`), e não
+  sobre a primeira selecionada — com seleção múltipla, `SelectedItem` não
+  serve.
+- `ReloadProgramRows` preserva **todas** as linhas escolhidas.
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do

@@ -20,6 +20,14 @@ public partial class MainWindow : Window
 {
     private readonly ObservableCollection<ProgramRow> _all = new();
     private readonly ICollectionView _view;
+
+    /// <summary>
+    /// A linha sobre a qual o menu de contexto foi aberto. A selecao da lista
+    /// e multipla (desinstalacao em lote), entao "SelectedItem" nao serve:
+    /// o menu tem de agir sobre a linha clicada.
+    /// </summary>
+    private ProgramRow? _contextRow;
+
     private string _module = "AllPrograms";
 
     /// <summary>
@@ -80,10 +88,15 @@ public partial class MainWindow : Window
         };
 
         var programs = await Task.Run(() => ProgramScanner.Scan(options));
+        MemProbe.Mark("scan-done");
 
         _all.Clear();
-        foreach (var program in programs)
-            _all.Add(new ProgramRow(program));
+        if (!MemProbe.SkipRows)
+        {
+            foreach (var program in programs)
+                _all.Add(new ProgramRow(program));
+        }
+        MemProbe.Mark("rows-added");
 
         // O arquivo de preferencias do usuario pode estar invalido (e foi
         // preservado) ou travado (e nao deu para ler). Nao avisar deixaria
@@ -97,6 +110,7 @@ public partial class MainWindow : Window
 
         ApplyFilter();
         UpdateStatus();
+        MemProbe.Mark("filter-applied");
     }
 
     private void UpdateStatus()
@@ -872,6 +886,11 @@ public partial class MainWindow : Window
     ///
     /// Sem isso, o menu de contexto age sobre a linha selecionada antes —
     /// e o usuario acabaria anotando o programa errado, sem nenhum aviso.
+    ///
+    /// A selecao e multipla (desinstalacao em lote): clicar com o botao
+    /// direito em uma linha JA selecionada NAO descarta as outras. Uma linha
+    /// que nao estava selecionada substitui a selecao inteira — que e o
+    /// comportamento normal de lista com selecao multipla.
     /// </summary>
     private void ProgramsList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
@@ -881,8 +900,17 @@ public partial class MainWindow : Window
             origem = VisualTreeHelper.GetParent(origem);
         }
 
-        if (origem is ListViewItem item && item.DataContext is ProgramRow row)
-            ProgramsList.SelectedItem = row;
+        if (origem is not ListViewItem item || item.DataContext is not ProgramRow row) return;
+
+        // O menu de contexto age sobre a linha clicada, e nao sobre a
+        // primeira linha selecionada.
+        _contextRow = row;
+
+        if (!ProgramsList.SelectedItems.Cast<ProgramRow>().Contains(row))
+        {
+            ProgramsList.SelectedItems.Clear();
+            ProgramsList.SelectedItems.Add(row);
+        }
     }
 
     /// <summary>
@@ -897,7 +925,7 @@ public partial class MainWindow : Window
         var menu = ProgramContextMenu;
         menu.Items.Clear();
 
-        if (ProgramsList.SelectedItem is not ProgramRow row) return;
+        if ((_contextRow ?? ProgramsList.SelectedItem as ProgramRow) is not ProgramRow row) return;
 
         var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
         var temComentario = custom is not null && custom.Comment.Length > 0;
@@ -1099,8 +1127,11 @@ public partial class MainWindow : Window
     /// <summary>Recarrega as linhas da lista, preservando a selecao e os filtros.</summary>
     private void ReloadProgramRows()
     {
-        var selecionados = ProgramsList.SelectedItem as ProgramRow;
-        var nome = selecionados?.DisplayName;
+        // A selecao e multipla: TODAS as linhas escolhidas voltam escolhidas.
+        var nomes = ProgramsList.SelectedItems
+            .Cast<ProgramRow>()
+            .Select(r => r.DisplayName)
+            .ToList();
 
         var programs = _all.Select(r => r.Program).ToList();
         _all.Clear();
@@ -1109,10 +1140,11 @@ public partial class MainWindow : Window
         ApplyFilter();
         UpdateStatus();
 
-        if (nome is not null)
+        ProgramsList.SelectedItems.Clear();
+        foreach (var nome in nomes)
         {
             var row = _all.FirstOrDefault(r => string.Equals(r.DisplayName, nome, StringComparison.OrdinalIgnoreCase));
-            if (row is not null) ProgramsList.SelectedItem = row;
+            if (row is not null) ProgramsList.SelectedItems.Add(row);
         }
     }
 
@@ -1197,8 +1229,11 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
     /// <summary>
     /// Programas alvo da desinstalacao: SOMENTE os itens selecionados na lista.
-    /// As caixas de marcacao sao apenas indicador visual (como no Revo) e nunca
-    /// definem o alvo — caso contrario uma unica acao removeria todos os programas.
+    ///
+    /// A selecao e multipla (Ctrl/Shift, ou Ctrl+A): e o que permite a
+    /// desinstalacao em lote. As caixas de marcacao sao apenas indicador visual
+    /// (como no Revo) e nunca definem o alvo — caso contrario uma unica acao
+    /// removeria todos os programas, porque todas as linhas comecam marcadas.
     /// </summary>
     private List<ProgramRow> selectedRows =>
         ProgramsList.SelectedItems.Cast<ProgramRow>().ToList();
@@ -1214,11 +1249,13 @@ public partial class MainWindow : Window
 
         if (targets.Count > 1)
         {
-            var confirm = MessageBox.Show(this,
-                $"Deseja desinstalar {targets.Count} programas?\n\n"
-                + string.Join("\n", targets.Select(t => "• " + t.DisplayName)),
-                "Tranal Uninstaller", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (confirm != MessageBoxResult.Yes) return;
+            // A confirmacao de uma remocao em bloco NUNCA e omitida pelas
+            // preferencias de mensagem: e a pergunta que antecede a acao
+            // destrutiva, e o usuario precisa ver a lista inteira.
+            var message = Loc.Get("Cmd.UninstallManyConfirm", targets.Count) + "\n\n"
+                + string.Join("\n", targets.Select(t => "• " + t.DisplayName));
+
+            if (!UserMessages.Confirm(this, message)) return;
         }
 
         var wizard = new Ui.UninstallWizardWindow(
