@@ -439,7 +439,7 @@ coberto, e isso agora está medido contra o código do `src/`.
 | Editar/importar/exportar/apagar o log do programa monitorado | 15174, 15178, 15231–15233, 15287–15288 | ✅ | `Core/Modules/TraceStore.cs` (`Save`, `Import`, `Export`, `Delete`) |
 | Comentar o programa, trocar o ícone, renomear | 15005, 15079, 15216–15217, 15281–15286 | ✅ | `Core/ProgramCustomization.cs` |
 | Varredura em **todas as contas do Windows** e desinstalação em todas as contas | 15345, 15352–15353 | ✅ | `Core/Settings/AppSettings.cs:180,187,197` |
-| **Desinstalação em lote / "Quick Uninstall"** | 15200–15214, 15267 | ⬜ | grep `Batch` no `src/` = **0 ocorrências** |
+| **Desinstalação em lote / "Quick Uninstall"** | 15200–15214, 15267 | ✅ | `MainWindow.xaml` — a lista passou de `SelectionMode="Single"` para `"Extended"`; a confirmação do lote é `UserMessages.Confirm` (nunca omitida) e traduzida (`Cmd.UninstallManyConfirm`) |
 | **Continuar a desinstalação interrompida por reinício** | 15318 | ⬜ | — |
 | **Aviso: "pastas abaixo podem conter dados do usuário e documentos"** | 15359 | ✅ | `Core/UninstallAdvisories.cs` (`UserDataAdvisory`) — painel de aviso na etapa da lista de sobras e aviso na CLI |
 | **Aviso: "remover este produto pode fazer recursos do Windows ou outros softwares pararem de funcionar"** | 15365 | ✅ | `Core/UninstallAdvisories.cs` (`SystemComponentAdvisory`) — confirmação **não** omitível antes de rodar o desinstalador |
