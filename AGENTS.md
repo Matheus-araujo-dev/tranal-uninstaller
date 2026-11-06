@@ -398,6 +398,27 @@ matriz consolidada em `docs/auditoria/MATRIZ.md`.
   derivado, como já vale para o `PARIDADE.md`.
 - **A matriz muda o backlog.** Uma funcionalidade que só um concorrente tem
   pode ser nicho; se todos têm, vira prioridade máxima.
+- **O 🟡 do Revo é medido item a item, não por leitura de PE.** As duas seções
+  que faltavam foram abertas contra o `src/`: `UninstallerPro` (331 strings) e
+  `General App` (147). O inventário bruto saiu de `strings-en.json` (1.136
+  strings em 43 seções) e o resultado está em `docs/PARIDADE.md`, seção
+  *"Fechamento das 🟡 do Revo"*. Cada linha tem **string, arquivo e linha** —
+  a próxima rodada confere com grep, não com leitura de binário.
+- **Auditorias que se sobrepõem viram um item só.** "Recuperar" (Wise),
+  "reverter a instalação rastreada" (Uninstall Tool) e "Undo Changes Center"
+  (Soft Organizer) são a mesma peça: **um** item no backlog, com as três
+  fontes. O backlog é do produto, não da lista de auditorias.
+- **A numeração do backlog é única e sem lacuna.** F.1, F.2 e F.3 formam uma
+  sequência contínua. Acrescentar item renumera a sequência inteira.
+- **O que não se aplica sai para o F.4, com o motivo.** "Install Programs"
+  (é o outro lado do produto), "Logs Database" (serviço online proprietário) e
+  "pular o UAC" (o caminho do Windows é o que evita a marcação do Avast e do
+  McAfee) estão registrados como decisão, não como esquecimento.
+- **Driver de kernel continua fora do plano — e a contraprova cresceu.** De dez
+  concorrentes auditados, **dois** usam driver (IObit com 4 drivers × 7
+  arquiteturas; Uninstall Tool com um minifiltro) e os outros **não** — o
+  Soft Organizer faz rastreio de disco em tempo real **sem** driver, o que
+  prova que o caminho de usuário basta.
 - **A coleta é feita por `tools/auditoria/coleta.ps1`** (strings / resx / PE),
   sem dependência externa. Não há 7-Zip CLI, Ghidra nem IDA nesta máquina.
 - **Nunca desinstalar software do dono por causa da auditoria.** Os
