@@ -30,6 +30,12 @@ public static class ToolCatalog
     /// <summary>Otimizador de registro (entradas obsoletas do Menu Iniciar).</summary>
     public const string RegistryOptimizer = "RegistryOptimizer";
 
+    /// <summary>
+    /// Painel de gestao do sistema: permissoes do programa, servicos, tarefas
+    /// agendadas, drivers e saude do software.
+    /// </summary>
+    public const string SystemManagement = "SystemManagement";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
     public const string HistoryCleaner = "HistoryCleaner";
 
@@ -57,5 +63,6 @@ public static class ToolCatalog
         TracksOffice,
         TracksWindows,
         RegistryOptimizer,
+        SystemManagement,
     };
 }

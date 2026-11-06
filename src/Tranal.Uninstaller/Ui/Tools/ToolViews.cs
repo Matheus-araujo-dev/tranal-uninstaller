@@ -31,6 +31,7 @@ public static class ToolViews
         ToolCatalog.EvidenceRemover => CreateEvidence(),
         ToolCatalog.UnrecoverableDelete => CreateUnrecoverable(),
         ToolCatalog.RegistryOptimizer => CreateRegistryOptimizer(),
+        ToolCatalog.SystemManagement => new Management.ManagementView(),
         _ => CreateUnknown(toolId),
     };
 

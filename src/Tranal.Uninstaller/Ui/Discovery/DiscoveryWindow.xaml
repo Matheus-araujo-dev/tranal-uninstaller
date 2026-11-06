@@ -1,0 +1,45 @@
+<Window x:Class="Tranal.Uninstaller.Ui.Discovery.DiscoveryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Height="560" Width="880"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" UseLayoutRounding="True">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- titulo -->
+      <RowDefinition Height="Auto" />   <!-- escolha -->
+      <RowDefinition Height="*" />      <!-- resultados -->
+      <RowDefinition Height="Auto" />   <!-- situacao -->
+      <RowDefinition Height="Auto" />   <!-- botoes -->
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Descoberta ampliada" FontSize="15" FontWeight="SemiBold"
+               Foreground="{DynamicResource TitleTextBrush}" />
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,8">
+      <TextBlock Text="O que procurar:" VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextBrush}" />
+      <ComboBox x:Name="CategoryBox" Width="340" Margin="8,0,0,0" VerticalAlignment="Center"
+                DisplayMemberPath="Text" />
+    </StackPanel>
+
+    <ListView Grid.Row="2" x:Name="ResultsList" AutomationProperties.AutomationId="DiscoveryResults"
+              Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
+              SelectionMode="Single" />
+
+    <TextBlock Grid.Row="3" x:Name="StatusText" TextWrapping="Wrap" Margin="0,8,0,0"
+               Foreground="{DynamicResource TextDimBrush}" />
+
+    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="ScanButton" Content="{loc:Tr Common.Scan}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="DiscoveryScan"
+              Click="ScanButton_Click" />
+      <Button x:Name="CloseButton" Content="{loc:Tr Common.Close}" Style="{StaticResource FlatButton}"
+              AutomationProperties.AutomationId="DiscoveryClose"
+              Click="CloseButton_Click" />
+    </StackPanel>
+  </Grid>
+</Window>

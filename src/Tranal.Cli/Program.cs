@@ -339,6 +339,32 @@ public static class Program
             return 1;
         }
 
+        return UninstallProgram(target, allPrograms, mode, runBuiltIn, remove, flags);
+    }
+
+    /// <summary>
+    /// Executa a desinstalação de um programa **já localizado**.
+    ///
+    /// O fluxo inteiro — avisos de segurança, ponto de restauração, backup do
+    /// registro, desinstalador nativo, varredura de sobras, remoção e
+    /// histórico — mora aqui e não dentro do comando. É o mesmo fluxo que a
+    /// desinstalação em lote usa, programa por programa: uma desinstalação
+    /// avulsa e uma desinstalação em lote não podem divergir em nada.
+    /// </summary>
+    /// <param name="target">O programa a desinstalar.</param>
+    /// <param name="allPrograms">Todos os programas instalados (para os avisos).</param>
+    /// <param name="mode">O modo da desinstalação.</param>
+    /// <param name="runBuiltIn">Roda o desinstalador nativo.</param>
+    /// <param name="remove">Remove as sobras (quando falso, é dry-run).</param>
+    /// <param name="flags">Os switches da linha de comando.</param>
+    internal static int UninstallProgram(
+        InstalledProgram target,
+        List<InstalledProgram> allPrograms,
+        UninstallMode mode,
+        bool runBuiltIn,
+        bool remove,
+        HashSet<string> flags)
+    {
         Console.WriteLine($"Alvo: {target.DisplayName}  ({target.VersionOrNoVersion})");
         PrintMode(mode);
         Console.WriteLine();
@@ -425,7 +451,7 @@ public static class Program
             {
                 report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
                 PrintRemovalSummary(report, options);
-                SaveRemovalLog(report, name);
+                SaveRemovalLog(report, target.DisplayName);
             }
             else
             {
@@ -579,7 +605,7 @@ public static class Program
     /// Converte o texto do modo de desinstalacao. Aceita os nomes em ingles
     /// (usados na linha de comando) e os nomes curtos em portugues.
     /// </summary>
-    private static bool TryParseMode(string value, out UninstallMode mode)
+    internal static bool TryParseMode(string value, out UninstallMode mode)
     {
         switch (value.Trim().ToLowerInvariant())
         {

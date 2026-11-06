@@ -52,12 +52,16 @@ public static class UserMessages
     /// pergunta que antecede uma acao destrutiva, e nao uma mensagem
     /// informativa. O botao padrao e "Nao", para que "Enter" sem querer nao
     /// autorize a remocao.
+    ///
+    /// O dono pode ser nulo: um painel embutido na janela principal nem
+    /// sempre tem uma janela proprietaria no momento da pergunta. A caixa
+    /// aparece sem dono nesse caso — e **aparece**.
     /// </summary>
-    public static bool Confirm(Window owner, string message, string caption = "Tranal Uninstaller")
+    public static bool Confirm(Window? owner, string message, string caption = "Tranal Uninstaller")
     {
-        var result = MessageBox.Show(
-            owner, message, caption,
-            MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+        var result = owner is null
+            ? MessageBox.Show(message, caption, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
+            : MessageBox.Show(owner, message, caption, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
 
         return result == MessageBoxResult.Yes;
     }

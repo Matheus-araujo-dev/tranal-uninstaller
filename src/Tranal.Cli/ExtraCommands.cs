@@ -1,5 +1,6 @@
 using System.Text;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Settings;
@@ -22,6 +23,9 @@ namespace Tranal.Cli;
 ///   tranal /theme "dark|light"           - define o tema da interface
 ///   tranal /backup | /bk                 - Gerenciador de Backups (pontos de restauracao)
 ///   tranal /exclude [add|addreg|rm|rmreg|clear] - Gerenciador da lista de exclusoes
+///   tranal /plan "programa"              - mostra o plano de desinstalacao, sem executar
+///   tranal /batch "arquivo" [/remove]    - desinstalacao em lote a partir de um arquivo de lista
+///   tranal /switches                     - lista os switches de linha de comando de cada ferramenta
 /// </summary>
 public static class ExtraCommands
 {
@@ -43,6 +47,9 @@ public static class ExtraCommands
         if (flags.Contains("/new")) return RunNewPrograms();
         if (flags.Contains("/backup") || flags.Contains("/bk")) return RunBackupManager(args, flags);
         if (flags.Contains("/exclude")) return RunExcludeManager(args);
+        if (flags.Contains("/plan")) return RunPlan(args);
+        if (flags.Contains("/batch")) return RunBatch(args, flags);
+        if (flags.Contains("/switches")) return RunSwitches();
         return null;
     }
 
@@ -855,5 +862,190 @@ public static class ExtraCommands
         Console.Error.WriteLine("Uso: tranal /exclude "
                               + "[add \"caminho\" | addreg \"chave\" | rm \"caminho\" | rmreg \"chave\" | clear]");
         return 1;
+    }
+
+    // ------------------------------------------------------------------
+    // Plano de desinstalacao (item 5 do backlog)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Mostra o plano de desinstalacao de um programa, sem executar nada.
+    ///
+    /// O plano e a ordem em que o Tranal vai trabalhar: comando antes,
+    /// desinstalador nativo, varredura, remocao, comando depois. Ver o plano
+    /// e o que separa "eu espero que o programa saia" de "eu sei o que vai
+    /// acontecer".
+    /// </summary>
+    private static int RunPlan(string[] args)
+    {
+        var name = ValueAfter(args, "/plan");
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Console.Error.WriteLine("Uso: tranal /plan \"nome do programa\" [/mode builtin|safe|moderate|advanced]");
+            return 1;
+        }
+
+        var mode = UninstallMode.Moderate;
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i].Equals("/mode", StringComparison.OrdinalIgnoreCase)
+                || args[i].Equals("/level", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!Program.TryParseMode(args[i + 1], out mode))
+                {
+                    Console.Error.WriteLine($"Modo de desinstalação inválido: {args[i + 1]}");
+                    Console.Error.WriteLine("Modos válidos: builtin, safe, moderate, advanced.");
+                    return 1;
+                }
+            }
+        }
+
+        var programs = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = true,
+            IncludeMsiProducts = false,
+        });
+
+        var target = programs.FirstOrDefault(p =>
+            p.DisplayName.Equals(name, StringComparison.CurrentCultureIgnoreCase))
+            ?? programs.FirstOrDefault(p =>
+                p.DisplayName.Contains(name, StringComparison.CurrentCultureIgnoreCase));
+
+        if (target is null)
+        {
+            Console.Error.WriteLine($"Programa não encontrado: {name}");
+            return 1;
+        }
+
+        var plan = UninstallPlanBuilder.Build(target, mode);
+
+        Console.WriteLine($"Plano de desinstalação: {plan.ProgramName}  (modo {mode})");
+        Console.WriteLine();
+
+        for (var i = 0; i < plan.Steps.Count; i++)
+        {
+            var step = plan.Steps[i];
+            Console.WriteLine($"{i + 1}. [{step.Kind}] {step.Description}");
+            if (!string.IsNullOrWhiteSpace(step.Command))
+                Console.WriteLine($"   comando: {step.Command}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine($"{plan.Steps.Count} etapa(s). Nada foi executado.");
+        return 0;
+    }
+
+    // ------------------------------------------------------------------
+    // Desinstalacao em lote a partir de um arquivo (item 6 do backlog)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Desinstalacao em lote roteirizavel a partir de um arquivo de lista.
+    ///
+    /// O arquivo tem uma regra por linha: nome exato, ou <c>regex:</c> seguido
+    /// de uma expressao regular. Sem <c>/remove</c> o comando apenas **lista**
+    /// o que casou — e a listagem sem efeito e o que permite conferir a
+    /// expressao regular antes de ela rodar.
+    /// </summary>
+    private static int RunBatch(string[] args, HashSet<string> flags)
+    {
+        var path = ValueAfter(args, "/batch");
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            Console.Error.WriteLine("Uso: tranal /batch \"arquivo\" [/remove] [/mode builtin|safe|moderate|advanced]");
+            return 1;
+        }
+
+        var parsed = BatchList.Load(path);
+        if (!parsed.Success || parsed.List is null)
+        {
+            Console.Error.WriteLine($"Não foi possível ler a lista: {parsed.ErrorMessage}");
+            return 1;
+        }
+
+        var mode = UninstallMode.Moderate;
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i].Equals("/mode", StringComparison.OrdinalIgnoreCase)
+                || args[i].Equals("/level", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!Program.TryParseMode(args[i + 1], out mode))
+                {
+                    Console.Error.WriteLine($"Modo de desinstalação inválido: {args[i + 1]}");
+                    return 1;
+                }
+            }
+        }
+
+        var programs = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = true,
+            IncludeMsiProducts = false,
+        });
+
+        var matched = parsed.List.Match(programs);
+        Console.WriteLine($"Programas casados com a lista: {matched.Count}");
+        foreach (var program in matched)
+            Console.WriteLine($"  - {program.DisplayName}");
+
+        if (matched.Count == 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine("(nada casou: nenhuma alteração foi feita)");
+            return 0;
+        }
+
+        Console.WriteLine();
+
+        if (!flags.Contains("/remove"))
+        {
+            Console.WriteLine("(dry-run: nada foi removido; use /remove para executar)");
+            return 0;
+        }
+
+        if (!Program.IsElevated())
+        {
+            Console.WriteLine("A desinstalação exige privilégios de administrador: relançando...");
+            return Program.RelaunchElevated(args);
+        }
+
+        var runBuiltIn = !flags.Contains("/nobuiltin");
+        var exit = 0;
+
+        foreach (var program in matched)
+        {
+            Console.WriteLine();
+            Console.WriteLine(new string('-', 60));
+
+            var result = Program.UninstallProgram(program, programs, mode, runBuiltIn, remove: true, flags);
+            if (result != 0) exit = result;
+        }
+
+        return exit;
+    }
+
+    // ------------------------------------------------------------------
+    // Switches por ferramenta (item 20 do backlog)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Lista os switches de linha de comando de cada ferramenta.
+    ///
+    /// O catalogo mora no nucleo (<c>Core/Automation/CliToolSwitch.cs</c>), que
+    /// e a **fonte unica**: a ajuda da CLI e a documentacao leem a mesma lista,
+    /// e um switch que existe em um lugar existe nos dois.
+    /// </summary>
+    private static int RunSwitches()
+    {
+        Console.WriteLine("Switches por ferramenta:");
+        Console.WriteLine();
+
+        foreach (var line in CliToolSwitchCatalog.DescribeAll())
+            Console.WriteLine($"  {line}");
+
+        Console.WriteLine();
+        Console.WriteLine("A forma longa que executa a ferramenta é o nome com o sufixo "
+                          + $"{CliToolSwitchCatalog.RunSuffix} (ex.: --temporarios-run).");
+        return 0;
     }
 }
