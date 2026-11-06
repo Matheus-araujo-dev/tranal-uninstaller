@@ -340,7 +340,7 @@ ocorrências** do padrão em todo o `src/`.
 | Limpeza de **extensões de navegador** | ✅ **Tranal sim / Uninstall Tool não** | `Core/Modules/BrowserExtensions.cs:53` |
 | **Limpador de lixo** | ✅ **Tranal sim / Uninstall Tool não** | `Core/Tools/JunkCleaner.cs:38` |
 | **Otimizador de registro** | ✅ **Tranal sim / Uninstall Tool não** | `Core/Tools/RegistryOptimizer.cs:55,72,82` |
-| **Ponto de restauração** antes de desinstalar | ⬜ **nenhum dos dois** | Uninstall Tool: sem `CreateRestorePoint`; Tranal: 0 hits |
+| **Ponto de restauração** antes de desinstalar | ✅ **só o Tranal** | Uninstall Tool: sem `CreateRestorePoint`. Tranal: `Core/UninstallSupport.cs:1170` (`TryCreateRestorePoint`, WMI `SystemRestore`, `RestorePointType` 12), acionado no assistente (`Ui/UninstallWizardWindow.xaml.cs:396`) e na CLI (`src/Tranal.Cli/Program.cs:348`), ligado por padrão (`Core/Settings/AppSettings.cs:48`) |
 | Idiomas | 🟡 | `Core/Localization/LanguageCatalog.cs:16` — o Uninstall Tool tem 45 XML |
 | **CLI pública de automação** | ✅ **superior** | `src/Tranal.Cli/` — o Uninstall Tool tem 5 switches, nenhum de automação |
 

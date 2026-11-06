@@ -37,10 +37,10 @@ documento diz **"não verificado"** e explica o motivo.
 | Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ auditado |
 | Geek Uninstaller 1.6.0.200 | [GEEK.md](GEEK.md) | ✅ auditado |
 | Wise Program Uninstaller 3.2.7.271 | [WISE.md](WISE.md) | ✅ auditado |
-| Total Uninstall 7.6.2 | — | em curso |
-| Ashampoo UnInstaller | — | em curso |
-| Uninstall Tool | — | em curso |
-| Soft Organizer | — | em curso |
+| Total Uninstall 7.6.2 Professional | [TOTALUNINSTALL.md](TOTALUNINSTALL.md) | ✅ auditado |
+| Ashampoo UnInstaller 27.0.1 | [ASHAMPOO.md](ASHAMPOO.md) | ✅ auditado |
+| Uninstall Tool 6.6.0 | [UNINSTALLTOOL.md](UNINSTALLTOOL.md) | ✅ auditado |
+| Soft Organizer 10.50 | [SOFTORGANIZER.md](SOFTORGANIZER.md) | 🔄 em curso |
 
 A matriz consolidada ("Revo + 10 concorrentes → o que falta para ser igual
 ou melhor em TUDO") fica em [MATRIZ.md](MATRIZ.md), e é atualizada a cada
