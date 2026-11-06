@@ -18,7 +18,7 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ fora de escopo
 
 | Seção do original | Strings | Tranal | Onde |
 |---|---|---|---|
-| `UninstallerPro` | 331 | 🟡 | `Ui/UninstallWizardWindow.*` — assistente de 5 etapas, 4 modos, lista de sobras com confiança, resumo por contagem |
+| `UninstallerPro` | 331 | 🟡 | assistente de 5 etapas, 4 modos, lista de sobras com confiança, resumo por contagem — **item a item medido na seção "Fechamento das 🟡 do Revo"**; o que falta é desinstalação em lote, os três avisos de segurança, o log com tipo de mudança, Excel/impressão e o modelo de alinhamento de coluna |
 | `Scan After Uninstall` | 63 | ✅ | `Core/UninstallSupport.cs` (`LeftoverScanner`), `Core/MsiInstallLog.cs` (atribuição pela cadeia do instalador), `Core/Removal.cs`, `Core/RecycleBin.cs`, `Core/DeferredDelete.cs` |
 | `Uninstaller Options` | 6 | ✅ | `Ui/OptionsWindow.*` — ponto de restauração do sistema, somente o desinstalador nativo, desativar histórico, atalhos de páginas web |
 | `Uninstaller List` | 10 | ✅ | `MainWindow.xaml` — lista montada a partir do catálogo de colunas (`Core/ProgramColumns.cs`), grupos, ordenação por cabeçalho |
@@ -409,6 +409,98 @@ UAC.
 
 ---
 
+### Fechamento das 🟡 do Revo (medido nas 331 e nas 147 strings)
+
+As duas seções que ainda estavam 🟡 foram abertas item a item. O inventário
+completo saiu do PE do original (`strings-en.json`, 1.136 strings em 43
+seções): `UninstallerPro` = **331** e `General App` = **147**.
+
+O que era o 🟡 não era "falta de cobertura" — era falta de **detalhe**. A
+cobertura real é alta; o que faltava era saber **qual** item não estava
+coberto, e isso agora está medido contra o código do `src/`.
+
+#### `UninstallerPro` — 331 strings
+
+| Recurso do original | Strings | Tranal | Onde / por quê |
+|---|---|---|---|
+| Assistente de desinstalação em 5 etapas, 4 modos, lista de sobras com confiança e resumo por contagem | 15111–15115, 15147–15149, 15204–15210 | ✅ | `Ui/UninstallWizardWindow.*`, `Core/UninstallSupport.cs` |
+| "Traced Programs" e "All Programs", grupos New/Others, filtro "novos programas nos últimos N dias" | 15002–15003, 15067–15076, 15129 | ✅ | `Core/Modules/TracedPrograms.cs`, `Core/Settings/AppSettings.cs:26` (`NewProgramsDays`) |
+| Gerenciador de grupos: criar, renomear, mover, adicionar e remover programas | 15001, 15005, 15050–15053, 15070–15072, 15080–15081, 15173 | ✅ | `Ui/GroupsManagerWindow.xaml.cs` |
+| Colunas da lista: remover coluna, alinhar (esquerda/centro/direita), "Best Fit" | 15054–15060 | ⬜ | `Core/ProgramColumns.cs` — `ProgramColumnInfo` **não tem alinhamento** e todas as colunas aparecem sempre |
+| Exportar a lista: TXT, HTML e **Microsoft Excel**, com escolha de quais colunas exportar | 15061–15066, 15098, 15298 | 🟡 | `Core/Exporters.cs` exporta **TXT/CSV/HTML/XML** (`ToText`, `ToCsv`, `ToHtml`, `ToXml`) — **sem Excel**; a escolha de colunas existe |
+| Backup do registro + ponto de restauração antes de desinstalar, com opção de pular | 15162–15167, 15227–15230, 15307–15308 | ✅ | `Core/FullRegistryBackup.cs`, `Core/UninstallSupport.cs:1170`, `Core/Settings/AppSettings.cs:48,211` |
+| Apagar para a lixeira, para a pasta de backup ou permanentemente | 15130–15133 | ✅ | `Core/RecycleBin.cs`, `Core/BackupManager.cs`, `Core/Settings/AppSettings.cs:86` |
+| Adiar para o próximo reinício (fila oficial de renomeação) | 15144, 15222 | ✅ | `Core/DeferredDelete.cs` |
+| Encerrar o processo em execução antes de desinstalar | 15125–15126, 15265 | ✅ | `Core/ProcessTerminator.cs`, `Core/Settings/AppSettings.cs:204` |
+| Desinstalação forçada: caminho, nome, uninstallers encontrados, tipo 32/64 bits | 15096–15124, 15110 | ✅ | `Ui/ForcedUninstallWindow.xaml.cs`, `Core/Modules/HunterMode.cs` |
+| "Logged Files and Folders" e "Logged Registry items" (o que o instalador gravou) | 15141, 15145, 15083–15084 | ✅ | `Core/Modules/TracedPrograms.cs`, `Core/MsiInstallLog.cs` |
+| "Possibly related Files and Folders" / "Possibly related Registry items" | 15137–15138, 15085 | ✅ | `Core/UninstallSupport.cs` — `LeftoverReason` (11 motivos), coluna "Porquê" |
+| Excluir chave/pasta/arquivo do rastreio | 15102, 15115–15117, 15127–15128 | ✅ | `Core/ExcludeList.cs` |
+| Editar/importar/exportar/apagar o log do programa monitorado | 15174, 15178, 15231–15233, 15287–15288 | ✅ | `Core/Modules/TraceStore.cs` (`Save`, `Import`, `Export`, `Delete`) |
+| Comentar o programa, trocar o ícone, renomear | 15005, 15079, 15216–15217, 15281–15286 | ✅ | `Core/ProgramCustomization.cs` |
+| Varredura em **todas as contas do Windows** e desinstalação em todas as contas | 15345, 15352–15353 | ✅ | `Core/Settings/AppSettings.cs:180,187,197` |
+| **Desinstalação em lote / "Quick Uninstall"** | 15200–15214, 15267 | ⬜ | grep `Batch` no `src/` = **0 ocorrências** |
+| **Continuar a desinstalação interrompida por reinício** | 15318 | ⬜ | — |
+| **Aviso: "pastas abaixo podem conter dados do usuário e documentos"** | 15359 | ⬜ | grep por aviso equivalente = **0** |
+| **Aviso: "remover este produto pode fazer recursos do Windows ou outros softwares pararem de funcionar"** | 15365 | ⬜ | grep por aviso equivalente = **0** |
+| **Aviso: "programas instalados na mesma pasta — as sobras de todos serão encontradas"** | 15337–15338 | ⬜ | grep por aviso equivalente = **0** |
+| **Log com tipo de mudança** (Created / Deleted / Renamed / Overwritten / Unknown) e nome/dado antigo | 15247–15255 | ⬜ | `TracePayload` (`TraceStore.cs:502`) guarda **só** `Files`, `Folders` e `RegistryKeys` — não sabe o que foi renomeado nem sobrescrito |
+| **Editar chave e valor de registro dentro do log** | 15256–15264, 15289 | ⬜ | — |
+| **Unir logs** de um mesmo programa | 15312–15314 | ⬜ | — |
+| **Usar o log correspondente durante a desinstalação** | 15266, 15291–15296 | 🟡 | o Tranal usa o log do **instalador MSI** (`Core/MsiInstallLog.cs`), não um log de rastreio correlacionado |
+| **Incluir / excluir processos do rastreio** | 15105–15107, 16035–16037 | ⬜ | — |
+| **Backup completo do registro todo dia** | 16059 | ⬜ | `Core/FullRegistryBackup.cs` só roda sob demanda, antes da desinstalação |
+| **Install Programs** (instalar monitorando) | 15160–15161, 15311, 15328–15333, 16020, 16022 | ⬜ | o Tranal não instala — ver a decisão no item 8 do backlog |
+| **Logs Database** (base de logs na web da Revo) | 15182–15193, 15273–15280 | ⬜ | serviço online proprietário — ver a decisão no item 8 do backlog |
+| **Print / Print Preview / Print Setup** | 16001–16003 | ⬜ | grep `PrintDialog`/`PrintPreview` = **0** |
+| **Rebuild cache file** | 15175–15176 | ⬜ | o Tranal não mantém cache de detalhes |
+| Filtro da lista por **tamanho, tipo, unidade e ocultos** | 15360–15363, 15366 | ✅ | `MainWindow.xaml.cs:125` (`MatchesSize`, `MatchesType`, `MatchesDrive`) |
+| "Set the focus on Traced Programs on startup", "Show check boxes in Details view", "Open the Uninstall Wizard maximized" | 15129, 15334, 15170 | 🟡 | equivalentes existem em forma parecida, não com o mesmo nome |
+
+#### `General App` — 147 strings
+
+| Recurso do original | Strings | Tranal | Onde / por quê |
+|---|---|---|---|
+| Visibilidade dos painéis (Menu Bar, Main Toolbar, Description Panel, Status Bar, Tools Toolbar) e "Restaurar layout padrão" | 16004–16009, 16104–16106 | ✅ | `MainWindow.xaml.cs` (`BuildPanelsMenu`, `ApplyLayout`, `ResetLayout`), `Core/Settings/AppSettings.cs:143–152` |
+| Ocultar mensagens de informação e de aviso | 16031–16032 | ✅ | `Ui/UserMessages.cs` |
+| Marcar todas as sobras por padrão | 16063 | ✅ | `Core/Settings/AppSettings.cs:128` |
+| Apagar o log do programa monitorado após a desinstalação | 16060 | ✅ | `Core/Settings/AppSettings.cs:170` |
+| Mostrar comandos no menu de contexto do Windows | 16062 | ✅ | `Core/Topmost/ExplorerContextMenu.cs` |
+| Pasta de backup, "back up deleted Registry items" e "back up deleted files and folders" | 16024–16026 | ✅ | `Core/BackupManager.cs`, `Core/FullRegistryBackup.cs` |
+| Todos os módulos do menu File (Autorun, Junk Files, Windows Tools, Browsers, Office, Evidence Remover, Unrecoverable Delete, Backup Manager) | 16010–16019 | ✅ | `Core/ToolCatalog.cs`, `Core/Tools/*` |
+| **Visual theme** — 10 skins (Blue, Grey, Black, Silver, Native, Native 2, Native Smooth, Dark Grey, Blue 2, Dark Mode) | 16038, 16042–16048, 16064–16065, 16099 | 🟡 | `Theming/ThemeManager.cs` — o Tranal tem **dois** (Dark/Light), sem skins nem cor de fundo/seleção configurável |
+| **Cor personalizada** (fundo, seleção, texto, botões, diálogos) | 16071–16075, 16133, 16150–16153 | ⬜ | — |
+| **History Cleaner** | 16109–16110 | ✅ | `Core/Tools/HistoryCleaner.cs` |
+| **Copy to Clipboard** | 16159 | 🟡 | há cópia em alguns lugares, não como comando geral |
+| **Disable all text animations** | 16156 | ⬜ | — |
+| **Show startup splash screen** | 16108 | ⬜ | — |
+| **Submit Feedback / Online Support** | 16102–16103 | ⬜ | — |
+| **Create daily full Registry backup** | 16059 | ⬜ | ver `UninstallerPro` acima |
+| **Pular o prompt do UAC** | 16067 | ⬜ | **decisão: manter o caminho de UAC do Windows** (é o que evita que o Avast e o McAfee marcarem o produto) |
+| **Tela de ativação, serial, trial, assinatura, desativação de licença, assinatura de updates, Android App** | 16049–16101, 16113–16137, 16157–16158, 16163 | ⬜ | **fora de escopo por decisão**: o Tranal é uma reimplementação independente, sem licença, sem cadastro e sem telemetria |
+| **Exportar para Microsoft Excel** (via COM do Excel do próprio Windows) | 16027–16028 | ⬜ | ver `UninstallerPro` acima |
+
+**As três decisões que este fechamento obriga** (o resto entra no backlog
+`docs/auditoria/MATRIZ.md` §F):
+
+1. **Os avisos de segurança entram antes de qualquer recurso novo.** O original
+   avisa sobre três coisas que o Tranal **não** avisa: dados do usuário na pasta,
+   componentes do Windows que param de funcionar e programas que dividem a mesma
+   pasta de instalação. O terceiro é o mais grave: apagar as sobras de um
+   programa pode levar junto o que o outro gravou. Isso é **segurança**, não
+   polimento — vai para o topo do backlog.
+2. **"Logs Database" e "Install Programs" ficam fora, e o motivo fica
+   registrado.** A base de logs é um serviço online proprietário da Revo: não
+   pode ser copiada, e reimplementá-la exigiria uma rede de logs que o Tranal
+   não tem. Instalar programas é o **outro** lado do produto: o Tranal é um
+   desinstalador. As duas saem do 🟡 para o backlog como **decisão**, não como
+   esquecimento.
+3. **A paridade literal do `UninstallerPro` e do `General App` passa a ser
+   medível.** Cada linha acima tem string, arquivo e linha. A próxima rodada
+   não precisa de leitura de PE para saber o que falta — só de grep no `src/`.
+
+---
+
 ## 2. Gerenciador de Backups
 
 | Seção do original | Strings | Tranal | Onde |
@@ -499,7 +591,7 @@ top`, `Drag and Drop Mode`, `Hunter Mode`, `Open Main Window`.
 |---|---|---|---|
 | `Windows Apps` | 20 | ✅ | `Core/Modules/WindowsApps.cs` — 122 pacotes MSIX reais |
 | `Browser Extensions` | 23 | ✅ | `Core/Modules/BrowserExtensions.cs` — Chrome/Edge/Firefox/Opera, `__MSG_*` resolvido |
-| `General App` | 147 | 🟡 | personalização do layout (visibilidade de painéis + "Restaurar layout padrão"), marcar todas as sobras por padrão, ocultar mensagens de informação/aviso, menu de contexto do Windows e apagar o log do programa monitorado — `Core/Settings/AppSettings.cs` e `Ui/OptionsWindow.*`. **Falta**: a personalização fina de barras de ferramentas (arrastar/reordenar), a cor própria dos diálogos e a tela de ativação, que não se aplicam a uma reimplementação independente |
+| `General App` | 147 | 🟡 | personalização do layout (visibilidade de painéis + "Restaurar layout padrão"), marcar todas as sobras por padrão, ocultar mensagens de informação/aviso, menu de contexto do Windows e apagar o log do programa monitorado — `Core/Settings/AppSettings.cs` e `Ui/OptionsWindow.*`. **Item a item medido na seção "Fechamento das 🟡 do Revo"**: o que falta é a skin (10 temas + cor personalizada), impressão, backup diário do registro, cópia para a área de transferência e as animações de texto. A tela de ativação **não se aplica** — reimplementação independente, sem licença |
 | `Common` | 31 | ✅ | dicionário e rotulos compartilhados |
 
 ### Opções do `General App` traduzidas para o Tranal

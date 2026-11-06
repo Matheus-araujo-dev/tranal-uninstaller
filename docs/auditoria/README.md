@@ -40,7 +40,7 @@ documento diz **"não verificado"** e explica o motivo.
 | Total Uninstall 7.6.2 Professional | [TOTALUNINSTALL.md](TOTALUNINSTALL.md) | ✅ auditado |
 | Ashampoo UnInstaller 27.0.1 | [ASHAMPOO.md](ASHAMPOO.md) | ✅ auditado |
 | Uninstall Tool 6.6.0 | [UNINSTALLTOOL.md](UNINSTALLTOOL.md) | ✅ auditado |
-| Soft Organizer 10.50 | [SOFTORGANIZER.md](SOFTORGANIZER.md) | 🔄 em curso |
+| Soft Organizer 10.50 | [SOFTORGANIZER.md](SOFTORGANIZER.md) | ✅ auditado |
 
 A matriz consolidada ("Revo + 10 concorrentes → o que falta para ser igual
 ou melhor em TUDO") fica em [MATRIZ.md](MATRIZ.md), e é atualizada a cada

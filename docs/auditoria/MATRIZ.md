@@ -154,56 +154,74 @@ item aponta para a auditoria que o revelou.
 | 4 | ✅ **Desinstalação silenciosa** — tabela de switches por família (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART` para Inno, `/S` para NSIS, `/quiet /qn /norestart` para MSI, `/s /v"/qn"` para InstallShield), com a classificação como chave; coluna "Desinstalador silencioso", marca no assistente e `/silent` na CLI. **185 dos 211 programas** da máquina (87,7%) | BCU B2/B3 · **HiBit H.2** | Recurso que o dono sente na prática: sai do PC sem clicar 40 vezes. O HiBit mostra que a tabela existe e é curta — com a classificação pronta, isso deixa de ser heurística. |
 | 5 | **Motor de desinstalação próprio**: rodar o desinstalador do programa **e** automatizar o que ele não faz (o Uninstalr é explícito: "most other uninstallers simply run the default uninstaller program"), com retomada após reinício | BCU B3 · **Uninstalr H.3** | É o que torna a desinstalação silenciosa confiável: em vez de rezar para o desinstalador aceitar `/S`, o Tranal aciona os controles. |
 | 6 | **Filtro Regex + lista de desinstalação em arquivo + desinstalação em lote roteirizável** | BCU D2/D3/D4 | É o que torna o Tranal usável em script e em grande escala. |
+| 7 | **Tracing de usuário em tempo real, sem driver** — o Soft Organizer grava o que o instalador mudou (registro **e** disco) com rastreio de arquivo em tempo real e **n**ão usa driver (`K_DRIVER_SYS`: 0 `.sys`). O Tranal hoje faz **polling de snapshot de 30 s** (`Core/Modules/InstallMonitor.cs:31`, `DefaultIntervalSeconds = 30`), que pode perder escrita rápida entre duas capturas. O caminho do SO prova que o rastreio em tempo real **sem driver** eé viável — e eé esse caminho, não o driver | **Soft Organizer H.9** | Troca **polling** por observação de escrita, e o `TraceStore` passa a ser o registro canônico do que mudou. Sem driver: a decisão F.4 continua de pe. |
 
 ### F.2 🟡 Recurso — lacunas claras
 
 | # | Item | De onde veio |
 |---|---|---|
-| 7 | Desinstalar via MsiExec (GUID) | BCU B4 |
-| 8 | Desinstalar manualmente (pular o desinstalador e listar o que apagar) | BCU B5 |
-| 9 | Painel de progresso com pular / encerrar / rodar agora | BCU B10/B11 |
-| 10 | Detecção de Windows Features e Windows Updates | BCU A4/A5 |
-| 11 | Detecção de Steam, Chocolatey, Scoop | BCU A6/A7 |
-| 12 | Varredura de drives atrás de apps não registrados | BCU A9 |
-| 13 | Limpeza de pastas "Arquivos de Programas" vazias/pela metade | BCU C12 |
-| 14 | Comandos antes e depois da desinstalação | BCU B15 |
-| 15 | Verificação de certificado do desinstalador | BCU D8 |
-| 16 | Colunas novas: ✅ Tipo de desinstalador, ✅ Código do produto e ✅ Desinstalador silencioso (implementados); ⬜ Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
-| 17 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
-| 18 | Remoção definitiva de drivers | Revo E10 |
-| 19 | **Um switch de CLI por ferramenta** (o HiBit tem 19) + a forma longa com sufixo ` RUN` | HiBit H.2 |
-| 20 | **Painel único de "Software Health"** com 4 categorias: sobras, arquivos redundantes, permissões e notificações | IObit · **Wise H.5** — dois concorrentes independentes, mesma ideia: deixa de ser nicho |
-| 21 | **Histórico de desinstalações com "Recuperar"** — juntar o `TraceStore` (rastreio de instalação) com o `BackupManager` (backup) num histórico que volta as sobras. **Três concorrentes pedem a mesma peça**: o Wise chama de "Recuperar", o Uninstall Tool de "reverter a instalação rastreada", o Soft Organizer de "Undo Changes Center" — **um item só**, não três | **Wise H.5** · **Uninstall Tool H.7** · **Soft Organizer H.9** |
-| 22 | **Backup dos resíduos** antes de apagá-los, com expiração | **Wise H.5** — hoje o Tranal faz backup do registro, não dos resíduos |
-| 23 | **Desinstalação Forçada** como modo explícito, e **Desinstalação Personalizada** por palavra-chave | **Wise H.5** |
-| 24 | Gerenciador de permissões de app: serviço, inicialização, menu de contexto, tarefa agendada | **Wise H.5** |
-| 25 | **Motor de regras em arquivo + base de regras por aplicativo** — `Core/Rules/` com o **formato** que o Total Uninstall mediu (623 elementos, 6 categorias, `Include`/`Exclude`) e as **regras por app** que o Wise mantém à mão (595 perfis, 2.379 caminhos). A regra fica **em um lugar só** e `Core/UninstallSupport.cs` + `Core/Tools/JunkCleaner.cs` passam a **consumir** — hoje os dois duplicam o julgamento | **Wise H.5** · **Total Uninstall H.6** |
-| 26 | **Desinstalação em lote na interface** (seleção múltipla → remover em bloco) — o Uninstall Tool tem Batch Force Removal e Batch Remove Entries; o Total Uninstall também tem. Grep `Batch` no `src/` = **0 ocorrências** | **Uninstall Tool H.7** · **Total Uninstall H.6** |
-| 27 | **Log de remoção por item, com código de erro** — `Core/MsiInstallLog.cs` é *leitor*; falta o *escritor*. Um log por operação, com o código de erro e a explicação, é o que o dono vai perguntar quando algo der errado | **Uninstall Tool H.7** · **Geek H.4** |
-| 28 | **Exportar a varredura de sobras** (não só a lista) em XML — `Core/Exporters.cs` exporta a *lista* de programas; a **varredura** é o que serve para auditoria | **Uninstall Tool H.7** |
-| 29 | **Fluxo de snapshot pré/pós-instalação com comparação A×B** — `SystemSnapshot.Diff` existe, mas `SnapshotDiff` só expõe `NewFiles`/`NewFolders`/`NewRegistryKeys`: **não cobre modificados nem removidos**, e o snapshot não é guardado | **Total Uninstall H.6** |
-| 30 | **Biblioteca de snapshots nomeados** (criar, listar, apagar, comparar) — hoje a fotografia "só vive durante a operação" (`TracedPrograms.cs:43`) | **Total Uninstall H.6** · **Ashampoo H.8** |
-| 31 | **Desinstalação dirigida pelo log de instalação**, sem depender do desinstalador nativo — o `Core/MsiInstallLog.cs` já sabe o que o instalador gravou; falta usar o log como **fonte da remoção**, não só como atribuição | **Total Uninstall H.6** · **Ashampoo H.8** |
-| 32 | **Backup do programa com restauração completa e undo/redo** — `Core/BackupManager.cs` restaura item a item; falta o nível de programa ("restore profile") | **Total Uninstall H.6** |
-| 33 | **Exportação/importação portátil de programas monitorados** (`.zip` autocontido) — hoje não há `ZipFile`/`ExtractToDirectory` em nenhum lugar do `src/` | **Total Uninstall H.6** |
-| 34 | **Operações pendentes de renomeação visíveis sem reiniciar** — `Core/DeferredDelete.cs` já agenda na fila oficial do Windows; falta a camada de leitura e aplicação | **Total Uninstall H.6** |
-| 35 | **Análise forense pós-instalação** — criar log de desinstalação para programa **já instalado**, marcado como *inferido*, nunca como *medido* | **Ashampoo H.8** |
-| 36 | **Gerenciador próprio de serviços e tarefas agendadas** — hoje o Tranal só **abre** `services.msc` e `taskschd.msc` (`Core/Tools/WindowsToolsCatalog.cs:85,78`) | **Ashampoo H.8** |
-| 37 | **Importar lista exportada** e **editar entrada do log de instalação** — o `TraceStore` grava, importa, exporta e apaga o log inteiro, mas não edita entrada | **Ashampoo H.8** |
-| 38 | **Exportar o log de instalação em HTML/CSV/TXT** (hoje só JSON) e **exportar as alterações de registro para `.reg`** | **Ashampoo H.8** |
+| 8 | Desinstalar via MsiExec (GUID) | BCU B4 |
+| 9 | Desinstalar manualmente (pular o desinstalador e listar o que apagar) | BCU B5 |
+| 10 | Painel de progresso com pular / encerrar / rodar agora | BCU B10/B11 |
+| 11 | Detecção de Windows Features e Windows Updates | BCU A4/A5 |
+| 12 | Detecção de Steam, Chocolatey, Scoop | BCU A6/A7 |
+| 13 | Varredura de drives atrás de apps não registrados | BCU A9 |
+| 14 | Limpeza de pastas "Arquivos de Programas" vazias/pela metade | BCU C12 |
+| 15 | Comandos antes e depois da desinstalação | BCU B15 |
+| 16 | Verificação de certificado do desinstalador | BCU D8 |
+| 17 | Colunas novas: ✅ Tipo de desinstalador, ✅ Código do produto e ✅ Desinstalador silencioso (implementados); ⬜ Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
+| 18 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
+| 19 | Remoção definitiva de drivers | Revo E10 |
+| 20 | **Um switch de CLI por ferramenta** (o HiBit tem 19) + a forma longa com sufixo ` RUN` | HiBit H.2 |
+| 21 | **Painel único de "Software Health"** com 4 categorias: sobras, arquivos redundantes, permissões e notificações | IObit · **Wise H.5** — dois concorrentes independentes, mesma ideia: deixa de ser nicho |
+| 22 | **Histórico de desinstalações com "Recuperar"** — juntar o `TraceStore` (rastreio de instalação) com o `BackupManager` (backup) num histórico que volta as sobras. **Três concorrentes pedem a mesma peça**: o Wise chama de "Recuperar", o Uninstall Tool de "reverter a instalação rastreada", o Soft Organizer de "Undo Changes Center" — **um item só**, não três | **Wise H.5** · **Uninstall Tool H.7** · **Soft Organizer H.9** |
+| 23 | **Backup dos resíduos** antes de apagá-los, com expiração | **Wise H.5** — hoje o Tranal faz backup do registro, não dos resíduos |
+| 24 | **Desinstalação Forçada** como modo explícito, e **Desinstalação Personalizada** por palavra-chave | **Wise H.5** |
+| 25 | Gerenciador de permissões de app: serviço, inicialização, menu de contexto, tarefa agendada | **Wise H.5** |
+| 26 | **Motor de regras em arquivo + base de regras por aplicativo** — `Core/Rules/` com o **formato** que o Total Uninstall mediu (623 elementos, 6 categorias, `Include`/`Exclude`) e as **regras por app** que o Wise mantém à mão (595 perfis, 2.379 caminhos). A regra fica **em um lugar só** e `Core/UninstallSupport.cs` + `Core/Tools/JunkCleaner.cs` passam a **consumir** — hoje os dois duplicam o julgamento | **Wise H.5** · **Total Uninstall H.6** |
+| 27 | **Desinstalação em lote na interface** (seleção múltipla → remover em bloco) — o Uninstall Tool tem Batch Force Removal e Batch Remove Entries; o Total Uninstall também tem. Grep `Batch` no `src/` = **0 ocorrências** | **Uninstall Tool H.7** · **Total Uninstall H.6** |
+| 28 | **Log de remoção por item, com código de erro** — `Core/MsiInstallLog.cs` é *leitor*; falta o *escritor*. Um log por operação, com o código de erro e a explicação, é o que o dono vai perguntar quando algo der errado | **Uninstall Tool H.7** · **Geek H.4** |
+| 29 | **Exportar a varredura de sobras** (não só a lista) em XML — `Core/Exporters.cs` exporta a *lista* de programas; a **varredura** é o que serve para auditoria | **Uninstall Tool H.7** |
+| 30 | **Fluxo de snapshot pré/pós-instalação com comparação A×B** — `SystemSnapshot.Diff` existe, mas `SnapshotDiff` só expõe `NewFiles`/`NewFolders`/`NewRegistryKeys`: **não cobre modificados nem removidos**, e o snapshot não é guardado | **Total Uninstall H.6** |
+| 31 | **Biblioteca de snapshots nomeados** (criar, listar, apagar, comparar) — hoje a fotografia "só vive durante a operação" (`TracedPrograms.cs:43`) | **Total Uninstall H.6** · **Ashampoo H.8** |
+| 32 | **Desinstalação dirigida pelo log de instalação**, sem depender do desinstalador nativo — o `Core/MsiInstallLog.cs` já sabe o que o instalador gravou; falta usar o log como **fonte da remoção**, não só como atribuição | **Total Uninstall H.6** · **Ashampoo H.8** |
+| 33 | **Backup do programa com restauração completa e undo/redo** — `Core/BackupManager.cs` restaura item a item; falta o nível de programa ("restore profile") | **Total Uninstall H.6** |
+| 34 | **Exportação/importação portátil de programas monitorados** (`.zip` autocontido) — hoje não há `ZipFile`/`ExtractToDirectory` em nenhum lugar do `src/` | **Total Uninstall H.6** |
+| 35 | **Operações pendentes de renomeação visíveis sem reiniciar** — `Core/DeferredDelete.cs` já agenda na fila oficial do Windows; falta a camada de leitura e aplicação | **Total Uninstall H.6** |
+| 36 | **Análise forense pós-instalação** — criar log de desinstalação para programa **já instalado**, marcado como *inferido*, nunca como *medido* | **Ashampoo H.8** |
+| 37 | **Gerenciador próprio de serviços e tarefas agendadas** — hoje o Tranal só **abre** `services.msc` e `taskschd.msc` (`Core/Tools/WindowsToolsCatalog.cs:85,78`) | **Ashampoo H.8** |
+| 38 | **Importar lista exportada** e **editar entrada do log de instalação** — o `TraceStore` grava, importa, exporta e apaga o log inteiro, mas não edita entrada | **Ashampoo H.8** |
+| 39 | **Exportar o log de instalação em HTML/CSV/TXT** (hoje só JSON) e **exportar as alterações de registro para `.reg`** | **Ashampoo H.8** |
+| 40 | **Três avisos de segurança antes de apagar** — "pastas abaixo podem conter dados do usuário e documentos", "remover este produto pode fazer recursos do Windows ou outros softwares pararem de funcionar" e "programas instalados na mesma pasta: as sobras de todos serão encontradas" | **Revo** §Fechamento das 🟡 — o terceiro é o mais grave: apagar as sobras de um programa pode levar junto o que o outro gravou |
+| 41 | **Log de rastreio com tipo de mudança** (Created / Deleted / Renamed / Overwritten / Unknown) e nome/dado antigo — o `TracePayload` (`Core/Modules/TraceStore.cs:502`) guarda **só** `Files`, `Folders` e `RegistryKeys` | **Revo** §Fechamento das 🟡 |
+| 42 | **Usar o log correspondente durante a desinstalação** — correlacionar o log de rastreio com o programa sendo desinstalado e oferecer usá-lo | **Revo** §Fechamento das 🟡 |
+| 43 | **Continuar a desinstalação interrompida por reinício** | **Revo** §Fechamento das 🟡 — encosta no item 5 do F.1 (motor de desinstalação próprio, com retomada) |
+| 44 | **Unir logs** de um mesmo programa num log só | **Revo** §Fechamento das 🟡 |
+| 45 | **Exportar para Microsoft Excel** (o Revo usa o COM do Excel do próprio Windows) | **Revo** §Fechamento das 🟡 — hoje o Tranal exporta TXT/CSV/HTML/XML |
+| 46 | **Imprimir a lista** (imprimir / visualizar antes / imprimir) | **Revo** §Fechamento das 🟡 · **Total Uninstall H.6** |
+| 47 | **Alinhar coluna + "Best Fit" + remover coluna** — o `ProgramColumnInfo` (`Core/ProgramColumns.cs:68`) não tem alinhamento e todas as colunas aparecem sempre | **Revo** §Fechamento das 🟡 |
+| 48 | **Incluir / excluir processos do rastreio** | **Revo** §Fechamento das 🟡 |
+| 49 | **Backup completo do registro todo dia** — hoje `Core/FullRegistryBackup.cs` só roda sob demanda, antes da desinstalação | **Revo** §Fechamento das 🟡 |
 
 ### F.3 🟢 Ganho pequeno
 
 | # | Item | De onde veio |
 |---|---|---|
-| 39 | Treemap | BCU D5 |
-| 40 | Legenda de cores | BCU D6 |
-| 41 | Painel lateral de configurações | BCU D18 |
-| 42 | Agrupamento automático por coluna | BCU D19 |
-| 43 | Renomear entrada / excluir entrada do registro / assumir propriedade | BCU D13/D14/D15 |
-| 44 | Copia avançada para a área de transferência | BCU D9 |
-| 45 | Exportar para script de desinstalação em lote | BCU D11 |
-| 46 | Classificação do usuário (estrelas) | BCU D7 |
+| 50 | Treemap | BCU D5 |
+| 51 | Legenda de cores | BCU D6 |
+| 52 | Painel lateral de configurações | BCU D18 |
+| 53 | Agrupamento automático por coluna | BCU D19 |
+| 54 | Renomear entrada / excluir entrada do registro / assumir propriedade | BCU D13/D14/D15 |
+| 55 | Copia avançada para a área de transferência | BCU D9 |
+| 56 | Exportar para script de desinstalação em lote | BCU D11 |
+| 57 | Classificação do usuário (estrelas) | BCU D7 |
+| 58 | **Mais skins no tema** (o Revo tem 10; o Tranal tem 2) e **cor personalizada** de fundo, seleção, texto, botões e diálogos | **Revo** §Fechamento das 🟡 |
+| 59 | Copiar para a área de transferência como comando geral | **Revo** §Fechamento das 🟡 |
+| 60 | Desativar animações de texto | **Revo** §Fechamento das 🟡 |
+| 61 | Tela de inicialização (splash) | **Revo** §Fechamento das 🟡 |
+| 62 | Enviar comentário / Suporte online | **Revo** §Fechamento das 🟡 |
+| 63 | "Do you want to keep your preferences? Icons, comments, groups" — oferecer manter as personalizações ao desinstalar | **Revo** §Fechamento das 🟡 |
+| 64 | Abrir o assistente maximizado, focar a janela "Traced Programs" no arranque, mostrar caixas de seleção na visualização de detalhes | **Revo** §Fechamento das 🟡 |
 
 ### F.4 O que **não** fazer (decisão registrada)
 
@@ -212,6 +230,9 @@ item aponta para a auditoria que o revelou.
 | **Driver de kernel** (`revoflt.sys`) | o Revo intercepta o sistema de arquivos com `DeviceIoControl`. O Tranal usa as APIs do Windows. Menos risco, sem assinatura de driver. Decisão já registrada no `PARIDADE.md` §8 — **e** o BCU, que é open source, também não usa driver. A paridade se ganha por software, não por kernel. |
 | **Gerar desinstalador simples para app órfão** | perigoso: o nome da pasta não prova a posse. O BCU faz; o Tranal decide não. O risco é real (apagar `Temp` inteiro). O dono pode reverter essa decisão se quiser paridade literal — mas é uma **decisão do dono**, não um esquecimento. |
 | **Classificação de usuário com servidor** | exige infraestrutura e política de privacidade; o ganho é de conveniência, não de função. |
+| **"Install Programs"** (instalar monitorando) | é o **outro lado** do produto: o Tranal é um desinstalador. Instalar com monitoramento em tempo real é um produto por si só, e traz a mesma complexidade de kernel que o driver foi para evitar. Decisão do dono — registrada aqui para não virar esquecimento. |
+| **"Logs Database"** (base de logs na web) | serviço online **proprietário** da Revo: não pode ser copiado, e reimplementá-lo exigiria uma rede de logs comunitária que o Tranal não tem e não vai ter. O equivalente honesto já existe: o `Core/MsiInstallLog.cs` lê o **log do próprio instalador**, local e verificável. |
+| **"Skip User Account Control (UAC) prompt"** | manter o caminho de UAC do Windows. É o que evita que o Avast e o McAfee marcarem o produto — o Uninstall Tool, que cria tarefa agendada elevada para contornar o UAC, paga esse preço. |
 
 ---
 
@@ -564,6 +585,71 @@ literal nesses itens é do dono, e vale **registrar** em vez de silenciar.
 
 ---
 
+### H.9 Soft Organizer 10.50 — [SOFTORGANIZER.md](SOFTORGANIZER.md)
+
+| Recurso | Soft Organizer | Tranal | Prioridade |
+|---|---|---|---|
+| **Tracing de instalação em tempo real** (registro **e** disco) | ✅ | 🟡 — **polling** de snapshot de 30 s | 🔴 **alta** — muda o método (F.1 #7) |
+| **Rastreio de arquivos em tempo real** durante a instalação | ✅ | ⬜ | 🔴 **alta** — mesmo item do F.1 #7 |
+| **Undo Changes Center** (reverter mudança a mudança, histórico cronológico, renomear entrada) | ✅ | ⬜ | 🔴 **alta** — mesma peça do "Recuperar" (Wise) e do "reverter" (Uninstall Tool) |
+| **Desinstalação em lote / multi-seleção** | ✅ | 🟡 — o caminho de código existe, mas a lista principal é `SelectionMode="Single"` | 🔴 **alta** |
+| **Detecção de desinstalação externa** (o programa sumiu por fora → oferecer limpar as sobras) | ✅ | ⬜ | 🟡 alta |
+| **Ignore List global e retroativa** | ✅ | 🟡 — global para o motor, **não** retroativa sobre os logs já gravados | 🟡 |
+| **Log de instalação salvo por app** (`TracedApp.changes`) | ✅ | 🟡 — JSON por trace, um arquivo por rastreio | 🟡 |
+| **Varredura profunda para apps não rastreados**, marcada como tal | ✅ | 🟡 — varre sempre, mas não distingue a origem da sobra | 🟡 |
+| **"Large Applications"** + ordenação por tamanho decrescente | ✅ | 🟡 — o filtro por tamanho existe, o rótulo e a ordenação não | 🟢 |
+| **Agendamento de varreduras** | ✅ | 🟡 — só agenda **remoção** para o próximo reinício | 🟢 |
+| **Atualização de programas instalados** (painel de updates) | ✅ | ⬜ | ❌ fora de escopo — recurso de rede |
+| **Rating de programa** | ✅ | ⬜ | ❌ fora de escopo — recurso de rede |
+| **Removal tools do fabricante** | ✅ | ⬜ | ❌ fora de escopo — recurso de rede |
+| **Instalar programas** (com rastreamento ou silencioso) | ✅ | ⬜ | ❌ fora de escopo — é o outro lado do produto |
+| **Classificação do desinstalador** por família | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **Desinstalação silenciosa** por família | ❌ (só "instalar em modo silencioso") | ✅ | — 🟢 **Tranal melhor** |
+| **Nível de confiança + motivo** por item de sobra | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **Atribuição pela cadeia do `.msi`** | ❌ (só chama `msiexec`) | ✅ | — 🟢 **Tranal melhor** |
+| **Ponto de restauração** antes de desinstalar | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **Backup do registro** antes de apagar | ❌ (só das sobras) | ✅ | — 🟢 **Tranal melhor** |
+| **Filtros de tipo e de unidade** | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **Exportação** (CSV, XML, TXT **e** HTML) | ❌ (só HTML) | ✅ | — 🟢 **Tranal melhor** |
+| **Tarefas agendadas** editadas via COM | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **CLI roteirizável** | ❌ (sem CLI documentada) | ✅ | — 🟢 **Tranal melhor** |
+| Driver de kernel | ❌ (nenhum `.sys`) | ❌ | — |
+
+**O achado que muda o método, não o recurso:** o Soft Organizer é
+**superior** ao Tranal no tracing de instalação — grava **log em arquivo** do
+que o instalador mudou (registro **e** disco), com rastreio de disco em
+tempo real. O Tranal faz **polling de snapshot de 30 s**
+(`Core/Modules/InstallMonitor.cs:31`, `DefaultIntervalSeconds = 30`), que
+pode perder escrita rápida entre duas capturas. E o SO **não usa driver**:
+nenhum `.sys` instalado, a única ocorrência de `.sys` nas strings é
+`System.SysUtils`. Isso prova que **tracing de usuário em tempo real é
+viável sem driver** — é exatamente o caminho do item 7 do F.1, e mais um
+concorrente de acordo com a decisão de driver do `MATRIZ.md` F.4.
+
+**O achado que fecha o ciclo:** o Undo Changes Center é a **mesma peça** que
+o Wise chama de "Recuperar" e o Uninstall Tool de "reverter a instalação
+rastreada". Três concorrentes, uma peça — e o Tranal já tem as duas metades
+(`Core/Modules/TraceStore.cs:68` registra o que mudou;
+`Core/BackupManager.cs` faz o backup) e não tem o "desfazer". O grep de
+`Undo` no `src/` devolve **só** `FofAllowUndo` (`Core/RecycleBin.cs:24`),
+que é flag do shell.
+
+**O achado que é uma mudança de método na interface:** o Tranal **tem** o
+caminho de código que pergunta *"Deseja desinstalar N programas?"*
+(`MainWindow.xaml.cs:1215-1222`), mas a lista principal é
+`SelectionMode="Single"` (`MainWindow.xaml:309`) — na prática, nunca se chega
+ao N. A multi-seleção passa a ser requisito, e o alvo da desinstalação passa
+a ser definido pelas **caixas de marcação** (hoje elas são "apenas indicador
+visual", por decisão registrada no próprio código).
+
+**A correção de atribuição:** `codeapps.com` é **domínio à venda**
+(Namegarage) e `softorganizer.com` é site homônimo morto. O editor real é a
+**ChemTable Software** (assinatura `CN=Software Solutions 365 LLC`), a mesma
+casa do **Reg Organizer**. Quem destravou foi o `winget search`
+(`ChemTableSoftware.SoftOrganizer`), que entregou URL + SHA do manifesto.
+
+---
+
 ## G. Estado da auditoria
 
 | Software | Documento | Estado |
@@ -577,7 +663,7 @@ literal nesses itens é do dono, e vale **registrar** em vez de silenciar.
 | Total Uninstall 7.6.2 Professional | [TOTALUNINSTALL.md](TOTALUNINSTALL.md) | ✅ completo — **motor de regras em XML** (623 elementos, 6 categorias), 32 arquivos, 20 DLLs importadas, snapshot pré/pós com comparação A×B |
 | Ashampoo UnInstaller 27.0.1 | [ASHAMPOO.md](ASHAMPOO.md) | ✅ completo — 66 funcionalidades, delta FREE x PRO, **análise forense** pós-instalação, gerenciador próprio de serviços e tarefas |
 | Uninstall Tool 6.6.0 | [UNINSTALLTOOL.md](UNINSTALLTOOL.md) | ✅ completo — 67 funcionalidades, **minifiltro de kernel** (`CisUtMonitor.sys`), desinstalação em lote, log de remoção por item |
-| Soft Organizer 10.50 | [SOFTORGANIZER.md](SOFTORGANIZER.md) | 🔄 em curso — RESUMO bruto pronto (53 funcionalidades, editor ChemTable Software, **Undo Changes Center**) |
+| Soft Organizer 10.50 | [SOFTORGANIZER.md](SOFTORGANIZER.md) | ✅ completo — 53 funcionalidades (25 observadas, 28 documentadas), **Undo Changes Center**, tracing em tempo real **sem driver**, editor ChemTable Software |
 
 Cada auditoria concluída **atualiza esta matriz** e pode **mudar o backlog** —
 um recurso que só o BCU tem hoje pode ser comum a todos, e aí vira
