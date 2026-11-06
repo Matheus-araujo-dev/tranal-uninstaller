@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Tranal.Uninstaller.Core.Appearance;
 
 namespace Tranal.Uninstaller.Core;
 
@@ -45,6 +46,16 @@ public sealed class ProgramCustomization
 
     /// <summary>Grupos a que o programa pertence (15080 e 15081).</summary>
     public List<string> Groups { get; set; } = new();
+
+    /// <summary>
+    /// A classificacao do usuario sobre o programa, de 0 a 5 estrelas.
+    /// Zero significa "sem classificacao" — e nao "classificado como zero".
+    ///
+    /// A regra da escala (quantas estrelas, como o valor fora da faixa e
+    /// tratado e como a estrela e desenhada) mora em
+    /// <see cref="ProgramRating"/>; aqui mora so o dado.
+    /// </summary>
+    public int Rating { get; set; }
 }
 
 /// <summary>
@@ -364,6 +375,36 @@ public static class ProgramCustomizationStore
     }
 
     /// <summary>
+    /// Guarda a classificacao do usuario (estrelas) do programa.
+    ///
+    /// A gravacao e a mesma das outras preferencias: arquivo temporario e
+    /// troca — um "program-data.json" pela metade apagaria a classificacao
+    /// do usuario junto com o resto. O valor gravado **sobrescreve** o
+    /// anterior, e zero estrelas apaga a classificacao.
+    ///
+    /// Devolve false quando a gravacao falhou: quem chama precisa avisar o
+    /// usuario, senao a estrela some quando o aplicativo fecha.
+    /// </summary>
+    /// <param name="program">O programa a classificar.</param>
+    /// <param name="rating">A classificacao, de 0 a 5 estrelas.</param>
+    public static bool SetRating(InstalledProgram program, int rating)
+    {
+        var item = FindOrCreate(program);
+        item.Rating = ProgramRating.Clamp(rating);
+
+        if (item.Rating == 0) Prune(item);
+
+        return Save();
+    }
+
+    /// <summary>
+    /// A classificacao do usuario sobre o programa. Zero quando o usuario
+    /// ainda nao classificou.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static int RatingOf(InstalledProgram program) => For(program).Rating;
+
+    /// <summary>
     /// Grava as preferencias no disco. Devolve false quando nao deu para
     /// gravar.
     ///
@@ -575,11 +616,18 @@ public static class ProgramCustomizationStore
 
     /// <summary>
     /// Remove a anotacao quando ela ficou sem nada: um programa sem
-    /// comentario, sem icone e sem grupo nao tem o que ser anotado.
+    /// comentario, sem icone, sem grupo e sem classificacao nao tem o que
+    /// ser anotado.
     /// </summary>
     private static void Prune(ProgramCustomization item)
     {
-        if (item.Comment.Length == 0 && item.IconPath.Length == 0 && item.IconIndex < 0 && item.Groups.Count == 0)
+        if (item.Comment.Length == 0
+            && item.IconPath.Length == 0
+            && item.IconIndex < 0
+            && item.Groups.Count == 0
+            && item.Rating == 0)
+        {
             Current.Programs.Remove(item);
+        }
     }
 }

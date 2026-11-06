@@ -625,6 +625,44 @@ matriz consolidada em `docs/auditoria/MATRIZ.md`.
   `HeaderBrush` etc. são superfícies. Só os brushes de texto (nome com `Text`)
   podem ir no `Foreground`. Há teste que reprova o uso trocado.
 
+## O filtro da lista (regra do núcleo)
+
+- **O estado dos filtros mora no núcleo** (`Core/Appearance/ProgramFilters.cs`,
+  a classe `ProgramFilterSet`). O popup de filtros da barra lateral, a caixa de
+  busca e o painel lateral de configurações **editam o mesmo objeto** — a
+  janela principal só o instancia e o passa para os dois lados.
+- **O julgamento do filtro nunca é reescrito na interface.** Se a tela precisa
+  de um filtro novo, ele vai para `ProgramFilterSet.Matches`; se o painel
+  precisa mostrar o estado, ele chama `Load(filters)`. Duas implementações do
+  mesmo filtro divergem no primeiro caso em que o usuário usa as duas telas.
+- **O realce não filtra**: ele só pinta o nome da linha
+  (`ProgramRow.HighlightTextBrush`, com a cor em `HighlightPalette`).
+
+## O motor de regras (regra do núcleo)
+
+- **O arquivo de regras é lido em um lugar só** (`Core/Rules/RuleEngine.cs`).
+  Quem decide é o **consumidor** do julgamento, nunca o motor:
+  - a varredura de sobras (`Core/UninstallSupport.cs`) — `Exclude` não varre,
+    `Protect` desmarca tudo;
+  - a limpeza de lixo (`Core/Tools/JunkCleaner.cs`) — um caminho protegido
+    pelas regras não é lixo, não importa o que a varredura achou.
+- **A precedência é fixa e documentada**: a proteção do sistema vence tudo;
+  dentro das regras do usuário, `Protect` > `Exclude` > `Include` > `Cleanup`;
+  dentro da mesma categoria, a regra do aplicativo vence a regra geral; empate
+  final: a primeira da lista.
+- **O motor é carregado uma vez no arranque** (`RuleEngine.Reload()`), não a
+  cada varredura.
+
+## O histórico e a recuperação (regra do núcleo)
+
+- **O histórico é um só**: `Core/UninstallHistory.cs` (`UninstallHistory`). Não
+  crie um segundo log de desinstalação — este já carrega o identificador, a
+  versão, a editora, os itens removidos e o ponteiro do backup (`RecoveryId`).
+- **O backup das sobras acontece antes de apagar** (`UninstallEngine.BackupLeftovers`).
+  O backup completo do registro cobre o registro, **não** os arquivos.
+- **O conteúdo volta pelo backup, não pela memória da operação**: o manifesto
+  (`LeftoverBackup.LoadManifest`) é a fonte da verdade do que foi guardado.
+
 ## Ferramentas e telas (paridade que não pode quebrar)
 
 - **O catálogo de ferramentas mora no núcleo** (`Core/ToolCatalog.cs`). A barra

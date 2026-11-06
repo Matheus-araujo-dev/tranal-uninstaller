@@ -60,6 +60,12 @@
         <CheckBox x:Name="KeepPreferencesCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.KeepPreferencesOnUninstall}"
                   AutomationProperties.AutomationId="OptKeepPreferences" />
+        <CheckBox x:Name="FocusTracedProgramsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FocusTracedProgramsOnStartup}"
+                  AutomationProperties.AutomationId="OptFocusTracedPrograms" />
+        <CheckBox x:Name="ShowCheckBoxesCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowCheckBoxesInDetailsView}"
+                  AutomationProperties.AutomationId="OptShowCheckBoxes" />
         <CheckBox x:Name="SystemComponentsCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Cmd.ShowSystemComponents}"
                   AutomationProperties.AutomationId="OptSystemComponents" />

@@ -5,6 +5,7 @@ using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Topmost;
 using Tranal.Uninstaller.Theming;
+using Tranal.Uninstaller.Ui.Appearance;
 using Tranal.Uninstaller.Ui;
 
 namespace Tranal.Uninstaller;
@@ -38,6 +39,11 @@ public partial class App : Application
         Loc.SetLanguage(AppSettingsStore.Current.Language);
         ThemeManager.ApplyStored();
 
+        // As regras do usuario (o arquivo de regras e a base por aplicativo)
+        // sao carregadas uma vez, no arranque: quem decide e o consumidor do
+        // julgamento, e nao o motor.
+        Core.Rules.RuleEngine.Reload();
+
         // A entrada no menu de contexto do Windows segue a preferencia
         // "Mostrar comandos no menu de contexto do Windows" do Revo.
         ExplorerContextMenu.Apply(AppSettingsStore.Current.ShowContextMenuCommands);
@@ -47,6 +53,18 @@ public partial class App : Application
         if (Environment.GetEnvironmentVariable("TRANAL_THEME_PROBE") == "1")
             Theming.ThemeProbe.Run();
 
+        // A tela de inicializacao abre **antes** da janela principal, para
+        // que o usuario veja o nome do aplicativo enquanto a varredura
+        // acontece. Ela fecha quando a janela principal ja pintou.
+        var splashStartedAt = DateTime.UtcNow;
+        SplashWindow? splash = null;
+
+        if (AppSettingsStore.Current.ShowSplashScreen)
+        {
+            splash = new SplashWindow();
+            splash.Show();
+        }
+
         var window = new MainWindow();
 
         // Escolha de tema no primeiro lancamento (como no Revo Pro).
@@ -55,6 +73,10 @@ public partial class App : Application
         PerguntarTemaNoPrimeiroLancamento();
 
         window.Show();
+
+        // A tela de inicializacao so fecha depois que a janela principal
+        // carregou, e respeitando o tempo minimo de permanencia.
+        window.Loaded += (_, _) => SplashWindow.CloseAfter(splash, splashStartedAt);
 
         // Entrada pelo menu de contexto do Explorer: o alvo vem na linha de
         // comando. Sem este tratamento, o clique no Explorer apenas abria a

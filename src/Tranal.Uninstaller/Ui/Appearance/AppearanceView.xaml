@@ -1,0 +1,88 @@
+<UserControl x:Class="Tranal.Uninstaller.Ui.Appearance.AppearanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource PanelBrush}"
+             FontFamily="{DynamicResource UiFont}" FontSize="11"
+             UseLayoutRounding="True">
+
+  <!-- Os textos desta tela sao os textos de reserva: as chaves proprias
+       (Appearance.*) ainda nao chegaram ao catalogo de idiomas, que esta fora
+       do escopo deste lote. Quando o catalogo as tiver, o texto passa a vir
+       de la. -->
+  <Grid Margin="16">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="8,5">
+      <TextBlock Text="Aparência" FontWeight="SemiBold"
+                 Foreground="{DynamicResource TitleTextBrush}" />
+    </Border>
+
+    <Grid Grid.Row="1" Margin="0,12,0,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="340" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Mapa de area: cada programa e um retangulo, do tamanho do programa. -->
+      <Border Grid.Column="0" Margin="0,0,10,0"
+              Background="{DynamicResource DescriptionBrush}"
+              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="3" Padding="10">
+        <DockPanel>
+          <TextBlock DockPanel.Dock="Top" Text="Mapa de área" FontWeight="SemiBold" Margin="0,0,0,8" />
+          <TextBlock DockPanel.Dock="Bottom" x:Name="TreemapSummary" TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextDimBrush}" Margin="0,8,0,0" />
+          <Canvas x:Name="TreemapCanvas" Background="{DynamicResource PanelBrush}"
+                  SizeChanged="TreemapCanvas_SizeChanged" ClipToBounds="True"
+                  AutomationProperties.AutomationId="AppearanceTreemap" />
+        </DockPanel>
+      </Border>
+
+      <StackPanel Grid.Column="1">
+
+        <!-- Legenda de cores: a unica fonte do que cada cor significa. -->
+        <Border Background="{DynamicResource DescriptionBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,0,0,10">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Legenda de cores" FontWeight="SemiBold" Margin="0,0,0,6" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="230">
+              <ItemsControl x:Name="LegendItems" AutomationProperties.AutomationId="AppearanceLegend" />
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+
+        <!-- Agrupamento automatico por coluna. -->
+        <Border Background="{DynamicResource DescriptionBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,0,0,10">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Agrupamento por coluna" FontWeight="SemiBold" Margin="0,0,0,6" />
+            <ComboBox DockPanel.Dock="Top" x:Name="GroupColumnBox" Margin="0,0,0,8"
+                      DisplayMemberPath="Label"
+                      SelectionChanged="GroupColumnBox_SelectionChanged"
+                      AutomationProperties.AutomationId="AppearanceGroupColumn" />
+            <TreeView x:Name="GroupTree" BorderThickness="0" Background="Transparent"
+                      AutomationProperties.AutomationId="AppearanceGroups" />
+          </DockPanel>
+        </Border>
+
+        <!-- Classificacao do usuario: as estrelas. -->
+        <Border Background="{DynamicResource DescriptionBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="3" Padding="10">
+          <StackPanel>
+            <TextBlock Text="Estrelas" FontWeight="SemiBold" Margin="0,0,0,6" />
+            <TextBlock x:Name="RatingProgramName" TextWrapping="Wrap" Margin="0,0,0,6"
+                       Foreground="{DynamicResource TextDimBrush}" />
+            <ComboBox x:Name="RatingBox" SelectionChanged="RatingBox_SelectionChanged"
+                      AutomationProperties.AutomationId="AppearanceRating" />
+            <TextBlock x:Name="StatusText" TextWrapping="Wrap" Margin="0,6,0,0"
+                       Foreground="{DynamicResource TextBrush}" />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

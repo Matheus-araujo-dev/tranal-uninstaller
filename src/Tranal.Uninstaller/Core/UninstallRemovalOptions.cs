@@ -43,6 +43,15 @@ public sealed class UninstallRemovalOptions
     /// </summary>
     public bool FullRegistryBackup { get; init; }
 
+    /// <summary>
+    /// Mantem as preferencias do usuario (comentario, icone, grupos) do
+    /// programa que foi desinstalado.
+    ///
+    /// Corresponde a pergunta do Revo ("Do you want to keep your
+    /// preferences? Icons, comments, groups"). Padrao: <c>true</c>.
+    /// </summary>
+    public bool KeepPreferences { get; init; } = true;
+
     /// <summary>Nome exibido do ponto de restauracao criado.</summary>
     public string? RestorePointName { get; init; }
 
@@ -53,7 +62,13 @@ public sealed class UninstallRemovalOptions
     /// Opcoes derivadas das preferencias do usuario. Resolvidas uma unica vez
     /// por operacao para que GUI e CLI nunca discordem sobre o que vai acontecer.
     /// </summary>
-    public static UninstallRemovalOptions FromSettings(string? restorePointName = null)
+    /// <param name="restorePointName">Nome do ponto de restauracao a criar.</param>
+    /// <param name="keepPreferences">
+    /// Mantem as preferencias do programa desinstalado. Quando nulo, vale a
+    /// preferencia do usuario; quando informado, vale a escolha da operacao
+    /// (a caixa do assistente).
+    /// </param>
+    public static UninstallRemovalOptions FromSettings(string? restorePointName = null, bool? keepPreferences = null)
     {
         var settings = Settings.AppSettingsStore.Current;
 
@@ -64,6 +79,7 @@ public sealed class UninstallRemovalOptions
             DeferToNextRestart = settings.DeferRemovalToNextRestart,
             KillRunningProcesses = settings.ForciblyStopRunningExecutables,
             FullRegistryBackup = settings.CreateFullRegistryBackupBeforeUninstall,
+            KeepPreferences = keepPreferences ?? settings.KeepPreferencesOnUninstall,
             RestorePointName = restorePointName,
         };
     }

@@ -3,6 +3,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Topmost;
@@ -32,6 +33,11 @@ public static class Program
         // devolveria a propria chave. A saida da CLI e sempre em portugues
         // do Brasil, independentemente do idioma escolhido para a interface.
         Loc.Load(Loc.DefaultLanguage);
+
+        // As regras do usuario (o arquivo de regras e a base por aplicativo)
+        // sao carregadas uma vez, no arranque: quem decide e o consumidor do
+        // julgamento, e nao o motor.
+        Tranal.Uninstaller.Core.Rules.RuleEngine.Reload();
 
         // Marcador interno: o processo ja foi relancado com elevacao.
         var elevated = args.Contains("/elevated", StringComparer.OrdinalIgnoreCase);
@@ -411,10 +417,24 @@ public static class Program
             results.Add(UninstallEngine.RunBuiltInUninstaller(target, silent).GetAwaiter().GetResult());
             foreach (var result in results) Console.WriteLine("  " + result.Describe());
             Console.WriteLine();
+
+            // As preferencias do usuario (comentario, icone, grupos) so
+            // importam quando o programa saiu do computador. A regra esta no
+            // nucleo — a CLI so diz se mantem.
+            var uninstalledProgram = results.FirstOrDefault(r => r.Uninstalled);
+            if (uninstalledProgram is not null && !options.KeepPreferences)
+            {
+                PreferenceRetention.ApplyAfterUninstall(target, keep: false);
+                Console.WriteLine("Preferências do programa apagadas (comentário, ícone, grupos).");
+                Console.WriteLine();
+            }
         }
 
         var items = new List<LeftoverItem>();
         RemovalReport report = new(Array.Empty<RemovalOutcome>());
+
+        // O backup das sobras (o "Recuperar"): preenchido na remocao.
+        Tranal.Uninstaller.Core.Recovery.LeftoverBackupResult? leftoverBackup = null;
 
         // O modo "Somente" roda apenas o desinstalador nativo: nenhuma sobra e procurada.
         if (UninstallModes.Scans(mode))
@@ -449,9 +469,19 @@ public static class Program
 
             if (remove)
             {
+                // As sobras vao para o backup ANTES de sumirem: e o que
+                // permite devolver o conteudo apagado ("Recuperar").
+                leftoverBackup = UninstallEngine.BackupLeftovers(items, target.DisplayName, options);
+
                 report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
                 PrintRemovalSummary(report, options);
                 SaveRemovalLog(report, target.DisplayName);
+
+                if (leftoverBackup.Ok)
+                {
+                    Console.WriteLine($"Backup das sobras: {leftoverBackup.Folder}");
+                    Console.WriteLine();
+                }
             }
             else
             {
@@ -474,6 +504,8 @@ public static class Program
                 Report = report.Describe(),
                 Removed = report.RemovedCount,
                 Failed = report.FailedCount + report.ProtectedCount,
+                RecoveryId = leftoverBackup is { Ok: true } ? leftoverBackup.Id : null,
+                Uninstalled = results.Count > 0 && results.All(r => r.Uninstalled),
             });
         }
 
@@ -789,6 +821,7 @@ public static class Program
             DeferToNextRestart = ResolveFlag(flags, "/defer", "/nodefer", settings.DeferToNextRestart),
             KillRunningProcesses = ResolveFlag(flags, "/kill", "/nokill", settings.KillRunningProcesses),
             FullRegistryBackup = ResolveFlag(flags, "/regbackup", "/noregbackup", settings.FullRegistryBackup),
+            KeepPreferences = settings.KeepPreferences,
             RestorePointName = settings.RestorePointName,
         };
     }

@@ -120,12 +120,26 @@ exista uma segunda porta de exportação.
 | Lote | Itens | Situação |
 |---|---|---|
 | A | 8 | ✅ entregue (Core/Automation/, CLI /plan, /batch, /switches) |
-| B | 9 | em andamento |
-| C+D | 6 | em andamento |
+| B | 9 | ✅ entregue (Core/Tracing/, tela de rastreio) |
+| C+D | 6 | ✅ entregue (Core/Rules/, Core/Recovery/) |
 | E | 6 | ✅ entregue (Core/Discovery/, janela de descoberta) |
 | F | 5 | ✅ entregue (Core/Management/, painel "Gestão do Sistema") |
-| G | 7 | em andamento |
-| H | 14 | em andamento (H1: colunas, treemap, legenda, agrupamento, estrelas) |
+| G | 7 | ✅ entregue (Core/Reporting/, janela de relatório) |
+| H | 14 | ✅ entregue (H1: colunas, treemap, legenda, agrupamento, estrelas; H2: tema, cores, animação, splash, cópia, suporte, registro, preferências, assistente maximizado, foco nos programas monitorados, caixas de seleção) |
 | já entregue antes | 8 | ✅ (§F: 1, 2, 3, 4, 27, 28, 40, 47) |
 
-**27 dos 64 itens entregues**; 37 pendentes no início desta execução.
+**Os 64 itens da §F da `MATRIZ.md` estão entregues** (a §F marca 63 com ✅ no
+começo da linha e o item 17 com ✅ em cada coluna nova).
+
+### O que ficou de fora, e por quê
+
+- **A automação de interface de desinstaladores de terceiros** (o sentido do
+  Uninstalr): exige automação de interface, nao regra de sistema. Está
+  declarado no item #5 da §F.
+- **O driver de kernel**: 2 dos 10 concorrentes usam, 6 nao. A decisao esta no
+  §F.4 da `MATRIZ.md`.
+- **"Install Programs", "Logs Database" e "pular UAC"**: fora do escopo, com
+  motivo no §F.4 da `MATRIZ.md`.
+- **A regra por programa continua sendo um arquivo editavel** — o Tranal le e
+  escreve `rules.json`; ele ainda nao importa os 595 perfis do Wise nem os 623
+  elementos do Total Uninstall (importadores proprios).

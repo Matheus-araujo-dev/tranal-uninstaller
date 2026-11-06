@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        xmlns:ui="clr-namespace:Tranal.Uninstaller.Ui.Appearance"
         Title="Tranal Uninstaller Pro" Height="900" Width="1600" WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
         Background="{DynamicResource PanelBrush}"
@@ -10,19 +11,32 @@
 
   <Window.Resources>
     <!--
-      O template da coluna do nome: caixa de marcacao, icone e nome.
+      O template da coluna do nome: icone e nome.
       A grade da lista e montada em codigo (o usuario escolhe quais colunas
       quer ver), mas o template continua aqui: um DataTemplate escrito em
       codigo e ilegivel.
     -->
     <DataTemplate x:Key="ProgramNameTemplate">
       <StackPanel Orientation="Horizontal">
-        <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"
-                  Margin="0,0,6,0" />
         <Image Source="{Binding Icon}" Width="16" Height="16" Stretch="Uniform"
                VerticalAlignment="Center" Margin="0,0,6,0" />
-        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+        <!--
+          O realce pinta o nome. Sem regra que case, o pincel e nulo e o nome
+          usa a cor do tema.
+        -->
+        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
+                   Foreground="{Binding HighlightTextBrush}" />
       </StackPanel>
+    </DataTemplate>
+
+    <!--
+      A coluna das caixas de selecao: e a "Show check boxes in Details view"
+      do Revo (15334). Fica a esquerda de tudo e so aparece na visualizacao
+      de detalhes.
+    -->
+    <DataTemplate x:Key="ProgramCheckTemplate">
+      <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"
+                HorizontalAlignment="Center" />
     </DataTemplate>
   </Window.Resources>
 
@@ -30,6 +44,7 @@
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="212" />
       <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
 
     <!-- ================= BARRA LATERAL ================= -->
@@ -273,6 +288,14 @@
           <TextBlock Text="{loc:Tr Sidebar.GroupSystem}" Margin="10,10,0,2"
                      FontSize="11" FontWeight="Bold"
                      Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="Appearance" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolAppearance">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F3A8;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Appearance.Title}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="SystemManagement" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolSystemManagement">
             <StackPanel Orientation="Horizontal">
@@ -300,11 +323,21 @@
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <TextBlock x:Name="ModuleHeader" Text="{loc:Tr Module.AllPrograms}" Margin="8,0"
                      VerticalAlignment="Center" FontWeight="SemiBold"
                      Foreground="{DynamicResource TitleTextBrush}" />
-          <Button Grid.Column="1" x:Name="MainMenuButton" Content="&#x2630;" Width="34"
+          <!--
+            O painel lateral de configuracoes (o "Properties Sidebar" do BCU):
+            filtros e realces. A regra mora no nucleo; o painel so edita o
+            estado.
+          -->
+          <Button Grid.Column="1" x:Name="SettingsPanelButton" Content="&#x1F527;" Width="30"
+                  Style="{StaticResource FlatButton}" Margin="0,2,0,2" Padding="0"
+                  Click="SettingsPanelButton_Click" AutomationProperties.AutomationId="CmdSettingsPanel"
+                  ToolTip="{loc:Tr Sidebar.Settings}" />
+          <Button Grid.Column="2" x:Name="MainMenuButton" Content="&#x2630;" Width="34"
                   Style="{StaticResource FlatButton}" Margin="0,2,4,2" Padding="0"
                   Click="MainMenuButton_Click" AutomationProperties.AutomationId="CmdMainMenu"
                   ToolTip="Menu" />
@@ -378,5 +411,16 @@
         <TextBlock x:Name="StatusText" Margin="8,0" VerticalAlignment="Center" FontSize="11" />
       </Border>
     </Grid>
+
+    <!--
+      O painel lateral de configuracoes (item 52 do backlog): os filtros e os
+      realces. Ele aparece a direita da lista e edita o mesmo conjunto de
+      filtros que o popup e a caixa de busca.
+    -->
+    <Border Grid.Column="2" x:Name="SettingsPanelBorder" Visibility="Collapsed" Width="290"
+            Background="{DynamicResource PanelBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
+      <ui:SettingsSidebar x:Name="SettingsSidebarPanel" />
+    </Border>
   </Grid>
 </Window>

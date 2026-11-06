@@ -1,4 +1,7 @@
+using System.IO;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Uninstaller.Core;
 
@@ -47,6 +50,42 @@ public enum ProgramColumn
     /// </summary>
     QuietUninstall,
 
+    /// <summary>
+    /// O caminho do executavel que faz a desinstalacao. Vazio quando o
+    /// comando de desinstalacao nao nomeia um executavel.
+    /// </summary>
+    UninstallerLocation,
+
+    /// <summary>
+    /// De onde o Windows tirou a entrada do programa. O valor e o
+    /// identificador fixo da origem, independente do idioma.
+    /// </summary>
+    Source,
+
+    /// <summary>
+    /// Sim quando a entrada e um componente do sistema (o Windows nao mostra
+    /// esses programas na lista de "Todos os Programas").
+    /// </summary>
+    SystemComponent,
+
+    /// <summary>
+    /// Sim quando o programa esta na lista de exclusoes do Tranal — ou seja,
+    /// quando o motor se recusa a remove-lo.
+    /// </summary>
+    Protected,
+
+    /// <summary>
+    /// Sim quando o programa tem entrada de inicializacao automatica.
+    /// Vazio enquanto a varredura de inicializacao nao aconteceu: sem dado,
+    /// a coluna fica vazia — nunca um palpite.
+    /// </summary>
+    Startup,
+
+    /// <summary>
+    /// A classificacao do usuario, de 0 a 5 estrelas.
+    /// </summary>
+    Rating,
+
     /// <summary>Grupo criado pelo usuario (15072: "Group").</summary>
     Group,
 
@@ -58,18 +97,59 @@ public enum ProgramColumn
 }
 
 /// <summary>
+/// De onde o Windows tirou a entrada do programa.
+///
+/// A origem nao e um palpite: ela sai do proprio registro. A varredura do
+/// Tranal so le tres lugares — a chave de desinstalacao, o catalogo do
+/// Windows Installer e a Microsoft Store — e por isso nao existe uma quarta
+/// origem.
+///
+/// O valor da coluna e o identificador fixo (<c>WindowsInstaller</c>,
+/// <c>UninstallKey</c>, <c>StoreApp</c>), como na coluna do tipo do
+/// desinstalador: o arquivo exportado continua legivel por qualquer
+/// ferramenta, em qualquer idioma.
+/// </summary>
+public enum ProgramSource
+{
+    /// <summary>Origem nao determinada.</summary>
+    Unknown,
+
+    /// <summary>Entrada do Windows Installer (o proprio registro se declara MSI).</summary>
+    WindowsInstaller,
+
+    /// <summary>Entrada de uma chave de desinstalacao do registro.</summary>
+    UninstallKey,
+
+    /// <summary>Aplicativo empacotado da Microsoft Store (MSIX).</summary>
+    StoreApp,
+}
+
+/// <summary>
 /// A descricao de uma coluna: como ela se chama na tela e como ela se chama
 /// no arquivo exportado.
 ///
 /// O rotulo da tela vem do catalogo de idiomas (a interface e traduzida); o
 /// nome da exportacao e fixo, para que o arquivo exportado continue legivel
 /// por qualquer ferramenta, independentemente do idioma da interface.
+///
+/// <para><c>PendingLabelKey</c> existe para as colunas cuja chave propria
+/// ainda nao chegou ao catalogo de idiomas: enquanto ela nao existe, vale o
+/// rotulo de reserva (em portugues); quando o catalogo a tiver, a traducao
+/// passa a valer sozinha. A <c>LabelKey</c> dessas colunas e uma chave que o
+/// catalogo ja tem — e ela que impede a coluna de aparecer com o nome de uma
+/// chave inexistente.</para>
 /// </summary>
+/// <param name="Id">A coluna.</param>
+/// <param name="LabelKey">A chave do rotulo no catalogo de idiomas.</param>
+/// <param name="FallbackLabel">O rotulo em portugues, quando a chave nao existe.</param>
+/// <param name="ExportName">O nome fixo da coluna no arquivo exportado.</param>
+/// <param name="PendingLabelKey">A chave propria da coluna, quando ela ainda nao existe no catalogo.</param>
 public sealed record ProgramColumnInfo(
     ProgramColumn Id,
     string LabelKey,
     string FallbackLabel,
-    string ExportName);
+    string ExportName,
+    string? PendingLabelKey = null);
 
 /// <summary>
 /// O catalogo de colunas da lista de programas.
@@ -95,6 +175,17 @@ public static class ProgramColumns
         new(ProgramColumn.UninstallerKind, "Common.UninstallerKind", "Tipo de desinstalador", "UninstallerKind"),
         new(ProgramColumn.ProductCode, "Common.ProductCode", "Código do produto", "ProductCode"),
         new(ProgramColumn.QuietUninstall, "Common.QuietUninstall", "Desinstalador silencioso", "QuietUninstall"),
+        // As colunas novas tem a chave propria pendente no catalogo de
+        // idiomas (fora do escopo deste lote). A LabelKey delas e uma chave
+        // que o catalogo ja tem: e ela que impede a coluna de aparecer com o
+        // nome de uma chave inexistente. Quando o catalogo ganhar a chave
+        // pendente, a traducao passa a valer sozinha.
+        new(ProgramColumn.UninstallerLocation, "Common.Path", "Localização do desinstalador", "UninstallerLocation", "Common.UninstallerLocation"),
+        new(ProgramColumn.Source, "Common.Installer", "Fonte", "Source", "Common.Source"),
+        new(ProgramColumn.SystemComponent, "Common.Status", "Componente do sistema", "SystemComponent", "Common.SystemComponent"),
+        new(ProgramColumn.Protected, "Common.Warning", "Protegido", "Protected", "Common.Protected"),
+        new(ProgramColumn.Startup, "Common.Run", "Inicialização", "Startup", "Common.Startup"),
+        new(ProgramColumn.Rating, "Common.Level", "Estrelas", "Rating", "Common.Rating"),
         new(ProgramColumn.Group, "Common.Group", "Grupo", "Group"),
         new(ProgramColumn.Note, "Common.Note", "Anotação", "Note"),
         new(ProgramColumn.RegistryKey, "Common.RegistryKey", "Chave do registro", "RegistryKey"),
@@ -110,10 +201,21 @@ public static class ProgramColumns
     /// <summary>
     /// O rotulo traduzido da coluna. O catalogo de idiomas e a fonte: quando
     /// a chave nao existe no idioma ativo, o rotulo de reserva entra.
+    ///
+    /// Para a coluna que ainda tem a chave propria pendente no catalogo, e a
+    /// chave pendente que manda: quando ela chegar, a traducao vale sozinha,
+    /// sem ninguem precisar trocar nada aqui.
     /// </summary>
     public static string Label(ProgramColumn id)
     {
         var info = Info(id);
+
+        if (info.PendingLabelKey is not null)
+        {
+            var pendente = Loc.Get(info.PendingLabelKey);
+            return pendente == info.PendingLabelKey ? info.FallbackLabel : pendente;
+        }
+
         var text = Loc.Get(info.LabelKey);
         return text == info.LabelKey ? info.FallbackLabel : text;
     }
@@ -138,6 +240,12 @@ public static class ProgramColumns
             case ProgramColumn.UninstallerKind: return program.Kind.ToString();
             case ProgramColumn.ProductCode: return program.ProductCode;
             case ProgramColumn.QuietUninstall: return program.QuietUninstallCommand;
+            case ProgramColumn.UninstallerLocation: return UninstallerLocationOf(program);
+            case ProgramColumn.Source: return SourceOf(program).ToString();
+            case ProgramColumn.SystemComponent: return YesNo(program.IsSystemComponent);
+            case ProgramColumn.Protected: return YesNo(IsProtected(program));
+            case ProgramColumn.Startup: return StartupValueOf(program);
+            case ProgramColumn.Rating: return ProgramRating.Stars(custom?.Rating ?? 0);
             case ProgramColumn.Group: return GroupOf(custom);
             case ProgramColumn.Note: return custom?.Comment ?? string.Empty;
             case ProgramColumn.RegistryKey: return program.RegistryKey;
@@ -150,6 +258,96 @@ public static class ProgramColumns
     {
         if (custom is null || custom.Groups.Count == 0) return string.Empty;
         return string.Join(", ", custom.Groups);
+    }
+
+    /// <summary>
+    /// O texto de "sim" e de "nao" das colunas de estado. Vem do catalogo de
+    /// idiomas, porque e texto de tela.
+    /// </summary>
+    private static string YesNo(bool value) => Loc.Get(value ? "Common.Yes" : "Common.No");
+
+    /// <summary>
+    /// O caminho do executavel que faz a desinstalacao.
+    ///
+    /// E o proprio comando de desinstalacao do registro, lido pelo mesmo
+    /// extrator que a varredura usa. Quando o comando nao nomeia um
+    /// executavel (o caso do "winget uninstall", por exemplo), o valor fica
+    /// vazio: melhor vazio do que um caminho inventado.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static string UninstallerLocationOf(InstalledProgram program)
+    {
+        if (program is null) return string.Empty;
+
+        var command = program.UninstallString;
+        if (string.IsNullOrWhiteSpace(command)) return string.Empty;
+
+        return ProgramScanner.ExtractExecutablePath(command).Trim();
+    }
+
+    /// <summary>
+    /// De onde o Windows tirou a entrada do programa.
+    ///
+    /// A origem sai do proprio dado: a entrada se declara Windows Installer
+    /// (ou veio do catalogo de produtos MSI), ou o programa vive em
+    /// WindowsApps (aplicativo da Store), ou veio de uma chave de
+    /// desinstalacao — que e de onde a varredura do Tranal le tudo. Uma
+    /// entrada que nao veio de lugar nenhum e "desconhecida", nao
+    /// "chave de desinstalacao".
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static ProgramSource SourceOf(InstalledProgram program)
+    {
+        if (program is null) return ProgramSource.Unknown;
+
+        if (program.IsWindowsInstaller || program.IsMsi) return ProgramSource.WindowsInstaller;
+        if (program.Kind == UninstallerKind.StoreApp) return ProgramSource.StoreApp;
+
+        if (string.IsNullOrWhiteSpace(program.RegistryPath)
+            && string.IsNullOrWhiteSpace(program.RegistryKey))
+        {
+            return ProgramSource.Unknown;
+        }
+
+        return ProgramSource.UninstallKey;
+    }
+
+    /// <summary>
+    /// True quando o programa esta na lista de exclusoes do Tranal.
+    ///
+    /// A lista de exclusoes e a guarda final do motor: um item excluido nunca
+    /// e removido. A coluna mostra essa sitacao para o usuario saber, antes
+    /// de pedir a remocao, que o motor vai recusar.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static bool IsProtected(InstalledProgram program)
+    {
+        if (program is null) return false;
+
+        var lista = ExcludeList.Current;
+        if (lista.IsEmpty) return false;
+
+        if (!string.IsNullOrWhiteSpace(program.InstallLocation)
+            && lista.ContainsPath(program.InstallLocation)) return true;
+
+        if (!string.IsNullOrWhiteSpace(program.RegistryPath)
+            && lista.ContainsRegistryKey(program.RegistryPath)) return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// O valor da coluna "Inicializacao".
+    ///
+    /// Sem varredura nao ha resposta: a coluna fica vazia. A varredura e
+    /// declarada por quem tem o tempo de faze-la (a tela, a CLI) — o modelo
+    /// nao inventa a resposta.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    private static string StartupValueOf(InstalledProgram program)
+    {
+        if (!StartupEntryIndex.IsKnown) return string.Empty;
+        return YesNo(StartupEntryIndex.HasEntryFor(program));
     }
 
     /// <summary>
@@ -223,5 +421,119 @@ public static class ProgramColumns
         }
 
         return result;
+    }
+}
+
+/// <summary>
+/// O indice das entradas de inicializacao automatica usado pela coluna
+/// "Inicializacao".
+///
+/// A varredura de inicializacao e cara (registro, servicos por WMI, tarefas
+/// agendadas por COM) e nao cabe dentro do desenho de uma linha da lista.
+/// Por isso o indice e **declarado** por quem tem o tempo de varrer: a tela
+/// ou a CLI chamam <see cref="Refresh"/> uma vez e as linhas passam a
+/// responder. Antes disso, a coluna fica vazia — sem dado, a coluna fica
+/// vazia.
+///
+/// O casamento entre a entrada de inicializacao e o programa e por caminho:
+/// o executavel que a entrada roda mora dentro da pasta de instalacao do
+/// programa, ou e o proprio desinstalador dele.
+/// </summary>
+public static class StartupEntryIndex
+{
+    private static IReadOnlyList<AutorunItem> _items = Array.Empty<AutorunItem>();
+    private static bool _known;
+
+    /// <summary>As entradas de inicializacao conhecidas.</summary>
+    public static IReadOnlyList<AutorunItem> Items => _items;
+
+    /// <summary>
+    /// True quando a varredura ja aconteceu. Enquanto for false, a coluna
+    /// "Inicializacao" fica vazia.
+    /// </summary>
+    public static bool IsKnown => _known;
+
+    /// <summary>
+    /// Declara o resultado de uma varredura de inicializacao.
+    /// </summary>
+    /// <param name="items">As entradas encontradas na varredura.</param>
+    public static void Refresh(IReadOnlyList<AutorunItem>? items)
+    {
+        _items = items ?? Array.Empty<AutorunItem>();
+        _known = true;
+    }
+
+    /// <summary>
+    /// Esquece a varredura. A coluna volta a ficar vazia, em vez de passar a
+    /// mentir que o programa nao tem inicializacao.
+    /// </summary>
+    public static void Clear()
+    {
+        _items = Array.Empty<AutorunItem>();
+        _known = false;
+    }
+
+    /// <summary>
+    /// True quando o programa tem entrada de inicializacao automatica.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static bool HasEntryFor(InstalledProgram program)
+    {
+        if (program is null) return false;
+        if (!_known || _items.Count == 0) return false;
+
+        var pasta = Normalizado(program.InstallLocation);
+        var desinstalador = Normalizado(ProgramScanner.ExtractExecutablePath(program.UninstallString));
+
+        foreach (var item in _items)
+        {
+            var executavel = Normalizado(ProgramScanner.ExtractExecutablePath(item.Command));
+            if (executavel.Length == 0) continue;
+
+            if (desinstalador.Length > 0
+                && string.Equals(executavel, desinstalador, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (pasta.Length == 0) continue;
+
+            // A pasta do executavel da entrada de inicializacao tem que estar
+            // dentro da pasta de instalacao do programa.
+            var exePasta = PastaDoExecutavel(executavel);
+            if (exePasta.Length == 0) continue;
+
+            if (string.Equals(exePasta, pasta, StringComparison.OrdinalIgnoreCase)) return true;
+            if (exePasta.StartsWith(pasta + "\\", StringComparison.OrdinalIgnoreCase)) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// A pasta que contem o executavel.
+    /// </summary>
+    private static string PastaDoExecutavel(string caminho)
+    {
+        try
+        {
+            var pasta = Path.GetDirectoryName(caminho);
+            return (pasta ?? string.Empty).TrimEnd('\\');
+        }
+        catch (ArgumentException)
+        {
+            // Caminho invalido: nao ha pasta que casar, e a entrada de
+            // inicializacao simplesmente nao casa com este programa.
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// O caminho sem aspas em volta e sem barra solta no fim.
+    /// </summary>
+    private static string Normalizado(string? caminho)
+    {
+        if (string.IsNullOrWhiteSpace(caminho)) return string.Empty;
+        return caminho.Trim().Trim('"').TrimEnd('\\');
     }
 }

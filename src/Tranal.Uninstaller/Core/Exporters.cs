@@ -83,6 +83,32 @@ public static class Exporters
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Exporta a lista para Microsoft Excel.
+    ///
+    /// O formato e o SpreadsheetML 2003 (XML puro): o Excel abre nativamente,
+    /// sem o Office instalado, e o arquivo continua auditavel. E o **mesmo**
+    /// formato que <c>Core.Reporting.ReportFormats.ToExcel</c> produz — este
+    /// metodo e so a porta de entrada, para que exista uma unica
+    /// implementacao de cada formato.
+    /// </summary>
+    public static string ToExcel(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
+    {
+        var lista = programs?.ToList() ?? new List<InstalledProgram>();
+        return Core.Reporting.ReportFormats.ToExcel(lista, columns ?? DefaultColumns);
+    }
+
+    /// <summary>
+    /// Exporta alteracoes de registro para o formato .reg do Windows.
+    ///
+    /// O arquivo e escrito em UTF-16 LE com BOM, que e o que o Editor do
+    /// Registro e o <c>reg.exe</c> esperam.
+    /// </summary>
+    public static string WriteReg(string path, IEnumerable<Core.Reporting.RegistryChange> changes)
+    {
+        return Core.Reporting.ReportFormats.WriteReg(path, changes);
+    }
+
     public static string ToXml(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
     {
         var sel = columns ?? DefaultColumns;

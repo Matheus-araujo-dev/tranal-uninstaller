@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows.Media;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Appearance;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -50,6 +51,15 @@ public sealed class ProgramRow : INotifyPropertyChanged
     public string Bits => ProgramColumns.Value(ProgramColumn.Type, Program, Custom);
     public string SizeText => ProgramColumns.Value(ProgramColumn.Size, Program, Custom);
 
+    // As seis colunas novas. Todas delegam ao catalogo de colunas: a linha
+    // nao recalcula nada, e a coluna e a fonte do valor.
+    public string UninstallerLocationText => ProgramColumns.Value(ProgramColumn.UninstallerLocation, Program, Custom);
+    public string SourceText => ProgramColumns.Value(ProgramColumn.Source, Program, Custom);
+    public string SystemComponentText => ProgramColumns.Value(ProgramColumn.SystemComponent, Program, Custom);
+    public string ProtectedText => ProgramColumns.Value(ProgramColumn.Protected, Program, Custom);
+    public string StartupText => ProgramColumns.Value(ProgramColumn.Startup, Program, Custom);
+    public string RatingText => ProgramColumns.Value(ProgramColumn.Rating, Program, Custom);
+
     /// <summary>Os grupos que o usuario criou para este programa (15072: "Group").</summary>
     public string UserGroup => ProgramColumns.Value(ProgramColumn.Group, Program, Custom);
 
@@ -93,6 +103,53 @@ public sealed class ProgramRow : INotifyPropertyChanged
 
             _isChecked = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsChecked)));
+        }
+    }
+
+    private string _highlightColorKey = string.Empty;
+
+    /// <summary>
+    /// A chave de cor do realce desta linha (vazia quando nenhum realce
+    /// casa). Quem decide a cor e o nucleo
+    /// (<see cref="HighlightPalette"/>); a linha so guarda a chave.
+    /// </summary>
+    public string HighlightColorKey
+    {
+        get => _highlightColorKey;
+        set
+        {
+            if (string.Equals(_highlightColorKey, value, StringComparison.Ordinal)) return;
+
+            _highlightColorKey = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HighlightColorKey)));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HighlightTextBrush)));
+        }
+    }
+
+    /// <summary>
+    /// O pincel do texto quando a linha esta realçada. Nulo: o nome usa a cor
+    /// do tema.
+    /// </summary>
+    public Brush? HighlightTextBrush
+    {
+        get
+        {
+            var hex = HighlightPalette.HexOf(_highlightColorKey);
+            if (hex is null || hex.Length != 9) return null;
+
+            try
+            {
+                var a = Convert.ToByte(hex.Substring(1, 2), 16);
+                var r = Convert.ToByte(hex.Substring(3, 2), 16);
+                var g = Convert.ToByte(hex.Substring(5, 2), 16);
+                var b = Convert.ToByte(hex.Substring(7, 2), 16);
+
+                return new SolidColorBrush(Color.FromArgb(a, r, g, b));
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 

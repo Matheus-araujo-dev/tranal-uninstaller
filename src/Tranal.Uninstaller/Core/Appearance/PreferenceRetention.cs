@@ -22,20 +22,59 @@ public static class PreferenceRetention
 {
     /// <summary>
     /// O que seria apagado se o usuario escolher nao manter.
+    ///
+    /// O texto e em portugues porque e o que o usuario le; a tela traduz o
+    /// equivalente pela chave <see cref="ItemIds"/>.
     /// </summary>
     /// <param name="program">O programa desinstalado.</param>
-    public static IReadOnlyList<string> WhatWouldBeRemoved(InstalledProgram program)
-    {
-        if (program is null) return Array.Empty<string>();
+    public static IReadOnlyList<string> WhatWouldBeRemoved(InstalledProgram program) =>
+        Items(program).Select(i => i.Text).ToList();
 
-        var items = new List<string>();
+    /// <summary>
+    /// Os identificadores do que seria apagado: "comment", "icon", "groups".
+    ///
+    /// A tela usa estes identificadores para montar o texto traduzido da
+    /// pergunta; o texto em portugues e <see cref="WhatWouldBeRemoved"/>.
+    /// </summary>
+    /// <param name="program">O programa desinstalado.</param>
+    public static IReadOnlyList<string> ItemIds(InstalledProgram program) =>
+        Items(program).Select(i => i.Id).ToList();
+
+    /// <summary>
+    /// A lista unica do que existe para manter. Tudo que pergunta sobre as
+    /// preferencias do programa passa por aqui.
+    /// </summary>
+    private static (string Id, string Text)[] Items(InstalledProgram program)
+    {
+        if (program is null) return Array.Empty<(string, string)>();
+
+        var items = new List<(string, string)>();
         var customization = ProgramCustomizationStore.For(program);
 
-        if (!string.IsNullOrWhiteSpace(customization.Comment)) items.Add("comentário");
-        if (customization.IconIndex >= 0 || !string.IsNullOrWhiteSpace(customization.IconPath)) items.Add("ícone");
-        if (customization.Groups.Count > 0) items.Add("grupos");
+        if (!string.IsNullOrWhiteSpace(customization.Comment)) items.Add(("comment", "comentário"));
+        if (customization.IconIndex >= 0 || !string.IsNullOrWhiteSpace(customization.IconPath)) items.Add(("icon", "ícone"));
+        if (customization.Groups.Count > 0) items.Add(("groups", "grupos"));
 
-        return items;
+        return items.ToArray();
+    }
+
+    /// <summary>
+    /// Aplica a decisao depois da desinstalacao.
+    ///
+    /// Quando o usuario nao quer manter, o comentario, o icone e os grupos do
+    /// programa sao apagados. Quando quer, nada acontece: o que o usuario
+    /// escreveu continua la para o caso de o programa voltar.
+    ///
+    /// E este o metodo que a interface e a linha de comando chamam: a regra
+    /// fica aqui e os dois lados so dizem "mantem" ou "nao mantem".
+    /// </summary>
+    /// <param name="program">O programa que foi desinstalado.</param>
+    /// <param name="keep">True para manter as preferencias.</param>
+    /// <returns>True quando algo foi apagado.</returns>
+    public static bool ApplyAfterUninstall(InstalledProgram program, bool keep)
+    {
+        if (keep) return false;
+        return RemoveFor(program);
     }
 
     /// <summary>

@@ -63,6 +63,8 @@ public partial class OptionsWindow : Window
         DisableTextAnimationsCheck.IsChecked = settings.DisableTextAnimations;
         ShowSplashScreenCheck.IsChecked = settings.ShowSplashScreen;
         KeepPreferencesCheck.IsChecked = settings.KeepPreferencesOnUninstall;
+        FocusTracedProgramsCheck.IsChecked = settings.FocusTracedProgramsOnStartup;
+        ShowCheckBoxesCheck.IsChecked = settings.ShowCheckBoxesInDetailsView;
         AdvancedModeCheck.IsChecked = settings.AdvancedMode;
         FastLoadingCheck.IsChecked = settings.FastLoadingMode;
         CheckUpdateCheck.IsChecked = settings.CheckForUpdateOnStartup;
@@ -268,7 +270,10 @@ public partial class OptionsWindow : Window
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;
             s.ShowSplashScreen = ShowSplashScreenCheck.IsChecked == true;
-            s.KeepPreferencesOnUninstall = KeepPreferencesCheck.IsChecked == true;            s.PortableDataFolder = PortableFolderBox.Text.Trim();
+            s.KeepPreferencesOnUninstall = KeepPreferencesCheck.IsChecked == true;
+            s.FocusTracedProgramsOnStartup = FocusTracedProgramsCheck.IsChecked == true;
+            s.ShowCheckBoxesInDetailsView = ShowCheckBoxesCheck.IsChecked == true;
+            s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();
         });
 

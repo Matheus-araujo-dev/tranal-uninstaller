@@ -1,0 +1,39 @@
+<Window x:Class="Tranal.Uninstaller.Ui.Appearance.SplashWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Tranal Uninstaller Pro" Height="260" Width="420"
+        WindowStartupLocation="CenterScreen" ShowInTaskbar="False"
+        ResizeMode="NoResize" WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" FontFamily="{DynamicResource UiFont}">
+
+  <Border CornerRadius="10" BorderThickness="1"
+          BorderBrush="{DynamicResource BorderBrush}"
+          Background="{DynamicResource PanelBrush}">
+    <Grid Margin="26">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <TextBlock Grid.Row="0" Text="{loc:Tr App.Title}" FontSize="24" FontWeight="SemiBold"
+                 Foreground="{DynamicResource TitleTextBrush}"
+                 AutomationProperties.AutomationId="SplashTitle" />
+
+      <TextBlock Grid.Row="1" Margin="0,4,0,0" Text="{loc:Tr App.Subtitle}"
+                 Foreground="{DynamicResource TextDimBrush}"
+                 AutomationProperties.AutomationId="SplashSubtitle" />
+
+      <ProgressBar Grid.Row="2" Height="4" Margin="0,18,0,0" IsIndeterminate="True"
+                   Foreground="{DynamicResource TextDimBrush}"
+                   Background="{DynamicResource BorderBrush}"
+                   BorderThickness="0" AutomationProperties.AutomationId="SplashProgress" />
+
+      <TextBlock x:Name="VersionText" Grid.Row="3" Margin="0,12,0,0"
+                 Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                 AutomationProperties.AutomationId="SplashVersion" />
+    </Grid>
+  </Border>
+</Window>

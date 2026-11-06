@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
@@ -455,6 +456,14 @@ public static class LeftoverScanner
         // e procurado. Nenhuma sobra e reportada.
         if (!UninstallModes.Scans(options.Mode)) return items;
 
+        // O motor de regras (o arquivo de regras e a base por aplicativo) e
+        // consultado AQUI: e o unico lugar que decide o que fazer com um
+        // programa. "Exclude" nao varre nada; "Protect" varre, mas nada
+        // fica marcado para remocao.
+        var decisao = Rules.RuleEngine.Current.Decide(program);
+        if (decisao == Rules.RuleDecision.Exclude) return items;
+        var protegido = decisao == Rules.RuleDecision.Protect;
+
         var all = NameVariants(program);
         // Safe usa apenas o nome completo; Moderate e Advanced ampliam.
         var variants = options.Mode switch
@@ -531,7 +540,17 @@ public static class LeftoverScanner
 
         // Itens protegidos pela lista de exclusoes nao aparecem: nem para o
         // usuario duvidar deles, nem para ele marcar e remover.
-        return ExcludeList.Current.ApplyTo(result);
+        var filtrados = ExcludeList.Current.ApplyTo(result);
+
+        // O motor de regras (o arquivo de regras e a base por aplicativo) e
+        // a ultima palavra: um programa protegido aparece na lista, mas
+        // nada dele fica marcado para remocao.
+        if (protegido)
+        {
+            foreach (var item in filtrados) item.Selected = false;
+        }
+
+        return filtrados;
     }
 
     /// <summary>
@@ -1016,12 +1035,12 @@ public static class RegistryBackup
             sb.AppendLine($"[{path}]");
             foreach (var valueName in key.GetValueNames())
             {
-                var value = key.GetValue(valueName);
+                var value = key.GetValue(valueName, null, RegistryValueOptions.DoNotExpandEnvironmentNames);
                 if (value is null) continue;
 
                 // "@" e o nome reservado do valor padrao (sem nome) no formato .reg.
                 var label = valueName.Length == 0 ? "@" : valueName;
-                sb.AppendLine($"\"{label}\"={FormatValue(value)}");
+                sb.AppendLine($"\"{label}\"={FormatValue(key.GetValueKind(valueName), value)}");
             }
             sb.AppendLine();
 
@@ -1033,16 +1052,37 @@ public static class RegistryBackup
         catch { return false; }
     }
 
-    private static string FormatValue(object value) => value switch
+    /// <summary>
+    /// O valor no formato do Editor do Registro.
+    ///
+    /// A formatacao mora em <c>Core/Reporting/ReportFormats</c> — o mesmo
+    /// lugar que formata o .reg exportado pelo painel de relatorios. Aqui so
+    /// mora a traducao do valor do registro para o dado que esse formatador
+    /// espera.
+    ///
+    /// O **tipo** vem do registro (<c>GetValueKind</c>), e nao do tipo do
+    /// objeto lido: um valor binario chega como <c>byte[]</c> e e gravado
+    /// como <c>hex:</c> (binario). Antes, pelo tipo do objeto, ele saia
+    /// como <c>hex(2):</c> — que e texto expansivel — e o valor binario
+    /// voltava do backup como texto.
+    /// </summary>
+    private static string FormatValue(RegistryValueKind kind, object value) => kind switch
     {
-        int i => $"dword:{i:X8}",
-        uint u => $"dword:{u:X8}",
-        long l => $"\"qword\":{l:X16}",
-        byte[] bytes => "hex(2):" + string.Join(",", bytes.Select(b => b.ToString("X2"))),
-        string[] multi => "hex(7):" + string.Join(",", multi.SelectMany(s => Encoding.Unicode.GetBytes(s + "\0"))
-                                                              .Select(b => b.ToString("X2"))),
-        _ => $"\"{value}\"",
+        RegistryValueKind.DWord => Core.Reporting.ReportFormats.FormatRegValue(
+            kind, Convert.ToUInt32(value).ToString(CultureInfo.InvariantCulture)),
+        RegistryValueKind.QWord => Core.Reporting.ReportFormats.FormatRegValue(
+            kind, Convert.ToUInt64(value).ToString(CultureInfo.InvariantCulture)),
+        RegistryValueKind.Binary => Core.Reporting.ReportFormats.FormatRegValue(kind, HexOf(value as byte[])),
+        RegistryValueKind.MultiString => Core.Reporting.ReportFormats.FormatRegValue(
+            kind, string.Join("\0", value as string[] ?? Array.Empty<string>())),
+        _ => Core.Reporting.ReportFormats.FormatRegValue(kind, value.ToString() ?? string.Empty),
     };
+
+    /// <summary>Os bytes de um valor binario, em hexadecimal.</summary>
+    private static string HexOf(byte[]? bytes) =>
+        bytes is null
+            ? string.Empty
+            : string.Join(",", bytes.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
 }
 
 /// <summary>Execucao do desinstalador nativo e criacao de ponto de restauracao.</summary>
@@ -1220,6 +1260,38 @@ public static class UninstallEngine
     /// <param name="items">Sobras a remover.</param>
     /// <param name="options">Opcoes da operacao.</param>
     /// <param name="fullRegistryBackup">Backup completo ja criado, se houver.</param>
+    /// <summary>
+    /// Guarda as sobras ANTES de elas serem apagadas.
+    ///
+    /// O backup completo do registro, que ja existia, cobre o REGISTRO — nao
+    /// os arquivos. Sem este backup, a limpeza de uma pasta tira do disco o
+    /// conteudo que o usuario nao mais ve: e o que o "Recuperar" do Wise
+    /// resolve guardando o conteudo antes de apagar.
+    ///
+    /// A REGRA (quando guardar) e a preferencia do usuario; a ACAO esta aqui,
+    /// e a interface e a linha de comando chamam o mesmo metodo.
+    /// </summary>
+    /// <param name="items">As sobras que serao removidas.</param>
+    /// <param name="programName">O nome do programa (para o backup ser reconhecivel).</param>
+    /// <param name="options">As opcoes da operacao.</param>
+    public static Recovery.LeftoverBackupResult BackupLeftovers(
+        IEnumerable<LeftoverItem> items,
+        string? programName,
+        UninstallRemovalOptions? options = null)
+    {
+        var opts = options ?? UninstallRemovalOptions.Default;
+
+        if (!opts.Backup)
+            return new Recovery.LeftoverBackupResult { Ok = false, Message = "o backup esta desligado nas preferencias" };
+
+        var lista = items?.Where(i => i.Selected).ToList() ?? new List<LeftoverItem>();
+        if (lista.Count == 0)
+            return new Recovery.LeftoverBackupResult { Ok = false, Message = "nao ha sobras para guardar" };
+
+        var nome = string.IsNullOrWhiteSpace(programName) ? "sobras" : programName!;
+        return Recovery.LeftoverBackup.Backup(lista, nome);
+    }
+
     public static RemovalReport RemoveLeftovers(
         IEnumerable<LeftoverItem> items,
         UninstallRemovalOptions? options = null,

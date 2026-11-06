@@ -103,6 +103,25 @@ public static class JunkCleaner
                 continue;
             }
 
+            // O arquivo de regras do usuario vale para o limpador tambem: um
+            // caminho protegido pelas regras nao e lixo, nao importa o que a
+            // varredura achou.
+            if (Rules.RuleEngine.Current.IsPathProtected(item.Path))
+            {
+                outcomes.Add(new RemovalOutcome
+                {
+                    Item = new LeftoverItem
+                    {
+                        Kind = item.Kind,
+                        Path = item.Path,
+                        Detail = item.CategoryId,
+                    },
+                    Status = RemovalStatus.Protected,
+                    Message = "protegido pelas regras",
+                });
+                continue;
+            }
+
             regular.Add(new LeftoverItem
             {
                 Kind = item.Kind,

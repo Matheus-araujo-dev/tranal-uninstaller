@@ -1,0 +1,197 @@
+<Window x:Class="Tranal.Uninstaller.Ui.Tracing.TracingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:tr="clr-namespace:Tranal.Uninstaller.Ui.Tracing"
+        Title="Rastreio"
+        Width="1000" Height="640"
+        MinWidth="820" MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource PanelBrush}"
+        Foreground="{DynamicResource TextBrush}">
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0" Background="Transparent" BorderThickness="0">
+
+            <!-- Rastreio: o watcher em tempo real e os logs gravados. -->
+            <TabItem Header="{x:Static tr:TracingTexts.AbaRastreio}">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+                        <TextBox x:Name="WatchFolderBox" Width="300" Margin="0,0,6,0"
+                                 VerticalContentAlignment="Center"
+                                 AutomationProperties.AutomationId="TracingWatchFolder" />
+                        <Button x:Name="WatchButton" Content="{x:Static tr:TracingTexts.Observar}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                AutomationProperties.AutomationId="TracingWatch"
+                                Click="WatchButton_Click" />
+                        <Button x:Name="StopButton" Content="{x:Static tr:TracingTexts.Parar}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,12,0" IsEnabled="False"
+                                AutomationProperties.AutomationId="TracingStop"
+                                Click="StopButton_Click" />
+                        <Button x:Name="SaveLogButton" Content="{x:Static tr:TracingTexts.SalvarLog}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                AutomationProperties.AutomationId="TracingSaveLog"
+                                Click="SaveLogButton_Click" />
+                        <Button x:Name="LoadLogsButton" Content="{x:Static tr:TracingTexts.CarregarLogs}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                AutomationProperties.AutomationId="TracingLoadLogs"
+                                Click="LoadLogsButton_Click" />
+                        <Button x:Name="MergeLogsButton" Content="{x:Static tr:TracingTexts.UnirLogs}"
+                                Style="{StaticResource FlatButton}"
+                                AutomationProperties.AutomationId="TracingMergeLogs"
+                                Click="MergeLogsButton_Click" />
+                    </WrapPanel>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="2*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ListView x:Name="EntriesView" Grid.Column="0"
+                                  BorderBrush="{DynamicResource BorderBrush}"
+                                  Background="{DynamicResource PanelBrush}"
+                                  AutomationProperties.AutomationId="TracingEntries" />
+
+                        <Grid Grid.Column="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <ListView x:Name="LogsView" Grid.Row="0" SelectionMode="Extended"
+                                      BorderBrush="{DynamicResource BorderBrush}"
+                                      Background="{DynamicResource PanelBrush}"
+                                      AutomationProperties.AutomationId="TracingLogs" />
+
+                            <TextBlock x:Name="LogsHintText" Grid.Row="1" Margin="0,6,0,0"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextDimBrush}"
+                                       Text="{x:Static tr:TracingTexts.HintLogs}" />
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- Processos: quem entra no rastreio e quem fica de fora. -->
+            <TabItem Header="{x:Static tr:TracingTexts.AbaProcessos}">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0">
+                        <TextBox x:Name="ProcessNameBox" Width="240" Margin="0,0,6,0"
+                                 VerticalContentAlignment="Center"
+                                 AutomationProperties.AutomationId="TracingProcessName" />
+                        <Button x:Name="IncludeNameButton" Content="{x:Static tr:TracingTexts.IncluirNome}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                AutomationProperties.AutomationId="TracingIncludeName"
+                                Click="IncludeNameButton_Click" />
+                        <Button x:Name="ExcludeNameButton" Content="{x:Static tr:TracingTexts.ExcluirNome}"
+                                Style="{StaticResource FlatButton}"
+                                AutomationProperties.AutomationId="TracingExcludeName"
+                                Click="ExcludeNameButton_Click" />
+                    </WrapPanel>
+
+                    <WrapPanel Grid.Row="1" Margin="0,8,0,0">
+                        <TextBox x:Name="ProcessPathBox" Width="240" Margin="0,0,6,0"
+                                 VerticalContentAlignment="Center"
+                                 AutomationProperties.AutomationId="TracingProcessPath" />
+                        <Button x:Name="IncludePathButton" Content="{x:Static tr:TracingTexts.IncluirPasta}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                AutomationProperties.AutomationId="TracingIncludePath"
+                                Click="IncludePathButton_Click" />
+                        <Button x:Name="ExcludePathButton" Content="{x:Static tr:TracingTexts.ExcluirPasta}"
+                                Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                AutomationProperties.AutomationId="TracingExcludePath"
+                                Click="ExcludePathButton_Click" />
+                        <Button x:Name="ClearPolicyButton" Content="{x:Static tr:TracingTexts.Limpar}"
+                                Style="{StaticResource FlatButton}"
+                                AutomationProperties.AutomationId="TracingClearPolicy"
+                                Click="ClearPolicyButton_Click" />
+                    </WrapPanel>
+
+                    <ListView x:Name="PolicyView" Grid.Row="2" Margin="0,8,0,0"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Background="{DynamicResource PanelBrush}"
+                              AutomationProperties.AutomationId="TracingPolicy" />
+                </Grid>
+            </TabItem>
+
+            <!-- Snapshots: a biblioteca nomeada e a comparacao A x B. -->
+            <TabItem Header="{x:Static tr:TracingTexts.AbaSnapshots}">
+                <Grid Margin="0,8,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0">
+                        <TextBox x:Name="SnapshotNameBox" Width="190" Margin="0,0,6,0"
+                                 VerticalContentAlignment="Center"
+                                 AutomationProperties.AutomationId="TracingSnapshotName" />
+                        <TextBox x:Name="SnapshotLabelBox" Width="230" Margin="0,0,12,0"
+                                 VerticalContentAlignment="Center"
+                                 AutomationProperties.AutomationId="TracingSnapshotLabel" />
+                        <Button x:Name="CaptureSnapshotButton" Content="{x:Static tr:TracingTexts.CapturarSnapshot}"
+                                Style="{StaticResource FlatButton}"
+                                AutomationProperties.AutomationId="TracingCaptureSnapshot"
+                                Click="CaptureSnapshotButton_Click" />
+                    </WrapPanel>
+
+                    <ListView x:Name="SnapshotsView" Grid.Row="1" Margin="0,8,0,0" SelectionMode="Extended"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Background="{DynamicResource PanelBrush}"
+                              AutomationProperties.AutomationId="TracingSnapshots" />
+
+                    <Grid Grid.Row="2" Margin="0,8,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <WrapPanel Grid.Row="0">
+                            <Button x:Name="CompareSnapshotsButton" Content="{x:Static tr:TracingTexts.Comparar}"
+                                    Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                    AutomationProperties.AutomationId="TracingCompareSnapshots"
+                                    Click="CompareSnapshotsButton_Click" />
+                            <Button x:Name="DeleteSnapshotButton" Content="{x:Static tr:TracingTexts.Apagar}"
+                                    Style="{StaticResource FlatButton}"
+                                    AutomationProperties.AutomationId="TracingDeleteSnapshot"
+                                    Click="DeleteSnapshotButton_Click" />
+                        </WrapPanel>
+
+                        <TextBox x:Name="ComparisonText" Grid.Row="1" Margin="0,8,0,0" Height="110"
+                                 IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                 Background="{DynamicResource InputBrush}"
+                                 Foreground="{DynamicResource TextBrush}"
+                                 BorderBrush="{DynamicResource InputBorderBrush}"
+                                 AutomationProperties.AutomationId="TracingComparison" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+
+        <Border Grid.Row="1" Margin="0,10,0,0" Padding="8,6"
+                Background="{DynamicResource StatusBarBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+            <TextBlock x:Name="StatusText" Text="" Foreground="{DynamicResource TextDimBrush}"
+                       TextTrimming="CharacterEllipsis" />
+        </Border>
+    </Grid>
+</Window>

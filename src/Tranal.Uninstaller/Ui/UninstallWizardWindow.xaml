@@ -2,7 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        xmlns:anim="clr-namespace:Tranal.Uninstaller.Ui.Appearance"
         Title="Assistente" Height="680" Width="900" WindowStartupLocation="CenterOwner"
+        WindowState="Maximized"
         Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
         FontSize="12" ShowInTaskbar="False">
 
@@ -103,6 +105,19 @@
           <TextBlock x:Name="ScanAllAccountsNote" AutomationProperties.AutomationId="ScanAllAccountsNote"
                      TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}" Margin="22,0,0,0"
                      Visibility="Collapsed" />
+
+          <!--
+            A pergunta do Revo (15364): "Do you want to keep your preferences?
+            Icons, comments, groups". A opcao so aparece quando ha mesmo
+            alguma coisa para manter — o que seria apagado esta escrito logo
+            abaixo, traduzido.
+          -->
+          <CheckBox x:Name="KeepPreferencesCheck" AutomationProperties.AutomationId="KeepPreferencesCheck"
+                    Content="{loc:Tr Wizard.KeepPreferences}" IsChecked="True" Margin="0,4,0,2"
+                    Visibility="Collapsed" />
+          <TextBlock x:Name="KeepPreferencesNote" AutomationProperties.AutomationId="KeepPreferencesNote"
+                     TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}" Margin="22,0,0,4"
+                     Visibility="Collapsed" />
         </StackPanel>
 
         <!-- Etapa 3: modo em uso -->
@@ -165,7 +180,7 @@
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
-      <TextBlock x:Name="StatusText" Grid.Column="0" VerticalAlignment="Center" FontSize="11"
+      <TextBlock x:Name="StatusText" anim:TextAnimation.Animate="True" Grid.Column="0" VerticalAlignment="Center" FontSize="11"
                  AutomationProperties.AutomationId="WizardStatus"
                  Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
       <Button Grid.Column="1" x:Name="BackButton" Content="{loc:Tr Wizard.Back}" Style="{StaticResource FlatButton}"

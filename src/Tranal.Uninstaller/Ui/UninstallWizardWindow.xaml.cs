@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Markup;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
@@ -100,6 +101,12 @@ public partial class UninstallWizardWindow : Window
     /// nao pôde ser gravado.
     /// </summary>
     private string _removalLogPath = string.Empty;
+
+    /// <summary>
+    /// O identificador do backup das sobras desta operacao. Vazio quando o
+    /// backup nao foi feito (desligado nas preferencias ou sem sobras).
+    /// </summary>
+    private string _leftoverBackupId = string.Empty;
 
     /// <summary>
     /// Opcoes da operacao, resolvidas uma vez no inicio (etapa 2) para que
@@ -207,6 +214,21 @@ public partial class UninstallWizardWindow : Window
         ScanAllAccountsNote.Text = Loc.Get("Wizard.ScanAllAccountsNote");
         ScanAllAccountsNote.Visibility = Visibility.Collapsed;
 
+        // A pergunta do Revo sobre as preferencias (15364): "Do you want to
+        // keep your preferences? Icons, comments, groups". A opcao so aparece
+        // quando ha mesmo alguma coisa para manter — perguntar sobre o nada
+        // e ruido, e o usuario nao teria o que responder.
+        var preferences = _programs
+            .SelectMany(p => PreferenceRetention.ItemIds(p))
+            .Distinct()
+            .ToList();
+
+        KeepPreferencesCheck.IsChecked = settings.KeepPreferencesOnUninstall;
+        KeepPreferencesCheck.Visibility = preferences.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        KeepPreferencesNote.Text = Loc.Get("Wizard.KeepPreferencesNote",
+            string.Join(", ", preferences.Select(PreferenceLabel)));
+        KeepPreferencesNote.Visibility = preferences.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
         SyncAccountChecks();
 
         if (settings.OnlyRunBuiltInUninstaller)
@@ -220,6 +242,32 @@ public partial class UninstallWizardWindow : Window
         {
             ModeModerateRadio.IsChecked = true;
         }
+    }
+
+    /// <summary>
+    /// O rotulo traduzido de uma preferencia (comentario, icone, grupos).
+    /// O identificador vem do nucleo; o texto vem do catalogo de idioma.
+    /// </summary>
+    private static string PreferenceLabel(string id) => id switch
+    {
+        "comment" => Loc.Get("Wizard.Preference.Comment"),
+        "icon" => Loc.Get("Wizard.Preference.Icon"),
+        "groups" => Loc.Get("Wizard.Preference.Groups"),
+        _ => id,
+    };
+
+    /// <summary>
+    /// Aplica a decisao sobre as preferencias do usuario.
+    ///
+    /// A regra mora no nucleo (<see cref="PreferenceRetention"/>): aqui so digo
+    /// se o usuario quer manter. Roda logo depois do desinstalador nativo,
+    /// que e quando o programa ja saiu do computador.
+    /// </summary>
+    private void ApplyPreferenceDecision()
+    {
+        var keep = _removalOptions.KeepPreferences;
+        foreach (var program in _programs)
+            PreferenceRetention.ApplyAfterUninstall(program, keep);
     }
 
     /// <summary>
@@ -328,6 +376,7 @@ public partial class UninstallWizardWindow : Window
 
                 case 1:
                     await RunBuiltInAsync();
+                    ApplyPreferenceDecision();
                     ShowStep(2);
                     break;
 
@@ -458,7 +507,9 @@ public partial class UninstallWizardWindow : Window
         PersistWizardOptions();
 
         var name = string.Join(", ", _programs.Select(p => p.DisplayName));
-        _removalOptions = UninstallRemovalOptions.FromSettings($"Desinstalacao de {name}");
+        _removalOptions = UninstallRemovalOptions.FromSettings(
+            $"Desinstalacao de {name}",
+            KeepPreferencesCheck.IsChecked == true);
 
         // O backup completo do registro vem ANTES do desinstalador nativo: e
         // depois dele que o desinstalador do proprio programa apaga as chaves
@@ -577,6 +628,11 @@ public partial class UninstallWizardWindow : Window
             ? _progress.ApplyRunNow(_removalOptions)
             : _removalOptions;
 
+        // As sobras vao para o backup ANTES de sumirem: e o que permite devolver
+        // o conteudo apagado ("Recuperar").
+        var leftoverBackup = UninstallEngine.BackupLeftovers(_leftovers, name, options);
+        _leftoverBackupId = leftoverBackup.Ok ? leftoverBackup.Id : string.Empty;
+
         _report = await Task.Run(() =>
             UninstallEngine.RemoveLeftovers(_leftovers, options, _fullRegistryBackup));
         _summary = BuildSummary(_report);
@@ -609,6 +665,8 @@ public partial class UninstallWizardWindow : Window
                 Report = _summary,
                 Removed = _report.RemovedCount,
                 Failed = _report.FailedCount + _report.ProtectedCount,
+                RecoveryId = _leftoverBackupId,
+                RemovedItems = _report.Outcomes.Where(o => o.Removed).Select(o => o.Item.Path).ToList(),
             });
         }
 

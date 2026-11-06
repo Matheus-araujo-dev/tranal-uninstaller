@@ -15,6 +15,9 @@ namespace Tranal.Uninstaller.Ui;
 /// </summary>
 public static class ProgramColumnLayout
 {
+    /// <summary>A largura da coluna das caixas de selecao.</summary>
+    public const double CheckColumnWidth = 28;
+
     /// <summary>A largura padrao de cada coluna.</summary>
     public static double WidthOf(ProgramColumn column) => column switch
     {
@@ -33,6 +36,12 @@ public static class ProgramColumnLayout
         ProgramColumn.Group => 120,
         ProgramColumn.Note => 180,
         ProgramColumn.RegistryKey => 220,
+        ProgramColumn.UninstallerLocation => 220,
+        ProgramColumn.Source => 110,
+        ProgramColumn.SystemComponent => 130,
+        ProgramColumn.Protected => 90,
+        ProgramColumn.Startup => 110,
+        ProgramColumn.Rating => 90,
         _ => 120,
     };
 
@@ -56,6 +65,12 @@ public static class ProgramColumnLayout
         ProgramColumn.Group => nameof(ProgramRow.UserGroup),
         ProgramColumn.Note => nameof(ProgramRow.UserNote),
         ProgramColumn.RegistryKey => nameof(ProgramRow.RegistryKeyText),
+        ProgramColumn.UninstallerLocation => nameof(ProgramRow.UninstallerLocationText),
+        ProgramColumn.Source => nameof(ProgramRow.SourceText),
+        ProgramColumn.SystemComponent => nameof(ProgramRow.SystemComponentText),
+        ProgramColumn.Protected => nameof(ProgramRow.ProtectedText),
+        ProgramColumn.Startup => nameof(ProgramRow.StartupText),
+        ProgramColumn.Rating => nameof(ProgramRow.RatingText),
         _ => null,
     };
 
@@ -70,10 +85,34 @@ public static class ProgramColumnLayout
         _ => PropertyOf(column),
     };
 
-    /// <summary>Monta a grade com as colunas escolhidas, na ordem do catalogo.</summary>
-    public static GridView Build(IReadOnlyList<ProgramColumn> columns, DataTemplate nameTemplate)
+    /// <summary>
+    /// Monta a grade com as colunas escolhidas, na ordem do catalogo.
+    ///
+    /// A coluna das caixas de selecao (a "Show check boxes in Details view"
+    /// do Revo, 15334) vem antes de tudo, quando o template e informado.
+    /// </summary>
+    /// <param name="columns">As colunas escolhidas pelo usuario.</param>
+    /// <param name="nameTemplate">O template da coluna do nome.</param>
+    /// <param name="checkTemplate">
+    /// O template da coluna das caixas de selecao. Nulo quando o usuario
+    /// nao quer essa coluna.
+    /// </param>
+    public static GridView Build(
+        IReadOnlyList<ProgramColumn> columns,
+        DataTemplate nameTemplate,
+        DataTemplate? checkTemplate = null)
     {
         var grid = new GridView();
+
+        if (checkTemplate is not null)
+        {
+            grid.Columns.Add(new GridViewColumn
+            {
+                Header = string.Empty,
+                Width = CheckColumnWidth,
+                CellTemplate = checkTemplate,
+            });
+        }
 
         foreach (var column in columns)
         {

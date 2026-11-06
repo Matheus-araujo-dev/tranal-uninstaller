@@ -36,6 +36,12 @@ public static class ToolCatalog
     /// </summary>
     public const string SystemManagement = "SystemManagement";
 
+    /// <summary>
+    /// Aparencia: mapa de area, legenda de cores, agrupamento por coluna e
+    /// classificacao por estrelas.
+    /// </summary>
+    public const string Appearance = "Appearance";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
     public const string HistoryCleaner = "HistoryCleaner";
 
@@ -64,5 +70,6 @@ public static class ToolCatalog
         TracksWindows,
         RegistryOptimizer,
         SystemManagement,
+        Appearance,
     };
 }

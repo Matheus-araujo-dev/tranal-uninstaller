@@ -9,10 +9,12 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui;
+using Tranal.Uninstaller.Ui.Appearance;
 using Tranal.Uninstaller.Ui.Discovery;
 
 namespace Tranal.Uninstaller;
@@ -40,6 +42,21 @@ public partial class MainWindow : Window
     /// </summary>
     private string _avisoPreferencias = string.Empty;
 
+    /// <summary>
+    /// O estado dos filtros da lista.
+    ///
+    /// A REGRA mora no nucleo (<see cref="ProgramFilterSet"/>): o popup de
+    /// filtros, a caixa de busca e o painel lateral editam este mesmo
+    /// objeto, e a lista consome o julgamento dele. Nenhuma das telas
+    /// reinterpreta o filtro por conta propria.
+    /// </summary>
+    private readonly ProgramFilterSet _filters = new();
+
+    /// <summary>
+    /// True quando o painel lateral de configuracoes esta aberto.
+    /// </summary>
+    private bool _settingsPanelOpen;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -60,6 +77,14 @@ public partial class MainWindow : Window
         // quais colunas quer ver.
         BuildProgramColumns();
 
+        // O painel lateral de configuracoes edita o mesmo conjunto de filtros
+        // que o popup e a caixa de busca: e o que impede a lista e o painel de
+        // discordar sobre o que esta filtrado.
+        SettingsSidebarPanel.Load(_filters);
+        SettingsSidebarPanel.FiltersChanged += SettingsSidebar_FiltersChanged;
+
+        _checkBoxesInDetails = AppSettingsStore.Current.ShowCheckBoxesInDetailsView;
+
         // Telas de modulos e ferramentas registradas uma unica vez.
         ViewSetup.RegisterAll(this);
 
@@ -73,7 +98,26 @@ public partial class MainWindow : Window
 
         // Textos do codigo-behind tambem mudam com o idioma.
         Loc.LanguageChanged += (_, _) => RefreshLocalizedTexts();
-        Loaded += async (_, _) => await ReloadAsync();
+        Loaded += async (_, _) =>
+        {
+            await ReloadAsync();
+            FocusStartupModule();
+        };
+    }
+
+    /// <summary>
+    /// Foca a tela "Traced Programs" no arranque (opcao 15129 do Revo:
+    /// "Set the focus on Traced Programs on startup").
+    ///
+    /// A preferencia desliga isso: nem todo mundo quer comecar pelo log de
+    /// instalacao, e a varredura do painel custa tempo.
+    /// </summary>
+    private void FocusStartupModule()
+    {
+        if (!AppSettingsStore.Current.FocusTracedProgramsOnStartup) return;
+
+        SwitchView("TracedPrograms", tool: false);
+        ContentHost.Focus();
     }
 
     // ------------------------------------------------------------------
@@ -110,6 +154,11 @@ public partial class MainWindow : Window
 
     private void UpdateStatus()
     {
+        // A coluna "Inicializacao" so responde depois que a varredura de
+        // inicializacao aconteceu: a varredura e cara e nao cabe por linha.
+        // Ate la, a coluna fica vazia — nunca "Nao" por palpite.
+        StartupEntryIndex.Refresh(Core.Tools.AutorunManager.Scan());
+
         var total = _all.Count;
         var visible = _view.Cast<ProgramRow>().Count();
         StatusText.Text = $"{Loc.Get("Status.Installations")}: {total}";
@@ -122,41 +171,81 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        _filters.SearchText = SearchBox.Text;
+        ApplyFilter();
+        UpdateStatus();
+        SettingsSidebarPanel.SyncSearch(_filters.SearchText);
+    }
+
+    private void ApplyFilter()
+    {
+        _view.Refresh();
+        ApplyHighlights();
+    }
+
+    /// <summary>
+    /// Pinta as linhas que casam com alguma regra de realce.
+    ///
+    /// O realce nao filtra: ele so muda a cor do nome. Quem decide a cor e o
+    /// nucleo (<see cref="ProgramFilterSet.HighlightColorOf"/>).
+    /// </summary>
+    private void ApplyHighlights()
+    {
+        foreach (var row in _all)
+        {
+            var cor = _filters.HighlightColorOf(row.Program);
+            row.HighlightColorKey = cor ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Abre e fecha o painel lateral de configuracoes (o item 52 do backlog:
+    /// o "Properties Sidebar" do BCU, com filtros e realces).
+    /// </summary>
+    private void SettingsPanelButton_Click(object sender, RoutedEventArgs e)
+    {
+        _settingsPanelOpen = !_settingsPanelOpen;
+
+        SettingsPanelBorder.Visibility = _settingsPanelOpen ? Visibility.Visible : Visibility.Collapsed;
+
+        if (_settingsPanelOpen)
+        {
+            SettingsSidebarPanel.Load(_filters);
+            ApplyFilter();
+            UpdateStatus();
+        }
+    }
+
+    /// <summary>
+    /// O painel lateral mudou um filtro ou um realce: a lista e redesenhada.
+    /// </summary>
+    private void SettingsSidebar_FiltersChanged(object? sender, EventArgs e)
+    {
+        // A busca da janela principal e a do painel sao o mesmo campo.
+        if (!string.Equals(SearchBox.Text, _filters.SearchText, StringComparison.Ordinal))
+            SearchBox.Text = _filters.SearchText;
+
         ApplyFilter();
         UpdateStatus();
     }
 
-    private void ApplyFilter() => _view.Refresh();
-
     private bool FilterRow(object item)
     {
         if (item is not ProgramRow row) return false;
-        return MatchesSearch(row) && MatchesType(row) && MatchesSize(row) && MatchesDrive(row);
+        return _filters.Matches(row.Program);
     }
-
-    private bool MatchesSearch(ProgramRow row)
-    {
-        var term = SearchBox.Text.Trim();
-        if (term.Length == 0) return true;
-
-        return Contains(row.DisplayName, term)
-            || Contains(row.Publisher, term)
-            || Contains(row.Comments, term);
-    }
-
-    private static bool Contains(string haystack, string term) =>
-        haystack.Contains(term, StringComparison.CurrentCultureIgnoreCase);
 
     // ------------------------------------------------------------------
     // Filtros: por tipo, por tamanho e por unidade
+    //
+    // O estado mora no nucleo (ProgramFilterSet). O popup e o painel lateral
+    // editam o mesmo objeto: e o que impede a lista e o painel de discordar.
     // ------------------------------------------------------------------
-    private string _filterType = "All";
-    private string _filterSize = "all";
-    private string? _filterDrive;
 
     private void FilterButton_Click(object sender, RoutedEventArgs e)
     {
         PopulateDriveFilters();
+        SyncFilterRadios();
 
         // O interruptor "Hidden" mostra o mesmo estado das Opcoes: se ele
         // mudar la, aqui tambem muda.
@@ -189,7 +278,7 @@ public partial class MainWindow : Window
         DriveFilterPanel.Children.Clear();
 
         var all = new RadioButton { Content = Loc.Get("Sidebar.All"), Margin = new Thickness(0, 0, 0, 2) };
-        all.IsChecked = _filterDrive is null;
+        all.IsChecked = _filters.DriveFilter is null;
         all.Tag = "drive:*";
         all.Checked += FilterOption_Changed;
         DriveFilterPanel.Children.Add(all);
@@ -199,7 +288,7 @@ public partial class MainWindow : Window
                      .Select(d => d.Name).OrderBy(d => d))
         {
             var radio = new RadioButton { Content = drive, Margin = new Thickness(0, 0, 0, 2) };
-            radio.IsChecked = _filterDrive == drive;
+            radio.IsChecked = _filters.DriveFilter == drive;
             radio.Tag = "drive:" + drive;
             radio.Checked += FilterOption_Changed;
             DriveFilterPanel.Children.Add(radio);
@@ -213,57 +302,61 @@ public partial class MainWindow : Window
         if (tag.StartsWith("drive:", StringComparison.Ordinal))
         {
             var value = tag["drive:".Length..];
-            _filterDrive = value == "*" ? null : value;
+            _filters.DriveFilter = value == "*" ? null : value;
         }
         else if (tag is "All" or "32" or "64" or "msi")
         {
-            _filterType = tag;
+            _filters.TypeFilter = tag;
         }
         else
         {
-            _filterSize = tag;
+            _filters.SizeFilter = tag;
         }
 
         ApplyFilter();
         UpdateStatus();
+
+        // O painel lateral mostra o mesmo estado: os dois editam o mesmo
+        // objeto, entao recarregar os controles dele mantem os dois na
+        // mesma pagina.
+        SettingsSidebarPanel.Load(_filters);
     }
 
-    private bool MatchesType(ProgramRow row) => _filterType switch
+    /// <summary>
+    /// O popup de filtros mostra o estado do conjunto de filtros: quando o
+    /// painel lateral muda o tipo ou o tamanho, o popup abre ja marcado no
+    /// que vale.
+    /// </summary>
+    private void SyncFilterRadios()
     {
-        "32" => row.Bits == "32-bits",
-        "64" => row.Bits == "64-bits",
-        "msi" => row.Program.IsWindowsInstaller,
-        _ => true,
-    };
+        TypeAllRadio.IsChecked = _filters.TypeFilter == "All";
+        Type32Radio.IsChecked = _filters.TypeFilter == "32";
+        Type64Radio.IsChecked = _filters.TypeFilter == "64";
+        TypeMsiRadio.IsChecked = _filters.TypeFilter == "msi";
 
-    private bool MatchesSize(ProgramRow row)
-    {
-        const long mb = 1024L * 1024L;
-        const long gb = 1024L * mb;
-        var size = row.Program.SizeBytes;
-
-        return _filterSize switch
-        {
-            "small" => size > 0 && size < 100 * mb,
-            "medium" => size >= 100 * mb && size <= gb,
-            "large" => size > gb,
-            _ => true,
-        };
-    }
-
-    private bool MatchesDrive(ProgramRow row)
-    {
-        if (_filterDrive is null) return true;
-        var source = row.Program.InstallLocation.Length > 0
-            ? row.Program.InstallLocation
-            : row.Program.UninstallString;
-        return source.StartsWith(_filterDrive, StringComparison.OrdinalIgnoreCase);
+        SizeAllRadio.IsChecked = _filters.SizeFilter == "all";
+        SizeSmallRadio.IsChecked = _filters.SizeFilter == "small";
+        SizeMediumRadio.IsChecked = _filters.SizeFilter == "medium";
+        SizeLargeRadio.IsChecked = _filters.SizeFilter == "large";
     }
 
     // ------------------------------------------------------------------
     // Cabecalho: ordenacao por clique e menu de contexto (colunas/alinhamento)
     // ------------------------------------------------------------------
     private readonly Dictionary<GridViewColumn, string> _columnProperties = new();
+
+    /// <summary>
+    /// A coluna das caixas de selecao, quando ela existe. Nao faz parte do
+    /// catalogo de colunas: e um comando, nao um dado — nao tem cabecalho, nao
+    /// ordena e nao pode ser removida.
+    /// </summary>
+    private GridViewColumn? _checkColumn;
+
+    /// <summary>
+    /// O ultimo valor da preferencia "caixas de selecao na visualizacao de
+    /// detalhes". Serve para saber se a grade precisa ser refeita.
+    /// </summary>
+    private bool _checkBoxesInDetails;
 
     /// <summary>
     /// Qual coluna do catalogo cada coluna da grade representa. E o que liga
@@ -282,7 +375,18 @@ public partial class MainWindow : Window
         var visiveis = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
 
         var template = (DataTemplate)Resources["ProgramNameTemplate"];
-        var grid = ProgramColumnLayout.Build(visiveis, template);
+
+        // A coluna das caixas de selecao e a "Show check boxes in Details
+        // view" do Revo (15334): ela so entra quando a preferencia manda.
+        DataTemplate? checkTemplate = null;
+        if (AppSettingsStore.Current.ShowCheckBoxesInDetailsView)
+            checkTemplate = (DataTemplate)Resources["ProgramCheckTemplate"];
+
+        var grid = ProgramColumnLayout.Build(visiveis, template, checkTemplate);
+
+        // A coluna das caixas e sempre a primeira: e por isso que ela pode
+        // ser reconhecida sem mapa.
+        _checkColumn = checkTemplate is not null ? grid.Columns[0] : null;
 
         // A grade anterior morre aqui: os mapas sao refeitos para nao
         // guardar colunas que ja nao existem.
@@ -316,6 +420,10 @@ public partial class MainWindow : Window
 
         foreach (var column in grid.Columns)
         {
+            // A coluna das caixas de selecao nao tem cabecalho: e um comando,
+            // nao um dado.
+            if (ReferenceEquals(column, _checkColumn)) continue;
+
             var property = ProgramColumnLayout.SortPropertyOf(ColumnIdOf(column));
             if (property is not null) _columnProperties[column] = property;
 
@@ -600,6 +708,24 @@ public partial class MainWindow : Window
         }
         menu.Items.Add(exportMenu);
 
+        // Copiar para a area de transferencia. E o comando geral do Revo
+        // ("Copy to Clipboard") e a copia avancada do BCU: os dois sao o
+        // mesmo lugar, com quatro formatos.
+        var copyMenu = new MenuItem { Header = Loc.Get("Cmd.CopyToClipboard") };
+        AutomationProperties.SetAutomationId(copyMenu, "CmdCopyToClipboardMenu");
+        foreach (var format in ClipboardFormats)
+        {
+            var clipboardFormat = format.Format;
+            copyMenu.Items.Add(MenuItemFor(format.Label, format.AutomationId,
+                () => CopySelectionToClipboard(clipboardFormat)));
+        }
+        menu.Items.Add(copyMenu);
+
+        // Suporte online: o repositorio publico do projeto. Nao ha servidor
+        // de suporte do Tranal — a mensagem ja vai montada na URL.
+        var support = CommandItem(Loc.Get("Cmd.Support"), "CmdSupport", ShowSupport);
+        menu.Items.Add(support);
+
         // A descoberta do sistema: pacotes MSI, recursos do Windows, gerenciadores
         // de pacotes, varredura de drives, pastas vazias e assinatura do
         // desinstalador. E o que responde "o que mais esta instalado aqui".
@@ -617,6 +743,65 @@ public partial class MainWindow : Window
         menu.IsOpen = true;
     }
 
+    /// <summary>
+    /// Os formatos da copia para a area de transferencia.
+    /// </summary>
+    private static readonly (Core.Appearance.ClipboardFormat Format, string Label, string AutomationId)[] ClipboardFormats =
+    {
+        (Core.Appearance.ClipboardFormat.PlainText, "Cmd.CopyPlain", "CmdCopyPlain"),
+        (Core.Appearance.ClipboardFormat.TabSeparated, "Cmd.CopyColumns", "CmdCopyColumns"),
+        (Core.Appearance.ClipboardFormat.UninstallCommand, "Cmd.CopyCommands", "CmdCopyCommands"),
+        (Core.Appearance.ClipboardFormat.FullDetails, "Cmd.CopyDetails", "CmdCopyDetails"),
+    };
+
+    /// <summary>
+    /// Copia os programas selecionados para a area de transferencia.
+    ///
+    /// Sem selecao, a copia leva **todos** os programas da lista — e o que o
+    /// usuario quer quando esta montando um relatorio da maquina.
+    /// </summary>
+    private void CopySelectionToClipboard(Core.Appearance.ClipboardFormat format)
+    {
+        var rows = selectedRows;
+        var programs = rows.Count > 0
+            ? rows.Select(r => r.Program).ToList()
+            : _all.Select(r => r.Program).ToList();
+
+        if (programs.Count == 0)
+        {
+            UserMessages.Information(this, Loc.Get("Status.NoSelection"));
+            return;
+        }
+
+        if (!ProgramClipboard.Copy(programs, format))
+        {
+            UserMessages.Information(this, Loc.Get("Cmd.CopyFailed"));
+            return;
+        }
+
+        StatusText.Text = Loc.Get("Common.Copied");
+    }
+
+    /// <summary>
+    /// Abre o endereco de suporte com a mensagem ja montada.
+    /// </summary>
+    private void ShowSupport()
+    {
+        var program = selectedRows.FirstOrDefault()?.Program;
+        var url = Core.Appearance.SupportRequest.BuildUrl(program);
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url)
+            {
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            UserMessages.Information(this, Core.Appearance.SupportRequest.SupportUrl);
+        }
+    }
     /// <summary>
     /// Abre a janela de descoberta do sistema.
     ///
@@ -673,7 +858,18 @@ public partial class MainWindow : Window
 
         for (var i = 0; i < grid.Columns.Count; i++)
         {
-            var id = ColumnIdOf(grid.Columns[i]);
+            var column = grid.Columns[i];
+
+            // As caixas de selecao so aparecem na visualizacao de detalhes:
+            // e o que a opcao 15334 do Revo promete ("Show check boxes in
+            // Details view").
+            if (ReferenceEquals(column, _checkColumn))
+            {
+                column.Width = mode == "Details" ? ProgramColumnLayout.CheckColumnWidth : 0;
+                continue;
+            }
+
+            var id = ColumnIdOf(column);
 
             grid.Columns[i].Width = mode switch
             {
@@ -838,6 +1034,15 @@ public partial class MainWindow : Window
         }
 
         ApplyLayout();
+
+        // A coluna das caixas de selecao depende da preferencia: quando ela
+        // muda, a grade da lista nasce de novo.
+        var settings = AppSettingsStore.Current;
+        if (settings.ShowCheckBoxesInDetailsView != _checkBoxesInDetails)
+        {
+            _checkBoxesInDetails = settings.ShowCheckBoxesInDetailsView;
+            BuildProgramColumns();
+        }
     }
 
     /// <summary>Restaurou o layout padrao dos paineis.</summary>
@@ -1289,6 +1494,16 @@ public partial class MainWindow : Window
     /// Inicia o assistente de desinstalacao para um programa especifico.
     /// Usado pelo Modo Cacador, que ja identificou o programa pelo icone arrastado.
     /// </summary>
+    /// <summary>
+    /// Os programas instalados, como a janela principal os tem.
+    ///
+    /// As telas que precisam da lista (o mapa de area, por exemplo) consomem
+    /// esta propriedade em vez de escanear de novo: o mesmo scan, uma vez
+    /// so.
+    /// </summary>
+    public IReadOnlyList<InstalledProgram> ProgramasInstalados =>
+        _all.Select(r => r.Program).ToList();
+
     public void StartUninstallFor(InstalledProgram program)
     {
         var wizard = new Ui.UninstallWizardWindow(

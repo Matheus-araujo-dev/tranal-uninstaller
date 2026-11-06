@@ -27,5 +27,15 @@ public static class ViewSetup
             var toolId = id;
             ViewRegistry.Register(toolId, () => ToolViews.Create(toolId));
         }
+
+        // A tela de aparencia precisa da lista de programas que a janela
+        // principal ja escaneou: o mapa de area e o agrupamento sao refeitos
+        // com esses dados. Por isso o registro vem **depois** do laco acima.
+        ViewRegistry.Register(ToolCatalog.Appearance, () =>
+        {
+            var view = new Appearance.AppearanceView();
+            view.CarregarProgramas(host.ProgramasInstalados);
+            return view;
+        });
     }
 }

@@ -32,6 +32,7 @@ public static class ToolViews
         ToolCatalog.UnrecoverableDelete => CreateUnrecoverable(),
         ToolCatalog.RegistryOptimizer => CreateRegistryOptimizer(),
         ToolCatalog.SystemManagement => new Management.ManagementView(),
+        ToolCatalog.Appearance => new Appearance.AppearanceView(),
         _ => CreateUnknown(toolId),
     };
 

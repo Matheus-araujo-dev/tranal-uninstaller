@@ -44,6 +44,22 @@ public sealed class AppSettings
     /// </summary>
     public bool KeepPreferencesOnUninstall { get; set; } = true;
 
+    /// <summary>
+    /// Foca a tela "Traced Programs" (Programas Monitorados) no arranque.
+    ///
+    /// Corresponde a opcao 15129 do Revo ("Set the focus on Traced Programs on
+    /// startup"). Padrao: <c>true</c>.
+    /// </summary>
+    public bool FocusTracedProgramsOnStartup { get; set; } = true;
+
+    /// <summary>
+    /// Mostra as caixas de selecao na visualizacao de detalhes da lista.
+    ///
+    /// Corresponde a opcao 15334 do Revo ("Show check boxes in Details view").
+    /// Padrao: <c>true</c>.
+    /// </summary>
+    public bool ShowCheckBoxesInDetailsView { get; set; } = true;
+
     /// <summary>Codigo de idioma ativo (ver <see cref="Localization.LanguageCatalog"/>).</summary>
     public string Language { get; set; } = "pt-BR";
 
