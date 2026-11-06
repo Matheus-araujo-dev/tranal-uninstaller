@@ -1629,7 +1629,7 @@ public static class UninstallEngine
                                     Message = "atalho agendado para o próximo reinício do sistema",
                                 };
 
-                            return Fail(item, RemovalStatus.Failed, inner.Message);
+                            return Fail(item, RemovalStatus.Failed, inner.Message, RemovalOutcome.ErrorCodeOf(inner));
                         }
                     }
 
@@ -1693,7 +1693,7 @@ public static class UninstallEngine
                                 Message = "agendada para o próximo reinício do sistema",
                             };
 
-                        return Fail(item, RemovalStatus.Failed, inner.Message);
+                        return Fail(item, RemovalStatus.Failed, inner.Message, RemovalOutcome.ErrorCodeOf(inner));
                     }
                 }
 
@@ -1730,7 +1730,7 @@ public static class UninstallEngine
                                 Message = "agendado para o próximo reinício do sistema",
                             };
 
-                        return Fail(item, RemovalStatus.Failed, inner.Message);
+                        return Fail(item, RemovalStatus.Failed, inner.Message, RemovalOutcome.ErrorCodeOf(inner));
                     }
                 }
 
@@ -1755,10 +1755,10 @@ public static class UninstallEngine
         }
         catch (Exception ex)
         {
-            return Fail(item, RemovalStatus.Failed, ex.Message);
+            return Fail(item, RemovalStatus.Failed, ex.Message, RemovalOutcome.ErrorCodeOf(ex));
         }
     }
 
-    private static RemovalOutcome Fail(LeftoverItem item, RemovalStatus status, string message) =>
-        new() { Item = item, Status = status, Message = message };
+    private static RemovalOutcome Fail(LeftoverItem item, RemovalStatus status, string message, int errorCode = 0) =>
+        new() { Item = item, Status = status, Message = message, ErrorCode = errorCode };
 }

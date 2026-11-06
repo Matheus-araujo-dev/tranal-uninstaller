@@ -427,6 +427,26 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   serve.
 - `ReloadProgramRows` preserva **todas** as linhas escolhidas.
 
+## O log de remoção por item (regra do núcleo)
+
+Toda operação de remoção grava um log com **uma linha por item**: tipo,
+caminho, resultado e **código de erro**. A regra mora em
+`Core/RemovalLog.cs`; o código de erro entra em `RemovalOutcome.ErrorCode`
+(`Core/Removal.cs`), alimentado pelo bloco de captura da remoção
+(`Core/UninstallSupport.cs`).
+
+- O código de erro é o **do Windows** (a parte baixa do HResult): 5 é acesso
+  negado, 32 é arquivo em uso. `RemovalOutcome.ErrorCodeOf` faz a extração.
+- Dois códigos são **do Tranal** e estão no mesmo lugar: **403** = barrado
+  pelas regras de segurança do Tranal (o Windows recusou *e* o Tranal protegeu
+  são coisas diferentes) e **3010** = adiado para o próximo reinício (o mesmo
+  número que o instalador do Windows usa).
+- A pasta é `%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\removal-logs`,
+  ao lado dos logs de rastreio. A propriedade se chama `LogDirectory` e **não**
+  `Directory`: uma propriedade chamada `Directory` esconderia o
+  `System.IO.Directory` dentro da classe, e `Directory.CreateDirectory(...)`
+  passaria a tentar criar uma pasta chamada "CreateDirectory".
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do

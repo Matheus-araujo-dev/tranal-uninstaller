@@ -78,6 +78,12 @@ public partial class UninstallWizardWindow : Window
     private string _summary = string.Empty;
 
     /// <summary>
+    /// Caminho do log de remocao gravado nesta operacao. Vazio quando o log
+    /// nao pôde ser gravado.
+    /// </summary>
+    private string _removalLogPath = string.Empty;
+
+    /// <summary>
     /// Opcoes da operacao, resolvidas uma vez no inicio (etapa 2) para que
     /// a etapa 4 remova exatamente o que foi pedido.
     /// </summary>
@@ -529,6 +535,21 @@ public partial class UninstallWizardWindow : Window
         _report = await Task.Run(() =>
             UninstallEngine.RemoveLeftovers(_leftovers, options, _fullRegistryBackup));
         _summary = BuildSummary(_report);
+
+        // O log de remocao por item: o que saiu, o que nao saiu e o codigo de
+        // erro de cada um. E a resposta para "por que aquele arquivo nao foi
+        // apagado" — e o Uninstall Tool grava o mesmo.
+        try
+        {
+            _removalLogPath = RemovalLog.Save(_report, name);
+            _summary += Environment.NewLine + Environment.NewLine
+                + Loc.Get("Wizard.RemovalLogSaved", _removalLogPath);
+        }
+        catch (Exception ex)
+        {
+            _summary += Environment.NewLine + Environment.NewLine
+                + Loc.Get("Wizard.RemovalLogFailed", ex.Message);
+        }
 
         if (!AppSettingsStore.Current.DisableUninstallHistory)
         {

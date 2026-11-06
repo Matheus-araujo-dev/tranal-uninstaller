@@ -34,7 +34,27 @@ public sealed class RemovalOutcome
     public required RemovalStatus Status { get; init; }
     public string Message { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Codigo de erro da operacao.
+    ///
+    /// Zero quando deu certo. Nos outros casos e o codigo do Windows
+    /// (a parte baixa do HResult), que e o que o log por item precisa
+    /// mostrar: "falhou com 5" diz mais do que "falhou".
+    /// </summary>
+    public int ErrorCode { get; init; }
+
     public bool Removed => Status == RemovalStatus.Removed;
+
+    /// <summary>
+    /// O codigo de erro do Windows a partir de uma excecao.
+    ///
+    /// A parte baixa do HResult de uma excecao gerada pelo Win32 e o codigo
+    /// de erro do proprio Windows (5 = acesso negado, 32 = arquivo em uso,
+    /// 3 = caminho nao encontrado). E o numero que o usuario consegue
+    /// pesquisar e que o log por item precisa mostrar.
+    /// </summary>
+    /// <param name="exception">A excecao capturada.</param>
+    public static int ErrorCodeOf(Exception exception) => exception.HResult & 0xFFFF;
 
     /// <summary>Verdadeiro quando o item nao esta mais no sistema (removido ou ja ausente).</summary>
     public bool Gone => Status is RemovalStatus.Removed or RemovalStatus.AlreadyAbsent;

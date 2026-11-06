@@ -444,6 +444,7 @@ coberto, e isso agora está medido contra o código do `src/`.
 | **Aviso: "pastas abaixo podem conter dados do usuário e documentos"** | 15359 | ✅ | `Core/UninstallAdvisories.cs` (`UserDataAdvisory`) — painel de aviso na etapa da lista de sobras e aviso na CLI |
 | **Aviso: "remover este produto pode fazer recursos do Windows ou outros softwares pararem de funcionar"** | 15365 | ✅ | `Core/UninstallAdvisories.cs` (`SystemComponentAdvisory`) — confirmação **não** omitível antes de rodar o desinstalador |
 | **Aviso: "programas instalados na mesma pasta — as sobras de todos serão encontradas"** | 15337–15338 | ✅ | `Core/UninstallAdvisories.cs` (`SharedInstallLocationAdvisory`) — confirmação **não** omitível antes de rodar o desinstalador |
+| **Log de remoção por item, com código de erro** | (o Uninstall Tool grava esse log; o Revo mostra as contagens) | ✅ | `Core/RemovalLog.cs` — a regra, o CSV, o JSON e o nome do arquivo; `Core/Removal.cs` (`RemovalOutcome.ErrorCode`) recebe o código do Windows (5 = acesso negado, 32 = arquivo em uso). O log vai para `%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\removal-logs` |
 | **Log com tipo de mudança** (Created / Deleted / Renamed / Overwritten / Unknown) e nome/dado antigo | 15247–15255 | ⬜ | `TracePayload` (`TraceStore.cs:502`) guarda **só** `Files`, `Folders` e `RegistryKeys` — não sabe o que foi renomeado nem sobrescrito |
 | **Editar chave e valor de registro dentro do log** | 15256–15264, 15289 | ⬜ | — |
 | **Unir logs** de um mesmo programa | 15312–15314 | ⬜ | — |

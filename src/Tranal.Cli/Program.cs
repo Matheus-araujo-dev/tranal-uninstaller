@@ -224,6 +224,7 @@ public static class Program
 
         var report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
         PrintRemovalSummary(report, options);
+        SaveRemovalLog(report, name);
 
         return RemovalExitCode(report);
     }
@@ -424,6 +425,7 @@ public static class Program
             {
                 report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
                 PrintRemovalSummary(report, options);
+                SaveRemovalLog(report, name);
             }
             else
             {
@@ -518,6 +520,7 @@ public static class Program
         Console.WriteLine(report.Describe());
         Console.WriteLine();
         Console.WriteLine(RemovalSummaryLine(report));
+        SaveRemovalLog(report, name);
 
         if (!string.IsNullOrEmpty(report.RestorePointId))
             Console.WriteLine($"Ponto de restauração criado: {report.RestorePointId}");
@@ -779,6 +782,27 @@ public static class Program
                         + $"adiar para o próximo reinício: {(options.DeferToNextRestart ? "sim" : "não")} | "
                         + $"encerrar executáveis: {(options.KillRunningProcesses ? "sim" : "não")} | "
                         + $"backup completo do registro: {(options.FullRegistryBackup ? "sim" : "não")}");
+    }
+
+    /// <summary>
+    /// Grava o log de remocao por item e mostra onde ele ficou.
+    ///
+    /// O log e a resposta para "por que aquele item nao foi apagado": cada
+    /// linha traz o tipo, o caminho, o resultado e o codigo de erro. A
+    /// gravacao nunca derruba a operacao — se ela falhar, a remocao ja foi
+    /// feita e o erro aparece no console.
+    /// </summary>
+    private static void SaveRemovalLog(RemovalReport report, string programName)
+    {
+        try
+        {
+            var path = RemovalLog.Save(report, programName);
+            Console.WriteLine($"Log de remoção: {path}");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Não foi possível gravar o log de remoção: {ex.Message}");
+        }
     }
 
     /// <summary>

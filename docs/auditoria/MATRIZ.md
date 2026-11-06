@@ -180,7 +180,7 @@ item aponta para a auditoria que o revelou.
 | 25 | Gerenciador de permissões de app: serviço, inicialização, menu de contexto, tarefa agendada | **Wise H.5** |
 | 26 | **Motor de regras em arquivo + base de regras por aplicativo** — `Core/Rules/` com o **formato** que o Total Uninstall mediu (623 elementos, 6 categorias, `Include`/`Exclude`) e as **regras por app** que o Wise mantém à mão (595 perfis, 2.379 caminhos). A regra fica **em um lugar só** e `Core/UninstallSupport.cs` + `Core/Tools/JunkCleaner.cs` passam a **consumir** — hoje os dois duplicam o julgamento | **Wise H.5** · **Total Uninstall H.6** |
 | 27 | ✅ **Desinstalação em lote na interface** (seleção múltipla → remover em bloco) — a lista principal passou de `SelectionMode="Single"` para `"Extended"` (`MainWindow.xaml`), e o caminho de lote **existia** mas nunca chegava a N > 1. A confirmação do lote passou a usar `UserMessages.Confirm` (nunca omitida) e a mensagem foi traduzida (`Cmd.UninstallManyConfirm`) | **Uninstall Tool H.7** · **Total Uninstall H.6** |
-| 28 | **Log de remoção por item, com código de erro** — `Core/MsiInstallLog.cs` é *leitor*; falta o *escritor*. Um log por operação, com o código de erro e a explicação, é o que o dono vai perguntar quando algo der errado | **Uninstall Tool H.7** · **Geek H.4** |
+| 28 | ✅ **Log de remoção por item, com código de erro** — implementado em `Core/RemovalLog.cs` (a regra: o código de erro, o CSV, o JSON e o nome do arquivo), com `RemovalOutcome.ErrorCode` recebendo o código do Windows nos blocos de captura. A interface grava e mostra o caminho; a CLI grava e mostra o caminho. O `Core/MsiInstallLog.cs` continua sendo o *leitor* do log do instalador — este e o *escritor* do log de remoção. **15 testes novos** | **Uninstall Tool H.7** · **Geek H.4** |
 | 29 | **Exportar a varredura de sobras** (não só a lista) em XML — `Core/Exporters.cs` exporta a *lista* de programas; a **varredura** é o que serve para auditoria | **Uninstall Tool H.7** |
 | 30 | **Fluxo de snapshot pré/pós-instalação com comparação A×B** — `SystemSnapshot.Diff` existe, mas `SnapshotDiff` só expõe `NewFiles`/`NewFolders`/`NewRegistryKeys`: **não cobre modificados nem removidos**, e o snapshot não é guardado | **Total Uninstall H.6** |
 | 31 | **Biblioteca de snapshots nomeados** (criar, listar, apagar, comparar) — hoje a fotografia "só vive durante a operação" (`TracedPrograms.cs:43`) | **Total Uninstall H.6** · **Ashampoo H.8** |
@@ -486,7 +486,7 @@ compara sob demanda. É o item 29 do backlog, e é trabalho de **núcleo**.
 |---|---|---|---|
 | **Reverter a instalação rastreada** | ✅ | ⬜ | 🔴 alta |
 | **Desinstalação em lote** (Batch Force Removal / Batch Remove Entries) | ✅ | ⬜ | 🔴 alta |
-| **Log de remoção por item, com código de erro** | ✅ | ⬜ | 🟡 alta |
+| **Log de remoção por item, com código de erro** | ✅ | ✅ `Core/RemovalLog.cs` | 🟡 alta |
 | **Exportar a varredura de sobras** em XML | ✅ | ⬜ | 🟡 |
 | Rastreamento de **renomeação** de arquivos/pastas | ✅ | ⬜ | 🟡 |
 | Rastreamento de **processos criados** | ✅ | ⬜ | 🟡 |

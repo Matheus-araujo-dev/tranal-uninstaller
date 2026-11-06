@@ -295,6 +295,29 @@ Dois detalhes que vieram junto:
   isso, um lote de vinte virava um a cada clique. E o menu de contexto passou a
   agir sobre a linha **clicada**, e não sobre a primeira selecionada.
 
+### Novo: log de remoção por item, com código de erro
+
+Até aqui o Tranal **contava**: sabia quantos itens saíram da máquina, mas não
+deixava rastro de **qual** item saiu nem **por que** o outro não saiu. Agora
+cada operação de remoção grava um log em JSON, com uma linha por item:
+
+- **Tipo** (Arquivo, Pasta, Registro, Processo), **caminho**, **resultado**
+  (`Removed`, `AlreadyAbsent`, `Failed`, `Protected`, `Deferred`) e **código de
+  erro**.
+- O código de erro é o **do Windows**: 5 é acesso negado, 32 é arquivo em uso.
+  "Falhou com 5" diz mais do que "falhou".
+- Dois códigos são do Tranal e estão marcados como tal: **403** = barrado pelas
+  regras de segurança do Tranal (o Windows recusou *e* o Tranal protegeu são
+  coisas diferentes), **3010** = adiado para o próximo reinício (o mesmo número
+  que o instalador do Windows usa).
+- O log fica em `%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\removal-logs`,
+  ao lado dos logs de rastreio. A tela mostra o caminho no resumo; a CLI
+  mostra o caminho no console.
+
+A regra mora em `Core/RemovalLog.cs` — o código de erro, o CSV, o JSON e o
+nome do arquivo são decididos em um lugar só, e a interface e a CLI consomem
+o mesmo resultado.
+
 ### Novo: ícone próprio do aplicativo
 
 O Tranal não tinha ícone próprio: o executável saía sem nenhum. Agora tem

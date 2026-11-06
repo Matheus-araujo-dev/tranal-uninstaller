@@ -346,6 +346,8 @@
     "Advisory.SystemComponent":  "Remover este programa pode fazer recursos do Windows ou outros softwares pararem de funcionar corretamente.",
     "Advisory.UserData":  "As pastas abaixo podem conter dados do usuário e documentos: {0}",
     "Cmd.UninstallManyConfirm":  "Deseja desinstalar {0} programas?",
+    "Wizard.RemovalLogSaved":  "Log de remoção gravado em: {0}",
+    "Wizard.RemovalLogFailed":  "Não foi possível gravar o log de remoção: {0}",
     "Common.DeselectAll":  "Desmarcar tudo",
     "ContextMenu.Info":  "Informações",
     "Topmost.Size.Middle":  "Médio",
