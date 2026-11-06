@@ -150,7 +150,10 @@ public partial class UninstallWizardWindow : Window
         Title = Loc.Get("Wizard.Title");
         BuildLeftoversView();
 
-        _programs = programs;
+        // A ordem inteligente e a do Revo: os desinstaladores que abrem janela
+        // vao primeiro, enquanto o usuario ainda esta attentive; os
+        // silenciosos depois, em lote.
+        _programs = SmartOrdering.Order(programs);
         _allPrograms = allPrograms;
         _quick = quick;
         StepsBar.ItemsSource = StepNames;
@@ -450,11 +453,16 @@ public partial class UninstallWizardWindow : Window
 
     /// <summary>
     /// Os avisos que precedem a desinstalacao: outro programa divide a pasta
-    /// de instalacao, ou o programa e um componente do sistema.
+    /// de instalacao, o programa e um componente do sistema, o registro o
+    /// marca como protegido, o desinstalador registrado esta ausente ou
+    /// corrompido, e ha programas que costumam sair junto.
     ///
     /// A confirmacao NUNCA e omitida pelas preferencias de mensagem: e a
     /// pergunta que antecede a remocao, nao uma mensagem informativa. E o
     /// original faz a mesma coisa antes de rodar o desinstalador nativo.
+    ///
+    /// A regra mora no nucleo (<see cref="UninstallAdvisories.Build"/>): a
+    /// tela nao monta aviso por conta propria.
     /// </summary>
     private bool ConfirmPreUninstallAdvisories()
     {
@@ -462,11 +470,7 @@ public partial class UninstallWizardWindow : Window
 
         foreach (var program in _programs)
         {
-            var shared = UninstallAdvisories.SharedInstallLocationAdvisory(program, _allPrograms);
-            if (shared is not null) advisories.Add(shared);
-
-            var system = UninstallAdvisories.SystemComponentAdvisory(program);
-            if (system is not null) advisories.Add(system);
+            advisories.AddRange(UninstallAdvisories.Build(program, _allPrograms));
         }
 
         if (advisories.Count == 0) return true;

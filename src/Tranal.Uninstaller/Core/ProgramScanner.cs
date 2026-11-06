@@ -48,6 +48,17 @@ public static class ProgramScanner
         /// duplicada de Battlefield 2042) nao aparecem na listagem dele.
         /// </summary>
         public bool RequireUninstallString { get; init; } = true;
+
+        /// <summary>
+        /// Inclui as entradas que NAO tem comando de desinstalador, marcadas
+        /// como <see cref="UninstallerHealth.Missing"/>.
+        ///
+        /// Desligado por padrao, porque o Revo tambem as esconde (AMD DVR,
+        /// AMD Settings, AMD WVR64, RyzenMasterSDK...). Ligado, elas aparecem
+        /// marcadas — e uma entrada sem desinstalador e uma sobra de
+        /// registro, que o usuario precisa ver para limpar na mao.
+        /// </summary>
+        public bool IncludeEntriesWithoutUninstaller { get; init; }
     }
 
     public static List<InstalledProgram> Scan(ScanOptions options)
@@ -105,8 +116,11 @@ public static class ProgramScanner
         var uninstallString = GetString(sub, "UninstallString") ?? string.Empty;
         var quiet = GetString(sub, "QuietUninstallString") ?? string.Empty;
         // Sem comando de desinstalacao a entrada e invisivel para o Revo
-        // (AMD DVR, AMD Settings, AMD WVR64, RyzenMasterSDK...).
-        if (options.RequireUninstallString && uninstallString.Trim().Length == 0) return null;
+        // (AMD DVR, AMD Settings, AMD WVR64, RyzenMasterSDK...). Quem quer
+        // ver essas entradas liga IncludeEntriesWithoutUninstaller.
+        if (options.RequireUninstallString
+            && uninstallString.Trim().Length == 0
+            && !options.IncludeEntriesWithoutUninstaller) return null;
         var installLocation = (GetString(sub, "InstallLocation") ?? string.Empty).Trim().Trim('"');
         var displayIcon = GetString(sub, "DisplayIcon") ?? string.Empty;
 
@@ -129,7 +143,14 @@ public static class ProgramScanner
             IsWindowsInstaller = GetInt(sub, "WindowsInstaller") == 1,
             IsUpgrade = GetInt(sub, "Upgrade") == 1,
             Installer = (GetString(sub, "InstallSource") ?? string.Empty).Trim(),
+            // "NoRemove" no registro e o jeito do Windows dizer que a entrada
+            // nao deve ser removida.
+            IsProtected = GetInt(sub, "NoRemove") == 1,
         };
+
+        // A saude do desinstalador e lida sempre: e o que permite avisar que
+        // o desinstalador aponta para um arquivo que nao existe mais.
+        program.UninstallerHealth = UninstallerHealthEvaluator.Evaluate(program);
 
         // O codigo do produto vem do valor "ProductCode" do registro; quando
         // o registro nao tem o valor, ele e extraido do comando de

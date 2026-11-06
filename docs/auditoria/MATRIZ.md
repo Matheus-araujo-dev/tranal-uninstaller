@@ -42,9 +42,9 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | A9 | **Varredura de drives** atrás de apps não registrados | ⬜ | ✅ | ✅ | 🟡 |
 | A10 | Detecção de **produtos MSI** por GUID | 🟡 | ✅ | ✅ | 🟡 |
 | A11 | Marcação de **componente do sistema** | ✅ | ✅ | ✅ | — |
-| A12 | Marcação de **protegido** (`NoRemove`) | ✅ | ✅ | ⬜ (sem leitura de `NoRemove`) | 🟡 |
+| A12 | Marcação de **protegido** (`NoRemove`) | ✅ | ✅ | ✅ (`Core/ProgramScanner.cs` le `NoRemove`; aviso em `Core/UninstallAdvisories.cs`) | — |
 | A13 | Marcação de **atualização** de outro app | 🟡 | ✅ | 🟡 (lê o registro; não marca na lista) | 🟢 |
-| A14 | Detecção de **desinstalador corrompido/ausente** | ✅ | ✅ | ⬜ (entradas sem desinstalador ficam invisíveis) | 🟡 |
+| A14 | Detecção de **desinstalador corrompido/ausente** | ✅ | ✅ | ✅ (`Core/UninstallerHealth.cs`: `Missing` sem comando, `Broken` quando o caminho absoluto não existe) | — |
 | A15 | **Pastas de instalação personalizadas** do usuário | ⬜ | ✅ | 🟡 (lê a pasta do programa; sem pastas extras do usuário) | 🟢 |
 | A16 | **Filtros rápidos** (só básicas / só sistema / só auto-inicialização / só navegadores) | ✅ | ✅ | ✅ | — |
 
@@ -59,7 +59,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | B5 | **Desinstalar manualmente** (pular o desinstalador, listar o que apagar) | 🟡 | ✅ | ✅ | 🟡 |
 | B6 | **Desinstalar por janela / diretório / arquivo** | ✅ | ✅ | ✅ (forçada por janela, diretório ou arquivo) | 🟢 |
 | B7 | **Desinstalação simultânea** com prevenção de colisão | ⬜ | ✅ | ⬜ | 🟡 |
-| B8 | **Ordenação inteligente** (loud primeiro) | ⬜ | ✅ | ⬜ | 🟢 |
+| B8 | **Ordenação inteligente** (loud primeiro) | ⬜ | ✅ | ✅ (`Core/Appearance/SmartOrdering.cs`; o assistente consome) | — |
 | B9 | **Simulação / dry run** | 🟡 | ✅ | ✅ (`/scan`) | — 🟢 Tranal melhor |
 | B10 | **Painel de progresso** com estados (executando/aguardando/concluído/falhou/pulado) | ✅ | ✅ | ✅ | 🟡 |
 | B11 | Controle manual do progresso: **pular / encerrar / rodar agora** | ⬜ | ✅ | ✅ (pular / encerrar / rodar agora) | 🟡 |
@@ -68,9 +68,9 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | B14 | **Finalizar automaticamente** desinstalador travado | ✅ | ✅ | ✅ | — |
 | B15 | **Comandos antes e depois** da desinstalação | 🟡 | ✅ | ⬜ | 🟡 |
 | B16 | **Assistente de desinstalação em etapas** | ✅ (5 etapas) | ✅ (6 etapas) | ✅ (5 etapas) | — |
-| B17 | Lista de **aplicativos relacionados** que talvez queiram sair junto | 🟡 | ✅ | ⬜ | 🟡 |
+| B17 | Lista de **aplicativos relacionados** que talvez queiram sair junto | 🟡 | ✅ | ✅ (`Core/Discovery/RelatedProgramFinder.cs`; aviso no assistente) | — |
 | B18 | **Remover da tarefa** quem não desinstala em silêncio | 🟡 | ✅ | ⬜ | 🟢 |
-| B19 | **Impedir desligamento/reinício** durante a tarefa | ⬜ | ✅ | ⬜ | 🟢 |
+| B19 | **Impedir desligamento/reinício** durante a tarefa | ⬜ | ✅ | ✅ (`Core/Automation/ShutdownGuard.cs`; ligado no `UninstallEngine`) | — |
 | B20 | **Ponto de restauração** antes de desinstalar | ✅ | ✅ | ✅ | — |
 | B21 | **Backup completo do registro** antes de desinstalar, com script de restauração | ✅ | 🟡 (só .reg) | ✅ | — 🟢 Tranal melhor |
 
@@ -113,7 +113,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | D13 | **Renomear entrada** | 🟡 | ✅ | ✅ | 🟢 |
 | D14 | **Excluir entrada do registro** sem desinstalar | ✅ | ✅ | ✅ | 🟢 |
 | D15 | **Assumir a propriedade** | ⬜ | ✅ | ✅ | 🟢 |
-| D16 | Abrir chave no **Regedit** / Programas e Recursos / Recuperação do Sistema | 🟡 | ✅ | ⬜ | 🟢 |
+| D16 | Abrir chave no **Regedit** / Programas e Recursos / Recuperação do Sistema | 🟡 | ✅ | ✅ (`Core/Management/SystemNavigator.cs`; menu de contexto da lista) | — |
 | D17 | **Pesquisar on-line** o programa (Google, AlternativeTo, GitHub…) | 🟡 | ✅ | ✅ | 🟢 |
 | D18 | **Painel lateral** de configurações | 🟡 | ✅ | ✅ | 🟢 |
 | D19 | **Agrupamento** automático pela coluna de ordenação | 🟡 | ✅ | ✅ | 🟢 |
@@ -143,27 +143,25 @@ As tabelas A–E foram escritas durante a auditoria, **antes** da implementaçã
 do backlog. Depois dos oito lotes, a coluna "Tranal" foi conferida item a item
 contra o código (`src/`), não contra a memória. O retrato real de hoje:
 
-- **62 das 86** funcionalidades medidas estão **implementadas** (✅);
+- **68 das 86** funcionalidades medidas estão **implementadas** (✅);
 - **12** estão **parciais** (🟡) — a parte principal existe, falta um detalhe
   medido nos concorrentes;
-- **12** **não existem** (⬜).
+- **6** **não existem** (⬜).
 
-**As 12 que não existem** (a lista completa e honesta):
+**As 6 que não existem** (a lista completa e honesta):
 
 | # | O que falta | Por quê |
 |---|---|---|
-| A12 | Marcação de **protegido** (`NoRemove`) | o registro tem o valor, o Tranal não o lê |
-| A14 | Detecção de **desinstalador corrompido/ausente** | hoje a entrada sem desinstalador fica invisível, em vez de aparecer marcada |
 | B7 | **Desinstalação simultânea** com prevenção de colisão | não há fila que impeça dois instaladores ao mesmo tempo |
-| B8 | **Ordenação inteligente** (loud primeiro) | a ordem é a da lista, não por risco |
 | B13 | **Monitorar silencioso** atrás de popups (daemon) | é a automação de interface de desinstaladores de terceiros (item #5 do backlog) |
 | B15 | **Comandos antes e depois** da desinstalação | não há campo para isso |
-| B17 | Lista de **aplicativos relacionados** | não há correlação entre programas |
 | B18 | **Remover da tarefa** quem não desinstala em silêncio | não há fila de tarefas |
-| B19 | **Impedir desligamento/reinício** durante a tarefa | não há trava de sessão |
 | C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | a confiança vem do nome, não do registro de inicialização |
 | C15 | Desinstalador **simples gerado** para app órfão | decisão do §8 do `PARIDADE.md` |
-| D16 | Abrir chave no **Regedit** / Programas e Recursos | não há comando de abertura |
+
+As seis lacunas fechadas nesta rodada (A12, A14, B8, B17, B19, D16) vieram da
+engenharia reversa descrita em `docs/auditoria/BINARIO.md`: cada uma tem a
+evidencia no binario de um concorrente e o arquivo do Tranal que a implementa.
 
 **As 12 parciais**: A8, A13, A15, A17, B3, B12, C6, C8, C14, D2, D12 e D20 —
 a coluna traz o motivo de cada uma.

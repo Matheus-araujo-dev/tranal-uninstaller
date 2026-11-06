@@ -10,6 +10,7 @@ using System.Windows.Media;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
+using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
@@ -1161,6 +1162,21 @@ public partial class MainWindow : Window
 
         var icon = CommandItem(Loc.Get("Cmd.ChangeIcon"), "CmdChangeIcon", () => ChangeIcon(row));
         menu.Items.Add(icon);
+
+        // Onde a desinstalacao acontece: o registro do programa, o painel de
+        // Programas e Recursos e a Recuperacao do Sistema. O destino vem do
+        // nucleo, que e o unico lugar que sabe o comando de cada um.
+        var abrir = new MenuItem { Header = Loc.Get("Cmd.OpenInWindows") };
+        AutomationProperties.SetAutomationId(abrir, "CmdOpenInWindows");
+        foreach (var target in SystemNavigator.TargetsFor(row.Program))
+        {
+            var alvo = target;
+            abrir.Items.Add(CommandItem(
+                alvo.Title,
+                "CmdOpen" + alvo.FileName.Replace(".exe", string.Empty).Replace(".cpl", string.Empty),
+                () => SystemNavigator.Open(alvo)));
+        }
+        menu.Items.Add(abrir);
 
         menu.Items.Add(new Separator());
 

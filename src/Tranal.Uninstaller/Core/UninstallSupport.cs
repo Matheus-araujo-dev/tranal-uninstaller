@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
+using Tranal.Uninstaller.Core.Automation;
 
 namespace Tranal.Uninstaller.Core;
 
@@ -1175,6 +1176,11 @@ public static class UninstallEngine
         var startInfo = new ProcessStartInfo(exe, arguments) { UseShellExecute = true };
         try
         {
+            // Durante a desinstalacao nativa o Windows nao pode desligar nem
+            // reiniciar: uma maquina que apaga no meio do processo deixa o
+            // programa pela metade.
+            using var guard = ShutdownGuard.Acquire();
+
             using var process = Process.Start(startInfo);
             if (process is null)
                 return new BuiltInUninstallResult

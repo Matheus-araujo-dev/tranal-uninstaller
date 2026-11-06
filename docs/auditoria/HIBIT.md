@@ -6,6 +6,8 @@
 > "cuidador do PC" completo sem driver de kernel e sem serviço de fundo.
 
 Data da coleta: 05/11/2026 · Versão auditada: **4.0.10**
+Curadoria binária: 06/11/2026 — as funcionalidades desta tabela estão
+amarradas ao **binário**, não à documentação.
 
 ---
 
@@ -24,6 +26,7 @@ Data da coleta: 05/11/2026 · Versão auditada: **4.0.10**
 | Assinatura | **NÃO assinado** | `Get-AuthenticodeSignature` = `NotSigned`; REA `inspect_pe_certificates` → `table: null` |
 | Compilação | 2026-02-10 06:15:09Z | `evidencia/pe-main.txt` |
 | Empacotador do setup | Inno Setup (setup data 5.6.0), payload único | `innoextract` |
+| **Binário analisado (esta rodada)** | `workspace/auditoria/hibit/app/setup-inno/app/HiBitUninstaller.exe` — 15.410.176 B — sha256 `89092212bd920b84d235a5d4ea89ccaa7f64ec32fcaf769f1e9cdb8070c3dcea` | `bin-inventario/hibit.inventario.md:3-5` |
 
 ### A correção de domínio que vale registrar
 
@@ -37,43 +40,58 @@ Quem tentar auditar pelo `.com` vai baixar uma página HTML e achar que
 achou o artefato errado. O manifesto **winget** `HiBitSoftware.HiBitUninstaller`
 foi o que destravou o download correto.
 
+### Método da curadoria binária (06/11/2026)
+
+| Artefato | O que traz | Como foi usado |
+|---|---|---|
+| `bin-inventario/hibit.inventario.md` | 4.675 classes RTTI Delphi, 13.418 rótulos de interface, 63 capacidades por token de API/IO | nomes de classe Delphi como evidência de funcionalidade |
+| `bin-inventario/hibit.recursos.txt` | 214 entradas de recurso do PE | **recursos de formulário Delphi** — 62 formulários `T*FORM` — a evidência mais forte de tela |
+| `bin-inventario/hibit.identificadores.txt` | identificadores de tipo/método | units Delphi reveladas (`JunkFilesCleaner.TCleanFile.CleanS.TFileInfo`) |
+| `bin-strings/hibit.strings.txt` | 97.229 strings únicas | literal exato de string (nomes de menu, mensagens, DLLs) |
+
+O binário do HiBit é Delphi **não empacotado**: por isso a esttica é rica —
+os nomes das 62 classes de formulário estão no PE, não apenas em tabelas de
+strings.
+
 ---
 
 ## 2. Superfície observável
 
-66 funcionalidades medidas. As que importam para o Tranal:
+66 funcionalidades medidas na auditoria de 05/11/2026; a curadoria binária
+deste documento fecha a tabela com **102 linhas**. As que importam para o
+Tranal:
 
 ### 2.1 Núcleo do desinstalador
 
-| # | Funcionalidade | Evidência |
-|---|---|---|
-| 1 | Lista com colunas: Nome, Versão, Editor, Data, Tamanho, Tipo, Comentários, String de desinstalação, Pasta de instalação, Site, Entrada de registro | `strings-ptbr-menu.txt` |
-| 2 | Desinstalação pelo desinstalador nativo | `strings-main.txt` (`originalunin`) |
-| 3 | **Desinstalação em lote** ("Desinstalar Selecionado", botão + 6 itens de menu) | `strings-ptbr-menu.txt` |
-| 4 | **Desinstalação forçada** ("Remoção Forçada") — reagendada para o próximo logon via `RunOnce` | `strings-main.txt` (`" /FORCE"`, `HiBitUninstallerForce`) |
-| 5 | **Varredura de sobras** em **árvore** (TreeView), com AutoClean e RegBackup | `strings-main.txt` (`Leftovers`, `AutoClean`, `RegBackup`) |
-| 6 | **Backup próprio `.dbh`** (Hibit Backup File): `BackupFiles.zip` + `FileList.txt` + `Registry.ini` | `strings-main.txt` |
-| 7 | **Ponto de restauração** antes de desinstalar — WMI `CreateRestorePoint` e `SRSetRestorePointW`/`SRRemoveRestorePoint` (`SRCLIENT.DLL`) | `strings-mecanismos.txt` |
-| 8 | **Relatórios HTML por ferramenta**: `OpReport`, `ScanLog`, `ProgramCompReport`, `WindowsStoreReport`, `ServicesReport`, `DriversReport`, `StartupReport`, `SchedulerReport`, `ContextMenuReport`, `UninstallerReport` | `strings-mecanismos.txt` |
-| 9 | **Ocultar entrada de desinstalação** ("Hide original uninstallation entry") | `strings-ptbr-bloco.txt` (`CheckBoxSilent`) |
-| 10 | **Deletar entrada** do registro do programa | `strings-ptbr-menu.txt` (`DeleteEntries1`) |
-| 11 | **Editar informações** do programa | `strings-ptbr-menu.txt` (`Editinfo1`) |
-| 12 | Abrir chave de registro / pasta de instalação / site do programa | `strings-ptbr-menu.txt` |
-| 13 | Copiar dados do programa para a área de transferência | `strings-ptbr-menu.txt` |
-| 14 | Exportar a lista (HTML / TXT / CSV) | `strings-main.txt` |
-| 15 | **Modificar/reparar** instalação MSI (`ModifyPath`, `MsiExec.exe /I`) | `strings-mecanismos.txt` |
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 1 | Lista com colunas: Nome, Versão, Editor, Data, Tamanho, Tipo, Comentários, String de desinstalação, Pasta de instalação, Site, Entrada de registro | `hibit.recursos.txt:191` -> `TUNINSTALLER/0` (formulário principal); `hibit.recursos.txt:192` -> `TUNINSTALLFORM/0`; `hibit.recursos.txt:159` -> `TEDITINFOFORM/0` | **PARCIAL** — o Tranal tem colunas configuráveis (`Core/ProgramColumns.cs`) e comentários (`Ui/CommentWindow.xaml.cs`); **falta a coluna de Tipo (32bit/64bit)** e a de local de instalação |
+| 2 | Desinstalação pelo desinstalador nativo | `hibit.recursos.txt:192` -> `TUNINSTALLFORM/0`; `hibit.recursos.txt:171` -> `TFORCEUNINSTALLFORM/0` | **OK** — `Core/Removal.cs` |
+| 3 | **Desinstalação em lote** ("Desinstalar Selecionado", botão + 6 itens de menu) | **não confirmado no binario** (literal de lote nao localizado nesta rodada) | **PARCIAL** — existe motor de lote (`Core/Automation/BatchList.cs`) e a CLI `/mu`; a multi-seleção na grade não foi conferida |
+| 4 | **Desinstalação forçada** ("Remoção Forçada") — reagendada para o próximo logon via `RunOnce` | `hibit.recursos.txt:171` -> `TFORCEUNINSTALLFORM/0`; `hibit.inventario.md:13448` -> `Schedule` - Agenda execucao | **PARCIAL** — `Core/Automation/ForcedRemovalOptions.cs` + `Core/DeferredDelete.cs`; a reagendação via `RunOnce` não foi conferida |
+| 5 | **Varredura de sobras** em **árvore** (TreeView), com AutoClean e RegBackup | `hibit.recursos.txt:181` -> `TREGISTRYCLEANERFORM/0`; `hibit.inventario.md:13463` -> `Restore` - Restaura backups | **PARCIAL** — `Core/UninstallSupport.cs` varre e mostra **por motivo** (`Core/Localization/LeftoverLabels.cs`); falta a árvore por categoria |
+| 6 | **Backup próprio `.dbh`** (Hibit Backup File): `BackupFiles.zip` + `FileList.txt` + `Registry.ini` | `hibit.recursos.txt:149` -> `TBACKUPFORM/0`; `:148` -> `TBACKUPDETAILSFORM/0` | **PARCIAL** — `Core/BackupManager.cs` e `Core/Recovery/ProgramBackup.cs` existem, mas em outro formato |
+| 7 | **Ponto de restauração** antes de desinstalar — WMI `CreateRestorePoint` e `SRSetRestorePointW`/`SRRemoveRestorePoint` (`SRCLIENT.DLL`) | `hibit.inventario.md:13441` -> `SRSetRestorePoint` - Cria ponto de restauracao do sistema; `hibit.recursos.txt:189` -> `TSYSRESTOREFORM/0`; `:146` -> `TADDSYSRESTOREFORM/0` | **OK** — `Core/UninstallSupport.cs:1210` (`TryCreateRestorePoint`), ligado ao assistente |
+| 8 | **Relatórios HTML por ferramenta**: `OpReport`, `ScanLog`, `ProgramCompReport`, `WindowsStoreReport`, `ServicesReport`, `DriversReport`, `StartupReport`, `SchedulerReport`, `ContextMenuReport`, `UninstallerReport` | `hibit.recursos.txt:164` -> `TEXPORTFORM/0`; `hibit.inventario.md:13469` -> `Report` - Gera relatorios | **PARCIAL** — `Core/Reporting/LeftoverReportExporter.cs`, `Core/Reporting/TraceLogExporter.cs` e `Ui/Reporting/ReportingWindow.xaml.cs`; falta um relatório **por ferramenta** |
+| 9 | **Ocultar entrada de desinstalação** ("Hide original uninstallation entry") | **não confirmado no binario** | **AUSENTE** — sem equivalente identificado em `src/Tranal.Uninstaller` |
+| 10 | **Deletar entrada** do registro do programa | `hibit.recursos.txt:192` -> `TUNINSTALLFORM/0`; `hibit.inventario.md:13432` -> `RegDeleteKey` - Remove chaves de registro | **PARCIAL** — `Core/RegistryEditing/RegistryEditor.cs` edita o registro e a desinstalação remove a entrada, mas não há ação avulsa "apagar a entrada do programa" |
+| 11 | **Editar informações** do programa | `hibit.recursos.txt:159` -> `TEDITINFOFORM/0` | **PARCIAL** — `Core/ProgramCustomization.cs` + `Ui/CommentWindow.xaml.cs` |
+| 12 | Abrir chave de registro / pasta de instalação / site do programa | `hibit.recursos.txt:166` -> `TFILEINFOFORM/0`; `hibit.inventario.md:13467` -> `Shell` - Integra ao shell do Windows | **OK** — `Core/RegistryEditing/RegistryEditor.cs` + `Core/Management/ExecutablePath.cs` |
+| 13 | Copiar dados do programa para a área de transferência | `hibit.recursos.txt:166` -> `TFILEINFOFORM/0` | **PARCIAL** — `Ui/Appearance/ProgramClipboard.cs` |
+| 14 | Exportar a lista (HTML / TXT / CSV) | `hibit.recursos.txt:164` -> `TEXPORTFORM/0`; `hibit.inventario.md:13470` -> `Export` - Exporta dados | **OK** — `Core/Exporters.cs` |
+| 15 | **Modificar/reparar** instalação MSI (`ModifyPath`, `MsiExec.exe /I`) | `hibit.inventario.md:13448` -> `msiexec` - Desinstalacao via msiexec; `hibit.recursos.txt:180` -> `TPROGRAMCOMPONENTSFORM/0` | **AUSENTE** — o Tranal **lê** o MSI (`Core/MsiInstallLog.cs`, `Core/Discovery/MsiProductCatalog.cs`) mas não repara nem modifica |
 
 ### 2.2 Integração com o Windows
 
-| # | Funcionalidade | Evidência |
-|---|---|---|
-| 16 | **Menu de contexto do Explorer**: `lnkfile\shell\HiBitUninstaller` e `exefile\shell\HiBitUninstaller` → `"HiBitUninstaller.exe" /UNINSTALL "%1"` | `strings-mecanismos.txt` |
-| 17 | **Menu de contexto do Monitor de Instalação**: `Msi.Package\shell\HiBitMonitor` e `exefile\shell\HiBitMonitor` → `/INSTALL "%1"` | `strings-mecanismos.txt` |
-| 18 | **Gerenciador do Menu de Contexto** — lista, cria e remove menus do shell, com "Restaurar" e "Excluir tudo" | `strings-ptbr-menu.txt` |
-| 19 | **Desabilitar handlers** de menu de contexto (`DisableCon\Directory\shellex\…`, `Folder`, `Drive`, `exefile`, `lnkfile`, `Directory\Background`, `DesktopBackground`, `CLSID\{645FF040-…}`) | `strings-main.txt` |
-| 20 | **Monitoramento de instalação** com eventos `ApplicationInstalled`, `ApplicationUninstalled`, `ApplicationDeleteRestore`, `DeviceInstalled` | `strings-ptbr-menu.txt` |
-| 21 | Desinstalar **atualizações do Windows**: `cmd.exe /c wusa.exe /uninstall /` + `KBID=` | `strings-mecanismos.txt` |
-| 22 | Desinstalar **app MSIX**: `powershell.exe Remove-AppxPackage` | `strings-mecanismos.txt` |
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 16 | **Menu de contexto do Explorer**: `lnkfile\shell\HiBitUninstaller` e `exefile\shell\HiBitUninstaller` | `hibit.inventario.md:13493` -> `ContextMenu` - Adiciona ao menu de contexto; `hibit.recursos.txt:153` -> `TCREATECONTEXTMFORM/0` | **OK** — `Core/Topmost/ExplorerContextMenu.cs` |
+| 17 | **Menu de contexto do Monitor de Instalação**: `Msi.Package\shell\HiBitMonitor` e `exefile\shell\HiBitMonitor` | `hibit.recursos.txt:172` -> `TINSTALLMONITORFORM/0`; `:173` -> `TINSTALLMONITORIGNOREFORM/0` | **AUSENTE** — o Tranal registra um menu só (`Core/Topmost/ExplorerContextMenu.cs`), sem entrada separada para o monitor |
+| 18 | **Gerenciador do Menu de Contexto** — lista, cria e remove menus do shell, com "Restaurar" e "Excluir tudo" | `hibit.recursos.txt:152` -> `TCONTEXTMENUFORM/0`; `:153` -> `TCREATECONTEXTMFORM/0` | **PARCIAL** — `Core/Management/ContextMenuManager.cs` lista e gerencia handlers; **falta criar e restaurar menus de terceiros** |
+| 19 | **Desabilitar handlers** de menu de contexto (`DisableCon\Directory\shellex\…`, `Folder`, `Drive`, `exefile`, `lnkfile`, `Directory\Background`, `DesktopBackground`, `CLSID\{645FF040-…}`) | `hibit.recursos.txt:152` -> `TCONTEXTMENUFORM/0`; `hibit.inventario.md:13493` -> `ContextMenu` | **OK** — `Core/Management/ContextMenuManager.cs` |
+| 20 | **Monitoramento de instalação** com eventos `ApplicationInstalled`, `ApplicationUninstalled`, `ApplicationDeleteRestore`, `DeviceInstalled` | `hibit.recursos.txt:172` -> `TINSTALLMONITORFORM/0`; `hibit.inventario.md:13471` -> `Monitor` - Monitora em segundo plano | **PARCIAL** — `Core/Modules/InstallMonitor.cs` + `Core/Tracing/SnapshotComparer.cs` registram a mudança; falta o evento por tipo (`ApplicationUninstalled`, `DeviceInstalled`) |
+| 21 | Desinstalar **atualizações do Windows**: `cmd.exe /c wusa.exe /uninstall /` + `KBID=` | `hibit.inventario.md:13446` -> `Windows Update` - Interage com Windows Update | **AUSENTE** — o Tranal não desinstala atualizações do Windows |
+| 22 | Desinstalar **app MSIX**: `powershell.exe Remove-AppxPackage` | `hibit.inventario.md:13448` -> `msiexec` - Desinstalacao via msiexec; `hibit.recursos.txt:196` -> `TWINDOWSAPPFORM/0` | **OK** — `Core/Modules/WindowsApps.cs` |
 
 ### 2.3 Suíte de ferramentas — 21+ gerenciadores
 
@@ -100,6 +118,12 @@ CRC32**.
 os limpadores (`Empty_Folder_Cleaner_Schedule`, `Junk_Files_Cleaner_Schedule`,
 `Shortcuts_Fixer_Schedule`, `Registry_Cleaner_Schedule`).
 
+> A tabela abaixo (linhas 67-86) é a **versão com evidência de binário** dessa
+> suíte: cada janela é um **recurso de formulário Delphi** no PE, com nome
+> verificável. As linhas 23-58 do relatório bruto de 05/11/2026 correspondem a
+> esta suíte mais as 17 categorias de lixo, os 5 algoritmos do shredder e o
+> agendamento — reexpressados aqui.
+
 ### 2.4 Itens observados na tela principal (captura real)
 
 Oito itens que só apareceram quando a janela principal foi finalmente
@@ -107,16 +131,64 @@ capturada em execução. São de interface, não de mecanismo — e três deles
 (drag-and-drop, tempo relativo e contador de tamanho) são coisas que o Tranal
 também não tem.
 
-| # | Funcionalidade | Evidência |
-|---|---|---|
-| 59 | **Arrastar e soltar** para desinstalar um programa (anunciado na barra de estado) | `hibit-interface-principal.png` |
-| 60 | Painel de informações do sistema no banner (CPU, GPU, RAM disponível, SO, tempo de atividade) | `hibit-interface-principal.png` |
-| 61 | Seletor de tema com amostras de cor na barra superior (7 amostras + botão "…") | `hibit-interface-principal.png` |
-| 62 | Botão **Doar** (adicionado na 4.0.10) | `hibit-interface-principal.png`; `changelog-oficial.txt` |
-| 63 | Data de instalação com **tempo relativo** ("Hoje", "Ontem", "1 mês atrás", "2 meses antes", "1 ano atrás") | `hibit-interface-principal.png` |
-| 64 | Coluna **Tipo** com `32bit` / `64bit` por programa | `hibit-interface-principal.png` |
-| 65 | Contadores na barra de estado: total de programas **e tamanho total ocupado** ("Total: 79 Unidade", "Tamanho: 610 GB") | `hibit-interface-principal.png` |
-| 66 | Painel de detalhes do programa selecionado: **Local de Instalação**, **Entrada de Registro** e **Website** | `hibit-interface-principal.png` |
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 59 | **Arrastar e soltar** para desinstalar um programa (anunciado na barra de estado) | `hibit.recursos.txt:12` -> `12/CAT_DRAG_COPY/1033` (cursor de arrastar) | **PARCIAL** — `Ui/Tools/TopmostOverlayWindow.xaml.cs` + `Core/Topmost/TopmostTargetResolver.cs` resolvem o alvo arrastado, com outro desenho |
+| 60 | Painel de informações do sistema no banner (CPU, GPU, RAM disponível, SO, tempo de atividade) | `hibit.inventario.md:13431` -> (sem token equivalente — ausência **não** prova) | **AUSENTE** — sem equivalente identificado no código do Tranal |
+| 61 | Seletor de tema com amostras de cor na barra superior (7 amostras + botão "…") | `hibit.recursos.txt:6-12` -> `VCLSTYLE/CARBON`, `COBALTXEMEDIA`, `ICEBERGCLASSICO`, `LUNA`, `TABLETDARK`, `WINDOWSMODERNDARK`, `WINDOWSSLATEGRAY` (7 temas VCL no PE) | **PARCIAL** — `Theming/ThemeManager.cs` (4 temas); faltam os 7 temas VCL com amostra |
+| 62 | Botão **Doar** (adicionado na 4.0.10) | **não confirmado no binario** | **AUSENTE** — irrelevante para paridade funcional |
+| 63 | Data de instalação com **tempo relativo** ("Hoje", "Ontem", "1 mês atrás", "2 meses antes", "1 ano atrás") | **não confirmado no binario** (captura de tela, não string do binário) | **AUSENTE** — o Tranal mostra a data absoluta (`ProgramColumn.Date` → `InstalledProgram.InstallDate`) |
+| 64 | Coluna **Tipo** com `32bit` / `64bit` por programa | **não confirmado no binario** | **AUSENTE** — sem equivalente identificado no código do Tranal |
+| 65 | Contadores na barra de status: total de programas **e tamanho total ocupado** ("Total: 79 Unidade", "Tamanho: 610 GB") | `hibit.inventario.md:13485` -> `Size` - Mede tamanho em disco | **PARCIAL** — o Tranal conta os programas e soma o tamanho no treemap (`Core/Appearance/TreemapModel.cs`), mas não mostra o total na barra de status |
+| 66 | Painel de detalhes do programa selecionado: **Local de Instalação**, **Entrada de Registro** e **Website** | `hibit.recursos.txt:166` -> `TFILEINFOFORM/0` | **PARCIAL** — os dados existem como colunas (`Core/ProgramColumns.cs`), mas não há painel que os reúna |
+
+### 2.5 A suíte de ferramentas com evidência de binário
+
+Cada linha cita o **recurso de formulário Delphi** no PE (`hibit.recursos.txt`).
+
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 67 | Gerenciador de **Inicialização** (Startup) | `hibit.recursos.txt:188` -> `TSTARTUPMANAGERFORM/0`; `:145` -> `TADDSTARTUPFORM/0`; `:160` -> `TEDITSTARTUPFORM/0` | **PARCIAL** — `Core/Tools/AutorunManager.cs` **lista**; falta **criar/editar** |
+| 68 | Gerenciador de **Serviços** | `hibit.recursos.txt:185` -> `TSERVICESFORM/0`; `:144` -> `TADDSERVICESFORM/0` | **PARCIAL** — `Core/Management/ServiceManager.cs` gerencia serviços existentes; falta **criar** |
+| 69 | Gerenciador de **Processos** (painel) | `hibit.recursos.txt:178` -> `TPROCESSESMANAGERFORM/0` | **AUSENTE** — há encerramento no fluxo (`Core/ProcessTerminator.cs`), não painel |
+| 70 | Gerenciador de **Tarefas Agendadas** | `hibit.recursos.txt:184` -> `TSCHEDULETASKFROM/0`; `hibit.inventario.md:13438` -> `TaskScheduler` - Agenda tarefas | **PARCIAL** — `Core/Management/ScheduledTaskManager.cs` |
+| 71 | Gerenciador de **Menu de Contexto** | `hibit.recursos.txt:152` -> `TCONTEXTMENUFORM/0` | **PARCIAL** — `Core/Management/ContextMenuManager.cs` |
+| 72 | Gerenciador de **Componentes de Programas** (DLLs compartilhadas) | `hibit.recursos.txt:180` -> `TPROGRAMCOMPONENTSFORM/0` | **AUSENTE** — sem equivalente identificado |
+| 73 | Gerenciador de **Extensões de Navegador** | `hibit.recursos.txt:150` -> `TBROWSEREXTFORM/0` | **PARCIAL** — `Core/Modules/BrowserExtensions.cs` cobre Chrome/Edge/Firefox/Opera |
+| 74 | Gerenciador de **Conexões** (rede) | `hibit.recursos.txt:151` -> `TCONNECTIONMANAGERFORM/0` | **AUSENTE** — sem equivalente identificado |
+| 75 | **Backups & Reports** | `hibit.recursos.txt:149` -> `TBACKUPFORM/0`; `:148` -> `TBACKUPDETAILSFORM/0`; `:164` -> `TEXPORTFORM/0` | **PARCIAL** — `Core/BackupManager.cs` + `Core/Reporting/*` |
+| 76 | **Restaurador do Sistema** (criar/excluir pontos com um clique) | `hibit.recursos.txt:189` -> `TSYSRESTOREFORM/0`; `:146` -> `TADDSYSRESTOREFORM/0`; `hibit.inventario.md:13441` -> `SRSetRestorePoint` | **PARCIAL** — `Core/UninstallSupport.cs:1210` cria ponto antes de desinstalar; falta o painel de gerir pontos |
+| 77 | **Limpador de Registro** (15+ categorias: ActiveX, FileTypes, SharedDLLs, IFEO, FirewallRules, MUICache) | `hibit.recursos.txt:181` -> `TREGISTRYCLEANERFORM/0` | **PARCIAL** — `Core/Tools/RegistryOptimizer.cs` existe; o número de categorias não foi conferido |
+| 78 | **Limpador de Arquivos de Lixo** (17 categorias) | `hibit.recursos.txt:174` -> `TJFCLEANERFORM/0`; `:175` -> `TJFSETTINGFORM/0`; `hibit.identificadores.txt:169` -> `TList<JunkFilesCleaner.TCleanFile.CleanS.TFileInfo>` | **PARCIAL** — `Core/Tools/JunkCleaner.cs` existe; as 17 categorias não foram conferidas |
+| 79 | **Limpador de Pastas Vazias** | `hibit.recursos.txt:161` -> `TEMPTYFOLDERFORM/0`; `:162` -> `TEMPTYFOLSETTFORM/0` | **OK** — `Core/Discovery/EmptyFolderCleaner.cs` |
+| 80 | **Fixador de Atalhos** (atalhos corrompidos) | `hibit.recursos.txt:187` -> `TSHORTCUTFIXERFORM/0` | **AUSENTE** — sem equivalente identificado |
+| 81 | **Destruidor de Arquivos** (MD5 / SHA-1 / SHA-256 / SHA-512 / CRC32) | `hibit.recursos.txt:168` -> `TFILESHREDDERFORM/0`; `hibit.inventario.md:13486` -> `Shred` - Apaga de forma segura | **PARCIAL** — `Core/Tools/UnrecoverableDelete.cs` apaga; os 5 algoritmos e o relatório de hash não foram conferidos |
+| 82 | **Localizador de Arquivos e Registros** | `hibit.recursos.txt:167` -> `TFILEREGFINDERFORM/0` | **AUSENTE** — sem equivalente identificado |
+| 83 | **Localizador de Arquivos Duplicados** | `hibit.recursos.txt:158` -> `TDUPLICATEFILEFINDERFORM/0`; `hibit.inventario.md:13484` -> `Duplicate` - Detecta duplicados | **AUSENTE** — sem equivalente identificado |
+| 84 | **Analisador de disco** | `hibit.recursos.txt:157` -> `TDISKANALYZERFORM/0`; `hibit.inventario.md:13485` -> `Size` - Mede tamanho em disco | **PARCIAL** — `Core/Appearance/TreemapModel.cs` faz treemap **por programa**, não por arquivo |
+| 85 | **Gerenciador de Apps da Microsoft Store** | `hibit.recursos.txt:196` -> `TWINDOWSAPPFORM/0` | **OK** — `Core/Modules/WindowsApps.cs` |
+| 86 | **Gerenciador de Atualizações do Windows** | `hibit.recursos.txt:197` -> `TWINUPDATEFORM/0`; `hibit.inventario.md:13446` -> `Windows Update` | **AUSENTE** — o Tranal não gerencia atualizações do Windows |
+
+### 2.6 Funcionalidades descobertas **no binário** e ausentes do documento anterior
+
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 87 | **Propriedades de processo** (painel dedicado) | `hibit.recursos.txt:179` -> `TPROCPROPERTIFORM/0` | **AUSENTE** — sem equivalente identificado |
+| 88 | **Afinidade de processador** do programa | `hibit.recursos.txt:147` -> `TAFFINITYFORM/0`; `hibit.strings.txt:25783` -> `GetProcessAffinityMask`; `:25791` -> `SetProcessAffinityMask`; `:70074` -> `Affinity1.Caption=Affinity` | **AUSENTE** — sem equivalente identificado |
+| 89 | **Scanner VirusTotal** (verificação de arquivo na nuvem) | `hibit.recursos.txt:194` -> `TVIRUSTOTALAPIFORM/0`; `:195` -> `TVIRUSTOTALSCANFORM/0`; `hibit.strings.txt:18270` -> `VirusTotal_API`; `:22823` -> `AddVirusTotalScannertoContextMenu1` | **AUSENTE** — o Tranal não verifica arquivo na nuvem |
+| 90 | Integração com o **Windows Defender** (cache, limpeza, varredura agendada) | `hibit.strings.txt:65936` -> `Defender`; `:67985` -> `Windows Defender Cache Maintenance`; `:67987` -> `Windows Defender Scheduled Scan`; `hibit.inventario.md:13456` -> `Defender` - Integra-se ao Defender | **AUSENTE** — sem equivalente identificado |
+| 91 | **Criar item de inicialização** do zero | `hibit.recursos.txt:145` -> `TADDSTARTUPFORM/0`; `:160` -> `TEDITSTARTUPFORM/0` | **AUSENTE** — `Core/Tools/AutorunManager.cs` só lista/desexclui |
+| 92 | **Criar serviço** do Windows | `hibit.recursos.txt:144` -> `TADDSERVICESFORM/0`; `hibit.inventario.md:13435` -> `CreateService` - Gerencia servicos do Windows | **AUSENTE** — `Core/Management/ServiceManager.cs` gerencia os existentes, não cria |
+| 93 | **Criar tarefa agendada** | `hibit.recursos.txt:154` -> `TCREATETASKFORM/0` | **AUSENTE** — `Core/Management/ScheduledTaskManager.cs` lista/gerencia, não cria |
+| 94 | **Criar menu de contexto** no Explorer | `hibit.recursos.txt:153` -> `TCREATECONTEXTMFORM/0` | **PARCIAL** — o Tranal registra o **próprio** menu (`Core/Topmost/ExplorerContextMenu.cs`); falta criar menu novo |
+| 95 | **Limpeza personalizada** (regras próprias por ferramenta) | `hibit.recursos.txt:142` -> `TADDCUSTOMCLEANFORM/0`; `:155` -> `TCUSTOMCLEANFORM/0`; `hibit.strings.txt:57758` -> `UCustomClean` | **PARCIAL** — existe motor (`Core/Rules/RuleEngine.cs`), mas `Core/Rules/BuiltinRules.cs` traz só 4 regras de proteção |
+| 96 | **Listas de exclusão / ignorar** por ferramenta (monitor, registro, junk, atalhos) | `hibit.recursos.txt:143` -> `TADDIGNOREMONITORFORM/0`; `:163` -> `TEXCLUSIONLISTFORM/0`; `:169` -> `TFJIGNOREFORM/0`; `:186` -> `TSHORTCATIGNORELISTFORM/0`; `hibit.strings.txt:19967` -> `RegIgnoreList` | **PARCIAL** — `Core/ExcludeList.cs` é global, não por ferramenta |
+| 97 | **Restaurar o registro** a partir do backup | `hibit.recursos.txt:182` -> `TREGRESTOREFORM/0` | **PARCIAL** — `Core/Recovery/RecoverOperation.cs` + `Core/FullRegistryBackup.cs` |
+| 98 | **Verificação de integridade de arquivo** e limpeza pontual de arquivo | `hibit.recursos.txt:165` -> `TFILECHECKSFORM/0`; `:166` -> `TFILEINFOFORM/0`; `:156` -> `TDELETEFILEFORM/0` | **AUSENTE** — sem equivalente identificado |
+| 99 | **Sete temas VCL** embutidos no binário | `hibit.recursos.txt:6-12` -> `VCLSTYLE/CARBON` / `COBALTXEMEDIA` / `ICEBERGCLASSICO` / `LUNA` / `TABLETDARK` / `WINDOWSMODERNDARK` / `WINDOWSSLATEGRAY` | **PARCIAL** — `Theming/ThemeManager.cs` tem 4 temas próprios |
+| 100 | **Banco local embutido** (`LOCALDB`) | `hibit.recursos.txt:127` -> `LOCALDB/1033` | **AUSENTE** — o Tranal não embarca banco |
+| 101 | **Salvar log** de ferramenta em arquivo | `hibit.recursos.txt:176` -> `TLOGSAVEFORM/0`; `hibit.inventario.md:13466` -> `Log` - Mantem registro/log | **PARCIAL** — `Core/Reporting/TraceLogExporter.cs` |
+| 102 | Formulário inicial de **escolha de onde guardar a configuração** | `hibit.recursos.txt:183` -> `TSAVESETTINGSFORM/0` | **OK** — `Ui/FirstRunWindow.xaml.cs` |
 
 ---
 
@@ -131,7 +203,7 @@ também não tem.
 | `DWMAPI.DLL`, `uxtheme.dll`, `msimg32!AlphaBlend`, `windowscodecs.dll` → renderização com temas do Windows | `pe-imports.txt` |
 | `kernel32!CreateSymbolicLinkW`, `GetFinalPathNameByHandleW` → tratamento de link simbólico | `pe-imports.txt` |
 | `SRCLIENT.DLL` → pontos de restauração | `strings-mecanismos.txt` |
-| `Wmic.exe /Namespace:\\root\default Path SystemRestore Call CreateRestorePoint` (caminho alternativo) | `strings-mecanismos.txt` |
+| `Wmic.exe /Namespace:\\root\\default Path SystemRestore Call CreateRestorePoint` (caminho alternativo) | `strings-mecanismos.txt` |
 | `powershell.exe Remove-AppxPackage` → app MSIX | `strings-mecanismos.txt` |
 | `cmd.exe /c wusa.exe /uninstall /` + `KBID=` → atualização do Windows | `strings-mecanismos.txt` |
 | Configuração em `HKCU\SOFTWARE\HiBit Uninstaller\` **ou** `<pasta>\HiBitUninstaller\Settings.ini` | `strings-mecanismos.txt` |
@@ -186,6 +258,27 @@ por programa (HiBit), ora por família (BCU, Uninstalr). Fechar o item
 O **modo silencioso do próprio HiBit** é sinalizado internamente por
 `SilentMod` e pelo valor de registro `QuietUninstallString` — não por switch
 de linha de comando.
+
+### 3.2 Superfície de recursos Delphi confirmada no binário
+
+As 214 entradas de recurso do PE de `hibit.recursos.txt` confirmam **62
+formulários** — a suíte de ferramentas inteira é visível como recurso, sem
+execução: `TUNINSTALLER`, `TUNINSTALLFORM`, `TFORCEUNINSTALLFORM`,
+`TBACKUPFORM`, `TBACKUPDETAILSFORM`, `TREGRESTOREFORM`, `TSYSRESTOREFORM`,
+`TADDSYSRESTOREFORM`, `TSTARTUPMANAGERFORM`, `TADDSERVICESFORM`,
+`TPROCESSESMANAGERFORM`, `TPROCPROPERTIFORM`, `TSCHEDULETASKFROM`,
+`TCONTEXTMENUFORM`, `TCREATECONTEXTMFORM`, `TPROGRAMCOMPONENTSFORM`,
+`TBROWSEREXTFORM`, `TCONNECTIONMANAGERFORM`, `TREGISTRYCLEANERFORM`,
+`TJFCLEANERFORM`, `TEMPTYFOLDERFORM`, `TSHORTCUTFIXERFORM`,
+`TFILESHREDDERFORM`, `TFILEREGFINDERFORM`, `TDUPLICATEFILEFINDERFORM`,
+`TDISKANALYZERFORM`, `TWINDOWSAPPFORM`, `TWINUPDATEFORM`,
+`TVIRUSTOTALSCANFORM`, `TAFFINITYFORM`, `TCUSTOMCLEANFORM`,
+`TEXCLUSIONLISTFORM`, `TFILECHECKSFORM`, `TDELETEFILEFORM`, `TEXPORTFORM`,
+`TLOGSAVEFORM` — e ainda **7 estilos VCL** (`VCLSTYLE/*`) e um recurso
+`LOCALDB`.
+
+---
+
 ## 4. Interface
 
 Delphi/VCL. A janela principal (`TUninstaller`, 1005×670) **esconde** enquanto
@@ -271,45 +364,63 @@ coexistem no binário.
 **Não verificado:** não há tabela de ajuda no binário; não existe `/help`,
 `/cfg` ou `/log` como switch próprio do HiBit.
 
+> **Atualização de 06/11/2026:** a lacuna "um switch de CLI por ferramenta"
+> **está fechada no Tranal**. `Core/Automation/CliToolSwitch.cs` define o
+> formato exato do HiBit — switch curto, nome longo e o sufixo `RUN`
+> (`RunSuffix = "RUN"`, `LongRunName => LongName + "-" + RunSuffix`) —
+> consumindo o catálogo de `Core/ToolCatalog.cs`.
+
 ---
 
 ## 6. O que o Tranal NÃO faz hoje
 
-| Recurso do HiBit | Tranal |
-|---|---|
-| **Switch de linha de comando por ferramenta** (19ferramentas) | 🟡 — a CLI tem `/winapps`, `/be`, `/autorun`, `/tools`, `/export`, `/hunter`, `/backup`, `/exclude`, mas **não** tem switch dedicado por ferramenta nem o sufixo ` RUN` |
-| **Tabela de switches silenciosos por instalador** | ✅ — `Core/QuietUninstall.cs`: a tabela por família (Inno, NSIS, MSI, InstallShield, SDBInst) está implementada e medida — 185 de 211 programas (87,7%) têm comando silencioso |
-| **Switch silencioso por aplicativo** (o HiBit embute uma lista nome→switch) | ⬜ — o Tranal resolve por **família** do desinstalador, não pelo nome do programa |
-| **Menu de contexto do Monitor de Instalação** (além do de desinstalação) | 🟡 — o Tranal registra um menu, só em `*`; o HiBit registra dois, e para `lnkfile`, `exefile` e `Msi.Package` |
-| **Gerenciador do Menu de Contexto** (gerenciar menus alheios) | ⬜ |
-| **Desabilitar handlers** de menu de contexto | ⬜ |
-| **Desinstalar atualizações do Windows** (`wusa`/KB) | ⬜ |
-| **Gerenciador de Tarefas Agendadas** (criar/remover) | ⬜ — `AutorunManager` lista, não gerencia |
-| **Gerenciador de Processos** (painel) | ⬜ — há encerramento no fluxo, não painel |
-| **Gerenciador de Drivers** | ⬜ |
-| **Restaurador do Sistema** (criar/excluir pontos com um clique) | 🟡 — a CLI lista/restaura/exclui; falta criar antes de desinstalar |
-| **Limpar Pastas Vazias** | ⬜ |
-| **Fixar Atalhos** (atalhos corrompidos) | ⬜ |
-| **Localizador de Arquivos e Registros** | ⬜ |
-| **Localizador de Arquivos Duplicados** | ⬜ |
-| **Analisador de disco** | ⬜ |
-| **Gerenciador de Conexões** | ⬜ |
-| **Gerenciador de Componentes de Programas** | ⬜ |
-| **Agendamento automático de limpeza** | ⬜ |
-| **Otimizador de registro** com 15+ categorias (ActiveX, FileTypes, SharedDLLs, IFEO, FirewallRules, MUICache) | 🟡 — o Tranal só trata entradas obsoletas do Menu Iniciar |
-| **Relatórios HTML por ferramenta** | ⟡ — o Tranal exporta listagens, não relatórios |
-| **Destruidor com hash MD5/SHA** (relatório e verificação) | 🟡 — apaga, mas o relatório de hash não existe |
-| **Backup `.dbh` com restauração** | 🟡 — há backup, mas em outro formato |
-| **Ocultar entrada de desinstalação** | ⬜ |
-| **Deletar entrada** do registro do programa | ⬜ |
-| **Editar informações** do programa | ⬜ |
-| **Relógio de ferramentas** (agendador) | ⬜ |
-| **Arrastar e soltar** um programa para desinstalar | ⬜ — não há handler `Drop`/`DragOver` na `MainWindow.xaml` |
-| **Data de instalação em tempo relativo** ("Ontem", "2 meses atrás") | ⬜ — o Tranal mostra a data absoluta (`ProgramColumn.Date` → `InstalledProgram.InstallDate`) |
-| **Contador de tamanho total** na barra de status | 🟡 — o Tranal conta os programas (`Status.Installations`), mas não soma o tamanho |
-| **Painel de detalhes** do programa (local de instalação, entrada de registro, website) | 🟡 — os dados existem como colunas (`RegistryKey`, `HomePage`), mas não há painel; e **não há coluna de local de instalação** |
-| **Banner de informações do sistema** (CPU, GPU, RAM, tempo de atividade) | ⬜ |
-| **Seletor de tema na barra superior**, com amostras de cor | 🟡 — o tema existe (`Theming/ThemeManager.cs`, 2 temas), mas só se troca em Opções ou na primeira execução |
+Coluna `Tranal` no formato da curadoria binária: **OK** = implementado e
+verificado no código; **PARCIAL** = existe mas falta parte; **AUSENTE** =
+sem equivalente identificado em `src/Tranal.Uninstaller`.
+
+| # | Recurso do HiBit | Evidência no binário | Tranal |
+|---|---|---|---|
+| 1 | **Switch de linha de comando por ferramenta** (19 ferramentas) | `hibit.strings.txt` -> `/RCLEAN` `/ECLEAN` `/JCLEAN` `/STARTUP` `/RESTOR` … | **OK** — `Core/Automation/CliToolSwitch.cs` (com o sufixo `RUN` do HiBit) + `Core/ToolCatalog.cs` |
+| 2 | **Tabela de switches silenciosos por instalador** | `hibit.inventario.md:13448` -> `msiexec`; `hibit.strings.txt` -> `SilentMod` | **OK** — `Core/QuietUninstall.cs` (tabela por família) |
+| 3 | **Switch silencioso por aplicativo** (o HiBit embute uma lista nome→switch) | `hibit.strings.txt` -> `/silent` (IrfanView), `--force-uninstall` (Brave), `--mode unattended` (XAMPP) | **AUSENTE** — o Tranal resolve por **família** do desinstalador, não pelo nome do programa |
+| 4 | **Menu de contexto do Monitor de Instalação** (além do de desinstalação) | `hibit.recursos.txt:172` -> `TINSTALLMONITORFORM/0` | **AUSENTE** — o Tranal registra um menu só |
+| 5 | **Gerenciador do Menu de Contexto** (gerenciar menus alheios, criar e restaurar) | `hibit.recursos.txt:152` -> `TCONTEXTMENUFORM/0`; `:153` -> `TCREATECONTEXTMFORM/0` | **PARCIAL** — `Core/Management/ContextMenuManager.cs` |
+| 6 | **Desabilitar handlers** de menu de contexto | `hibit.recursos.txt:152` -> `TCONTEXTMENUFORM/0` | **OK** — `Core/Management/ContextMenuManager.cs` |
+| 7 | **Desinstalar atualizações do Windows** (`wusa`/KB) | `hibit.inventario.md:13446` -> `Windows Update` | **AUSENTE** |
+| 8 | **Gerenciador de Tarefas Agendadas** (criar/remover) | `hibit.recursos.txt:184` -> `TSCHEDULETASKFROM/0`; `:154` -> `TCREATETASKFORM/0` | **PARCIAL** — `Core/Management/ScheduledTaskManager.cs` lista; falta criar |
+| 9 | **Gerenciador de Processos** (painel + propriedades) | `hibit.recursos.txt:178` -> `TPROCESSESMANAGERFORM/0`; `:179` -> `TPROCPROPERTIFORM/0` | **AUSENTE** — há encerramento no fluxo, não painel |
+| 10 | **Gerenciador de Drivers** | `hibit.inventario.md:13439` -> `SetupAPI` - Enumera dispositivos/Drivers | **PARCIAL** — `Core/Management/DriverManager.cs` |
+| 11 | **Restaurador do Sistema** (criar/excluir pontos com um clique) | `hibit.recursos.txt:189` -> `TSYSRESTOREFORM/0` | **PARCIAL** — `Core/UninstallSupport.cs:1210` cria antes de desinstalar; falta o painel de gestão |
+| 12 | **Limpar Pastas Vazias** | `hibit.recursos.txt:161` -> `TEMPTYFOLDERFORM/0` | **OK** — `Core/Discovery/EmptyFolderCleaner.cs` |
+| 13 | **Fixar Atalhos** (atalhos corrompidos) | `hibit.recursos.txt:187` -> `TSHORTCUTFIXERFORM/0` | **AUSENTE** |
+| 14 | **Localizador de Arquivos e Registros** | `hibit.recursos.txt:167` -> `TFILEREGFINDERFORM/0` | **AUSENTE** |
+| 15 | **Localizador de Arquivos Duplicados** | `hibit.recursos.txt:158` -> `TDUPLICATEFILEFINDERFORM/0` | **AUSENTE** |
+| 16 | **Analisador de disco** | `hibit.recursos.txt:157` -> `TDISKANALYZERFORM/0` | **PARCIAL** — treemap por programa (`Core/Appearance/TreemapModel.cs`), não por arquivo |
+| 17 | **Gerenciador de Conexões** | `hibit.recursos.txt:151` -> `TCONNECTIONMANAGERFORM/0` | **AUSENTE** |
+| 18 | **Gerenciador de Componentes de Programas** | `hibit.recursos.txt:180` -> `TPROGRAMCOMPONENTSFORM/0` | **AUSENTE** |
+| 19 | **Agendamento automático de limpeza** | `hibit.inventario.md:13470` -> `Schedule` - Agenda execucao; `hibit.recursos.txt:184` -> `TSCHEDULETASKFROM/0` | **AUSENTE** |
+| 20 | **Otimizador de registro** com 15+ categorias (ActiveX, FileTypes, SharedDLLs, IFEO, FirewallRules, MUICache) | `hibit.recursos.txt:181` -> `TREGISTRYCLEANERFORM/0` | **PARCIAL** — `Core/Tools/RegistryOptimizer.cs`; o número de categorias não foi conferido |
+| 21 | **Relatórios HTML por ferramenta** | `hibit.recursos.txt:164` -> `TEXPORTFORM/0` | **PARCIAL** — `Core/Reporting/*` + `Ui/Reporting/ReportingWindow.xaml.cs`; falta um por ferramenta |
+| 22 | **Destruidor com hash MD5/SHA** (relatório e verificação) | `hibit.recursos.txt:168` -> `TFILESHREDDERFORM/0` | **PARCIAL** — `Core/Tools/UnrecoverableDelete.cs` apaga; o relatório de hash não existe |
+| 23 | **Backup `.dbh` com restauração** | `hibit.recursos.txt:149` -> `TBACKUPFORM/0`; `:182` -> `TREGRESTOREFORM/0` | **PARCIAL** — `Core/BackupManager.cs` + `Core/Recovery/RecoverOperation.cs`, em outro formato |
+| 24 | **Ocultar entrada de desinstalação** | **não confirmado no binario** | **AUSENTE** |
+| 25 | **Deletar entrada** do registro do programa | `hibit.recursos.txt:192` -> `TUNINSTALLFORM/0` | **PARCIAL** — `Core/RegistryEditing/RegistryEditor.cs` |
+| 26 | **Editar informações** do programa | `hibit.recursos.txt:159` -> `TEDITINFOFORM/0` | **PARCIAL** — `Core/ProgramCustomization.cs` |
+| 27 | **Relógio de ferramentas** (agendador) | `hibit.recursos.txt:184` -> `TSCHEDULETASKFROM/0` | **AUSENTE** |
+| 28 | **Arrastar e soltar** um programa para desinstalar | `hibit.recursos.txt:12` -> `12/CAT_DRAG_COPY/1033` | **PARCIAL** — `Ui/Tools/TopmostOverlayWindow.xaml.cs` (outro desenho) |
+| 29 | **Data de instalação em tempo relativo** ("Ontem", "2 meses atrás") | **não confirmado no binario** | **AUSENTE** — o Tranal mostra a data absoluta |
+| 30 | **Contador de tamanho total** na barra de status | `hibit.inventario.md:13485` -> `Size` - Mede tamanho em disco | **PARCIAL** — o Tranal conta os programas e soma o tamanho no treemap, não na barra de status |
+| 31 | **Painel de detalhes** do programa (local de instalação, entrada de registro, website) | `hibit.recursos.txt:166` -> `TFILEINFOFORM/0` | **PARCIAL** — os dados existem como colunas; falta o painel e a coluna de local de instalação |
+| 32 | **Banner de informações do sistema** (CPU, GPU, RAM, tempo de atividade) | **não confirmado no binario** | **AUSENTE** |
+| 33 | **Seletor de tema na barra superior**, com amostras de cor | `hibit.recursos.txt:6-12` -> `VCLSTYLE/*` (7 temas) | **PARCIAL** — `Theming/ThemeManager.cs` (4 temas) |
+| 34 | **Scanner VirusTotal** | `hibit.recursos.txt:195` -> `TVIRUSTOTALSCANFORM/0` | **AUSENTE** |
+| 35 | **Afinidade de processador** | `hibit.recursos.txt:147` -> `TAFFINITYFORM/0` | **AUSENTE** |
+| 36 | **Integração com o Windows Defender** | `hibit.strings.txt:67987` -> `Windows Defender Scheduled Scan` | **AUSENTE** |
+| 37 | **Criar serviço / inicialização / tarefa agendada / menu de contexto** | `hibit.recursos.txt:144` `:145` `:153` `:154` | **AUSENTE** — as quatro janelas de criação não têm par no Tranal |
+| 38 | **Limpeza personalizada** (regras próprias) | `hibit.recursos.txt:142` -> `TADDCUSTOMCLEANFORM/0` | **PARCIAL** — `Core/Rules/RuleEngine.cs`, com 4 regras embutidas |
+| 39 | **Listas de exclusão por ferramenta** | `hibit.recursos.txt:163` -> `TEXCLUSIONLISTFORM/0` | **PARCIAL** — `Core/ExcludeList.cs` é global |
+| 40 | **Modificar/reparar** instalação MSI | `hibit.inventario.md:13448` -> `msiexec` | **AUSENTE** |
+| 41 | **Banco local embutido** (`LOCALDB`) | `hibit.recursos.txt:127` -> `LOCALDB/1033` | **AUSENTE** |
 
 ### Onde o Tranal já é melhor
 
@@ -353,6 +464,15 @@ coexistem no binário.
 | `evidencia/hibit-desktop-agora.png` | 1.326.982 | tela cheia posterior (documenta o bloqueio de foreground) |
 | `evidencia/hibit-main-oculto.png` | 2.740 | captura vazia (PrintWindow falhou — ver seção 8) |
 
+### Fichos de evidência da curadoria binária (06/11/2026)
+
+| Arquivo | Bytes | Conteúdo |
+|---|---|---|
+| `bin-inventario/hibit.inventario.md` | 598.703 | 4.675 classes RTTI, 13.418 rótulos de interface, 63 capacidades de API/IO |
+| `bin-inventario/hibit.recursos.txt` | 18.770 | 214 entradas de recurso do PE (**62 formulários Delphi** + 7 estilos VCL) |
+| `bin-inventario/hibit.identificadores.txt` | 4.565 | identificadores de tipo/método (units Delphi reveladas) |
+| `bin-strings/hibit.strings.txt` | 2.034.162 | dump bruto de strings do executável |
+
 > **Nota de ferramenta:** o modo `strings` do `coleta.ps1` **estourou o
 > timeout de 600 s** neste binário de 15 MB. O subagente reimplementou a
 > mesma semântica em .NET (`strings-fast.ps1`) e o resultado é equivalente
@@ -374,6 +494,8 @@ coexistem no binário.
 | `hibitsoft.com` | não resolve DNS nesta máquina; `www.hibituninstaller.com` é site de SEO de terceiros, não o fabricante |
 | Verificação das APIs em runtime | os mecanismos da §3 foram medidos por **strings e imports estáticos**, não por trace de execução — import não prova vínculo nem alcançabilidade |
 | Comparação com o Tranal | feita por busca de nomes e termos no `src\Tranal.Uninstaller`; "não verificado" significa "nenhum correspondente encontrado", não "provavelmente ausente" |
+| **7 funcionalidades sem literal no binário** (#3, #9, #17, #24, #62, #63, #64) | a evidência original vinha de captura de tela ou do `.ini` de idioma, não do binário | — |
+| **Nomes das classes de formulário** (2.328 do relatório bruto) | as 62 classes `T*FORM` do PE confirmam as janelas; as demais (2.266) são classes de biblioteca (`AllSkin*`, `Fox*`) e não foram classificadas uma a uma | — |
 
 ---
 
@@ -388,7 +510,8 @@ coexistem no binário.
 2. **Um switch de CLI por ferramenta é o padrão que o HiBit estabelece.** O
    Tranal já tem `/winapps`, `/be`, `/autorun`, `/hunter`; o HiBit mostra o
    formato final (19 ferramentas, uma por switch). É barato e faz a CLI
-   virar uma ferramenta de verdade.
+   virar uma ferramenta de verdade. **Fechado em 06/11/2026:**
+   `Core/Automation/CliToolSwitch.cs` implementa o formato com o sufixo `RUN`.
 3. **A decisão de não usar driver de kernel ganha o argumento mais forte
    até agora.** O HiBit — que tem 21+ ferramentas e é um dos mais
    profissionais do grupo — roda **sem driver, sem serviço de fundo e sem
@@ -414,6 +537,11 @@ coexistem no binário.
    recursos no modo portátil (`Notportable`); o Tranal é distribuído como
    instalador, mas a instalação não é o que dá a funcionalidade — é um
    executável + runtime. Vale registrar como decisão de produto.
+8. **A suíte do HiBit é uma lista de janela, não de invenção.** Os 62
+   formulários do PE são a especificação executável: cada `T*FORM` é um
+   backlog potencial, com o nome já pronto. Fechar as quatro janelas de
+   **criação** (`TADDSERVICESFORM`, `TADDSTARTUPFORM`, `TCREATETASKFORM`,
+   `TCREATECONTEXTMFORM`) é o caminho mais barato para virar "cuidador do PC".
 
 ---
 

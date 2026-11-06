@@ -34,6 +34,21 @@ public sealed class InstalledProgram
     public bool IsWindowsInstaller { get; set; }
     public bool IsUpgrade { get; set; }
 
+    /// <summary>
+    /// True quando o registro marca o programa como protegido: o valor
+    /// <c>NoRemove</c> existe na chave de desinstalacao.
+    ///
+    /// O Windows usa esse valor para dizer "nao remova". O Revo Uninstaller
+    /// Pro 5.5.4 tambem o le e sinaliza a entrada como protegida.
+    /// </summary>
+    public bool IsProtected { get; set; }
+
+    /// <summary>
+    /// A saude do desinstalador registrado: existe, falta ou aponta para
+    /// um arquivo que nao existe mais.
+    /// </summary>
+    public UninstallerHealth UninstallerHealth { get; set; } = UninstallerHealth.Ok;
+
     /// <summary>True quando veio do catalogo MSI (installer de pacote).</summary>
     public bool IsMsi { get; set; }
 

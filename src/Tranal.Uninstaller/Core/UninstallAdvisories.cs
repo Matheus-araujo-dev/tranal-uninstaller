@@ -1,3 +1,4 @@
+using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
 
 namespace Tranal.Uninstaller.Core;
@@ -23,6 +24,26 @@ public enum UninstallAdvisoryKind
     /// A sobra esta numa pasta que pode conter dados do usuario e documentos.
     /// </summary>
     UserData,
+
+    /// <summary>
+    /// O registro marca o programa como protegido (<c>NoRemove</c>).
+    /// </summary>
+    ProtectedByRegistry,
+
+    /// <summary>
+    /// O programa nao tem comando de desinstalador registrado.
+    /// </summary>
+    UninstallerMissing,
+
+    /// <summary>
+    /// O desinstalador registrado aponta para um arquivo que nao existe.
+    /// </summary>
+    UninstallerBroken,
+
+    /// <summary>
+    /// Ha programas que costumam ser instalados junto com este.
+    /// </summary>
+    RelatedPrograms,
 }
 
 /// <summary>
@@ -100,6 +121,15 @@ public static class UninstallAdvisories
         var userData = UserDataAdvisory(leftovers);
         if (userData is not null) advisories.Add(userData);
 
+        var protectedEntry = ProtectedAdvisory(program);
+        if (protectedEntry is not null) advisories.Add(protectedEntry);
+
+        var health = UninstallerHealthAdvisory(program);
+        if (health is not null) advisories.Add(health);
+
+        var related = RelatedProgramsAdvisory(program, allPrograms);
+        if (related is not null) advisories.Add(related);
+
         return advisories;
     }
 
@@ -136,6 +166,82 @@ public static class UninstallAdvisories
             AdvisoryLabels.Title(UninstallAdvisoryKind.SystemComponent),
             AdvisoryLabels.SystemComponent(),
             Array.Empty<string>());
+    }
+
+    /// <summary>
+    /// O aviso de entrada protegida pelo registro (<c>NoRemove</c>), ou nulo
+    /// quando o programa nao esta protegido.
+    /// </summary>
+    /// <param name="program">O programa que vai ser desinstalado.</param>
+    public static UninstallAdvisory? ProtectedAdvisory(InstalledProgram program)
+    {
+        if (program is null || !program.IsProtected) return null;
+
+        return new UninstallAdvisory(
+            UninstallAdvisoryKind.ProtectedByRegistry,
+            AdvisoryLabels.Title(UninstallAdvisoryKind.ProtectedByRegistry),
+            AdvisoryLabels.ProtectedByRegistry(),
+            Array.Empty<string>());
+    }
+
+    /// <summary>
+    /// O aviso de desinstalador ausente ou corrompido, ou nulo quando o
+    /// desinstalador registrado funciona.
+    /// </summary>
+    /// <param name="program">O programa que vai ser desinstalado.</param>
+    public static UninstallAdvisory? UninstallerHealthAdvisory(InstalledProgram program)
+    {
+        if (program is null) return null;
+
+        switch (program.UninstallerHealth)
+        {
+            case UninstallerHealth.Missing:
+                return new UninstallAdvisory(
+                    UninstallAdvisoryKind.UninstallerMissing,
+                    AdvisoryLabels.Title(UninstallAdvisoryKind.UninstallerMissing),
+                    AdvisoryLabels.UninstallerMissing(),
+                    Array.Empty<string>());
+
+            case UninstallerHealth.Broken:
+                return new UninstallAdvisory(
+                    UninstallAdvisoryKind.UninstallerBroken,
+                    AdvisoryLabels.Title(UninstallAdvisoryKind.UninstallerBroken),
+                    AdvisoryLabels.UninstallerBroken(),
+                    Array.Empty<string>());
+
+            default:
+                return null;
+        }
+    }
+
+    /// <summary>
+    /// O aviso de programas relacionados, ou nulo quando nao ha nenhum.
+    /// </summary>
+    /// <param name="program">O programa que vai ser desinstalado.</param>
+    /// <param name="allPrograms">Todos os programas instalados.</param>
+    public static UninstallAdvisory? RelatedProgramsAdvisory(
+        InstalledProgram program, IEnumerable<InstalledProgram>? allPrograms)
+    {
+        var related = RelatedProgramFinder.Find(program, allPrograms);
+        if (related.Count == 0) return null;
+
+        // Quem divide a pasta de instalacao ja e avisado pelo aviso de pasta
+        // compartilhada: repetir o nome aqui seria ruido.
+        var jaAvisados = new HashSet<string>(
+            SharedInstallLocation(program, allPrograms), StringComparer.OrdinalIgnoreCase);
+
+        var names = related
+            .Select(r => r.Name)
+            .Where(n => !jaAvisados.Contains(n))
+            .ToList();
+
+        if (names.Count == 0) return null;
+
+        return new UninstallAdvisory(
+            UninstallAdvisoryKind.RelatedPrograms,
+            AdvisoryLabels.Title(UninstallAdvisoryKind.RelatedPrograms),
+            AdvisoryLabels.RelatedPrograms(names),
+            names);
     }
 
     /// <summary>

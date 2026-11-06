@@ -96,108 +96,129 @@ corrompido/desalinhado) — medido, não explicado. Ver §8.
 
 ## 2. Superfície observável
 
-Inventário de **funcionalidades** (não de telas). **53 itens**, numerados de 1
-a 53 sem lacuna. A última coluna é binária e exhaustive:
+Inventário de **funcionalidades** (não de telas) — **53 itens** na numeração original, curados a partir do **binário**. As linhas novas (54+) continuam a numeração.
 
-- **observada** — existe evidência material na máquina ou no binário
-  (string, arquivo instalado, log, UIA, binário preservado);
-- **documentada** — só existe no manual oficial ou no site do fabricante.
+**Legenda das evidências** — arquivos medidos em `E:\Projetos\tranal-auditoria-evidencia\`:
 
-Total: **25 observadas** e **28 documentadas**.
+| Abreviação | Arquivo |
+|---|---|
+| `recursos.txt` | `bin-inventario/softorganizer.recursos.txt` — recursos Delphi do PE (32 formulários `T*`) |
+| `imports.txt` | `bin-inventario/softorganizer.imports.txt` — imports da PE (904 funções) |
+| `inventario.md` | `bin-inventario/softorganizer.inventario.md` — classes RTTI (4499) + rótulos |
+| `identificadores.txt` | `bin-inventario/softorganizer.identificadores.txt` — tipos WinRT embarcados |
+| `strings.txt` | `bin-strings/softorganizer.strings.txt` — dump bruto de strings |
+
+Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 
 ### 2.1 Lista, busca e desinstalação (1–16)
 
-| # | Funcionalidade | Evidência | Estado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 1 | Lista de **aplicativos instalados** na janela principal | `uia-softorganizer.txt`: frame `TApplicationsFrame` dentro de `TMainForm` | **observada** |
-| 2 | Painel lateral com "INSTALL WITH TRACING", "REMOVAL UTILITIES FROM THE DEVELOPERS", "Large Applications", "INSTALLED APPLICATIONS UPDATES" | `manual-chm-10.50.txt` (`uninstallaps_working_with_apps_list.html`, `uninstallaps_removal_tools.html`) | **documentada** |
-| 3 | **Busca rápida** que encurta a lista enquanto se digita | `manual-chm-10.50.txt` ("The list dynamically shortens as you type the text in the search box"); UIA: `TButtonedEdit` | **observada** |
-| 4 | Ordenação e **agrupamento** da lista (data de instalação, status de rastreamento, título) | `pagina-soft-organizer.htm` ("Sorting and grouping of the list") | **documentada** |
-| 5 | **Desinstalar vários programas de uma vez** (multi-seleção) | `pagina-soft-organizer.htm` ("Remove multiple programs at once"); strings: `MultipleCheckBoxesPanel` (L66584) | **observada** |
-| 6 | Desinstalação do app-alvo pelo **desinstalador nativo dele** primeiro | `manual-chm-10.50.txt` ("The application's own uninstall tool is launched") | **documentada** |
-| 7 | **Modo de desinstalação forçada** (quando o desinstalador padrão não resolve) | `manual-chm-10.50.txt` ("unless the Forced uninstall mode is not enabled") | **documentada** |
-| 8 | **"Delete from the List Without Uninstalling"** — remove a entrada sem tocar no sistema | `manual-chm-10.50.txt` (`uninstallaps_removing_app.html`) | **documentada** |
-| 9 | **"Removal tools from the developers"** — baixa e roda a ferramenta oficial do fabricante (ex.: antivírus) | `manual-chm-10.50.txt` (`uninstallaps_removal_tools.html`) | **documentada** |
-| 10 | Filtro **"Large Applications"** (só apps grandes, ordenados por tamanho decrescente) | `manual-chm-10.50.txt`; strings L81566 / L123666 "Large Applications" | **observada** |
-| 11 | Verificação de **novas versões dos programas instalados** e botão "Update to X" | `pagina-soft-organizer.htm`; strings L81525 "Update to Version %s" | **observada** |
-| 12 | **Atualização automática do próprio Soft Organizer** (mecanismo embutido de update) | `pagina-soft-organizer.htm`; strings: `-UpdateCheck`, `-UpdatesURI`, `-UpdatesSource`, `TSilentUpdatesCheckDataModule` | **observada** |
-| 13 | **Avaliação de programas** (rating calculado por base de usuários que removeram o app) | `pagina-soft-organizer.htm` ("Built-in program rating"); strings L7179 `TRatingTranslationThread`, L68867 "rating" | **observada** |
-| 14 | Relatório final de desinstalação (arquivos, chaves e valores de registro alterados/removidos) | `manual-chm-10.50.txt` ("you can see a report listing all files, registry keys and values that were changed or deleted") | **documentada** |
-| 15 | Notificações internas com novidades do blog (ícone de sino) | `app/so1050-10.50/WhatsNew.txt` (9.55: "notification section (under the bell icon)") | **documentada** |
-| 16 | Painel de configurações em árvore, com "Return to the default settings" | `manual-chm-10.50.txt` (`extrafeatures_nastroiki.html`) | **documentada** |
+| 1 | Lista de aplicativos instalados | `recursos.txt:103` → `TAPPLICATIONSFRAME/0` | OK — `Core/ProgramScanner.cs`, `Ui/Modules/ModuleViews.cs` |
+| 2 | Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES | nao confirmado no binario | PARCIAL — `Ui/Modules/ModuleViews.cs` mostra ações, mas não a ação "INSTALL WITH TRACING" |
+| 3 | Busca rápida por nome | nao confirmado no binario | OK — `Core/Appearance/ProgramFilters.cs` |
+| 4 | Ordenação e agrupamento da lista | nao confirmado no binario | PARCIAL — `Core/ProgramColumns.cs` ordena; o agrupamento é só por `GroupingModel.cs` |
+| 5 | Desinstalar vários aplicativos de uma vez | nao confirmado no binario | OK — `Core/Automation/BatchList.cs` |
+| 6 | Executa primeiro o **desinstalador nativo**, depois limpa as sobras | nao confirmado no binario | OK — `Core/Removal.cs` + `Core/UninstallSupport.cs` |
+| 7 | **Modo forçado** de desinstalação | nao confirmado no binario | OK — `Core/Modules/HunterMode.cs` |
+| 8 | "Delete from the List Without Uninstalling" | nao confirmado no binario | OK — `Core/RegistryEditing/RegistryEditor.cs` |
+| 9 | **Removal tools from the developers** (link para o desinstalador oficial) | `recursos.txt:107` → `TAPPLICATIONSREMOVALTOOLSFORM/0` | AUSENTE |
+| 10 | Filtro **"Large Applications"** | nao confirmado no binario | AUSENTE |
+| 11 | Verificação de novas versões com "Update to X" | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` atualiza o próprio SO, não os programas listados |
+| 12 | Atualização automática do próprio Soft Organizer | `recursos.txt:131` → `TSILENTUPDATESCHECKDATAMODULE/0` | OK — `Core/Updates/AutoUpdateClient.cs` |
+| 13 | Avaliação/rating dos programas | nao confirmado no binario | OK — `Core/Appearance/ProgramRating.cs` |
+| 14 | Relatório final da desinstalação | nao confirmado no binario | OK — `Core/RemovalLog.cs` |
+| 15 | Notificações internas (sino) e dicas | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | AUSENTE |
+| 16 | Painel de configurações em árvore | `recursos.txt:129` → `TSETTINGSFORM/0` | OK — `Ui/OptionsWindow.xaml.cs` |
 
-### 2.2 Sobras, backup e restauração (17–31)
+### 2.2 Scanning e removal (17–31)
 
-| # | Funcionalidade | Evidência | Estado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 17 | Varredura de **sobras (traces)** do app desinstalado, com pré-visualização antes de apagar | `manual-chm-10.50.txt` (`uninstallaps_how_it_works.html`, `uninstallaps_viewing_change_log.html`) | **documentada** |
-| 18 | Tela "Application's Leftovers" / "REMOVED APPLICATIONS LEFTOVERS" / botão "REMOVE LEFTOVERS" | strings L80408, L80933, L80385, L123512 | **observada** |
-| 19 | Mensagens de estado: "Leftovers of the removed application found", "No applications leftovers found", "Leftovers of %s removed" | strings L80189, L80405, L80402 | **observada** |
-| 20 | **Backup automático durante a remoção das sobras** | `pagina-soft-organizer.htm` ("Automatic backups — Automatic creation of backups during the removal of application residues") | **documentada** |
-| 21 | Diretório de backups `\Backups32` / pasta `backups` + `UccBackup` | strings L69727–L69728, L69713 | **observada** |
-| 22 | **Undo Changes Center** — centro para reverter alterações feitas pelo programa | `manual-chm-10.50.txt` (`extrafeatures_rezervnie_kopii.html`); strings: `TUndoingChangesCenterForm` (L69787), `UndoChangesCenter` (L69726), `TUndoChangeLogThread` (L65867) | **observada** |
-| 23 | Undo listando mudanças **cronologicamente**, com detalhe, botão de reverter e renomear pelo menu de contexto | `manual-chm-10.50.txt` (`extrafeatures_rezervnie_kopii.html`) | **documentada** |
-| 24 | Descarte de mudanças antigas do Undo acontece automaticamente ("old items are automatically deleted") | `manual-chm-10.50.txt` (idem) | **documentada** |
-| 25 | Mensagem "To cancel the leftovers removal, use the Undo Changes Center." | strings L81421 / L123617 | **observada** |
-| 26 | **Trace manager**: excluir itens da lista de sobras (tecla Delete) para preservá-los; **editar valores de registro** exibidos | `manual-chm-10.50.txt` (`uninstallaps_viewing_change_log.html`) | **documentada** |
-| 27 | **"View all traces"** — link que abre a janela de rastros do app selecionado | `manual-chm-10.50.txt` (`uninstallaps_viewing_change_log.html`) | **documentada** |
-| 28 | Rastreio de sobras com **link "Search"** ("Click \"Search\" to start searching for the application's traces left in the system.") | strings L84533 / L123810 | **observada** |
-| 29 | Aviso de que o rastreio de sobras pode ser melhorado com informação de chaves de registro e nomes de arquivos | strings L92857 / L124226 | **observada** |
-| 30 | **Ignore List global** — entradas ignoradas valem para todos os apps rastreados e futuros | `manual-chm-10.50.txt` (`uninstallaps_ignorelist.html`, capítulo **novo na 10.50**); strings: `IgnoreList1/2`, "Add to the Ignore List", `:Ignore List. Do not remove these items during the cleanup:` (L90282) | **observada** |
-| 31 | Limpeza de "Application's Leftovers" após a remoção | strings L80399, L123510 | **observada** |
+| 17 | Varredura de sobras com pré-visualização e seleção | `recursos.txt:106` → `TAPPLICATIONSLOGVIEWFORM/0` | OK — `Core/UninstallSupport.cs` |
+| 18 | "REMOVED APPLICATIONS LEFTOVERS" e botão **REMOVE LEFTOVERS** | `recursos.txt:100` → `TAPPLICATIONSDELETEDFORM/0` | OK — `Core/Tools/TrackCleaner.cs` |
+| 19 | Mensagens de estado da remoção de sobras | nao confirmado no binario | OK — `Core/RemovalLog.cs` |
+| 20 | Backup automático antes da remoção | nao confirmado no binario | PARCIAL — `Core/BackupManager.cs` faz backup, mas não é automático por padrão |
+| 21 | Diretório de backups configurável | nao confirmado no binario | OK — `Core/BackupManager.cs` |
+| 22 | **Undo Changes Center** | `recursos.txt:134` → `TUNDOINGCHANGESCENTERFORM/0` | AUSENTE |
+| 23 | Reverter uninstallação cronologicamente, renomear ou restaurar | `recursos.txt:134` → `TUNDOINGCHANGESCENTERFORM/0` | AUSENTE |
+| 24 | Descarte de mudanças antigas do histórico | nao confirmado no binario | AUSENTE |
+| 25 | Aviso "use o Undo Changes Center para cancelar" | nao confirmado no binario | AUSENTE |
+| 26 | Trace manager: excluir itens e editar valores antes de aplicar | nao confirmado no binario | PARCIAL — `Core/Tracing/*` grava o log; não há edição de valores do log |
+| 27 | "View all traces" | nao confirmado no binario | OK — `Ui/TracingWindow.xaml.cs` |
+| 28 | Link "Search" na página de tracing | nao confirmado no binario | OK — `Core/Appearance/ProgramFilters.cs` |
+| 29 | Aviso para melhorar a qualidade do rastreio | nao confirmado no binario | AUSENTE |
+| 30 | **Ignore List** global de itens a não remover | nao confirmado no binario | PARCIAL — `Core/ExcludeList.cs` é global, mas sem a semântica de "não remover na limpeza" |
+| 31 | Limpeza automática de leftovers após a remoção | nao confirmado no binario | OK — `Core/Tools/TrackCleaner.cs` |
 
-### 2.3 Rastreamento de instalação (Full Uninstall™) (32–42)
+### 2.3 Tracing / Uninstall monitor (32–47)
 
-| # | Funcionalidade | Evidência | Estado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 32 | **Instalar com rastreamento** ("INSTALL WITH TRACING") — monitora registro e disco durante a instalação | `manual-chm-10.50.txt` (`uninstallaps_install_new_app.html`); `pagina-soft-organizer.htm` ("Tracked installation of programs") | **documentada** |
-| 33 | Relatório do que mudou na instalação, **salvo em log** | `manual-chm-10.50.txt` ("Soft Organizer creates a report on what changes were made to the system during the installation and saves it") | **documentada** |
-| 34 | Etiqueta **"Traced"** na linha da lista (indica app com rastreamento) | `manual-chm-10.50.txt` ("you will see the stripe with the *Traced* label on the right side of the list's line") | **documentada** |
-| 35 | Snapshot do registro **antes/depois** da instalação (comparação de dois snapshots) | `pagina-full-uninstall.htm`: "Tracking of system registry changes is carried out by comparing two registry snapshots (before and after installing a program)" | **documentada** |
-| 36 | Rastreamento do sistema de arquivos **em tempo real** | `pagina-full-uninstall.htm`: "the file system changes are tracked in real-time"; `app/so1050-10.50/Readme.txt`: "silently monitors all changes on your disks in real time, instead of saving changes before and after the installation" | **documentada** |
-| 37 | **Varredura profunda** quando a instalação NÃO foi rastreada | `pagina-full-uninstall.htm`: "If the installation of the program you are about to remove wasn't tracked, a deeper scan of the system is performed as soon as the standard uninstaller finishes" | **documentada** |
-| 38 | Módulo interno de rastreamento de registro com snapshot assíncrono e **notificação de mudança** | strings: `RegistryTracing.TRegSnapShot`, `TRegSnapShotAsync`, `TRegNotify`, `TSeparateThreadCapture`, `TRegistryScan`, `TCapture` (L66073–L66096) | **observada** |
-| 39 | Log de mudanças serializado em arquivo (`TracedApp.changes`) | strings L65940 `$n:RO\TracedApp.changes` | **observada** |
-| 40 | "Rastros" (traces) de **DLLs instaladas em pastas do sistema** e de arquivos do disco | `manual-chm-10.50.txt` ("what DLLs were installed by the program") | **documentada** |
-| 41 | Monitor dedicado em processo separado rodando junto com o app | processo **`UninstallMonitor.exe`** observado em execução enquanto `SoftOrganizer.exe` rodava (PID 10676/33812) | **observada** |
-| 42 | Rastreamento de instalações de **aplicativos adicionais** instalados junto com o app principal (para removê-los depois) | `pagina-full-uninstall.htm` ("Remove additional programs installed along with the main application…") | **documentada** |
+| 32 | **INSTALL WITH TRACING** — instala o programa e registra o que ele mudou | nao confirmado no binario | OK — `Core/Modules/InstallMonitor.cs`, `Core/Modules/TracedPrograms.cs` |
+| 33 | Relatório do que mudou, **salvo em log** | `recursos.txt:104` → `TAPPLICATIONSLOGCREATEFORM/0` | OK — `Core/Modules/TraceStore.cs`, `Core/Reporting/TraceLogExporter.cs` |
+| 34 | Etiqueta "Traced" na lista | nao confirmado no binario | OK — `Core/ProgramColumns.cs` |
+| 35 | **Snapshot do registro** antes/depois da instalação | `imports.txt:8` → `ADVAPI32.dll / RegNotifyChangeKeyValue`, `RegSaveKeyExW` | OK — `Core/Modules/SystemSnapshot.cs` |
+| 36 | Rastreamento do **disco em tempo real** | `imports.txt:10` → `KERNEL32.dll / FindFirstChangeNotificationW`, `FindNextChangeNotification` | PARCIAL — `Core/Modules/SystemSnapshot.cs` faz polling; não há notificação do SO |
+| 37 | Varredura profunda quando o app não foi rastreado | nao confirmado no binario | OK — `Core/Tracing/ForensicAnalyzer.cs` |
+| 38 | Módulo interno de rastreamento de registro | `imports.txt:8` → `ADVAPI32.dll / RegNotifyChangeKeyValue` | OK — `Core/Tracing/*` |
+| 39 | Log de mudanças em arquivo por app (`TracedApp.changes`) | nao confirmado no binario | PARCIAL — `Core/Modules/TraceStore.cs` grava log por app, mas sem o formato de snapshot de registro |
+| 40 | Rastreamento de **DLLs em pastas do sistema** | nao confirmado no binario | PARCIAL — `Core/UninstallSupport.cs` detecta DLLs em System32 no scan de sobras |
+| 41 | **Monitor em processo separado** (app de rastreamento) | nao confirmado no binario | PARCIAL — `Core/Modules/InstallMonitor.cs` roda no processo principal |
+| 42 | Rastreamento de **aplicativos adicionais** instalados junto | nao confirmado no binario | AUSENTE |
+| 43 | Extensão de shell COM para o menu de contexto | nao confirmado no PE (a DLL da extensão é arquivo do payload) | PARCIAL — `Core/Topmost/ExplorerContextMenu.cs` |
+| 44 | Chave de configuração "Windows context menu commands" | nao confirmado no binario | PARCIAL — `Core/Settings/AppSettings.cs` |
+| 45 | **Arrastar ícone** para o atalho | nao confirmado no binario | OK — `Core/Modules/HunterMode.cs` |
+| 46 | Detecção de **desinstalação externa** (app removido por fora) | `recursos.txt:102` → `TAPPLICATIONSEXTERNALDELETEMODULE/0` | AUSENTE |
+| 47 | Remoção de **Universal Windows Apps** | `imports.txt:63` → `API-MS-WIN-CORE-WINRT-L1-1-0.DLL` | OK — `Core/Modules/WindowsApps.cs` |
 
-### 2.4 Integração com o sistema (43–50)
+### 2.4 Integração e organização (48–53)
 
-| # | Funcionalidade | Evidência | Estado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 43 | **Extensão de shell (COM)**: "Run and trace with Soft Organizer" e "Uninstall completely with Soft Organizer" no menu de contexto do Explorer | `manual-chm-10.50.txt` (`extrafeatures_integracia_v_obolochku.html`); `install-log-key.txt`: `Registering 64-bit DLL/OCX: …\Shell\ShellContextMenu_4.dll` + `regsvr32.exe /s` | **observada** |
-| 44 | Chave de configuração "Windows context menu commands" (liga/desliga a integração) | strings L90611; `manual-chm-10.50.txt` (idem) | **observada** |
-| 45 | **Arrastar o ícone de um app para o atalho do Soft Organizer** na área de trabalho começa a desinstalação | `manual-chm-10.50.txt` (`extrafeatures_integracia_v_obolochku.html`) | **documentada** |
-| 46 | **Detecção de desinstaladores externos**: o SO fica em background e oferece limpar sobras quando você desinstala pelo "Apps & Features" | `manual-chm-10.50.txt` (`uninstallaps_external.html`); strings L80711 "CDetecting the application external uninstall to clean the leftovers", L80668 | **observada** |
-| 47 | **Remoção de Universal Windows Apps** (Store/Metro) | `pagina-soft-organizer.htm` ("Universal Windows Apps Removal"); binário `WinRTApps.dll` (514.216 B) | **observada** |
-| 48 | Export da lista de instalados para **HTML** | `pagina-soft-organizer.htm` ("Export the list of installed programs to HTML") | **documentada** |
-| 49 | Atalhos instalados: Menu Iniciar (app, "Desinstalar o Soft Organizer", "Manual do usuário") e Área de Trabalho pública | `install-log-key.txt` (linhas 18–22) | **observada** |
-| 50 | "Rarely used apps" — apps pouco usados (categoria interna) | strings L65332 `TRarelyUsedApps`, `LastTimeType` | **observada** |
+| 48 | Export da lista para HTML | nao confirmado no binario | OK — `Core/Exporters.cs` |
+| 49 | Atalhos instalados, com destino, alvo e working directory | nao confirmado no binario | OK — `Core/Management/ShortcutManager.cs` |
+| 50 | "Rarely used apps" | nao confirmado no binario | AUSENTE |
+| 51 | Leftovers de programas **já desinstalados** (lista de apps deletadas) | `recursos.txt:100` → `TAPPLICATIONSDELETEDFORM/0` | PARCIAL — `Core/Tools/TrackCleaner.cs` limpa rastros; falta a lista de apps já desinstalados |
+| 52 | Instalação silenciosa de programas | nao confirmado no binario | AUSENTE |
+| 53 | Instalação de novas versões | nao confirmado no binario | PARCIAL |
 
-### 2.5 Recursos PRO (51–53) — só Free foi instalada
+### 2.5 Linhas novas: funcionalidades presentes no binário e ainda não no documento
 
-| # | Funcionalidade | Evidência | Estado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 51 | **Leftovers de programas JÁ desinstalados** (varredura global de sobras) | `pagina-soft-organizer.htm`, seção "Pro version capabilities" | **documentada** |
-| 52 | **Instalação silenciosa** de programas (1 clique, para instaladores que suportam) | `pagina-soft-organizer.htm` ("Silent program installation") | **documentada** |
-| 53 | Instalação de **novas versões** dos programas instalados | `pagina-soft-organizer.htm` ("New versions installation") | **documentada** |
+| 54 | **Centro de dicas "Did You Know"** com dicas contextuais (arrastar para desinstalar, desinstalação externa, atualização, multilíngue) | `recursos.txt:112` → `TDIDYOUKNOWCENTERFORM/0`; `:101` → `TAPPLICATIONSDIDYOUKNOWTIPSDATA/0` | AUSENTE |
+| 55 | Aviso de **atualização do próprio app** ("Update This App") | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` atualiza, mas não há o painel "Update This App" |
+| 56 | **Backup e restauração de chaves de registro inteiras** | `imports.txt:8` → `ADVAPI32.dll / RegSaveKeyExW`, `RegRestoreKeyW` | PARCIAL — `Core/FullRegistryBackup.cs` exporta/importa hive `.reg`; o SO salva e restaura a chave selecionada |
+| 57 | **Carga e descarregamento de chaves** e substituição de chave | `imports.txt:8` → `ADVAPI32.dll / RegLoadKeyW`, `RegUnLoadKeyW`, `RegReplaceKeyW` | AUSENTE |
+| 58 | **Reiniciar o gerenciador** (Restart Manager) para liberar arquivos em uso | `imports.txt:76` → `Rstrtmgr.dll / RmStartSession`, `RmGetList`, `RmRegisterResources`, `RmRestart`, `RmShutdown`, `RmEndSession` | PARCIAL — `Core/ProcessTerminator.cs` termina processos e `Core/DeferredDelete.cs` adia o arquivo; falta o Restart Manager |
+| 59 | **Verificação de assinatura digital** de executáveis | `imports.txt:56` → `CRYPT32.dll / CryptQueryObject`, `CryptMsgGetParam` | AUSENTE |
+| 60 | **Enumeração de impressoras** e fila de impressão (para desinstalar driver de impressora) | `imports.txt:18` → `WINSPOOL.DRV / EnumPrintersW`, `GetDefaultPrinterW`, `OpenPrinterW` | AUSENTE |
+| 61 | **Descoberta de dispositivos Bluetooth LE** | `identificadores.txt:58` → `Windows.Devices.Bluetooth`; `strings.txt:15394` → `TWinRTBluetoothLEAdapter` | AUSENTE |
+| 62 | Monitoramento de processos **por sessão** | `imports.txt:50` → `WTSAPI32.dll / WTSEnumerateProcessesW` | OK — `Core/ProcessTerminator.cs` |
+| 63 | Informações de **usuário e estação de rede** | `imports.txt:12` → `NETAPI32.dll / NetUserGetInfo`, `NetWkstaGetInfo` | AUSENTE |
+| 64 | Consulta da **Lixeira** para reportar itens removidos | `imports.txt:30` → `SHELL32.dll / SHQueryRecycleBinW` | AUSENTE |
+| 65 | **Configuração completa de MSI** (instalar, modificar, reparar) | `imports.txt:74` → `msi.dll / MsiConfigureProductW`, `MsiSetExternalUIW`, `MsiSetInternalUI`, `MsiEnumProductsExW`, `MsiQueryProductStateW` | PARCIAL — `Core/MsiInstallLog.cs` e `Core/Discovery/MsiProductCatalog.cs` leem o MSI; falta configurar/reparar |
+| 66 | Download de arquivos pela web | `imports.txt:42` → `URLMON.DLL / URLDownloadToFileW` | OK — `Core/Updates/AutoUpdateClient.cs` |
+| 67 | **Tarefas de segundo plano** executadas pelo app | `recursos.txt:110` → `TBACKGROUNDTASKSMODULE/0` | AUSENTE |
+| 68 | **Itens compartilhados e dependentes** entre programas | `recursos.txt:130` → `TSHAREDANDDEPENDENTDATAMODULE/0` | AUSENTE |
+| 69 | **Startup gear** (gerenciador de inicialização próprio) | `recursos.txt:132` → `TSTARTUPGEARDATAMODULE/0` | AUSENTE |
+| 70 | Formulário de **notações do log** de rastreamento | `recursos.txt:105` → `TAPPLICATIONSLOGNOTATIONSFORM/0` | AUSENTE |
+| 71 | Formulário do **resultado da reversão do log** | `recursos.txt:108` → `TAPPLICATIONSREVERTLOGRESULTFORM/0` | AUSENTE |
+| 72 | Painel de **progresso próprio** | `recursos.txt:128` → `TPROGRESSFRAME/0` | OK — `Core/Automation/RemovalProgress.cs` |
+| 73 | Troca de **idioma em runtime** (multilíngue) | `recursos.txt:125` → `TMULTILANGUAGESUPPORTFORM/0` | OK — `Core/Localization/LanguageCatalog.cs` |
+| 74 | Telas de **licenciamento** (chave, assinatura, expiração da assinatura) | `recursos.txt:118` → `TLICENSINGKEYENTERINGFORM/0`; `:121` → `TLICENSINGSUBSCRIPTIONEXPIREDFORM/0` | AUSENTE — o Tranal não tem licença (sem impacto funcional) |
+| 75 | Tema **escuro "Charcoal Dark Slate"** embarcado | `recursos.txt:6` → `VCLSTYLE/CHARCOALDARKSLATE` | OK — `Theming/ThemeManager.cs` |
+| 76 | **Impersonação de token** e verificação de privilégios | `imports.txt:8` → `ADVAPI32.dll / ImpersonateLoggedOnUser`, `SetThreadToken`, `PrivilegeCheck`, `RevertToSelf`, `AdjustTokenPrivileges` | PARCIAL — `Core/ProcessTerminator.cs` termina processos com privilégio; falta impersonação de token |
+| 77 | **Notificações internas agendadas** (avisos de dica) | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | AUSENTE |
 
-### 2.6 O que **não** existe no Soft Organizer (medido)
+### 2.6 Lacunas confirmadas no binário
 
-| Recurso | Resultado medido |
-|---|---|
-| Filtro por **data** de instalação na UI | **Não verificado** — o manual só cita ordenação por data, não filtro (strings O_SIZE_DATE só têm "Large Applications") |
-| Exportar para **CSV/XML/TXT** | **Não** — o site e o manual só falam em HTML |
-| **Importar** lista de programas | **Não encontrado** (nada no manual, no site ou nas strings) |
-| **Agendamento** de varreduras/limpezas | **Não encontrado** (só "Auto update" e timers internos; nenhum agendador de tarefa) |
-| CLI de scan/uninstall/export documentada | **Não existe** (§5) |
-| Confiança/nível de evidência por item de sobra | **Não encontrado** — o SO mostra a lista de rastros sem "High/Medium/Low" (o Tranal tem) |
+A lista completa, com evidência e juizo de impacto por linha, está em **[BINARIO-SOFTORGANIZER.md](BINARIO-SOFTORGANIZER.md)**.
 
-**Total de funcionalidades inventariadas: 53** — **25 observadas**
-(7 em §2.1 + 9 em §2.2 + 3 em §2.3 + 6 em §2.4) e **28 documentadas**
-(9 + 6 + 8 + 2 + 3). As 53 contêm os 3 recursos PRO, que só existem por
-licença e portanto nunca foram executados.
+- **26 linhas `AUSENTE`** — 9, 10, 15, 22, 23, 24, 25, 29, 42, 46, 50, 52, 54, 57, 59, 60, 61, 63, 64, 67, 68, 69, 70, 71, 74, 77
+- **19 linhas `PARCIAL`** — 2, 4, 11, 20, 26, 30, 36, 39, 40, 41, 43, 44, 51, 53, 55, 56, 58, 65, 76
+- **77 linhas** na tabela de funcionalidades (53 originais + 24 novas)
 
 ---
 

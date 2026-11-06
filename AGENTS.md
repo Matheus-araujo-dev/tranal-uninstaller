@@ -408,6 +408,39 @@ discordam sobre o que precisa ser avisado.
   de mensagem (`UserMessages.Confirm`). As preferências tratam só das
   mensagens informativas e de aviso.
 
+## O que a engenharia reversa decidiu (regra do núcleo)
+
+O lote de funcionalidades que entrou no Tranal a partir da **auditoria binária**
+dos concorrentes tem uma regra por assunto, e cada uma mora em **um lugar só**:
+
+| Assunto | Onde mora a regra |
+|---|---|
+| Saúde do desinstalador (ok / ausente / corrompido) | `Core/UninstallerHealth.cs` |
+| Entrada protegida (`NoRemove`) | lido em `Core/ProgramScanner.cs`, avisado em `Core/UninstallAdvisories.cs` |
+| Ordem da desinstalação (barulhento primeiro) | `Core/Appearance/SmartOrdering.cs` |
+| Programas relacionados | `Core/Discovery/RelatedProgramFinder.cs` |
+| Destinos do Windows (Registro, Programas e Recursos, Recuperação) | `Core/Management/SystemNavigator.cs` |
+| Trava de desligamento durante a tarefa | `Core/Automation/ShutdownGuard.cs` |
+| Texto dos avisos | `Core/Localization/AdvisoryLabels.cs` (chave em `Lang/pt-BR.json` **e** `Lang/en-US.json`) |
+
+- **O método da auditoria é binário, não documental.** A evidencia e o artefato
+  do concorrente: a tabela de idioma do Revo Pro, a metadata .NET do BCU, as
+  importacoes da PE e os literais do binario. O metodo esta em
+  `docs/auditoria/BINARIO.md`. "Medido vale, inferido nao vale" vale tambem para
+  as listas de lacuna: antes de decidir, a alegacao de "ausente" e conferida no
+  codigo — e ja corrigiu uma lista errada.
+- **A regra mora em um lugar so vale para estes avisos tambem.** O assistente
+  consome `UninstallAdvisories.Build`; nao ha uma segunda montagem de aviso na
+  tela. Quem mostra uma pasta compartilhada nao mostra o vizinho de novo em
+  "programas relacionados".
+- **Desinstalador corrompido so quando o caminho e absoluto.** Um comando
+  relativo ("MsiExec.exe /X{...}") e resolvido pelo PATH do Windows: marcar
+  todo MSI como corrompido seria mentira. O mesmo vale para o comando solto
+  ("/S"), que nao e desinstalador nenhum.
+- **A trava de desligamento e descartavel.** Ela vale enquanto o desinstalador
+  nativo roda e e revogada ao fim: uma maquina que nao pode desligar nunca
+  e um defeito, nao uma protecao.
+
 ## O alvo da desinstalação em lote (regra do núcleo)
 
 A lista da janela principal é `SelectionMode="Extended"`: a desinstalação em

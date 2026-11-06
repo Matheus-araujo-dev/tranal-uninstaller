@@ -86,102 +86,122 @@ Inventário de **funcionalidades** (não de telas). **66 itens**, numerados de 1
 
 ### 2.1 Núcleo do desinstalador e lista de programas
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 17 | Desinstalar vários programas de uma vez (caixas de seleção) | `manual-free.txt:60` | Documentado (FREE + PRO) |
-| 18 | Limpeza em profundidade após a desinstalação (in-depth cleaning), habilitada por padrão | `manual-free.txt:191-193`, `manual-pro27.txt:156-157` | Documentado (FREE + PRO) |
-| 19 | Procedimento de desinstalação em 5 etapas, reversível mesmo sem log | `site-produto-uninstaller.html:5226` | Documentado (só PRO) |
-| 20 | Histórico das instalações/desinstalações recentes, com botão de desinstalar | `manual-free.txt:33-35`, `manual-free.txt:198-200` | Documentado (FREE + PRO) |
-| 22 | Remover a entrada da lista do Windows de programas instalados, sem desinstalar | `manual-free.txt:114-116` | Documentado (FREE + PRO) |
-| 23 | Filtrar a lista por texto e ocultar categorias comuns (ex.: .NET Framework) | `manual-free.txt:69-71` | Documentado (FREE + PRO) |
-| 24 | Filtrar a lista **por tamanho** (subtópicos) | `manual-free.txt:60`, `manual-pro27.txt:39` | Documentado (FREE + PRO) |
-| 25 | Criar relatório (tabela) de todos os programas instalados, aberto no navegador | `manual-free.txt:170-172` | Documentado (FREE + PRO) |
-| 26 | Exportar a lista de programas para arquivo e **importar** lista exportada (marcar não instalados) | `manual-pro27.txt:104-114` | Documentado (só PRO) |
-| 28 | Instalar um programa com monitoramento (arrastar o setup ou "Browse") | `manual-free.txt:205-211`, `manual-pro27.txt:167-170` | Documentado (FREE + PRO) |
-| 29 | Atalhos de acesso rápido por módulo na tela de visão geral (tiles) | `manual-free.txt:28` | Documentado (FREE + PRO) |
-| 59 | Ratings por estrelas (1–5) com base online e download de database | `manual-free.txt:51-53`, `manual-free.txt:142-144` | Documentado (FREE + PRO) |
-| 60 | Busca online do programa e "Rate online" | `manual-free.txt:128-137` | Documentado (FREE + PRO) |
-| 62 | Comparação de tamanho declarado vs. real do programa, sincronizável com o Windows | `site-produto-uninstaller.html:5412` | Documentado (só PRO) |
-| 63 | Categoria automática expandida + reset para "Unsorted" | `site-produto-uninstaller.html:5413`, `5425` | Documentado (só PRO) |
-| 64 | País do editor com bandeira e nome | `site-produto-uninstaller.html:5414` | Documentado (só PRO) |
-| 66 | Desinstalar o próprio produto pelo Windows "Apps & Features" | `manual-pro27.txt:513-521` | Documentado (só PRO) |
+| 17 | Desinstalar vários programas de uma vez (caixas de seleção) | nao confirmado no binario — doc.: `manual-free.txt:60` | PARCIAL — fila em lote por arquivo (`Core/Automation/BatchList.cs`, `/batch`); falta a marcação por caixas na lista principal |
+| 18 | Limpeza em profundidade após a desinstalação (in-depth cleaning), habilitada por padrão | nao confirmado no binario — doc.: `manual-free.txt:191-193`, `manual-pro27.txt:156-157` | OK — `Core/UninstallSupport.cs` (`LeftoverScanner`, `LeftoverReason`) |
+| 19 | Procedimento de desinstalação em 5 etapas, reversível mesmo sem log | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5226` | OK — 5 etapas em `docs/PARIDADE.md` §"Modos de desinstalação"; reversão em `Core/Recovery/ProgramBackup.cs` |
+| 20 | Histórico das instalações/desinstalações recentes, com botão de desinstalar | nao confirmado no binario — doc.: `manual-free.txt:33-35`, `manual-free.txt:198-200` | PARCIAL — histórico de operações (`Core/Recovery/ProgramBackup.cs`) e log por programa (`Core/Modules/TraceStore.cs`) existem; falta a visão única "recentes" com ação de desinstalar |
+| 22 | Remover a entrada da lista do Windows de programas instalados, sem desinstalar | nao confirmado no binario — doc.: `manual-free.txt:114-116` | PARCIAL — `Core/ProgramCustomization.cs` e `Core/ExcludeList.cs`; equivalente exato não verificado |
+| 23 | Filtrar a lista por texto e ocultar categorias comuns (ex.: .NET Framework) | nao confirmado no binario — doc.: `manual-free.txt:69-71` | PARCIAL — filtro por texto e filtros rápidos existem (`docs/auditoria/MATRIZ.md` A16 ✅); falta ocultar categorias como .NET Framework |
+| 24 | Filtrar a lista **por tamanho** (subtópicos) | nao confirmado no binario — doc.: `manual-free.txt:60`, `manual-pro27.txt:39` | AUSENTE — nenhum filtro por tamanho/ano localizado no `src/` |
+| 25 | Criar relatório (tabela) de todos os programas instalados, aberto no navegador | nao confirmado no binario — doc.: `manual-free.txt:170-172` | OK — `Core/Exporters.cs` (`ToHtml`) |
+| 26 | Exportar a lista de programas para arquivo e **importar** lista exportada (marcar não instalados) | nao confirmado no binario — doc.: `manual-pro27.txt:104-114` | PARCIAL — exportar existe (`Core/Exporters.cs`); **importar** lista de programas não existe (só o importador de log do Tranal, `Core/Modules/TraceStore.cs`) |
+| 28 | Instalar um programa com monitoramento (arrastar o setup ou "Browse") | nao confirmado no binario — doc.: `manual-free.txt:205-211`, `manual-pro27.txt:167-170` | OK — `Core/Modules/InstallMonitor.cs`, `Core/Modules/TracedPrograms.cs` |
+| 29 | Atalhos de acesso rápido por módulo na tela de visão geral (tiles) | nao confirmado no binario — doc.: `manual-free.txt:28` | PARCIAL — módulos no painel (`docs/PARIDADE.md` §"Módulos do painel"); tiles de atalho rápido por módulo não foram localizados |
+| 59 | Ratings por estrelas (1–5) com base online e download de database | nao confirmado no binario — doc.: `manual-free.txt:51-53`, `manual-pro27.txt:142-144` | AUSENTE — nenhum match para estrelas/avaliação no `src/` (`Core/WebSearch.cs` é busca, não avaliação) |
+| 60 | Busca online do programa e "Rate online" | nao confirmado no binario — doc.: `manual-pro27.txt:128-137` | PARCIAL — a busca existe (`Core/WebSearch.cs`); "rate online" não |
+| 62 | Comparação de tamanho declarado vs. real do programa, sincronizável com o Windows | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5412` | PARCIAL — o Tranal mede o tamanho real em disco (`Core/Discovery/ProgramScanner.cs`); falta comparar com o "tamanho declarado" e sincronizar com o Windows |
+| 63 | Categoria automática expandida + reset para "Unsorted" | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5413`, `5425` | PARCIAL — agrupamento automático pela coluna de ordenação existe (`docs/auditoria/MATRIZ.md` D19 ✅); falta o reset explícito para "Unsorted" |
+| 64 | País do editor com bandeira e nome | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5414` | AUSENTE — nenhum dado de país/bandeira no `src/` |
+| 66 | Desinstalar o próprio produto pelo Windows "Apps & Features" | nao confirmado no binario — doc.: `manual-pro27.txt:513-521` | AUSENTE — não verificado no `src/`; o instalador próprio `installer/tranal.iss` provavelmente registra a entrada, mas isso não foi medido |
 
 ### 2.2 Monitor de instalação e log de instalação
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 1 | Monitor de instalação integrado que grava log detalhado de cada instalação | `manual-free.txt:5`, `manual-pro27.txt:6` | Documentado (FREE + PRO) |
-| 2 | Detecção automática do início/fim da instalação (com aviso "Installation completed" manual como fallback) | `manual-free.txt:211`, `manual-pro27.txt:170` | Documentado (FREE + PRO) |
-| 3 | Ícone na bandeja do sistema para o monitor de instalação, com acionamento manual | `manual-pro27.txt:13-14` | Documentado (só PRO) |
-| 4 | Reconhecimento de tipos de instalador (Wise, Inno Setup, InstallShield) e por nome de arquivo | `manual-troubleshooting.txt:5` | Documentado (FREE + PRO) |
-| 5 | Separação entre instalação e atualização, reduzindo detecções falsas | `site-produto-uninstaller.html:5515` | Documentado (só PRO) |
-| 6 | Log por programa com arquivos e alterações de registro | `manual-free.txt:76-86` | Documentado (FREE + PRO) |
-| 7 | Mostrar detalhe do log (entradas de registro modificadas etc.) | `manual-free.txt:83-85` | Documentado (FREE + PRO) |
-| 8 | Exportar lista de arquivos do log (txt) | `manual-free.txt:90-92` | Documentado (FREE + PRO) |
-| 9 | Exportar alterações de registro do log (.reg) | `manual-free.txt:97-99` | Documentado (FREE + PRO) |
-| 10 | Editar manualmente o log de instalação (remover entradas) | `manual-pro27.txt:144-146` | Documentado (só PRO) |
-| 11 | Apagar o log sem desinstalar (o programa passa a ser "unmonitored") | `manual-free.txt:104-106` | Documentado (FREE + PRO) |
-| 12 | Importar logs do UnInstaller 4 | `manual-free.txt:177-179` | Documentado (FREE + PRO) |
-| 13 | Abrir a pasta de logs no Explorer | `manual-free.txt:184-186` | Documentado (FREE + PRO) |
-| 14 | **Análise forense / log pós-instalação** para programas instalados sem monitoramento ("Create post-install log") | `manual-pro27.txt:43-46`, `site-produto-uninstaller.html:5428-5430` | Documentado (só PRO) |
-| 15 | Análise forense em lote (processar todas as aplicações compatíveis de uma vez) | `site-produto-uninstaller.html:5429` | Documentado (só PRO) |
-| 61 | Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar | `manual-pro27.txt:489-490` | Documentado (só PRO) |
+| 1 | Monitor de instalação integrado que grava log detalhado de cada instalação | nao confirmado no binario — doc.: `manual-free.txt:5`, `manual-pro27.txt:6` | OK — `Core/Modules/InstallMonitor.cs`, `Core/Modules/TraceStore.cs` |
+| 2 | Detecção automática do início/fim da instalação (com aviso "Installation completed" manual como fallback) | nao confirmado no binario — doc.: `manual-free.txt:211`, `manual-pro27.txt:170` | OK — `Core/Modules/TracedPrograms.cs` (fotografia antes → instalador → fotografia depois) |
+| 3 | Ícone na bandeja do sistema para o monitor de instalação, com acionamento manual | nao confirmado no binario — doc.: `manual-pro27.txt:13-14` | PARCIAL — o monitor existe (`Core/Modules/InstallMonitor.cs`); não foi verificado ícone de bandeja com acionamento manual |
+| 4 | Reconhecimento de tipos de instalador (Wise, Inno Setup, InstallShield) e por nome de arquivo | nao confirmado no binario — doc.: `manual-troubleshooting.txt:5` | OK — `Core/UninstallerKind.cs` (12 tipos, `docs/auditoria/MATRIZ.md` A2 ✅) |
+| 5 | Separação entre instalação e atualização, reduzindo detecções falsas | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5515` | PARCIAL — a classificação do desinstalador existe (`Core/UninstallerKind.cs`); a distinção instalação × atualização dentro do log não foi medida |
+| 6 | Log por programa com arquivos e alterações de registro | nao confirmado no binario — doc.: `manual-free.txt:76-86` | OK — `Core/Modules/TraceStore.cs` |
+| 7 | Mostrar detalhe do log (entradas de registro modificadas etc.) | nao confirmado no binario — doc.: `manual-free.txt:83-85` | OK — `Core/Modules/TraceStore.cs` |
+| 8 | Exportar lista de arquivos do log (txt) | nao confirmado no binario — doc.: `manual-free.txt:90-92` | PARCIAL — o log exporta em JSON (`Core/Modules/TraceStore.cs`); falta export txt |
+| 9 | Exportar alterações de registro do log (.reg) | nao confirmado no binario — doc.: `manual-free.txt:97-99` | AUSENTE — o exportador do log grava JSON, não `.reg` |
+| 10 | Editar manualmente o log de instalação (remover entradas) | nao confirmado no binario — doc.: `manual-pro27.txt:144-146` | AUSENTE — nenhum método de edição de entrada em `Core/Modules/TraceStore.cs` |
+| 11 | Apagar o log sem desinstalar (o programa passa a ser "unmonitored") | nao confirmado no binario — doc.: `manual-free.txt:104-106` | OK — `Core/Modules/TraceStore.cs` (apaga o log) |
+| 12 | Importar logs do UnInstaller 4 | nao confirmado no binario — doc.: `manual-free.txt:177-179` | AUSENTE — o importador (`Core/Modules/TraceStore.cs`) só lê o formato do Tranal |
+| 13 | Abrir a pasta de logs no Explorer | nao confirmado no binario — doc.: `manual-free.txt:184-186` | PARCIAL — o shell é acionado (`ShellExecuteW` em `Core/RegistryEditing/RegistryEditor.cs`); não foi verificado um comando específico para a pasta de logs |
+| 14 | **Análise forense / log pós-instalação** para programas instalados sem monitoramento ("Create post-install log") | nao confirmado no binario — doc.: `manual-pro27.txt:43-46`, `site-produto-uninstaller.html:5428-5430` | AUSENTE — não existe fotografia do "antes" de uma instalação já concluída (`docs/auditoria/MATRIZ.md` H.8) |
+| 15 | Análise forense em lote (processar todas as aplicações compatíveis de uma vez) | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5429` | AUSENTE — nem o fluxo individual existe |
+| 61 | Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar | nao confirmado no binario — doc.: `manual-pro27.txt:489-490` | AUSENTE — não há motor de regras de detecção de setup configurável |
 
 ### 2.3 Snapshots e análise forense
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 16 | Log de instalação **criado a partir da diferença entre dois snapshots** | `manual-pro27.txt:275-279` | Documentado (só PRO) |
-| 33 | **Snapshots** do estado do sistema (criar, nomear, listar, apagar) | `manual-pro27.txt:246-269` | Documentado (só PRO) |
-| 34 | **Comparar dois snapshots** e visualizar as diferenças por categoria, com "Generate report" | `manual-pro27.txt:281-285` | Documentado (só PRO) |
-| 35 | "Create 2 snapshots now and show changes" (fluxo automático de diff) | `manual-pro27.txt:271-273` | Documentado (só PRO) |
-| 36 | Wizard de snapshots por caso de uso, com nomes automáticos | `manual-pro27.txt:287-288` | Documentado (só PRO) |
-| 37 | Snapshot: seleção de drives incluídos e pastas excluídas | `manual-pro27.txt:492-493` | Documentado (só PRO) |
+| 16 | Log de instalação **criado a partir da diferença entre dois snapshots** | nao confirmado no binario — doc.: `manual-pro27.txt:275-279` | OK — `Core/Modules/TracedPrograms.cs` + `Core/Modules/SystemSnapshot.cs` (`Diff`) |
+| 33 | **Snapshots** do estado do sistema (criar, nomear, listar, apagar) | nao confirmado no binario — doc.: `manual-pro27.txt:246-269` | PARCIAL — o motor existe (`Core/Modules/SystemSnapshot.cs`), mas a fotografia só vive durante a operação: sem snapshots persistidos, nome ou comparação sob demanda |
+| 34 | **Comparar dois snapshots** e visualizar as diferenças por categoria, com "Generate report" | nao confirmado no binario — doc.: `manual-pro27.txt:281-285` | PARCIAL — `SystemSnapshot.Diff` devolve o que **nasceu** (`NewFiles`/`NewFolders`/`NewRegistryKeys`), não o que mudou |
+| 35 | "Create 2 snapshots now and show changes" (fluxo automático de diff) | nao confirmado no binario — doc.: `manual-pro27.txt:271-273` | PARCIAL — o diff automático existe no fluxo de rastreio; falta o atalho "2 snapshots agora" |
+| 36 | Wizard de snapshots por caso de uso, com nomes automáticos | nao confirmado no binario — doc.: `manual-pro27.txt:287-288` | AUSENTE — nenhum wizard de snapshot no `src/` |
+| 37 | Snapshot: seleção de drives incluídos e pastas excluídas | nao confirmado no binario — doc.: `manual-pro27.txt:492-493` | AUSENTE — a captura não é configurável por drive/pasta |
 
 ### 2.4 Ferramentas de manutenção, limpeza e recuperação
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 38 | Backups do Registry Optimizer, com restauração, exclusão por idade (7/14/30 dias) e visão detalhada | `manual-free.txt:463-509` | Documentado (FREE + PRO) |
-| 39 | Registry Optimizer (limpeza de entradas obsoletas, com relatório e exceções) | `manual-free.txt:300-301` | Documentado (FREE + PRO) |
-| 40 | Registry Optimizer 2 + "Super Safe Mode" (limpeza mais cautelosa) | `site-produto-uninstaller.html:5400-5401`, `5432-5433` | Documentado (só PRO) |
-| 41 | Drive Cleaner (arquivos desnecessários, com seleção por categoria e relatório) | `manual-pro27.txt:295-298`, `manual-free.txt:270` | Documentado (FREE + PRO) |
-| 42 | Internet Cleaner (cookies, histórico, exceções e "cookies seguros" / whitelist) | `manual-free.txt:281-283`, `manual-pro27.txt:303-309` | Documentado (FREE + PRO) |
-| 43 | File Wiper (sobrescrita de espaço livre e de arquivos/pastas) | `manual-free.txt:512-580` | Documentado (FREE + PRO) |
-| 44 | File Associator (tipos de arquivo sem programa associado, editar/undo) | `manual-free.txt:414-457` | Documentado (FREE + PRO) |
-| 45 | Desfragmentação de drives (citada entre as ferramentas) | `manual-free.txt:270` | Documentado (FREE + PRO) |
-| 46 | Gerenciador de serviços: alterar tipo de inicialização, iniciar/parar, ver dependências | `manual-free.txt:330-402` | Documentado (FREE + PRO) |
-| 47 | Autorun / StartUp Tuner: habilitar, desabilitar, adicionar, editar e remover entradas de inicialização | `manual-free.txt:288-318`, `manual-pro27.txt:316-331` | Documentado (FREE + PRO) |
-| 48 | Boot Center: resumo de tempo de boot, autorun e tarefas agendadas (enable/disable/delete) | `manual-pro27.txt:311-343` | Documentado (só PRO) |
-| 49 | Privacy Traces Cleaner + limpeza de jump lists | `manual-pro27.txt:440-441` | Documentado (só PRO) |
-| 50 | **Unlocker**: desbloquear arquivos em uso, reiniciar o Explorer, desregistrar DLL, encerrar processo | `manual-pro27.txt:437-455` | Documentado (só PRO) |
-| 51 | **Crash Analyzer**: relatórios de falha do Windows Event Log, agrupados por programa, com export e busca online | `manual-pro27.txt:457-458`, `site-produto-uninstaller.html:5402`, `5435-5436` | Documentado (só PRO) |
-| 52 | **Undeleter**: recuperar arquivos apagados acidentalmente | `manual-pro27.txt:381-382` | Documentado (só PRO) |
-| 53 | **Software Updater**: atualizar programas instalados, em lote, com lista negra de atualizações | `manual-pro27.txt:172-175`, `site-produto-uninstaller.html:5407-5408`, `5419-5420` | Documentado (só PRO) |
-| 54 | **Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois | `manual-pro27.txt:177-181` | Documentado (só PRO) |
-| 55 | **Impact**: programas com maior impacto na performance (CPU e memória) | `manual-pro27.txt:212-213` | Documentado (só PRO) |
-| 56 | **Move**: mover um programa para outro local, recriando o atalho no lugar original | `manual-pro27.txt:163-165` | Documentado (só PRO) |
-| 57 | **Revert relocation**: devolver o programa movido à posição original | `manual-pro27.txt:84-86` | Documentado (só PRO) |
-| 58 | Atalho de área de trabalho "Drag & Drop UnInstall" (arrastar atalhos para desinstalar) | `manual-pro27.txt:161` | Documentado (só PRO) |
+| 38 | Backups do Registry Optimizer, com restauração, exclusão por idade (7/14/30 dias) e visão detalhada | nao confirmado no binario — doc.: `manual-free.txt:463-509` | PARCIAL — backup e restauração existem (`Core/BackupManager.cs`, `Core/FullRegistryBackup.cs`); falta a exclusão por idade |
+| 39 | Registry Optimizer (limpeza de entradas obsoletas, com relatório e exceções) | nao confirmado no binario — doc.: `manual-free.txt:300-301` | OK — `Core/Tools/RegistryOptimizer.cs` |
+| 40 | Registry Optimizer 2 + "Super Safe Mode" (limpeza mais cautelosa) | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5400-5401`, `5432-5433` | PARCIAL — o otimizador existe; falta o modo "Super Safe Mode" |
+| 41 | Drive Cleaner (arquivos desnecessários, com seleção por categoria e relatório) | nao confirmado no binario — doc.: `manual-pro27.txt:295-298`, `manual-free.txt:270` | OK — `Core/Tools/JunkCleaner.cs` |
+| 42 | Internet Cleaner (cookies, histórico, exceções e "cookies seguros" / whitelist) | nao confirmado no binario — doc.: `manual-free.txt:281-283`, `manual-pro27.txt:303-309` | PARCIAL — limpeza existe (`Core/Tools/HistoryCleaner.cs`, `Core/Tools/TrackCleaner.cs`); falta a whitelist/"cookies seguros" |
+| 43 | File Wiper (sobrescrita de espaço livre e de arquivos/pastas) | nao confirmado no binario — doc.: `manual-pro27.txt:512-580` | OK — `Core/Tools/UnrecoverableDelete.cs`, `Core/Tools/EvidenceRemover.cs` |
+| 44 | File Associator (tipos de arquivo sem programa associado, editar/undo) | nao confirmado no binario — doc.: `manual-free.txt:414-457` | AUSENTE — nenhum match para `FileAssociat` no `src/` |
+| 45 | Desfragmentação de drives (citada entre as ferramentas) | nao confirmado no binario — doc.: `manual-free.txt:270` | AUSENTE — o Tranal não desfragmenta |
+| 46 | Gerenciador de serviços: alterar tipo de inicialização, iniciar/parar, ver dependências | nao confirmado no binario — doc.: `manual-free.txt:330-402` | PARCIAL — só abre `services.msc` (`Core/Tools/WindowsToolsCatalog.cs`); não há `ServiceController`/`StartType` |
+| 47 | Autorun / StartUp Tuner: habilitar, desabilitar, adicionar, editar e remover entradas de inicialização | nao confirmado no binario — doc.: `manual-free.txt:288-318`, `manual-pro27.txt:316-331` | PARCIAL — habilita, desabilita e remove (`Core/Tools/AutorunManager.cs`); **falta** adicionar/editar item |
+| 48 | Boot Center: resumo de tempo de boot, autorun e tarefas agendadas (enable/disable/delete) | nao confirmado no binario — doc.: `manual-pro27.txt:311-343` | PARCIAL — autorun e o *launcher* de `taskschd.msc` existem (`Core/Tools/AutorunManager.cs`, `Core/Tools/WindowsToolsCatalog.cs`); falta o resumo de tempo de boot |
+| 49 | Privacy Traces Cleaner + limpeza de jump lists | nao confirmado no binario — doc.: `manual-pro27.txt:440-441` | OK — `Core/Tools/EvidenceRemover.cs` (jump lists, prefetch, shellbags) |
+| 50 | **Unlocker**: desbloquear arquivos em uso, reiniciar o Explorer, desregistrar DLL, encerrar processo | nao confirmado no binario — doc.: `manual-pro27.txt:437-455` | PARCIAL — encerrar processo existe (`Core/ProcessTerminator.cs`); falta desbloquear arquivo em uso, reiniciar o Explorer e desregistrar DLL |
+| 51 | **Crash Analyzer**: relatórios de falha do Windows Event Log, agrupados por programa, com export e busca online | nao confirmado no binario — doc.: `manual-pro27.txt:457-458`, `site-produto-uninstaller.html:5402`, `5435-5436` | AUSENTE — nenhum match para `crash` no `src/` |
+| 52 | **Undeleter**: recuperar arquivos apagados acidentalmente | nao confirmado no binario — doc.: `manual-free.txt:381-382` | AUSENTE — nenhum match para `undelet` no `src/` |
+| 53 | **Software Updater**: atualizar programas instalados, em lote, com lista negra de atualizações | nao confirmado no binario — doc.: `manual-pro27.txt:172-175`, `site-produto-uninstaller.html:5407-5408`, `5419-5420` | AUSENTE — `Core/Updates/AutoUpdateClient.cs` atualiza o próprio Tranal, não programas de terceiros |
+| 54 | **Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois | nao confirmado no binario — doc.: `manual-pro27.txt:177-181` | AUSENTE — nenhum match para `hibernat` no `src/` |
+| 55 | **Impact**: programas com maior impacto na performance (CPU e memória) | nao confirmado no binario — doc.: `manual-pro27.txt:212-213` | AUSENTE — nenhum ranking de performance no `src/` |
+| 56 | **Move**: mover um programa para outro local, recriando o atalho no lugar original | nao confirmado no binario — doc.: `manual-pro27.txt:163-165` | AUSENTE — nenhum match para `reloc` no `src/` |
+| 57 | **Revert relocation**: devolver o programa movido à posição original | nao confirmado no binario — doc.: `manual-free.txt:84-86` | AUSENTE — o "Move" não existe |
+| 58 | Atalho de área de trabalho "Drag & Drop UnInstall" (arrastar atalhos para desinstalar) | nao confirmado no binario — doc.: `manual-pro27.txt:161` | PARCIAL — arrastar e soltar existe (`Ui/Modules/HunterView.xaml`, `Ui/Tools/TopmostOverlayWindow.xaml`), mas não é o atalho de área de trabalho "Drag & Drop UnInstall" |
 
 ### 2.5 Exportação, integração e Windows Apps
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 27 | Exportar logs de desinstalação em HTML, CSV e TXT | `site-produto-uninstaller.html:5405` | Documentado (só PRO) |
-| 30 | Remoção de Windows-Apps / system apps, com remoção parcial e restauração dos apps padrão | `manual-free.txt:216-228`, `manual-free.txt:261-263` | Documentado (FREE + PRO) |
-| 31 | Listar e remover **plugins de navegador** | `manual-pro27.txt:215-218` | Documentado (só PRO) |
-| 32 | Remover add-ons e toolbars com um clique | `site-produto-uninstaller.html:5226` | Documentado (só PRO) |
-| 65 | Instalação via "Ashampoo App" (`C:\Program Files\Ashampoo\Ashampoo App`, produtos em `products\`) | `manual-troubleshooting.txt:13-15` | Documentado (FREE + PRO) |
+| 27 | Exportar logs de desinstalação em HTML, CSV e TXT | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5405` | PARCIAL — a **lista** sai em CSV/TXT/HTML/XML (`Core/Exporters.cs`); o **log de instalação** sai só em JSON (`Core/Modules/TraceStore.cs`) |
+| 30 | Remoção de Windows-Apps / system apps, com remoção parcial e restauração dos apps padrão | nao confirmado no binario — doc.: `manual-free.txt:216-228`, `manual-free.txt:261-263` | PARCIAL — a remoção existe (`Core/Modules/WindowsApps.cs`); falta a restauração dos apps padrão |
+| 31 | Listar e remover **plugins de navegador** | nao confirmado no binario — doc.: `manual-pro27.txt:215-218` | OK — `Core/Modules/BrowserExtensions.cs` |
+| 32 | Remover add-ons e toolbars com um clique | nao confirmado no binario — doc.: `site-produto-uninstaller.html:5226` | PARCIAL — plugins cobertos (`Core/Modules/BrowserExtensions.cs`); o caso "toolbar" não foi verificado |
+| 65 | Instalação via "Ashampoo App" (`C:\Program Files\Ashampoo\Ashampoo App`, produtos em `products\`) | nao confirmado no binario — doc.: `manual-troubleshooting.txt:13-15` | AUSENTE — decisão de produto: o Tranal é distribuído por instalador próprio (`installer/tranal.iss`), sem loja de aplicativos |
 
 ### 2.6 Linha de comando do desinstalador
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 21 | Editar os parâmetros da linha de comando de desinstalação do programa | `manual-free.txt:121-123` | Documentado (FREE + PRO) |
+| 21 | Editar os parâmetros da linha de comando de desinstalação do programa | nao confirmado no binario — doc.: `manual-free.txt:121-123` | PARCIAL — a remoção manual com o comando derivado existe (`Core/Automation/ManualRemoval.cs`, `Core/Discovery/MsiProductCatalog.cs`); falta o comando de desinstalação editável |
 
 > O item 21 **não** é uma CLI do Ashampoo: ele edita os parâmetros do comando de
 > desinstalação do **programa-alvo** (§5.4).
+
+### 2.6.1 Funcionalidades descobertas na superfície do binário (não constavam no documento)
+
+Tudo o que o binário **permite provar** está na superfície do **instalador**
+(`ashampoo_uninstaller_pro_27.exe`): runtime do Inno Setup e manifesto. O
+aplicativo em si (`UI27.exe`) está comprimido em LZMA dentro do instalador e
+**não é acessível** — ver §8.1.
+
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 67 | Instalador Inno Setup 7.0.0.3 com mensagens em inglês | `ashampoo-instalador.strings.txt:3467` `Inno Setup Setup Data (7.0.0.3)`; `:3468` `Inno Setup Messages (6.5.0) (u)`; `:5517` `<description>Inno Setup</description>` | PARCIAL — o instalador do Tranal também é Inno Setup (`installer/tranal.iss`); o conjunto de switches não foi verificado no script |
+| 68 | Instalador silencioso (`/SILENT`, `/VERYSILENT`), com log (`/LOG`), tarefas (`/TASKS`), senha (`/PASSWORD`), save/load de settings (`/LOADINF`, `/SAVEINF`) | `ashampoo-instalador.inventario.md` §"Rotulos de interface relevantes" (`Instructs Setup to be silent or very silent.`, `Same as /LOG, except it allows you to specify a fixed path/filename to use for the log file.`, `Specifies a list of tasks that should be initially selected.`, `Please specify the password using the /PASSWORD= command-line parameter.`, `Instructs Setup to load the settings from the specified file after having checked the command line, or to save settings to it.`) | PARCIAL — o Tranal tem CLI própria (`src/Tranal.Cli/Program.cs`), mas não um conjunto de switches de instalador equivalente verificado |
+| 69 | Registro do produto para desinstalação pelo Windows | `ashampoo-instalador.strings.txt:3023` `UninstallFilesDir`; `:3024` `UninstallDisplayName`; `:3025` `UninstallDisplayIcon`; `:3034` `CreateUninstallRegKey`; `:3035` `Uninstallable`; `:3088` `UninstallLogMode`; `:3097` `UninstallDisplaySize` | PARCIAL — o instalador do Tranal é Inno Setup, o que implica o mesmo registro; não foi verificado no script |
+| 70 | Detecção da versão do Windows suportada (Windows XP → Windows 11, Server 2003 → Server 2025) | `ashampoo-instalador.inventario.md` §"Rotulos de interface relevantes" (`Windows 10`, `Windows 11`, `Windows XP`, `Windows Vista`, `Windows Server 2025`, `Windows Server 2022`, …) | PARCIAL — a matriz de sistemas suportados do Tranal não foi verificada no `src/` |
+| 71 | Enumeração de dispositivos/drivers no instalador (SetupDi) | `ashampoo-instalador.inventario.md:409-410` → `**SetupDi** - Enumera dispositivos/Drivers` | AUSENTE — o Tranal remove drivers (`docs/auditoria/MATRIZ.md` E10 ✅) mas não os enumera por SetupDi |
+| 72 | Acesso HTTP do instalador (WinHttp) | `ashampoo-instalador.inventario.md:409-411` → `**WinHttp** - Acesso HTTP/FTP` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` fala HTTP com o servidor do Tranal; não há acesso HTTP no instalador |
+| 73 | Instalador protegido por senha (criptografia ChaCha20 do setup) | `ashampoo-instalador.inventario.md:9` → classe RTTI `TChaCha20Context`; `ashampoo-instalador.strings.txt` → `TSetupEncryptionKey`, `The password you specified is not correct. Please try again.` | AUSENTE — o instalador do Tranal não tem senha |
+| 74 | Fechamento automático de aplicações que travam a instalação (e reinício delas) | `ashampoo-instalador.inventario.md` §"Rotulos de interface relevantes" (`Instructs Setup to attempt closing applications using files that need to be updated, or prevents it from doing so.`, `Instructs Setup to force close when closing applications, or prevents it from doing so.`, `Instructs Setup to attempt restarting applications, or prevents it from doing so.`) | AUSENTE — o instalador do Tranal não fecha aplicações em uso |
+| 75 | Manifesto que redireciona DLLs de sistema (`comctl32`, `mpr`, `netapi32`, `netutils`, `textshaping`, `version`) | `ashampoo-instalador.strings.txt:66-71` → `file name="comctl32.dll" loadFrom="%SystemRoot%\system32\" /` e equivalentes | AUSENTE — o manifesto do Tranal não redireciona DLLs |
+| 76 | Compilador Delphi (Embarcadero) do instalador e detecção de sistema | `ashampoo-instalador.inventario.md` → `Embarcadero Delphi for Win32 compiler version 36.0 (29.0.55362.2017)`; `ashampoo-instalador.identificadores.txt:22` → `Winapi.Windows.PkgHelper` | AUSENTE — o Tranal é C#/.NET/WPF; decisão de stack, não é lacuna funcional |
 
 ### 2.7 Delta FREE × PRO — as 28 capacidades exclusivas do PRO 27
 

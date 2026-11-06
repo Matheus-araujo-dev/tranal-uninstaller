@@ -49,103 +49,157 @@ Duas divergências entre o `evidencia/RESUMO.md` e a medição direta em disco, 
 
 ## 2. Superfície observável
 
-Inventário de **funcionalidades** (não de telas). "Observado" = aconteceu nesta máquina; "Documentado" = o manual/site oficial afirma. As referências `sX` são do arquivo `evidencia/strings-funcionalidades.txt`, que carrega o número da linha correspondente em `evidencia/strings-Tu.exe.txt`.
+Inventário de **funcionalidades** (não de telas), curado a partir do **binário**. A numeração original (1–64) foi preservada; as linhas novas (65+) continuam a numeração.
+
+**Legenda das evidências** — arquivos medidos em `E:\Projetos\tranal-auditoria-evidencia\`:
+
+| Abreviação | Arquivo |
+|---|---|
+| `recursos.txt` | `bin-inventario/totaluninstall.recursos.txt` — recursos Delphi do PE (22 formulários `T*`) |
+| `imports.txt` | `bin-inventario/totaluninstall.imports.txt` — tabela de imports da PE |
+| `inventario.md` | `bin-inventario/totaluninstall.inventario.md` — classes RTTI (509) + rótulos de interface (680) |
+| `strings.txt` | `bin-strings/totaluninstall.strings.txt` — dump bruto de strings |
+
+Coluna **Tranal**: `OK` (implementado, com o arquivo), `PARCIAL` (existe, falta parte — o que falta é dito na própria célula) ou `AUSENTE`.
 
 ### 2.1 Núcleo do desinstalador
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 1 | Cinco módulos: Installed programs, Monitored programs, Windows Apps, Cleaner, Auto-run Manager | `evidencia/tu-01-janela-principal.png`; `evidencia/readme-instalador.txt` | Observado |
-| 2 | "Installed programs" com colunas Program name / Installed on / Size | `evidencia/tu-01-janela-principal.png` | Observado |
-| 3 | Contagem de "136 system components" (componentes de sistema distinguidos) | `evidencia/tu-01-janela-principal.png` | Observado |
-| 5 | "Windows Apps" (aplicativos Store/MSIX) como módulo próprio | `evidencia/uia-tu-principal.txt`; `evidencia/strings-funcionalidades.txt` (s17205, s16208) | Observado |
-| 8 | Ações Analyze / Uninstall / Save na barra de ações | `evidencia/tu-01-janela-principal.png`; `evidencia/uia-tu-principal.txt` | Observado |
-| 9 | Layout alternável Programs / Details / Search | `evidencia/tu-01-janela-principal.png`; `evidencia/uia-tu-principal.txt` | Observado |
-| 10 | Agrupamento em grupos com árvore e ações: Add root group / Add child group / Edit group / Remove group / Move to root | `evidencia/tu-01-janela-principal.png`; `evidencia/uia-tu-principal.txt` | Observado |
-| 12 | "Pending file rename operations" — ver e aplicar renomeações pendentes sem reiniciar | `evidencia/tu-01-janela-principal.png`; `evidencia/strings-funcionalidades.txt` (s15243, s17196) | Observado |
-| 24 | **Desinstalar** programa monitorado ou analisado pela árvore de mudanças | `evidencia/strings-funcionalidades.txt` (s50924, s50939) | Documentado |
-| 25 | Remoção de **sobras**: "remove the remaining folders, files, registry keys and values" depois do desinstalador nativo | `evidencia/strings-funcionalidades.txt` (s50939); `evidencia/manual-force-uninstall.txt` | Documentado |
-| 26 | **Force uninstall** de programas parciais/corrompidos, sem depender do desinstalador | `evidencia/readme-instalador.txt` ("Force uninstall partial or corrupted programs"); `evidencia/manual-force-uninstall.txt` | Documentado |
-| 27 | **Desinstalação em lote** ("Batch uninstall programs") | `evidencia/readme-instalador.txt`; `evidencia/manual-batch-uninstall-multiple-programs.txt` | Documentado |
-| 51 | Aviso de que o programa monitorado **ainda está em execução** ("It appears that the monitored program is still running.") | `evidencia/strings-funcionalidades.txt` (s51044) | Documentado |
-| 52 | Log de desinstalação detalhado; "Program was uninstalled successfully!" / "Program was partially uninstalled" | `evidencia/strings-funcionalidades.txt` (s50920); `evidencia/readme-instalador.txt` | Documentado |
-| 55 | Localizar programa por palavra-chave ou **arrastar e soltar** ("Find the program to uninstall by keyword or shortcut drag and drop") | `evidencia/readme-instalador.txt` | Documentado |
-| 56 | Resumo e informações detalhadas de cada programa instalado ou monitorado | `evidencia/readme-instalador.txt` | Documentado |
-| 61 | Filtros de tipo de arquivo na operação de exclusão (.ico, .dll, .htm/.html, .lnk/.exe) | `evidencia/strings-funcionalidades.txt` (s51043) | Documentado |
-| 64 | Item compartilhado preservado: "Not deleted. Contains only files or folders to keep." / "Contains only registry keys to keep." | `evidencia/strings-funcionalidades.txt` (s50968) | Documentado |
+| 1 | Cinco módulos: Installed programs, Monitored programs, Windows Apps, Cleaner, Auto-run Manager | `inventario.md:9` → `tbtnInstPrograms`, `tbtnMonPrograms`, `tbtnWinApps`, `tbtnCleaner`, `tbtnAutorunMgr` | OK — `Core/ProgramScanner.cs`, `Core/Modules/TracedPrograms.cs`, `Core/Modules/WindowsApps.cs`, `Core/Tools/JunkCleaner.cs`, `Core/Tools/AutorunManager.cs` |
+| 2 | "Installed programs" com colunas Program name / Installed on / Size | `inventario.md:275` → `Installed on`; `inventario.md:216` → `File size` | OK — `Core/ProgramColumns.cs`, `Ui/ColumnsWindow.xaml.cs` |
+| 3 | Contagem de "system components" (componentes de sistema distinguidos) | `strings.txt:50917` → `+%d installed programs, %d system components` | OK — `Core/ProgramScanner.cs` (marcação de componente de sistema) |
+| 5 | "Windows Apps" (aplicativos Store/MSIX) como módulo próprio | `inventario.md:9` → `tbtnWinApps`, `tabWinApps` | OK — `Core/Modules/WindowsApps.cs` |
+| 8 | Ações Analyze / Uninstall / Save na barra de ações | `inventario.md:9` → `tbtnAnalyze`, `tbtnUninstall`, `tbtnSave` | OK — `Core/Automation/UninstallPlan.cs`, `Core/Removal.cs` |
+| 9 | Layout alternável Programs / Details / Search | `inventario.md:9` → `tbrLayout`, `tbrView`, `tbrDetails` | OK — `MainWindow.xaml.cs` |
+| 10 | Agrupamento em grupos com árvore e ações: Add root group / Add child group / Edit group / Remove group / Move to root | `recursos.txt:136` → `TDLGGROUPPROP`; `inventario.md:9` → `TabGroups` | OK — `Core/Appearance/GroupingModel.cs`, `Ui/GroupsManagerWindow.xaml.cs` |
+| 12 | "Pending file rename operations" — ver e aplicar renomeações pendentes sem reiniciar | `recursos.txt:140` → `TDLGPENDINGFILERENAME`; `strings.txt:420` → `Pending file rename operations` | PARCIAL — `Core/DeferredDelete.cs` agenda a remoção para o próximo boot; não há UI para listar/aplicar a fila de pendências |
+| 24 | **Desinstalar** programa monitorado ou analisado pela árvore de mudanças | `recursos.txt:151` → `TDLGUNINSTALL`; `strings.txt:50917` → `Continue uninstall process` | OK — `Core/Modules/TracedPrograms.cs` |
+| 25 | Remoção de **sobras** depois do desinstalador nativo | `inventario.md:9` → `tbtnClnClean`, `tbtnClnItems` | OK — `Core/UninstallSupport.cs` (varredura de sobras) |
+| 26 | **Force uninstall** de programas parciais/corrompidos, sem depender do desinstalador | `recursos.txt:130` → `TDLGASKDELITEM`; `inventario.md:79` → `give at least a name to start the forced uninstall` | OK — `Ui/ForcedUninstallWindow.xaml.cs`, `Core/Modules/HunterMode.cs` |
+| 27 | **Desinstalação em lote** | `strings.txt:50864` → `Uninstall the selected application(s)?%Error uninstalling %d application(s).` | OK — `Core/Automation/BatchList.cs`, `Core/Reporting/BatchScriptWriter.cs`, CLI `/batch` (`src/Tranal.Cli/Program.cs`) |
+| 51 | Aviso de que o programa monitorado **ainda está em execução** | `strings.txt:50966` → `Close processes` | OK — `Core/ProcessTerminator.cs` |
+| 52 | Log de desinstalação detalhado | `strings.txt:51011` → `"%s" - UninstallLog.txt`; `strings.txt:16872` → `Export uninstall log` | OK — `Core/RemovalLog.cs` |
+| 55 | Localizar programa por palavra-chave ou **arrastar e soltar** | `recursos.txt:163` → `12/CAT_DRAG_COPY/1033` | OK — `Core/Modules/HunterMode.cs`, `Ui/Modules/HunterView.xaml.cs` |
+| 56 | Resumo e informações detalhadas de cada programa instalado ou monitorado | `inventario.md:278` → `Installed programs...`; `recursos.txt:153` → `TFRMTUMAIN` | OK — `Core/InstalledProgram.cs`, `Ui/Modules/ModuleViews.cs` |
+| 61 | Filtros de tipo de arquivo na operação de exclusão (.ico, .dll, .htm/.html, .lnk/.exe) | `inventario.md:191` → `Executables (*.exe)|*.exe`; `inventario.md:25` → `All files (*.*)|*.*` | PARCIAL — `Core/UninstallRemovalOptions.cs` tem filtros de tipo; falta o diálogo de seleção por tipo na exclusão |
+| 64 | Item compartilhado preservado, com justificativa ("Not deleted. Contains only files or folders to keep.") | `strings.txt:51011` → `Shared File. Not deleted in this phase`; `strings.txt:50997` → `Invalid change detected for registry shared file counter` | PARCIAL — `Core/LeftoverScanOptions.cs` + `Core/UninstallSupport.cs` explicam a preservação (motivo "Porquê"); falta a noção de **contador de referência** compartilhado |
 
 ### 2.2 Monitor, snapshot e árvore de mudanças
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 4 | "Monitored programs": lista de programas com log de instalação | `evidencia/tu-01-janela-principal.png`; `evidencia/uia-tu-principal.txt` | Observado |
-| 11 | Busca textual nas alterações detectadas ("Search for a text in the detected changes") | `evidencia/strings-funcionalidades.txt` (s17220); `evidencia/manual-indice-chm.txt` (`pi_mw_searchpanel.htm`) | Documentado |
-| 13 | **Snapshot do sistema antes da instalação** ("Create the pre-install system snapshot"; opções "Create a new system snapshot" / "Use last snapshot") | `evidencia/strings-funcionalidades.txt` (s16284, s16298, s16300, s16303); `evidencia/manual-installation-monitor.txt` | Documentado |
-| 14 | Nome do snapshot pré e pós-instalação customizável ("Specify the post-install snapshot name", "Allow custom snapshot name") | `evidencia/strings-funcionalidades.txt` (s16313, s15822) | Documentado |
-| 15 | Pasta de snapshots com limite de tamanho e contagem ("Limits for Snapshots folder", "Snapshot count") | `evidencia/strings-funcionalidades.txt` (s15827, s15829) | Documentado |
-| 16 | **Monitorar instalação** e detectar automaticamente o nome do programa instalado | `evidencia/manual-installation-monitor.txt` (linhas 10-12); `evidencia/strings-funcionalidades.txt` (s16263) | Documentado |
-| 17 | **Comparar snapshots do sistema** ("Compare system snapshots...", "Snapshot compare profiles") | `evidencia/strings-funcionalidades.txt` (s15133, s17024, s15912); `evidencia/manual-indice-chm.txt` (`pi_od_comparingprofile.htm`) | Documentado |
-| 18 | **Perfis** separados: Scanning, Analysis, Uninstall, Comparing, Restore/Redo, Cleaner, Auto-run view | `evidencia/strings-funcionalidades.txt` (s15825, s15682, s15760, s16120, s16073, s16170) | Documentado |
-| 19 | Perfil de scanning com **chaves/pastas incluídas e excluídas** e snapshot "frozen" | `evidencia/strings-funcionalidades.txt` (s15872, s15882, s15890, s15899, s15862) | Documentado |
-| 20 | Varredura de **Alternate Data Streams** (ADS) | `evidencia/strings-funcionalidades.txt` (s15909) | Documentado |
-| 21 | **Visões de mudança** configuráveis ("Change views", "View/Apply a defined change view") | `evidencia/strings-funcionalidades.txt` (s15999, s16796); `evidencia/manual-indice-chm.txt` (`pi_od_changeview.htm`) | Documentado |
-| 22 | Árvore de alterações detectadas com **arquivos, pastas, chaves e valores** de registro | `evidencia/strings-funcionalidades.txt` (s16482, s16614, s15735); `evidencia/manual-indice-chm.txt` (`pi_od_changeview.htm`) | Documentado |
-| 23 | Opção de **não usar o log de mudanças detectadas** ("Don't use detected changes log") | `evidencia/strings-funcionalidades.txt` (s15788) | Documentado |
-| 63 | "Don't use detected changes log" + exclusão de chaves/valores de registro **por perfil** | `evidencia/strings-funcionalidades.txt` (s15788, s16080) | Documentado |
+| 4 | "Monitored programs": lista de programas com log de instalação | `inventario.md:9` → `tbtnMonPrograms`, `tabMonApps` | OK — `Core/Modules/TracedPrograms.cs`, `Core/Modules/TraceStore.cs` |
+| 11 | Busca textual nas alterações detectadas | `inventario.md:9` → `tbtnSearch` | PARCIAL — há busca na lista (`Core/Appearance/ProgramFilters.cs`); falta busca dentro da árvore de mudanças |
+| 13 | **Snapshot do sistema antes da instalação** ("Create the pre-install system snapshot") | `strings.txt:15142` → `Compare system snapshots`; `recursos.txt:152` → `TFRMINSTALL`; `inventario.md:123` → `Creating the system snapshot` | PARCIAL — `Core/Modules/SystemSnapshot.cs` faz o snapshot; falta nome pré/pós customizável e limite de pasta/contagem |
+| 14 | Nome do snapshot pré e pós-instalação customizável ("Allow custom snapshot name") | `inventario.md:28` → `Allow custom snapshot name` | AUSENTE — `Core/Modules/SystemSnapshot.cs` não nomeia snapshot |
+| 15 | Pasta de snapshots com limite de tamanho e contagem ("Limits for Snapshots folder") | `inventario.md:326` → `Limits for Snapshots folder` | AUSENTE |
+| 16 | **Monitorar instalação** e detectar automaticamente o nome do programa instalado | `inventario.md:343` → `Monitor new installation`; `recursos.txt:152` → `TFRMINSTALL` | OK — `Core/Modules/InstallMonitor.cs` + `Core/Modules/TracedPrograms.cs` |
+| 17 | **Comparar snapshots do sistema**, com perfis de comparação | `strings.txt:15142` → `Compare system snapshots`; `recursos.txt:134` → `TDLGCOMPARESNS` | PARCIAL — `Core/Modules/SystemSnapshot.cs` tem `Diff`, mas expõe só arquivos/pastas/chaves **novas**; faltam modificados/removidos e perfis |
+| 18 | **Perfis** separados: Scanning, Analysis, Uninstall, Comparing, Restore/Redo, Cleaner, Auto-run view | `inventario.md:9` → `tabAnalysisProfile`, `tabCompareProfile`, `tabScanProfile`, `tabUninstPrf`, `tabRedoProfiles` | AUSENTE — o Tranal não tem perfis por operação |
+| 19 | Perfil de scanning com **chaves/pastas incluídas e excluídas** | `strings.txt:17269` → `Add to scan exclude list`; `inventario.md:262` → `Include folders` | PARCIAL — `Core/ExcludeList.cs` tem exclusão global; falta o par include/exclude por perfil |
+| 20 | Varredura de **Alternate Data Streams** (ADS) | `inventario.md:176` → `Edit program Delete alternate data stream: %s` | AUSENTE — nenhuma leitura/escrita de ADS no `src/` |
+| 21 | **Visões de mudança** configuráveis ("Change views") | `inventario.md:81` → `Change views`; `inventario.md:9` → `tabChangeView`, `tabChangeViews` | AUSENTE |
+| 22 | Árvore de alterações detectadas com **arquivos, pastas, chaves e valores** de registro | `inventario.md:9` → `tabChageViewFileSystem`, `tabChageViewRegistry` | PARCIAL — o Tranal grava o log (`Core/Modules/TraceStore.cs`) mas não exibe árvore de mudanças |
+| 23 | Opção de **não usar o log de mudanças detectadas** ("Don't use detected changes log") | `inventario.md:167` → `Don't use detected changes log` | PARCIAL — `Core/ExcludeList.cs` exclui itens, mas a flag por operação não existe |
+| 63 | Exclusão de chaves/valores de registro **por perfil** ("Add to compare ignore list") | `strings.txt:17274` → `Add to compare ignore list` | PARCIAL — `Core/ExcludeList.cs` é global, não por perfil |
 
 ### 2.3 Cleaner
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 6 | "Cleaner": limpeza de itens descartáveis seguros | `evidencia/uia-tu-principal.txt`; `evidencia/strings-funcionalidades.txt` (s16073, s16078) | Observado |
-| 43 | **Cleaner com 6 categorias de regras**: Windows, System, Browser, Windows Explorer, Programs (arquivo) e Invalid entries (registro), cada uma com Include/Exclude | `evidencia/cleaner-categorias.txt`; `app/professional/app/CleanerDefinitions.xml` | Observado |
-| 44 | **Scanner de registro** e **scanner de sistema de arquivos** no Cleaner | `evidencia/strings-funcionalidades.txt` (s15849, s16108, s16117) | Documentado |
-| 45 | "File extensions with version information" (classificação por extensão) | `evidencia/strings-funcionalidades.txt` (s15841) | Documentado |
-| 46 | Remoção de **serviços e dispositivos** instalados por programas; alerta para antivírus/anti-spyware/firewall/driver | `evidencia/strings-funcionalidades.txt` (s51060, s50907, s50978, s50979, s50877) | Documentado |
-| 47 | Detecção de **serviços** via API (`CloseServiceHandle` importado) | `evidencia/strings-funcionalidades.txt` (s17561); `evidencia/pe-imports-Tu.exe.txt` | Observado |
-| 48 | Detecção de **produtos MSI** (`MsiGetProductInfoW` importado) | `evidencia/pe-imports-Tu.exe.txt`; `evidencia/strings-funcionalidades.txt` (s17563) | Observado |
-| 49 | **Proteção de arquivos do Windows** consultada antes de apagar (`SfcIsFileProtected` importado) | `evidencia/pe-imports-Tu.exe.txt` | Observado |
+| 6 | "Cleaner": limpeza de itens descartáveis seguros | `inventario.md:9` → `tbtnCleaner`, `tabCleaner`; `inventario.md:179` → `Enable cleaner module` | OK — `Core/Tools/JunkCleaner.cs`, `Core/Tools/TrackCleaner.cs` |
+| 43 | **Cleaner com 6 categorias de regras** (Windows, System, Browser, Windows Explorer, Programs, Invalid entries), cada uma com Include/Exclude | `inventario.md:179` → `Enable cleaner module`; `inventario.md:9` → `tabCleanerFileSystem`, `tabCleanerReg` | PARCIAL — o Tranal tem limpadores próprios (`Core/Tools/*`), sem motor de regras em XML embarcado (`CleanerDefinitions.xml`) |
+| 44 | **Scanner de registro** e **scanner de sistema de arquivos** no Cleaner | `inventario.md:183` → `Error during registry scan.`; `inventario.md:9` → `tabCleanerReg`, `tabCleanerFileSystem` | OK — `Core/Tools/RegistryOptimizer.cs`, `Core/Tools/JunkCleaner.cs` |
+| 45 | Classificação por extensão de arquivo ("File extensions with version information") | `inventario.md:216` → `File version` | PARCIAL — `Core/Discovery/ProgramScanner.cs` classifica o uninstaller; falta classificar sobras por extensão com informação de versão |
+| 46 | Remoção de **serviços e dispositivos** instalados por programas | `strings.txt:50989` → `Delete Service or Device: %s`; `strings.txt:51061` → `Installed services and devices` | PARCIAL — `Core/Management/DriverManager.cs` remove drivers e `Core/Management/ServiceManager.cs` gerencia serviços; falta detectar "instalado por este programa" |
+| 47 | Detecção de **serviços** via API | `imports.txt:34` → `advapi32.dll / CloseServiceHandle` | OK — `Core/Management/ServiceManager.cs` |
+| 48 | Detecção de **produtos MSI** | `imports.txt:36` → `msi.dll / MsiGetProductInfoW` | OK — `Core/MsiInstallLog.cs`, `Core/Discovery/MsiProductCatalog.cs` |
+| 49 | **Proteção de arquivos do Windows** consultada antes de apagar | `imports.txt:38` → `sfc.dll / SfcIsFileProtected` | OK — `Core/UninstallSupport.cs` (`SafetyRules.IsProtectedFolder`) |
 
 ### 2.4 Auto-run Manager
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 7 | "Auto-run Manager": gerenciador de inicialização | `evidencia/uia-tu-principal.txt`; `evidencia/strings-funcionalidades.txt` (s16735) | Observado |
-| 39 | Auto-run: item de inicialização, "Auto-run at logon for", "Startup folder, run at every logon" | `evidencia/strings-funcionalidades.txt` (s15038, s15047, s15061) | Documentado |
-| 40 | Auto-run: localizar entrada e alvo ("Locate auto-run entry"), editar/si e propriedades do alvo | `evidencia/strings-funcionalidades.txt` (s16932, s16935) | Documentado |
-| 41 | Auto-run: adicionar/remover item, filtro da lista, árvore com "Auto-run views" | `evidencia/strings-funcionalidades.txt` (s16883, s16884, s16440, s16170, s16406) | Documentado |
-| 42 | Auto-run gerencia **serviços** e **tarefas agendadas** do Windows | `evidencia/readme-instalador.txt` ("Control which program, service or scheduled task automatically start up"); `evidencia/manual-windows-startup-manager.txt` | Documentado |
+| 7 | "Auto-run Manager": gerenciador de inicialização | `inventario.md:9` → `tbtnAutorunMgr`, `tabAutorunView` | OK — `Core/Tools/AutorunManager.cs` |
+| 39 | Auto-run: item de inicialização, "Auto-run at logon for", pasta de Inicialização | `inventario.md:42` → `Auto-run at logon for`; `recursos.txt:131` → `TDLGAUTORUNITEM` | OK — `Core/Tools/AutorunManager.cs` |
+| 40 | Auto-run: localizar entrada e alvo ("Locate auto-run entry") | `inventario.md:332` → `Locate auto-run entry`; `recursos.txt:146` → `TDLGSYSBROWSER` | OK — `Core/Tools/AutorunManager.cs`, `Core/Management/ExecutablePath.cs` |
+| 41 | Auto-run: adicionar/remover item, filtro da lista, árvore com "Auto-run views" | `inventario.md:9` → `tbtnArAdd`, `tbtnArDelete`, `tbtnArRun`, `tbtnArStop`; `inventario.md:48` → `Auto-run views` | OK — `Core/Tools/AutorunManager.cs` (`Add`, `Remove`, `SetEnabled`) |
+| 42 | Auto-run gerencia **serviços** e **tarefas agendadas** do Windows | `strings.txt:50867` → `Scheduled tasks`; `inventario.md:9` → `tabAutorunViewGeneral` | OK — `Core/Tools/AutorunManager.cs` (`ScanServices`, `ScanScheduledTasks`) |
 
 ### 2.5 Linha de comando, automação e exportação
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 50 | **Agente autônomo** de baixo consumo para notificar instalações em andamento | `evidencia/readme-instalador.txt` ("Stand-alone and low resource usage agent for notification of running installation programs") | Documentado |
-| 53 | Exportar lista de programas monitorados; exportar alterações de registro; exportar/importar alterações (XML na Ultimate) | `evidencia/strings-funcionalidades.txt` (s16871); `downloads/martau-buy.html`; `evidencia/readme-instalador.txt` | Documentado |
-| 54 | Exportar para arquivo ou **imprimir** as alterações detectadas | `evidencia/readme-instalador.txt` | Documentado |
-| 57 | Verificação de atualizações e atualizações web | `evidencia/manual-indice-chm.txt` (`pi_checkforupdates.htm`, `pi_od_webupdates.htm`) | Documentado |
-| 59 | Versão **portátil** (sem instalação) | `evidencia/manual-total-uninstall-portable-version.txt` | Documentado |
-| 60 | Validação **online de licença** (exige internet; firewall pode bloquear) | `evidencia/strings-funcionalidades.txt` (s51076) | Documentado |
-| 62 | Importar logs de versões anteriores (File→Import) após mudança do local dos dados na 7.0.0 | `downloads/martau-download.html` (release history 7.0.0) | Documentado |
+| 50 | **Agente autônomo** de baixo consumo para notificar instalações em andamento | `strings.txt:15827` → `AAuto-start with Windows to continue unfinished monitoring process` | AUSENTE — `Core/Modules/InstallMonitor.cs` é sob demanda (timer de 30 s); não há agente autônomo |
+| 53 | Exportar lista de monitorados; exportar alterações de registro; exportar/importar alterações | `strings.txt:15163` → `Export registry changes`; `strings.txt:50890` → `Importing archive(s)...` | OK — `Core/Exporters.cs` (`/export` com `txt\|html\|csv\|xml`), `Core/Reporting/PortableArchive.cs` |
+| 54 | Exportar para arquivo ou **imprimir** as alterações detectadas | `strings.txt:16887` → `Print the changes tree`; `strings.txt:51147` → `There is no default printer currently selected` | PARCIAL — `Core/Reporting/PrintLayout.cs` imprime o relatório; não há impressão da árvore de mudanças |
+| 57 | Verificação de atualizações e atualizações web | `recursos.txt:133` → `TDLGCHECKUPDATES`; `inventario.md:82` → `Check for updates` | OK — `Core/Updates/AutoUpdateClient.cs` |
+| 59 | Versão **portátil** (sem instalação) | nao confirmado no binario (a variante portátil é um build separado, não um recurso do PE medido) | OK — `Core/PortableMode.cs` |
+| 60 | Validação **online de licença** | `imports.txt:14` → `wininet.dll / InternetCloseHandle`; `inventario.md:325` → `Licensed to "%s"` | AUSENTE — o Tranal não tem licença (sem impacto funcional) |
+| 62 | Importar logs de versões anteriores | `strings.txt:50890` → `Importing archive(s)...`; `recursos.txt:139` → `TDLGMERGELOGS` | PARCIAL — `Core/Reporting/PortableArchive.cs` exporta/importa arquivo; falta importar o log vindo de outra máquina |
 
-### 2.6 Documentação oficial: backup, restauração, transferência e idiomas
+### 2.6 Backup, restauração, transferência e idiomas
 
-Todas as linhas abaixo vêm do manual CHM (`Tu_en.chm`, 38 tópicos) e do site oficial — nenhuma foi observada em execução.
-
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 28 | **Backup do programa desinstalado** ("Backup uninstalled program", "Create a backup for the program") | `evidencia/strings-funcionalidades.txt` (s15790, s15471); `evidencia/readme-instalador.txt` | Documentado |
-| 29 | **Restaurar** programa a partir do backup ("Select a program to restore", "Restore profile") | `evidencia/strings-funcionalidades.txt` (s15530, s15536, s15538); `evidencia/manual-transfer-programs-to-new-pc.txt` | Documentado |
-| 30 | Restaurar **só o log de instalação**, sem o programa ("Restore only the install log") | `evidencia/strings-funcionalidades.txt` (s15542) | Documentado |
-| 31 | Restauração granular: chaves/valores criados, modificados, deletados; pastas/arquivos criados, deletados, modificados; sobrescrever arquivos bloqueados | `evidencia/strings-funcionalidades.txt` (s16142, s16145, s16147, s16149, s16151, s16154, s16156, s16158, s16160, s16162, s16164, s16166) | Documentado |
-| 32 | **Undo/Redo** de uma restauração ("Select a restoration to undo"; "Cannot undo/redo one or more keys or values") | `evidencia/strings-funcionalidades.txt` (s15484, s50940) | Documentado |
-| 33 | **Ponto de restauração do Sistema** antes da desinstalação e antes da restauração | `evidencia/strings-funcionalidades.txt` (s15781, s16139) | Documentado |
-| 34 | Limite de tamanho da pasta de backup ("Backup folder limit (MB)") | `evidencia/strings-funcionalidades.txt` (s15641) | Documentado |
-| 35 | **Transferir programas monitorados para outro PC** via arquivo `.zip` de backup | `evidencia/manual-transfer-programs-to-new-pc.txt`; `evidencia/manual-linha-de-comando.txt` (`/import`) | Documentado |
-| 36 | Remover rastros de programa monitorado já desinstalado ("Remove traces of an uninstalled monitored program") | `evidencia/strings-funcionalidades.txt` (s50966) | Documentado |
-| 37 | Itens compartilhados: contadores de referência em registro ("Decrement shared file counter from registry") e diálogo "Remove shared file" | `evidencia/strings-funcionalidades.txt` (s51002); `evidencia/manual-indice-chm.txt` (`pi_u_removesharedfiledialog.htm`) | Documentado |
-| 38 | Diálogo de exclusão de itens com revisão prévia ("Delete items dialog") | `evidencia/manual-indice-chm.txt` (`pi_u_deleteitemsdialog.htm`) | Documentado |
-| 58 | Idiomas de interface (`.lng` em `Translations/`, **21** arquivos medidos, incluindo `PortugueseBrazilian.lng`) + **6** idiomas de ajuda (CHM: en/de/fr/es/pl/cn) | `evidencia/arquivos-instalador.txt`; `app/professional/app/Translations/` (medido) | Observado |
+| 28 | **Backup do programa desinstalado** ("Create a backup for the program") | `strings.txt:50917` → `Create a backup for the program "%s"`; `recursos.txt:148` → `TDLGTUNBACKUP` | PARCIAL — `Core/BackupManager.cs` faz o backup; falta o backup no formato do log de instalação |
+| 29 | **Restaurar** programa a partir do backup | `recursos.txt:149` → `TDLGTUNRESTORE`; `inventario.md:54` → `Restoring files and registry items...` | OK — `Core/BackupManager.cs` (`Restore`), `Core/Recovery/RecoverOperation.cs` |
+| 30 | Restaurar **só o log de instalação**, sem o programa | `strings.txt:16320` → `Create installation log`; `recursos.txt:149` → `TDLGTUNRESTORE` | AUSENTE — `Core/Modules/TraceStore.cs` grava o log; nenhuma rotina restaura "só o log" |
+| 31 | Restauração granular: chaves/valores criados, modificados, deletados; arquivos/pastas criados, deletados, modificados | `strings.txt:117` → `Create registry key: %s`; `strings.txt:145` → `Delete registry key: %s`; `strings.txt:51009` → `Restore registry value: %s` | OK — `Core/BackupManager.cs` (restaura por item e por tipo) |
+| 32 | **Undo/Redo** de uma restauração | `inventario.md:9` → `tabRedo`, `tabRedoAdvanced`, `tabRedoProfiles` | AUSENTE — o único "Undo" do `src/` é `FofAllowUndo` (`Core/RecycleBin.cs`), que é sinalizador de lixeira |
+| 33 | **Ponto de restauração do Sistema** antes da desinstalação e da restauração | nao confirmado no binario (nenhuma API de restore point entre as 20 funções importadas do PE) | OK — `Core/UninstallSupport.cs` (`TryCreateRestorePoint`) |
+| 34 | Limite de tamanho da pasta de backup ("Backup folder limit (MB)") | `inventario.md:55` → `Backup folder limit (MB)` | PARCIAL — `Core/BackupManager.cs` (`DeleteOlderThan`); não há limite em MB |
+| 35 | **Transferir programas monitorados para outro PC** via arquivo `.zip` | `strings.txt:50890` → `Importing archive(s)...`; `inventario.md:54` → `Backup files (*.zip)|*.zip` | PARCIAL — `Core/Reporting/PortableArchive.cs` gera/importa arquivo portátil; falta o fluxo "programa monitorado → outro PC" |
+| 36 | Remover rastros de programa monitorado já desinstalado | `inventario.md:87` → `Remove traces of an uninstalled monitored program` | PARCIAL — `Core/Tools/TrackCleaner.cs` limpa rastros; falta a ação específica sobre o log antigo |
+| 37 | Itens compartilhados: contadores de referência em registro e diálogo "Remove shared file" | `strings.txt:51011` → `Decrement registry shared file counter`; `strings.txt:51014` → `Shared file counter found too small in registry`; `recursos.txt:143` → `TDLGRMVSHARED` | AUSENTE — nenhuma ocorrência de "SharedFile"/"ReferenceCount" no `src/` |
+| 38 | Diálogo de exclusão de itens com revisão prévia ("Delete items dialog") | `recursos.txt:130` → `TDLGASKDELITEM` | OK — `Ui/UninstallWizardWindow.xaml.cs` (revisão item a item) |
+| 58 | Idiomas de interface (21 `.lng`) + 6 CHM de ajuda | nao confirmado no binario (as traduções são arquivos do payload, não recursos do PE) | OK — `Core/Localization/LanguageCatalog.cs` |
+
+### 2.7 Linhas novas: funcionalidades presentes no binário e ainda não no documento
+
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 65 | **Instalar programa novo** com monitoramento do instalador | `inventario.md:9` → `tbtnInstallNew`; `strings.txt:16814` → `Install new...` | AUSENTE |
+| 66 | **Instalar atualização** de programa já instalado, monitorando o update | `inventario.md:9` → `tbtnInstallUpdate`; `strings.txt:16817` → `Install update...`; `inventario.md:344` → `Monitor program update "%s"` | AUSENTE |
+| 67 | **Mesclar logs** de instalação (e apagar o log do update depois) | `recursos.txt:139` → `TDLGMERGELOGS`; `strings.txt:17030` → `Merge logs...`; `inventario.md:152` → `Delete update log after merge` | AUSENTE |
+| 68 | **Exportar as alterações do registro** para reinstalar/desinstalar | `strings.txt:17081` → `Export registry changes...`; `recursos.txt:135` → `TDLGEXPORTREGISTRY` | OK — `Core/Exporters.cs` (`/export /xml`), `Core/RegistryEditing/RegistryEditor.cs` |
+| 69 | **Exportar a árvore de mudanças** | `strings.txt:16868` → `Export changes tree` | PARCIAL — `Core/Reporting/LeftoverReportExporter.cs` e `TraceLogExporter.cs` exportam sobras e log de rastreio; falta a árvore de mudanças |
+| 70 | **Exportar o log de desinstalação** | `strings.txt:16872` → `Export uninstall log`; `strings.txt:51011` → `"%s" - UninstallLog.txt` | OK — `Core/RemovalLog.cs` |
+| 71 | **Imprimir a árvore de alterações** (com seleção de impressora) | `strings.txt:16887` → `Print the changes tree`; `strings.txt:51147` → `There is no default printer currently selected`; `strings.txt:14702` → `Vcl.Printers` | PARCIAL — `Core/Reporting/PrintLayout.cs` imprime o relatório de sobras; falta imprimir a árvore de mudanças |
+| 72 | **Visor hexadecimal** e abertura de arquivo em editor hex/texto | `strings.txt:17284` → `Hex view`; `strings.txt:17285` → `Open file in hex editor`; `strings.txt:15646` → `Hex viewer` | AUSENTE |
+| 73 | **Soma MD5 dos arquivos novos** criados pela instalação | `strings.txt:15993` → `Compute MD5 for new files`; `strings.txt:16071` → `New file MD5 sum` | AUSENTE |
+| 74 | **Agrupamento automático** de programas | `strings.txt:17170` → `Auto-group programs` | OK — `Core/Appearance/GroupingModel.cs` |
+| 75 | **Notas de grupo** (anotação por grupo) | `strings.txt:17016` → `Group notes`; `recursos.txt:136` → `TDLGGROUPPROP` | OK — `Ui/CommentWindow.xaml.cs`, `Ui/GroupsManagerWindow.xaml.cs` |
+| 76 | **Incluir/excluir por produto e por publicador** | `strings.txt:16193` → `Include publishers`; `strings.txt:16201` → `Exclude publishers`; `inventario.md:263` → `Include products`; `inventario.md:189` → `Exclude products` | AUSENTE — o Tranal filtra por coluna, mas não tem lista de inclusão/exclusão por publicador/produto |
+| 77 | **Listas de exclusão por operação** (excluir da varredura / ignorar na comparação) e regras "ignore" por atributo | `strings.txt:17269` → `Add to scan exclude list`; `strings.txt:17274` → `Add to compare ignore list`; `strings.txt:15972` → `Ignore changed items`; `strings.txt:16079` → `Ignore file attributes` | PARCIAL — `Core/ExcludeList.cs` é global; falta a lista por operação e as regras por atributo |
+| 78 | **Classificação dos itens detectados**: existentes no sistema / alterados / ausentes | `strings.txt:16039` → `Existing items in system`; `strings.txt:16048` → `Items altered in system`; `strings.txt:16044` → `Items missing from system` | AUSENTE — o Tranal marca confiança (High/Medium/Low), não o estado do item no sistema |
+| 79 | **Customização dos botões da barra** e legendas dos botões | `strings.txt:16594` → `Add or Remove Buttons`; `strings.txt:16995` → `Button caption`; `strings.txt:16996` → `(Show or hide the toolbar button captions` | AUSENTE — o Tranal customiza colunas (`Ui/ColumnsWindow.xaml.cs`), não botões |
+| 80 | **Cores por programa na lista** (legenda de cores) | `strings.txt:15621` → `Colors in the program list`; `inventario.md:9` → `TColorButtonPalette` | OK — `Core/Appearance/ColorLegend.cs` |
+| 81 | **Trocar o ícone** do programa, com galeria de ícones | `inventario.md:9` → `TdlgChangeIcon`; `recursos.txt:145` → `TDLGSELECTLIBICON` | OK — `Ui/IconPickerWindow.xaml.cs` |
+| 82 | **Detecção da localização de instalação** | `strings.txt:15746` → `Installation location detection`; `inventario.md:273` → `Installation locations` | PARCIAL — o Tranal lê a pasta registrada em `Core/InstalledProgram.cs`; falta a detecção ativa de outros locais |
+| 83 | **Dependências entre pacotes MSI** ("Depends on packages") | `strings.txt:50864` → `Depends on packages&Uninstall the selected application(s)?%Error uninstalling %d application(s).` | AUSENTE — `Core/Discovery/MsiProductCatalog.cs` lista produtos, mas não resolve dependências entre eles |
+| 84 | **Verificação de DCOM** do produto | `strings.txt:51107` → `DCOM not installed` | AUSENTE |
+| 85 | **Serviços e dispositivos instalados** listados como categoria própria | `strings.txt:51061` → `Installed services and devices`; `inventario.md:9` → `tabAutorunViews` | PARCIAL — `Core/Management/ServiceManager.cs` e `DriverManager.cs` existem, mas os dispositivos não têm painel/listagem própria |
+| 86 | **Fechar os processos** do programa antes de desinstalar | `strings.txt:50966` → `Close processes` | OK — `Core/ProcessTerminator.cs` |
+| 87 | **Histórico de instalações** | `strings.txt:50901` → `Install history` | PARCIAL — `Core/UninstallHistory.cs` registra o histórico de **desinstalação**, não de instalação |
+| 88 | **Retomar o monitoramento inacabado** no arranque do Windows | `strings.txt:15827` → `AAuto-start with Windows to continue unfinished monitoring process` | AUSENTE |
+| 89 | **Criar log de instalação** | `strings.txt:16320` → `Create installation log`; `inventario.md:116` → `Creating the installation log` | OK — `Core/Modules/TraceStore.cs`, `Core/Modules/TracedPrograms.cs` |
+| 90 | **Detectar programa novo ou atualizado** | `strings.txt:15625` → `New or updated program` | PARCIAL — `Core/Modules/InstallMonitor.cs` detecta mudança de registro; não distingue "novo" de "atualizado" na lista |
+| 91 | **Tarefas agendadas** no gerenciador de autorun | `strings.txt:50867` → `Scheduled tasks` | OK — `Core/Tools/AutorunManager.cs` (`ScanScheduledTasks`) |
+| 92 | **Dois estilos VCL embutidos** (claro e escuro) | `recursos.txt:6` → `VCLSTYLE/WINDOWSMODERNDARK/1033`; `recursos.txt:7` → `VCLSTYLE/WINDOWSMODERNLIGHT/1033` | OK — `Core/Appearance/ThemePalette.cs`, `Theming/ThemeManager.cs` |
+| 93 | **Acompanhar o tema do Explorer** | `strings.txt:15017` → `toUseExplorerTheme`; `strings.txt:14682` → `Vcl.Themes` | PARCIAL — o Tranal tem tema próprio (`Theming/ThemeManager.cs`); falta seguir o tema do sistema |
+| 94 | **Licença por família / múltiplos computadores / avaliação / manutenção expirada** | `strings.txt:50980` → `Family License`; `strings.txt:50982` → `Multiple Computers License`; `strings.txt:50913` → `Family license is not valid.4The maintenance period for your license has expired.` | AUSENTE — o Tranal não tem licença (sem impacto funcional) |
+
+### 2.8 Lacunas confirmadas no binário
+
+A lista completa, com evidência e juizo de impacto por linha, está em **[BINARIO-TOTALUNINSTALL.md](BINARIO-TOTALUNINSTALL.md)**.
+
+- **22 linhas `AUSENTE`** — 14, 15, 18, 20, 21, 30, 32, 37, 50, 60, 65, 66, 67, 72, 73, 76, 78, 79, 83, 84, 88, 94
+- **19 linhas `PARCIAL`** — 12, 17, 19, 22, 23, 43, 45, 46, 61, 63, 64, 69, 71, 77, 82, 85, 87, 90, 93
+- **94 linhas** na tabela de funcionalidades (64 originais + 30 novas)
+
+Correção em relação à §6 deste documento: a **desinstalação em lote** (linha 27) **existe** no Tranal — `Core/Automation/BatchList.cs` e `Core/Reporting/BatchScriptWriter.cs`, com o verbo `/batch` na CLI. A marca `⬜` da §6 está desatualizada.
 
 ---
 

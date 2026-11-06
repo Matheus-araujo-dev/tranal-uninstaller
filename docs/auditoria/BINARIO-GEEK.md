@@ -1,0 +1,39 @@
+# Lacunas - Geek Uninstaller
+
+Binario analisado: `auditoria\geek\app\geek.exe`  sha256: `948e3c74eef138499709e414b65ab0490478202d6929439b1a6641b949774824` (11.980.432 bytes, Inno Setup, v1.6.0.200)
+Metodo: extracao de strings ASCII/UTF-16 do PE (`bin-strings\geek.strings.txt`) + varredura do catalogo de recursos Delphi/RC do executavel. As strings do app estao embutidas como recursos XML (`MainMenu/...`, `Messages/...`, `UninstallWizard/...`, `ListCtrl/...`, `ExplorerBar/...`, `HTMLReport/...`) e sao legiveis no dump. Cada linha abaixo foi reconfirmada por `grep` no dump; a coluna "Evidencia no binario" traz o identificador literal e o arquivo+linha.
+
+## Funcionalidades presentes no binario e ausentes no Tranal
+
+| # | Funcionalidade | Evidencia no binario | Categoria | Impacto (alto/medio/baixo) |
+|---|---|---|---|---|
+| 1 | **Modificar/reparar** a instalacao (`Modify...`) | `MainMenu/mnuActionModify` (`geek.strings.txt:1169`), literal `<mnuActionModify>&amp;Modify...</mnuActionModify>` (`:4553`) | remocao | alto |
+| 2 | **Batch Force Removal** — remocao forca de varios programas de uma vez | literal `<mnuActionDeleteBatch>Batch &amp;Force Removal</mnuActionDeleteBatch>` (`geek.strings.txt:4555`) | remocao | alto |
+| 3 | **Batch Remove Entries** — remocao em lote das entradas de registro | literal `<mnuActionRemoveEntryBatch>Batch Remove &amp;Entries</mnuActionRemoveEntryBatch>` (`geek.strings.txt:4557`) | remocao | alto |
+| 4 | **Desregistro de COM** (`regsvr32 /u`) antes de remover | literal `regsvr32.exe /s /u "%s"` (`geek.strings.txt:12725`), "> Unregister COM Object: failed to create regsvr32 process" (`:12726`) | remocao | alto |
+| 5 | **Varredura de sobras de MSI** pelo registro do Windows Installer | `CScannerMSI::ScanMSITraces` (`geek.strings.txt:1307`), `SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\%s\Products\` (`:12659`), `Installer\Folders` (`:12762`) | varredura | alto |
+| 6 | **Desinstalar ate o registro de produtos MSI** por chave de produto | literal "Found MSI product key {} for {}" (`geek.strings.txt:12759`), `HKEY_LOCAL_MACHINE\SOFTWARE\...\Installer\UserData\%s\Products\%s` (`:12758`) | remocao | alto |
+| 7 | **Varredura de sobras de MSI em traces de instalacao** (`CScannerMSI` / `Installer\Folders`) | `CScannerMSI::ScanMSITraces` (`geek.strings.txt:1307`), caminho `SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\Folders` (`:12762`) | varredura | alto |
+| 8 | **Limpeza do cache MRU do Windows** (`Software\Classes\Local Settings\MrtCache`) | literal `Software\Classes\Local Settings\MrtCache` (`geek.strings.txt:12749`) | varredura | medio |
+| 9 | **Remocao adiada para o proximo reinicio** quando o arquivo esta em uso | literais "> ERROR_ACCESS_DENIED, the file will be deleted on the next system restart" (`geek.strings.txt:12728`), "> ERROR_SHARING_VIOLATION, the folder will be deleted on the next system restart" (`:12731`), `MoveFileExW` importada (`:2817`) | remocao | medio |
+| 10 | **Guarda contra falso positivo** de `InstallLocation` (recusa o local quando ha risco) | literais "False positive InstallLocation found {}" (`geek.strings.txt:12664`), "Cannot set location for item (false positive risk) {}" (`:12665`) | varredura | medio |
+| 11 | **Correspondencia aproximada (Levenshtein)** do caminho de instalacao | literal `GetInstallLocationFromPathLevinshtein ({})` (`geek.strings.txt:12640`) | varredura | medio |
+| 12 | **Deteccao de instalacao em `Local AppData\Programs`** | literal "Found install location in Local AppData Programs: {}" (`geek.strings.txt:12639`) | varredura | medio |
+| 13 | **Varredura de atalhos do Menu Iniciar e da Area de Trabalho** para achar icone e localizacao | `CFindIconJob::FindStartMenuShortCut` (`geek.strings.txt:1194`), `CScannerNormal::LoadStartMenuShortCuts` (`:1317`), `CScannerNormal::LoadDeskTopShortcuts` (`:1320`) | varredura | medio |
+| 14 | **Cache de uninstall persistido** em XML versionado | literais `CUninstallCache::Save` / `::Load` / `::clear` (`geek.strings.txt:1134-1147`), `<?xml version="1.0" ...?><UninstallCache version="%u"></UninstallCache>` (`:1136`), `CUninstaller::LoadCachedData` (`:1230`) | interface | medio |
+| 15 | **Painel "Active Files"** — arquivos em uso detectados | literal "Active Files" (`geek.strings.txt:14689`) | interface | medio |
+| 16 | **Dialogo de orfaos** — "Alguns itens orfaos encontrados!" e a oferta de remove-los | literais de status `<statusLeftOverTracesFound>Some leftover traces found!</statusLeftOverTracesFound>` (`geek.strings.txt:4593`), `<statusAllTracesRemoved>All Traces Removed</statusAllTracesRemoved>` (`:4596`) | interface | medio |
+| 17 | **Confirmacao ao cancelar** a remocao de sobras | literal `<msgCancelWizard>The leftovers found will not be removed. Close the wizard?</msgCancelWizard>` (`geek.strings.txt:4613`) | interface | medio |
+| 18 | **Dialogo de falha de desinstalacao** com oferta de limpar a entrada do registro e os arquivos | literal `<msgUninstallFailed>Uninstallation process failed. \nWould you like to clean this program entry from registry and clean up its files?</msgUninstallFailed>` (`geek.strings.txt:4610`) | interface | medio |
+| 19 | **"Browse..." dentro das sobras encontradas** (navegar para o item) | literal `<treeItemPopopMenuBrowse>Browse...</treeItemPopopMenuBrowse>` (`geek.strings.txt:4601`), `UninstallWizard/treeItemPopopMenuBrowse` (`:1333`) | interface | medio |
+| 20 | **Aviso "No matching items, press ESC to reset"** quando o filtro nao casa nada | literal `<staticNoItemsMatchingFilterTip>No matching items, press ESC to reset</staticNoItemsMatchingFilterTip>` (`geek.strings.txt:4584`) | interface | medio |
+| 21 | **Abrir na Microsoft Store** | literal `<mnuActionOpenWindowsStore>Open in Microsoft Store</mnuActionOpenWindowsStore>` (`geek.strings.txt:4561`), `MainMenu/mnuActionOpenWindowsStore` (`:1175`) | integracao | medio |
+| 22 | **Browse Source...** — localizar o instalador-fonte do programa | literal `<mnuActionBrowseSource>Browse Source...</mnuActionBrowseSource>` (`geek.strings.txt:4563`) | integracao | medio |
+| 23 | **"Nenhum programa nesta categoria"** (categoria da aba Microsoft Store vazia) | literal `<staticNoProgramsInCategory>Seems like no Microsoft Store apps installed</staticNoProgramsInCategory>` (`geek.strings.txt:4585`) | interface | baixo |
+| 24 | **Enumeração MSIX por SID do usuario** | literal `FindPackagesByUserSecurityId failed` (`geek.strings.txt:1907`) | varredura | baixo |
+| 25 | **Log da desinstalacao** gravado por programa (`%s_UninstallLog.log`) | literal `%s_UninstallLog.log` (`geek.strings.txt:12739`) | relatorio | baixo |
+| 26 | **Aviso quando a remocao da entrada falha por falta de permissao** | literal `<msgRemoveEntryFailed>Failed to delete the registry entry of this item. \nYou probably have no access to do it.</msgRemoveEntryFailed>` (`geek.strings.txt:4614`) | interface | baixo |
+| 27 | **Ciclo de mensagens do assistente** ("Gerando lista de tracos..." -> "Todos os tracos removidos") | literais `<statusScanning>Scanning for leftover files, folders and registry items...</statusScanning>` (`geek.strings.txt:4592`), `<statusDeletingProgramTraces>Deleting program traces...</statusDeletingProgramTraces>` (`:4597`) | interface | medio |
+| 28 | **Categoria Windows Updates** como filtro de lista | literal `<WindowsUpdatesText>Windows Updates</WindowsUpdatesText>` (`geek.strings.txt:4641`), texto traduzido "Windows (Windows Updates)" (`:4962`) | interface | baixo |
+| 29 | **Total agregado no rodape** ("%d programs of %s size in total") | literal `<statusTotalInfo>%d programs of %s size in total</statusTotalInfo>` (`geek.strings.txt:4639`) | interface | baixo |
+| 30 | **Calculo do tamanho** de cada programa no scanner | literais "Calculate size of {}" (`geek.strings.txt:14583`), "CCalculate size of {}" (`:12626`) | interface | medio |

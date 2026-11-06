@@ -1,0 +1,162 @@
+# Auditoria binária dos concorrentes — método, inventário e decisão
+
+Este documento é o registro da **engenharia reversa feita sobre o código binário**
+dos concorrentes do Tranal Uninstaller. Ele substitui a pratica anterior — que
+identificava funcionalidades por documentacao e por execucao manual — por um
+metodo que extrai a funcionalidade do proprio artefato entregue do produto.
+
+Regra do projeto, inalterada: **medido vale, inferido nao vale**. Toda linha
+deste documento aponta para um arquivo de evidencia em disco, com hash ou
+caminho. O que nao deu para medir esta escrito como **nao verificado**, com o
+motivo.
+
+---
+
+## 1. Metodo
+
+Quatro extratores, todos rodados sobre os binarios reais dos concorrentes:
+
+| Extrator | O que entrega | Onde esta a evidencia |
+|---|---|---|
+| **REA `inspect_pe_imports`** | As DLLs e as funcoes que o binario importa | `E:\Projetos\tranal-auditoria-evidencia\bin-inventario\<id>.imports.txt` |
+| **REA `inspect_pe_resources`** | A arvore de recursos da PE (formularios Delphi, icones, manifesto) | `bin-inventario\<id>.recursos.txt` |
+| **Extractor de strings** (C#, `tools/extrair-strings.ps1`) | Todo literal ASCII e UTF-16LE do binario, deduplicado | `bin-strings\<id>.strings.txt` |
+| **Leitor de metadata .NET** (`tools/DotnetMap/Program.cs`, `System.Reflection.Metadata`) | O mapa **tipo → metodo → literal** de cada assembly .NET | `bin-inventario\managed\*.metadados.txt` |
+
+Dois produtos exigiram extracao especifica:
+
+- **Revo Uninstaller Pro 5.5.4**: o proprio produto instala as suas **tabelas de
+  idioma** (`lang\*.ini`, UTF-16LE, `Codepage=UNICODE`). Cada secao do `.ini` e um
+  modulo do produto e cada entrada e um texto de interface com id numerico
+  proprio do binario. Isso da o inventario mais completo possivel: **42 modulos
+  e 1.141 entradas de interface**, com o texto em portugues. A leitura e
+  confirmada pelo proprio binario: a PE importa `GetPrivateProfileIntW`.
+  Evidencia: `bin-inventario\revo-pro.funcionalidades.md`.
+- **BCU (Bulk Crap Uninstaller)**: e .NET 8. O leitor de metadata devolveu
+  **188 tipos, 1.864 metodos e 2.476 literais** com o vinculo tipo → metodo →
+  literal, mais **25 assemblies .NET** mapeados (as dependencias do produto
+  JA sao um mapa de features: `FlaUI.UIA3`, `Interop.WUApiLib`,
+  `SteamHelper`, `StoreAppHelper`, `SimpleTreeMap`, `ScriptHelper`,
+  `OculusHelper`, `UniversalUninstaller`, `UninstallerAutomatizer`).
+
+O que a REA **nao** faz: observar execucao. Nenhum destes numeros veio de
+"rodei o programa e vi". Quando a analise estatica nao alcanca, o documento
+diz que nao alcancou.
+
+### Totais medidos
+
+| Medida | Valor |
+|---|---|
+| Binarios com dump de strings | 24 |
+| Strings unicas extraidas | 816.370 |
+| Assemblies .NET com mapa tipo → metodo → literal | 25 |
+| Modulos do Revo Pro mapeados pela tabela de idioma | 42 |
+| Entradas de interface do Revo Pro (com pt-BR) | 1.141 |
+| Capacidades confirmadas por API importada, por concorrente | 44 a 51 |
+| Concorrentes com documento canonico reescrito a partir do binario | 11 (10 + Revo) |
+
+---
+
+## 2. Concorrentes e o que foi extraido de cada um
+
+| Concorrente | Binario analisado | Extracao dominante | Documento |
+|---|---|---|---|
+| BCU 4.8 | `BCUninstaller.dll` (.NET 8) | metadata .NET + strings | `BCU.md`, `BINARIO-BCU.md` |
+| Geek Uninstaller 3.8.3 | `geek.exe` | PE imports + recursos + strings | `GEEK.md`, `BINARIO-GEEK.md` |
+| Uninstalr 3.4 | `Uninstalr_Portable.exe` | strings + recursos | `UNINSTALR.md`, `BINARIO-UNINSTALR.md` |
+| IObit Uninstaller 12 | `IObitUninstaler.exe` + `iush.exe` + `UninstallMonitor.exe` + `UninstallPromote.exe` + `UninstallExplorer.dll` | PE imports (48 capacidades) + strings | `IOBIT.md`, `BINARIO-IOBIT.md` |
+| HiBit Uninstaller 15 | `HiBitUninstaller.exe` (Delphi) | recursos (formularios Delphi) + strings | `HIBIT.md`, `BINARIO-HIBIT.md` |
+| Wise Program Uninstaller 10 | `WiseProgramUninstaller.exe` + `UnMonitor.exe` | PE imports (50 capacidades) + strings | `WISE.md`, `BINARIO-WISE.md` |
+| Total Uninstall 7.6.2 | `Tu.exe` + `TuRes.dll` | strings + delay-load | `TOTALUNINSTALL.md`, `BINARIO-TOTALUNINSTALL.md` |
+| Uninstall Tool 3.8.2 | `UninstallTool_x64.exe` | PE imports (51 capacidades) + strings | `UNINSTALLTOOL.md`, `BINARIO-UNINSTALLTOOL.md` |
+| Soft Organizer 10.50 | `SoftOrganizer.exe` (Sciter) | PE imports (50 capacidades) + strings | `SOFTORGANIZER.md`, `BINARIO-SOFTORGANIZER.md` |
+| Ashampoo UnInstaller Pro 27 | `ashampoo_uninstaller_pro_27.exe` (instalador Inno Setup) | **limitado** — ver §5 | `ASHAMPOO.md`, `BINARIO-ASHAMPOO.md` |
+| Revo Uninstaller Pro 5.5.4 | `RevoUninPro.exe` + `RevoAppBar.exe` + `RevoSrp.exe` + `RevoCmd.exe` + `RUExt.dll` + `WinAppsDll.dll` + `revoflt.sys` | **tabela de idioma** (42 modulos) + PE imports (27 DLLs, 917 funcoes) | `docs/REVO_SPEC.md`, `BINARIO-REVO.md` |
+
+---
+
+## 3. Decisao: o que entra no Tranal
+
+Criterio aplicado, nesta ordem:
+
+1. **Adjacencia** — a funcionalidade pertence ao dominio de desinstalacao
+   (localizar, remover, recuperar, administrar programas). Otimizador de
+   sistema (analisador de disco, gerenciador de fontes, gerenciador de conexoes,
+   papel de parede, destruidor de arquivos) fica **fora**: o Tranal e um
+   desinstalador, nao um Windows optimizer.
+2. **Cobertura** — o que o Tranal ja faz nao e reimplementado.
+3. **Viabilidade** — o que cabe no stack atual (WPF / .NET 10), sem driver de
+   kernel, sem automacao de janela elevada e sem base remota.
+
+### 3.1 Lote implementado nesta rodada
+
+| Item | Funcionalidade | Evidencia no binario | Onde ficou no Tranal |
+|---|---|---|---|
+| A12 | Leitura do `NoRemove` (entrada protegida) | `[Uninstaller Options] 1202 = Show system components` no `.ini` do Revo; `IsProtected` lido de `NoRemove` na chave de desinstalacao | `Core/InstalledProgram.cs`, `Core/ProgramScanner.cs`, `Core/UninstallAdvisories.cs` |
+| A14 | Deteccao de desinstalador ausente ou corrompido | `Core/UninstallerHealth.cs`: `Missing` (sem comando) e `Broken` (o caminho absoluto apontado nao existe) | `Core/UninstallerHealth.cs`, `Core/ProgramScanner.cs` (`ScanOptions.IncludeEntriesWithoutUninstaller`) |
+| B8 | Ordenacao inteligente (barulhento primeiro) | Revo Pro: os desinstaladores com janela vao primeiro, os silenciosos depois | `Core/Appearance/SmartOrdering.cs`, consumido pelo assistente |
+| B17 | Programas relacionados | Revo Pro, secao `[Uninstaller Toolbar]`: comando de listar programas instalados junto | `Core/Discovery/RelatedProgramFinder.cs`, aviso no assistente |
+| B19 | Impedir desligamento/reinicio durante a tarefa | `SetThreadExecutionState` (API do Windows) usada pelo proprio produto durante a desinstalacao | `Core/Automation/ShutdownGuard.cs`, ligado em `UninstallEngine.RunBuiltInUninstaller` |
+| D16 | Abrir no Registro / Programas e Recursos / Recuperacao do Sistema | Revo Pro, secao `[Uninstaller Toolbar]`: acesso direto a "Programas e Recursos" e ao Registro | `Core/Management/SystemNavigator.cs`, menu de contexto da lista |
+
+### 3.2 Decidido para fora (com motivo)
+
+| Funcionalidade | Motivo |
+|---|---|
+| Base de logs **online** do Revo | Decisao de produto: o Tranal e offline, sem cadastro e sem telemetria |
+| Driver de filtro (`revoflt.sys`) | Fora de escopo por decisao registrada (driver de kernel) |
+| Analisador de disco, gerenciador de conexoes, de fontes, papel de parede, destruidor de arquivos | Nao e dominio de desinstalacao |
+| Varredura de sobras em **todas as contas** do Windows | Requer elevar para outro perfil; fica para uma rodada propria |
+| Edicao do log de instalacao entrada a entrada ("Custom Uninstall" / "Advanced Uninstall") | Alto valor, alto custo: exige um formato de log de instalacao que o Tranal ainda nao grava |
+| Exportacao por COM do Microsoft Excel | O Tranal ja exporta SpreadsheetML sem depender do Office instalado |
+
+### 3.3 Fila (medida, priorizada)
+
+A ordem abaixo vem das listas de lacuna dos 11 concorrentes, cruzadas com o
+codigo. O **numero** e a contagem de linhas marcadas `AUSENTE` ou `PARCIAL` no
+documento do respectivo concorrente.
+
+| # | Funcionalidade | Quem tem | Lacuna |
+|---|---|---|---|
+| 1 | Varredura de sobras em todas as contas do Windows | Revo | Revo |
+| 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | Revo, BCU |
+| 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | Revo |
+| 4 | Remocao de item de inicializacao do Autostart sem tocar no resto | BCU, Revo, Wise | BCU, Revo, Wise |
+| 5 | Busca por Regex na lista (e no motor de regras) | Revo, Geek, BCU | Revo |
+| 6 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) |
+
+---
+
+## 4. Como a decisao foi verificada
+
+Nenhuma linha de "ausente" foi aceita sem confirmacao no codigo. Um exemplo
+medido: a lista de lacunas do Revo marcava como ausente o **gerenciador
+proprio de servicos e tarefas agendadas**. A conferencia no codigo mostrarou
+que `Core/Management/ServiceManager.cs` e `Core/Management/ScheduledTaskManager.cs`
+ja fazem `List`, `Disable`, `Enable`, `Stop` e `Delete` — a alegacao estava
+errada e foi corrigida antes da decisao.
+
+As listas de cada concorrente em `BINARIO-<COMPETIDOR>.md` sao **materia-prima
+da decisao**, nao a decisao. O que vale e o que esta neste documento.
+
+---
+
+## 5. Limites honestos desta rodada
+
+| Limite | Causa | Efeito |
+|---|---|---|
+| **Ashampoo**: o codigo do aplicativo nao foi alcancado | O instalador e Inno Setup e o payload esta comprimido (LZMA); o `innoextract 1.9` recusa ("Unexpected setup loader revision: 2") | As funcionalidades do app do Ashampoo ficam **nao verificadas**. So a superficie do instalador e o runtime Inno foram medidos |
+| **Uninstalr**: tabela de importacoes nao extraida pela REA | O produtor declara 8.193+ funcoes e o limite de budget e reavaliado a cada chamada | As capacidades do Uninstalr foram medidas pelo dump de strings, nao pela tabela de importacoes |
+| **Total Uninstall**: poucas funcoes na tabela de importacoes | Delphi resolve as APIs por delay-load; a funcao importada e resolvida por nome em tempo de execucao | As capacidades do Total Uninstall vieram dos literais do dump |
+| **Nenhum concorrente pago foi executado** | Nenhum foi instalado nesta rodada | Comportamento observado continua sendo o da auditoria anterior; esta rodada **soma identificacao**, nao observacao |
+| **Funcao nativa → pseudocodigo** | Exige o motor Ghidra da REA por binario | Nao foi usado nesta rodada: os literais, os recursos e as importacoes ja entregam a funcionalidade |
+
+---
+
+## 6. Onde esta a evidencia
+
+- `E:\Projetos\tranal-auditoria-evidencia\bin-strings\` — 24 dumps de strings
+- `E:\Projetos\tranal-auditoria-evidencia\bin-inventario\` — inventarios, identificadores, recursos, importacoes e o mapa de funcionalidades do Revo
+- `E:\Projetos\tranal-auditoria-evidencia\bin-inventario\managed\` — mapa tipo → metodo → literal dos 25 assemblies .NET
+- `docs/auditoria/BINARIO-<COMPETIDOR>.md` — a lista de lacunas de cada concorrente
+- `docs/auditoria/<COMPETIDOR>.md` — o documento canonico de cada concorrente, com a coluna "Evidência no binário"

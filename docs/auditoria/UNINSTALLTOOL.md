@@ -59,101 +59,152 @@ Data da coleta: 05/11/2026 · Versão auditada: **3.8.2 build 5762** (edição
 
 ## 2. Superfície observável
 
-**67 funcionalidades** medidas — 56 **Observado** (medidas nesta máquina ou
-extraídas do binário/serviços em execução) e 11 **Documentado** (manual,
-release notes e site oficial).
+**67 funcionalidades** medidas — curadoria a partir do **binário**. A numeração original (1–67) foi preservada; as linhas novas (68+) continuam a numeração.
 
-### 2.1 Desinstalação (21)
+**Legenda das evidências** — arquivos medidos em `E:\Projetos\tranal-auditoria-evidencia\`:
 
-| # | Funcionalidade | Evidência | Status |
+| Abreviação | Arquivo |
+|---|---|
+| `strings.txt` | `bin-strings/uninstalltool.strings.txt` — dump bruto (inclui o XML `LanguageStrings` embarcado) |
+| `imports.txt` | `bin-inventario/uninstalltool.imports.txt` — imports da PE (822 funções) |
+| `inventario.md` | `bin-inventario/uninstalltool.inventario.md` — classes RTTI (126) + rótulos (1372) |
+| `identificadores.txt` | `bin-inventario/uninstalltool.identificadores.txt` — identificadores de tipo |
+
+Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
+
+### 2.1 Desinstalação
+
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 1 | Lista com colunas Nome / Tamanho / Instalado em / **Rastreado** / Status / Origem / Empresa | `ui-strings-english.txt` (`ListCtrl/columnProgramName…columnCompany`) | Observado |
-| 2 | 4 categorias na barra secundária: Aplicativos, Sistema, Oculto, Microsoft Store Apps | `SecondaryToolbar/btnApps…btnStoreApps` | Observado |
-| 3 | Marcação `(32-bit)` em programas de 32 bits em Windows 64 | `ListCtrl/mark32bitItem` | Observado |
-| 4 | Ordenação por qualquer coluna, com largura e posição **memorizadas** | `manual-programs-list.txt` | Documentado |
-| 5 | Colunas ocultáveis por clique direito no cabeçalho | `manual-programs-list.txt` | Documentado |
-| 6 | Atualizações de software como **sub-itens em árvore** | `DlgPreferences/staticTreeLikeUpdates` | Documentado |
-| 7 | Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos | release notes v3.5.2 | Documentado |
-| 8 | Data de instalação por item, com destaque para "recentemente instalado" | `Misc/statusRecentItems` | Observado |
-| 9 | **Uninstall** — executa o desinstalador padrão | `MainMenu/mnuActionUninstall` | Observado |
-| 10 | **Modify** — tela de modificação de componentes | `MainMenu/mnuActionModify` | Observado |
-| 11 | **Force Removal** — apaga arquivos e registro **sem rodar o desinstalador** | `Messages/msgForceRemovalDescription` | Observado |
-| 12 | **Batch Force Removal** | `MainMenu/mnuActionDeleteBatch` | Observado |
-| 13 | **Remove Entry** — tira da lista sem apagar sobras | `MainMenu/mnuActionRemoveEntry` | Observado |
-| 14 | **Batch Remove Entries** | `MainMenu/mnuActionRemoveEntryBatch` | Observado |
-| 15 | Lote com **teto de itens** e aviso explícito | `ExplorerBar/itemBatchLimitationWarning` | Observado |
-| 16 | Desinstalação de **aplicativos Microsoft Store / UWP**, inclusive em lote | `Get-AppxPackage -name %s \| Remove-AppxPackage` | Observado |
-| 17 | Remoção "ultra fast and thorough" de programas **rastreados** | `Messages/msgForceRemovalDescriptionTraced` | Observado |
-| 18 | Detecção de **itens relacionados** e **dependentes** | `RelatedItemsDialog/*`, `DependentItemsDialog/*` | Observado |
-| 19 | **Cancelamento forçado** de um desinstalador travado, com aviso de riscos | `Messages/msgForceCancelWaiting` | Observado |
-| 20 | Remoção de **objetos COM** registrados (`regsvr32.exe /s /u`) | `strings:15801` | Observado |
-| 21 | Remoção de **arquivos somente-leitura** | release notes v2.5 | Documentado |
+| 1 | Lista com colunas Nome / Tamanho / Instalado em / **Rastreado** / Status / Origem / Empresa | `strings.txt:14099` → `<columnTraced>Traced</columnTraced>`; `:14105` → `<columnCompany>Company</columnCompany>`; `:14117` → `<mark32bitItem>(32-bit)</mark32bitItem>` | OK — `Core/ProgramColumns.cs` |
+| 2 | 4 categorias na barra secundária: Aplicativos, Sistema, Oculto, Microsoft Store Apps | `strings.txt:14132` → `<btnApps>Apps</btnApps>`; `:14138` → `<btnStoreApps>Microsoft Store Apps</btnStoreApps>`; `:4928` → `SecondaryToolbar/btnApps` | OK — `MainWindow.xaml.cs`, `Ui/Modules/ModuleViews.cs` |
+| 3 | Marcação `(32-bit)` em programas de 32 bits em Windows 64 | `strings.txt:14117` → `<mark32bitItem>(32-bit)</mark32bitItem>` | PARCIAL — o Tranal separa 32/64 bits (MATRIZ A1), mas não imprime a marca na linha |
+| 4 | Ordenação por qualquer coluna, com largura e posição **memorizadas** | nao confirmado no binario | PARCIAL — `Ui/ProgramColumnLayout.cs` memoriza o layout das colunas |
+| 5 | Colunas ocultáveis por clique direito no cabeçalho | nao confirmado no binario | PARCIAL — `Ui/ColumnsWindow.xaml.cs` permite mostrar/ocultar colunas |
+| 6 | Atualizações de software como **sub-itens em árvore** | `strings.txt:17833` → `Display software updates:`; `:14227` → `<checkDisplayUpdates>Display software updates</checkDisplayUpdates>` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` consulta atualizações; não as mostra como sub-itens da árvore |
+| 7 | Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos | nao confirmado no binario | PARCIAL — `Core/ProgramScanner.cs` mede a pasta do programa; falta incluir as pastas de dados do usuário |
+| 8 | Data de instalação por item, com destaque para "recentemente instalado" | `strings.txt:14234` → `<checkHighlighRecent>Highlight recently installed programs</checkHighlighRecent>` | PARCIAL — o Tranal mostra a data, sem o realce dos recém-instalados |
+| 9 | **Uninstall** — executa o desinstalador padrão | `strings.txt:4952` → `MainMenu/mnuActionUninstall`; `:14049` → `<mnuActionUninstall>&amp;Uninstall...</mnuActionUninstall>` | OK — `Core/Removal.cs` |
+| 10 | **Modify** — tela de modificação de componentes | `strings.txt:4953` → `MainMenu/mnuActionModify`; `:14050` → `<mnuActionModify>&amp;Modify...</mnuActionModify>` | AUSENTE — o Tranal não executa "Modify" de instaladores MSI |
+| 11 | **Force Removal** — apaga arquivos e registro **sem rodar o desinstalador** | `strings.txt:5020` → `Messages/msgForceRemovalDescription` | OK — `Core/Modules/HunterMode.cs`, `Ui/ForcedUninstallWindow.xaml.cs` |
+| 12 | **Batch Force Removal** | `strings.txt:14052` → `<mnuActionDeleteBatch>Batch &amp;Force Removal</mnuActionDeleteBatch>` | OK — `Core/Automation/BatchList.cs` |
+| 13 | **Remove Entry** — tira da lista sem apagar sobras | `strings.txt:4955` → `MainMenu/mnuActionRemoveEntry`; `:14053` → `<mnuActionRemoveEntry>Remove &amp;Entry</mnuActionRemoveEntry>` | OK — `Core/RegistryEditing/RegistryEditor.cs` (MATRIZ D14) |
+| 14 | **Batch Remove Entries** | `strings.txt:14054` → `<mnuActionRemoveEntryBatch>Batch Remove &amp;Entries</mnuActionRemoveEntryBatch>` | OK — `Core/Automation/BatchList.cs` |
+| 15 | Lote com **teto de itens** e aviso explícito | `strings.txt:14151` → `<itemBatchLimitationWarning>You selected %u items but maximum number of items in a batch operation is limited to %u</itemBatchLimitationWarning>` | AUSENTE — o Tranal não impõe teto de itens por lote |
+| 16 | Desinstalação de **aplicativos Microsoft Store / UWP**, inclusive em lote | `identificadores.txt:9` → `Windows.Management.Deployment.PackageManager`; `strings.txt:14138` → `<btnStoreApps>Microsoft Store Apps</btnStoreApps>` | OK — `Core/Modules/WindowsApps.cs` |
+| 17 | Remoção "ultra fast and thorough" de programas **rastreados** | `strings.txt:5019` → `Messages/msgForceRemovalDescriptionTraced` | OK — `Core/Modules/TracedPrograms.cs` |
+| 18 | Detecção de **itens relacionados** e **dependentes** | nao confirmado no binario | AUSENTE |
+| 19 | **Cancelamento forçado** de um desinstalador travado, com aviso de riscos | nao confirmado no binario | AUSENTE |
+| 20 | Remoção de **objetos COM** registrados | `imports.txt:26` → `ole32.dll / CoGetClassObject` | PARCIAL — o Tranal remove chaves de registro, mas não desserializa/desregistra objetos COM |
+| 21 | Remoção de **arquivos somente-leitura** | `imports.txt:18` → `SHELL32.dll / SHFileOperationW` | PARCIAL — `Core/Removal.cs` grava o arquivo, mas não limpa o atributo somente-leitura antes |
 
-### 2.2 Uninstall Wizard™ — a varredura de sobras (11)
+### 2.2 Uninstall Wizard (varredura de sobras)
 
-| # | Funcionalidade | Evidência | Status |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 22 | Wizard **embutido**: roda o desinstalador e depois varre o sistema | `UninstallWizard/*` | Observado |
-| 23 | Varredura separada de **File System** e **Registry**, em árvore | `UninstallWizard/treeItemFileSystem`, `treeItemRegistry` | Observado |
-| 24 | Resumo quantitativo: "%d files (%s) and %d registry items are still left" | `UninstallWizard/staticOverallInfo` | Observado |
-| 25 | Revisão item a item antes de apagar, com "Browse…" | `UninstallWizard/staticScanStatusFound` | Observado |
-| 26 | Remoção de arquivos em uso **agendada para o próximo boot** | `DelayedFilesRemovalDialog/*` | Observado |
-| 27 | **Detecção e terminação** de processos do app ainda em execução | `RunningProcessesDialog/*` | Observado |
-| 28 | **Log detalhado de remoção por item**, com código de erro | `UninstallWizard/staticHyperlinkRemovalLog` | Observado |
-| 29 | **Exportação do resultado da varredura para XML** | `UninstallWizard/staticHyperlinkExport`; release notes v3.4 | Observado |
-| 30 | Log de desinstalação **salvo em arquivo** logo após a desinstalação (novo na 3.8.2) | release notes v3.8.2 (#187) | Documentado |
-| 31 | Preferência: sempre rodar / nunca rodar / perguntar | `DlgPreferences/comboItemWizardOption1..3` | Observado |
-| 32 | O Wizard **sempre roda** para programas rastreados | `DlgPreferences/staticWizardDesctiption` | Observado |
+| 22 | Wizard **embutido**: roda o desinstalador e depois varre o sistema | `strings.txt:5225` → `UninstallWizard/staticScanStatusFound` | PARCIAL — `Ui/UninstallWizardWindow.xaml.cs` tem assistente, mas não varre automaticamente depois do desinstalador |
+| 23 | Varredura separada de **File System** e **Registry**, em árvore | `strings.txt:5285` → `UninstallWizard/treeItemFileSystem`; `:5286` → `UninstallWizard/treeItemRegistry` | OK — `Core/UninstallSupport.cs` |
+| 24 | Resumo quantitativo: "%d files (%s) and %d registry items are still left" | `strings.txt:5226` → `UninstallWizard/staticOverallInfo` | OK — `Core/RemovalLog.cs` |
+| 25 | Revisão item a item antes de apagar, com "Browse…" | `strings.txt:5225` → `UninstallWizard/staticScanStatusFound` | OK — `Ui/UninstallWizardWindow.xaml.cs` |
+| 26 | Remoção de arquivos em uso **agendada para o próximo boot** | `imports.txt:6` → `KERNEL32.dll / MoveFileExA` | OK — `Core/DeferredDelete.cs` (`MOVEFILE_DELAY_UNTIL_REBOOT`) |
+| 27 | **Detecção e terminação** de processos do app ainda em execução | `inventario.md:9` → `TerminateProcess`, `TerminateThread` | OK — `Core/ProcessTerminator.cs` |
+| 28 | **Log detalhado de remoção por item**, com código de erro | `strings.txt:5245` → `UninstallWizard/staticHyperlinkRemovalLog` | AUSENTE — o Tranal não gera log por item com código de erro |
+| 29 | **Exportação do resultado da varredura para XML** | `strings.txt:5222` → `UninstallWizard/staticHyperlinkExport` | PARCIAL — `Core/Exporters.cs` exporta a lista em XML; não a varredura do wizard |
+| 30 | Log de desinstalação **salvo em arquivo** | nao confirmado no binario | PARCIAL — `Core/RemovalLog.cs` grava o log em memória/arquivo por remoção, mas sem o passo "salvar após a desinstalação" |
+| 31 | Preferência: sempre rodar / nunca rodar / perguntar | `strings.txt:4726` → `DlgPreferences/comboItemWizardOption1` | PARCIAL — `Core/Settings/AppSettings.cs` tem preferências, sem a chave "sempre rodar o wizard" |
+| 32 | O Wizard **sempre roda** para programas rastreados | nao confirmado no binario | PARCIAL |
 
-### 2.3 Install Tracker — o rastreamento por driver (16)
+### 2.3 Install Tracker (rastreamento por driver)
 
-| # | Funcionalidade | Evidência | Status |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 33 | **Instala e rastreia** um `.exe`/`.msi` disparando o instalador e observando o sistema | `InstallTracker/*` | Observado |
-| 34 | Rastreamento **em tempo real, por evento**, de arquivos/pastas criados, renomeados e chaves criadas/alteradas/excluídas | `strings:14946-14953`; `logEventCreateFile`, `logEventRenameFile`, `logEventDeleteKey` | Observado |
-| 35 | Rastreamento de **processos criados** (`PsSetCreateProcessNotifyRoutine`) | `strings:14952`, `:14986` | Observado |
-| 36 | Log com **eventos enumerados** e barra de progresso na bandeja | `InstallTracker/trayIconMenuProgress` | Observado |
-| 37 | **Salvar log** de rastreamento em arquivo | `InstallTracker/btnSaveLog` | Observado |
-| 38 | **Reverter** a instalação rastreada | `InstallTracker/btnNoAndRevert`; release notes v3.2 | Observado |
-| 39 | **Anexar** dados rastreados a um item existente | `InstallTracker/TitleAppend` | Observado |
-| 40 | Detecção de **múltiplas entradas** de instalação | `InstallTrackerMultipleEntries/*` | Observado |
-| 41 | **Entrada customizada** quando o instalador não deixou registro | `InstallTrackerCustomEntryDialog/*` | Observado |
-| 42 | Ver dados rastreados como **XML** e **desfazer o rastreamento** (Undo Tracing) | `mnuTracedDataAsXML`, `mnuTracedDataUndoTracing` | Observado |
-| 43 | Coluna **"Rastreado"** na lista, com ícone próprio | `ListCtrl/columnTraced` | Observado |
-| 44 | Menu de contexto do Explorer: **"Install and Trace"** para `.exe`/`.msi` | `ShellExtension/InstallWithInstallTracker*` | Observado |
-| 45 | Menu de contexto dos **atalhos**: "Uninstall with Uninstall Tool" | `ShellExtension/uninstallWithUninstallTool*` | Observado |
-| 46 | Extensão de shell **empacotada em MSIX** para o Windows 11 | `UTShellExt2.msix`, `Add-AppxPackage` | Observado |
-| 47 | Serviço de rastreamento **versionado**, com prompt de atualização | `Messages/msgTrackingServiceUpdate` | Observado |
-| 48 | Setup instala o serviço e o **driver de kernel**; `RemoveService.cmd` remove | `Setup/install_service`, `Setup/installing_driver` | Observado |
+| 33 | **Instala e rastreia** um `.exe`/`.msi` disparando o instalador e observando o sistema | `inventario.md:159` → `CisUtMonitor: DriverEntry`; `:161` → `FltRegisterFilter FAILED!` | PARCIAL — `Core/Modules/TracedPrograms.cs` rastreia por snapshot antes/depois, sem driver |
+| 34 | Rastreamento **em tempo real, por evento**, de arquivos/pastas criados e renomeados e chaves criadas/alteradas/excluídas | `inventario.md:160` → `CmRegisterCallback FAILED!`; `:162` → `FltStartFiltering FAILED!` | PARCIAL — `Core/Tracing/WriteWatcher.cs` observa escrita de arquivos, mas o registro é por polling |
+| 35 | Rastreamento de **processos criados** | `inventario.md:165` → `PsSetCreateProcessNotifyRoutine FAILED!` | PARCIAL — `Core/ProcessTerminator.cs` termina processos, não os rastreia |
+| 36 | Log com **eventos enumerados** e barra de progresso na bandeja | nao confirmado no binario | PARCIAL |
+| 37 | **Salvar log** de rastreamento em arquivo | `strings.txt:5043` → `InstallTracker/btnSaveLog` | OK — `Core/Modules/TraceStore.cs`, `Core/Reporting/TraceLogExporter.cs` |
+| 38 | **Reverter** a instalação rastreada | `strings.txt:5157` → `InstallTracker/btnNoAndRevert` | AUSENTE |
+| 39 | **Anexar** dados rastreados a um item existente | nao confirmado no binario | AUSENTE |
+| 40 | Detecção de **múltiplas entradas** de instalação | nao confirmado no binario | AUSENTE |
+| 41 | **Entrada customizada** quando o instalador não deixou registro | `strings.txt:14356` → `<checkCreateCustomEntry>I'd like to create a custom item in the list</checkCreateCustomEntry>` | AUSENTE |
+| 42 | Ver dados rastreados como **XML** e **desfazer o rastreamento** | `strings.txt:4957` → `MainMenu/mnuTracedDataAsXML`; `:14056` → `<mnuTracedDataAsXML>View as XML...</mnuTracedDataAsXML>` | PARCIAL — o Tranal exporta o log em XML; não tem "Undo Tracing" |
+| 43 | Coluna **"Rastreado"** na lista, com ícone próprio | `strings.txt:4926` → `ListCtrl/columnTraced` | OK — `Core/ProgramColumns.cs` |
+| 44 | Menu de contexto do Explorer: **"Install and Trace"** para `.exe`/`.msi` | `strings.txt:14213` → `<checkShellExtension>Add 'Install and Trace' command for setup files (exe/msi) to the Windows Explorer context menu</checkShellExtension>` | AUSENTE — o Tranal só expõe o menu de desinstalar (`Core/Topmost/ExplorerContextMenu.cs`) |
+| 45 | Menu de contexto dos **atalhos**: "Uninstall with Uninstall Tool" | nao confirmado no binario | AUSENTE |
+| 46 | Extensão de shell **empacotada em MSIX** para o Windows 11 | nao confirmado no binario (o pacote `.msix` é arquivo do instalador, não recurso do PE) | AUSENTE |
+| 47 | Serviço de rastreamento **versionado**, com prompt de atualização | nao confirmado no binario | AUSENTE |
+| 48 | Setup instala o serviço e o **driver de kernel** | `inventario.md:274` → `driver file doesn't seem to exist in the app folder` | AUSENTE — decisão `MATRIZ.md` F.4 |
 
-### 2.4 Startup Manager (10)
+### 2.4 Startup Manager
 
-| # | Funcionalidade | Evidência | Status |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 49 | Listagem com colunas **Status** e **Origem** | `ListCtrl/columnStatus`, `columnSource` | Observado |
-| 50 | Habilitar / **desabilitar** item de inicialização | `ExplorerBar/itemDisableRunning` | Observado |
-| 51 | **Remover** item de inicialização do registro/Start Menu | `ExplorerBar/itemDeleteStartupItem` | Observado |
-| 52 | **Adicionar** item de inicialização (caminho, argumentos, "executar com privilégios máximos") | `DlgAddNewStartupProgram/*` | Observado |
-| 53 | **Filtro por categoria** de origem: Registry / Start Menu / Tasks / UWP | release notes v3.8.0 | Documentado |
-| 54 | **Busca/filtro** da lista de startup | release notes v3.8.0 | Documentado |
-| 55 | Itens de inicialização de **aplicativos UWP / Store** | release notes v3.6.0 (#78) | Documentado |
-| 56 | Tarefas do **Task Scheduler** agendadas para logon, com "navegar até a origem" | `ExplorerBar/itemSourceWindowsTask` | Observado |
-| 57 | Tarefas criadas pela Microsoft **ocultadas** por segurança | release notes v3.8.1 (#178) | Documentado |
-| 58 | Alternância rápida **Uninstaller ⇄ Startup Manager** (Ctrl+Tab) | `manual-keyboard-shortcuts.txt` | Observado |
+| 49 | Listagem com colunas **Status** e **Origem** | nao confirmado no binario | OK — `Core/Tools/AutorunManager.cs` |
+| 50 | Habilitar / **desabilitar** item de inicialização | `strings.txt:14170` → `<itemDisableRunning>Disable running on startup</itemDisableRunning>`; `:4794` → `ExplorerBar/itemDisableRunning` | OK — `Core/Tools/AutorunManager.cs` (`SetEnabled`) |
+| 51 | **Remover** item de inicialização do registro/Start Menu | `strings.txt:14172` → `<itemDeleteStartupItem>Delete from the list</itemDeleteStartupItem>`; `:4795` → `ExplorerBar/itemDeleteStartupItem` | OK — `Core/Tools/AutorunManager.cs` (`Remove`) |
+| 52 | **Adicionar** item de inicialização (caminho, argumentos, "executar com privilégios máximos") | `strings.txt:4773` → `DlgAddNewStartupProgram/DlgAddNewStartupProgramCaption`; `:4776` → `labelArguments`; `:4777` → `checkHighestPriviledges` | OK — `Core/Tools/AutorunManager.cs` (`Add`) |
+| 53 | **Filtro por categoria** de origem: Registry / Start Menu / Tasks / UWP | nao confirmado no binario | PARCIAL — o Tranal lista por categoria, mas o filtro é da lista geral |
+| 54 | **Busca/filtro** da lista de startup | nao confirmado no binario | PARCIAL — `Core/Appearance/ProgramFilters.cs` filtra a lista de programas, não a de inicialização |
+| 55 | Itens de inicialização de **aplicativos UWP / Store** | nao confirmado no binario | PARCIAL — `Core/Tools/AutorunManager.cs` varre RunKey/Pasta de Inicialização/Serviço/Tarefa |
+| 56 | Tarefas do **Task Scheduler** agendadas para logon, com "navegar até a origem" | nao confirmado no binario | OK — `Core/Management/ScheduledTaskManager.cs` |
+| 57 | Tarefas criadas pela Microsoft **ocultadas** por segurança | nao confirmado no binario | AUSENTE |
+| 58 | Alternância rápida **Uninstaller ⇄ Startup Manager** (Ctrl+Tab) | nao confirmado no binario | PARCIAL — `Ui/Modules/ModuleViews.cs` troca de módulo, mas sem o atalho global |
 
-### 2.5 Interface e integração (9)
+### 2.5 Interface e integração
 
-| # | Funcionalidade | Evidência | Status |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 59 | **Smart Search™** — filtragem incremental enquanto se digita | `ExplorerBar/itemSearch` | Observado |
-| 60 | **Atalhos de teclado**: F1, F5, F9, Ctrl+Tab, Ctrl+S, Enter, Shift+Del, Ctrl+G, Ctrl+R, Ctrl+E, Ctrl+W, Esc | `manual-keyboard-shortcuts.txt` | Documentado |
-| 61 | **Exportar a lista para HTML** | `MainMenu/mnuFileExport`, `HTMLReport/*` | Observado |
-| 62 | Painel lateral com **Desinstalar / Forçar a Remoção**, caminho, versão, autor, data e site | `ExplorerBar/*` | Observado |
-| 63 | **Preferências** em 4 seções: Geral, Interface, Lista de Aplicativos, Uninstall Wizard | `DlgPreferences/category*` | Observado |
-| 64 | **Modo escuro** (automático / claro / escuro) | `DlgPreferences/colorSchemeDark` | Observado |
-| 65 | **45 idiomas** via XML | `app/portable/languages/` | Observado |
-| 66 | **Portable Mode** — corre de um pendrive, chave em `license.dat` | `Messages/msgRegSuccessPortableSaved` | Observado |
-| 67 | Relatório de **crash** com ficheiro de dump | `UnhandledExceptionHandler/*` | Observado |
+| 59 | **Smart Search** — filtragem incremental enquanto se digita | `strings.txt:4787` → `ExplorerBar/itemSearch`; `:14153` → `<itemSearch>Search</itemSearch>` | OK — `Core/Appearance/ProgramFilters.cs` |
+| 60 | **Atalhos de teclado**: F1, F5, F9, Ctrl+Tab, Ctrl+S, Enter, Shift+Del, Ctrl+G, Ctrl+R, Ctrl+E, Ctrl+W, Esc | nao confirmado no binario | PARCIAL — `MainWindow.xaml.cs` tem atalhos, não a lista completa |
+| 61 | **Exportar a lista para HTML** | `strings.txt:4646` → `MainMenu/mnuFileExport`; `:14046` → `<mnuFileExport>&amp;Export to HTML...</mnuFileExport>` | OK — `Core/Exporters.cs` |
+| 62 | Painel lateral com **Desinstalar / Forçar a Remoção**, caminho, versão, autor, data e site | nao confirmado no binario | OK — `Ui/Modules/ModuleViews.cs` |
+| 63 | **Preferências** em 4 seções: Geral, Interface, Lista de Aplicativos, Uninstall Wizard | nao confirmado no binario | OK — `Core/Settings/AppSettings.cs`, `Ui/OptionsWindow.xaml.cs` |
+| 64 | **Modo escuro** (automático / claro / escuro) | `strings.txt:4631` → `DlgPreferences/colorSchemeDark` | OK — `Theming/ThemeManager.cs` |
+| 65 | **45 idiomas** via XML | `inventario.md:38` → `LanguageStrings version="3.8.2" LangID="1033" Author="CrystalIDEA Software Team"`; `identificadores.txt:13` → `/LanguageStrings` | OK — `Core/Localization/LanguageCatalog.cs` |
+| 66 | **Portable Mode** — corre de um pendrive, chave em `license.dat` | `strings.txt:14459` → `<msgRegPortableLicenseLink>Download the portable version</msgRegPortableLicenseLink>`; `:14461` → `<msgRegNotForPortableText>...run the portable version.</msgRegNotForPortableText>` | OK — `Core/PortableMode.cs` |
+| 67 | Relatório de **crash** com ficheiro de dump | nao confirmado no binario | AUSENTE — o Tranal grava `FatalLog.cs`, mas não gera dump |
+
+### 2.6 Linhas novas: funcionalidades presentes no binário e ainda não no documento
+
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 68 | **Contornar o UAC** criando uma tarefa elevada do Task Scheduler executada a cada abertura do app | `strings.txt:14207` → `<checkSkipUAC>Use Windows Task Scheduler to bypass User Account Control confirmation dialog (when necessary)</checkSkipUAC>`; `:14208` → `<checkSkipUACHelpText>...creates a Windows Task Scheduler elevated task which is executed every time you'd like to run the app.</checkSkipUACHelpText>`; `:15548` → `control.exe schedtasks` | AUSENTE |
+| 69 | **Ícone do Uninstall Tool no Painel de Controle** | `strings.txt:14212` → `<checkControlPanelIcon>Show Uninstall Tool icon in Control Panel</checkControlPanelIcon>`; `:17818` → `Control Panel icon` | AUSENTE |
+| 70 | **Popup de aplicações recém-instaladas** | `strings.txt:14233` → `<checkDisplayPopup>Display pop-up window with recently installed applications</checkDisplayPopup>`; `:17828` → `Display popup window with recently installed applications` | AUSENTE |
+| 71 | **Realce dos programas recém-instalados** | `strings.txt:14234` → `<checkHighlighRecent>Highlight recently installed programs</checkHighlighRecent>` | PARCIAL |
+| 72 | **Programas recentes na barra secundária** | `strings.txt:14235` → `<checkRecentOnSecondaryToolbar>Display recent programs in the secondary toolbar</checkRecentOnSecondaryToolbar>` | AUSENTE |
+| 73 | **Exibir atualizações de software** na lista | `strings.txt:14227` → `<checkDisplayUpdates>Display software updates</checkDisplayUpdates>`; `:17833` → `Display software updates:` | PARCIAL |
+| 74 | **Verificar atualizações ao iniciar**, com canal **beta** | `strings.txt:14209` → `<checkCheckForUpdates>Check for updates on program startup</checkCheckForUpdates>`; `:14210` → `<checkCheckForBetaVersions>Check for beta versions as well</checkCheckForBetaVersions>` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` atualiza o app, mas não checa canal beta |
+| 75 | **Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável | `strings.txt:18030` → `CCustomize application appearance, toolbars, and menus`; `:17811` → `Display toolbar buttons captions`; `:14217` → `<checkToolBarCaptions>...`; `inventario.md:237` → `Customize Status Bar4(%s) was pressed...` | PARCIAL — o Tranal tem tema (`Theming/ThemeManager.cs`) e colunas customizáveis, mas não barras nem menus |
+| 76 | **Minimizar na bandeja durante a instalação** | `strings.txt:14295` → `<checkMinimize>Minimize Uninstall Tool to system tray during installation</checkMinimize>` | AUSENTE |
+| 77 | **Exibir o ícone na bandeja do sistema** | `inventario.md:271` → `Display Uninstall Tool system tray icon` | AUSENTE |
+| 78 | **Iniciar automaticamente minimizado na bandeja** | `inventario.md:56` → `Automatically start Uninstall Tool minimized in system tray on Windows startup` | AUSENTE |
+| 79 | **Navegar até a pasta do programa com o Total Commander** | `strings.txt:14214` → `<checkTotalCommander>Navigate to program directory using Total Commander (if installed)</checkTotalCommander>` | AUSENTE |
+| 80 | **Criar item personalizado na lista** | `strings.txt:14356` → `<checkCreateCustomEntry>I'd like to create a custom item in the list</checkCreateCustomEntry>` | AUSENTE |
+| 81 | **Adiar a exclusão dos dados de sobras** ("save and delete the leftover data later") | `strings.txt:14480` → `<checkDeleteDataLater>Save and delete the leftover data later</checkDeleteDataLater>` | OK — `Core/DeferredDelete.cs` |
+| 82 | **Lista compacta de aplicativos** | `strings.txt:14219` → `<checkSmallIcons>Compact list with apps</checkSmallIcons>` | AUSENTE |
+| 83 | **Chave de licença com lista negra** e chave separada para a versão portátil | `strings.txt:4592` → `activation: black listed key`; `:14460` → `<msgRegNotForPortableTitle>This key cannot activate the portable version</msgRegNotForPortableTitle>`; `:5692` → `checking license key {}...` | AUSENTE — o Tranal não tem licença |
+| 84 | **Limpar o cache** da aplicação | `inventario.md:168` → `Clear cache` | AUSENTE |
+| 85 | **Painéis ancoráveis** ("push pin") com pré-visualização | `inventario.md:169` → `Click push pin to keep open`; `:201` → `Close Preview`; `:203` → `Close Window` | PARCIAL |
+| 86 | **Execução de processo 32 bits** (`CreateX86Process`) | `inventario.md:230` → `CreateX86Process OK` | PARCIAL — `Core/Removal.cs` executa o desinstalador do registro, sem criar um helper 32 bits próprio |
+| 87 | **Ciclo de vida de serviço do Windows** gerenciado pelo próprio app | `imports.txt:16` → `ADVAPI32.dll / CreateServiceW`, `DeleteService`, `ControlService`; `inventario.md:216` → `ControlService failed with error {}`; `:229` → `CreateService ({}) failed with error {}`; `:254` → `DeleteService ({}) failed with error {}` | OK — `Core/Management/ServiceManager.cs` |
+| 88 | **Log da exclusão de chaves de registro** | `inventario.md:253` → `Deleted regkey '{}'` | OK — `Core/RemovalLog.cs` |
+| 89 | **Persistir em XML os itens de inicialização desativados**, por arquitetura | `inventario.md:113` → `Cannot load DisabledStartupItems.xml for current architecture.`; `:265` → `Disabled item loaded: {}, X64: {}` | OK — `Core/Tools/AutorunManager.cs` |
+| 90 | **Detecção de falso positivo** ao fixar a localização de um item | `inventario.md:115` → `Cannot set location for item (false positive risk) {}` | AUSENTE |
+| 91 | **Coleta de identificação da máquina** para a licença | `inventario.md:227` → `cpu name is {}`; `:242` → `Data folder is {}, ({})` | AUSENTE — o Tranal não tem licença |
+| 92 | **Validação de cadeia de certificados** embarcada (CRYPTO/SSL) | `imports.txt:48` → `CRYPT32.dll / CertVerifyCertificateChainPolicy`, `CertGetCertificateChain` | AUSENTE — o Tranal não tem licença (sem impacto funcional) |
+| 93 | **Preferências persistidas em XML** com chaves `check*` | `strings.txt:14201` → `<checkHighestPriviledges>Run task with the highest privileges</checkHighestPriviledges>`; `:14381` → `<checkDontAskAgain>...` | OK — `Core/Settings/AppSettings.cs` |
+| 94 | **Install Tracker com driver de kernel**: minifiltro de sistema de arquivos + callback de registro + callback de processos | `inventario.md:159` → `CisUtMonitor: DriverEntry`; `:161` → `FltRegisterFilter FAILED!`; `:160` → `CmRegisterCallback FAILED!`; `:165` → `PsSetCreateProcessNotifyRoutine FAILED!` | AUSENTE — decisão `MATRIZ.md` F.4 (o Tranal fica fora do driver) |
+
+### 2.7 Lacunas confirmadas no binário
+
+A lista completa, com evidência e juizo de impacto por linha, está em **[BINARIO-UNINSTALLTOOL.md](BINARIO-UNINSTALLTOOL.md)**.
+
+- **32 linhas `AUSENTE`** — 10, 15, 18, 19, 28, 38, 39, 40, 41, 44, 45, 46, 47, 48, 57, 67, 68, 69, 70, 72, 76, 77, 78, 79, 80, 82, 83, 84, 90, 91, 92, 94
+- **28 linhas `PARCIAL`** — 3, 4, 5, 6, 7, 8, 21, 22, 29, 30, 31, 32, 33, 34, 35, 36, 42, 53, 54, 55, 58, 60, 71, 73, 74, 75, 85, 86
+- **94 linhas** na tabela de funcionalidades (67 originais + 27 novas)
+
+Correção em relação à §6 deste documento: a **desinstalação em lote** e a **remoção de entradas em lote** **existem** no Tranal — `Core/Automation/BatchList.cs` e `Core/Reporting/BatchScriptWriter.cs`, com o verbo `/batch` na CLI. As marcas `⬜` da §6 estão desatualizadas.
 
 ---
 

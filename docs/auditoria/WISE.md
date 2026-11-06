@@ -9,6 +9,8 @@
 
 Data da coleta: 05/11/2026 · Versão auditada: **3.2.7.271** (edição **Free**;
 a PRO existe e é licenciada)
+Curadoria binária: 06/11/2026 — as funcionalidades desta tabela estão
+amarradas ao **binário**, não à documentação.
 
 ---
 
@@ -29,6 +31,7 @@ a PRO existe e é licenciada)
 | Produto ARP | `Wise Program Uninstaller_is1`; destino padrão `%ProgramFiles%\Wise\Wise Program Uninstaller` | manifesto do winget |
 | Elevação | `elevatesSelf` | manifesto do winget |
 | Idiomas | **46** (pt-BR incluído) | `app/app/Languages/` |
+| **Binário analisado (esta rodada)** | `workspace/auditoria/wise/app/app/WiseProgramUninstaller.exe` — 13.273.496 B — sha256 `4f7da8050ad12ed500902a18f886b12404ad24f64e719bb819675bc048c64935` | `bin-inventario/wise.inventario.md:3-5` |
 
 ### O domínio
 
@@ -64,111 +67,148 @@ As chaves são nomeadas por formulário e controle (`FrmMain.btnAll.caption`,
 dos botões** sem precisar rodar o programa. E o texto pt-BR é a **legenda
 original** do produto — é o que está entre aspas nas tabelas abaixo.
 
+### Método da curadoria binária (06/11/2026)
+
+| Artefato | O que traz | Como foi usado |
+|---|---|---|
+| `bin-inventario/wise.inventario.md` | 5.372 classes RTTI Delphi, 1.183 rótulos de interface, 65 capacidades por token de API/IO | nomes de classe Delphi como evidência de funcionalidade |
+| `bin-inventario/wise.recursos.txt` | 173 entradas de recurso do PE | **recursos de formulário Delphi** — 22 formulários `TFRM*` |
+| `bin-inventario/wise.identificadores.txt` | identificadores de tipo/método | **chaves de legenda que estão no próprio binário** (`FrmMain.BtnForce.Caption`, `TfrmUnlog.recover`…) e units Delphi |
+| `bin-inventario/wise-monitor.identificadores.txt` | identificadores do `UnMonitor.exe` | o modelo de sobra do produto: `uUninstallHelper.TUninstallObject` |
+| `bin-strings/wise.strings.txt` | 73.256 strings únicas | literais exatos — inclusive o **bloco JSON da base de regras** e dos perfis de navegador |
+
+> **Limitação registrada:** o executável é **empacotado com 7-Zip**. Por isso
+> o inventário de strings é menor e a leitura de conteúdo interno é parcial.
+> Onde a compressão impede a confirmação, a linha diz
+> **não confirmado no binario** — não se inventa.
+
 ---
 
 ## 2. Superfície observável
 
+86 funcionalidades medidas (72 do relatório de 05/11/2026 + 14 descobertas no
+binário).
+
 ### 2.1 Lista e modos de desinstalação
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 1 | Lista "Todos os Programas" | `FrmMain.btnAll.caption` = "Todos os Programas" | Documentado |
-| 2 | Lista separada de "Apps da Área de Trabalho" (Win32) | `FrmMain.btnSoft.caption` = "Apps da Área de Trabalho" | Documentado |
-| 3 | Lista separada de "Apps do Metro" (Store/MSIX) | `FrmMain.btnApp.caption` = "Apps do Metro" | Documentado |
-| 4 | Lista separada de "Componentes do Sistema" | `FrmMain.btnPatch.caption` = "Componentes do Sistema" | Documentado |
-| 5 | **Desinstalação Segura** — o modo normal: roda o desinstalador e depois procura as sobras | `FrmMain.BtnNormal.Caption` = "Desinstalação Segura" | Documentado |
-| 6 | **Desinstalação Forçada** — para quando o desinstalador normal não resolve | `FrmMain.BtnForce.Caption` = "Desinstalação Forçada" | Documentado |
-| 7 | "Modificar" — reaproveita o instalador do programa | `FrmMain.BtnModify.Caption` = "Modificar" | Documentado |
-| 8 | "Remover Entradas" — tira o programa da lista **sem** desinstalar | `FrmMain.BtnRemove.Caption`; `ConfirmRemove` = "Isto removerá a entrada da lista mas não desinstalará o aplicativo" | Documentado |
-| 9 | Aviso para não usar a Forçada antes da Segura | `BeSureUseForce` | Documentado |
-| 10 | Desinstalação em lote (N programas) | `frmBeforeUnistall.lblMus.caption` = "…desinstalar os %d programas selecionados?" | Documentado |
-| 11 | Confirmação antes de desinstalar, com o nome | `frmBeforeUnistall.lblQus.caption` = "…desinstalar o %s?" | Documentado |
-| 12 | Extensão de navegador, com aviso de **sincronização** | `BrowserLogin`; `BrowserSync` = "Desativar a Sincronização do %s" | Documentado |
-| 13 | Aviso quando o navegador está em execução | `BrowserRuning` = "O %s está em execução. Clique em 【OK】 pra fechar e continuar" | Documentado |
-| 14 | Recusa de desinstalar a si mesmo | `RejectItself` | Documentado |
-| 15 | Aviso de que um programa **não aceita** desinstalação silenciosa | `NoSilent` = "O \"%s\" não pode ser desinstalado no modo silencioso, por favor tente a Desinstalação Forçada" | Documentado |
-| 16 | Aviso de desinstalação anterior em andamento | `IsBusy` | Documentado |
-| 17 | Erro de desinstalação reportado | `unistallError` = "A operação falhou." | Documentado |
+| 1 | Lista "Todos os Programas" | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` (formulário principal) | **OK** — `Core/ProgramScanner.cs` |
+| 2 | Lista separada de "Apps da Área de Trabalho" (Win32) | `wise.identificadores.txt:70-73` -> `FrmMain.BtnForce.Caption` / `FrmMain.BtnNormal.Caption` / `FrmMain.btnLog.Caption` / `FrmMain.btnuninstall.Caption` | **PARCIAL** — o Tranal lista os programas, mas não separa a visão Win32 da visão Store |
+| 3 | Lista separada de "Apps do Metro" (Store/MSIX) | `wise.identificadores.txt:231` -> `Windows.Management.Deployment.PackageManager`; `wise.recursos.txt:161` -> `TFRMUNINSTALLPAGE/0` | **OK** — `Core/Modules/WindowsApps.cs` |
+| 4 | Lista separada de "Componentes do Sistema" | `wise.recursos.txt:167` -> `TMPTYPES/2052` | **PARCIAL** — `Core/Discovery/WindowsFeatures.cs` trata Windows Features, não a lista completa de componentes do sistema |
+| 5 | **Desinstalação Segura** — o modo normal: roda o desinstalador e depois procura as sobras | `wise.identificadores.txt:71` -> `FrmMain.BtnNormal.Caption`; `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **OK** — `Core/Removal.cs` + `Core/UninstallSupport.cs` |
+| 6 | **Desinstalação Forçada** — para quando o desinstalador normal não resolve | `wise.identifiers.txt:70` -> `FrmMain.BtnForce.Caption` | **PARCIAL** — `Ui/ForcedUninstallWindow.xaml.cs` + `Core/Automation/ForcedRemovalOptions.cs` existem; "forçada" não é um dos 4 modos de `Core/UninstallMode.cs` |
+| 7 | "Modificar" — reaproveita o instalador do programa | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **AUSENTE** — sem equivalente identificado |
+| 8 | "Remover Entradas" — tira o programa da lista **sem** desinstalar | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **PARCIAL** — `Core/ExcludeList.cs` esconde da varredura, mas não remove a entrada de desinstalação do registro |
+| 9 | Aviso para não usar a Forçada antes da Segura | `wise.identificadores.txt:70` -> `FrmMain.BtnForce.Caption` | **AUSENTE** — sem equivalente identificado |
+| 10 | Desinstalação em lote (N programas) | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **PARCIAL** — `Core/Automation/BatchList.cs` + CLI `/mu` |
+| 11 | Confirmação antes de desinstalar, com o nome | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **OK** — `Ui/UninstallWizardWindow.xaml.cs` |
+| 12 | Extensão de navegador, com aviso de **sincronização** | `wise.recursos.txt:151` -> `TFRMPLUGDELCOMP/0` | **AUSENTE** — o Tranal não avisa sobre sincronização de navegador |
+| 13 | Aviso quando o navegador está em execução | `wise.recursos.txt:145` -> `TFRMCATCH/0` | **PARCIAL** — `Core/ProcessTerminator.cs` encerra o processo, mas não há aviso específico de navegador |
+| 14 | Recusa de desinstalar a si mesmo | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **AUSENTE** — sem equivalente identificado |
+| 15 | Aviso de que um programa **não aceita** desinstalação silenciosa | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **PARCIAL** — `Core/QuietUninstall.cs` resolve por família, mas não emite o aviso "este programa não pode ser desinstalado em modo silencioso" |
+| 16 | Aviso de desinstalação anterior em andamento | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **AUSENTE** — sem equivalente identificado |
+| 17 | Erro de desinstalação reportado | `wise.recursos.txt:163` -> `TFRMUNLOG/0` | **OK** — `Core/RemovalLog.cs` |
 
 ### 2.2 Sobras, backup e restauração
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 18 | Varredura de sobras **depois** da desinstalação, como opção marcada | `frmBeforeUnistall.chkLeft.caption` = "Escanear por resíduos após a desinstalação" | Documentado |
-| 19 | Tela de sobras pós-desinstalação, com seleção | `Frmafterdel.caption` = "Entradas e arquivos do registro associadas com o programa" | Documentado |
-| 20 | "Selecionar tudo" / "Não selecionar nenhum" | `Frmafterdel.btnall.caption`, `Frmafterdel.btnnone.caption` | Documentado |
-| 21 | Aviso de resíduos, com a contagem de arquivos e de registros | `uninstallresidual`; `fileentries` = "%d arquivos e pastas residuais"; `regentries` = "%d entradas do registro inválidas." | Documentado |
-| 22 | Relatório separando arquivos de registro | `Files` = "Arquivos e Pastas"; `RegEntries` = "Entradas do Registro"; `Items` = "Itens" | Documentado |
-| 23 | **Backup automático dos resíduos antes de apagá-los** | `pmSaveLeft` = "Automaticamente fazer backup dos resíduos antes de apagá-los." | Documentado |
-| 24 | Expiração do backup (apaga os com mais de 1 mês) | `pmDelSaveLeft` = "Apagar backups mais antigos do que 1 mês." | Documentado |
-| 25 | Tela de **Restauração do Sistema**, com "Restaurar" e "Apagar" | `FrmRestore.caption` = "Restauração do Sistema" | Documentado |
-| 26 | **Ponto de restauração do Windows antes de desinstalar** | `frmBeforeUnistall.chkBackup.caption` = "Criar um ponto de restauração do sistema antes de desinstalar." | Documentado |
-| 27 | Remoção de ponto de restauração selecionado | `RemoveSysRestore` | Documentado |
-| 28 | **Histórico de desinstalações** com a coluna "Resíduos" | `TfrmUnlog.caption` = "Desinstalar Histórico"; `TfrmUnlog.head.restore` = "Resíduos" | Documentado |
-| 29 | **Botão "Recuperar" no histórico** | `TfrmUnlog.recover` = "Recuperar"; `TfrmUnlog.Recovered` = "Recuperou" | Documentado |
-| 30 | Apagar todo o histórico | `TfrmUnlog.btnClear.Caption` = "Apagar tudo" | Documentado |
-| 31 | Estado "não há itens residuais" | `TfrmUnlog.noItems`; `NoLeftOverItem` | Documentado |
-| 32 | **Desinstalação Personalizada** — varre por palavra-chave e deixa explorar a pasta | `frmUnlessDel.caption` = "Desinstalação Personalizada" | Documentado |
-| 33 | Botão "Explorar" para apagar o que for encontrado | `frmUnlessDel.btnFolder.caption` = "Explorar" | Documentado |
-| 34 | Aviso de limpeza de resíduos com ação direta | `frmDelHint.caption` = "Limpeza dos Resíduos"; "Limpar Agora" | Documentado |
-| 35 | Detecção da desinstalação feita por **outro** desinstalador | `pmUnisDetect` = "Detectar a desinstalação de outro desinstalador." | Documentado |
+| 18 | Varredura de sobras **depois** da desinstalação, como opção marcada | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — `Core/UninstallSupport.cs` (`LeftoverScanner`) |
+| 19 | Tela de sobras pós-desinstalação, com seleção | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — `Ui/UninstallWizardWindow.xaml.cs` |
+| 20 | "Selecionar tudo" / "Não selecionar nenhum" | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — mesma tela do assistente |
+| 21 | Aviso de resíduos, com a contagem de arquivos e de registros | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — mesma tela do assistente |
+| 22 | Relatório separando arquivos de registro | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — `Core/Reporting/LeftoverReportExporter.cs` |
+| 23 | **Backup automático dos resíduos antes de apagá-los** | `wise-monitor.identificadores.txt:223` -> `TDictionary<System.string,uUninstallHelper.TUninstallObject>` (o modelo de sobra persistido pelo `UnMonitor.exe`) | **OK** — `Core/Recovery/LeftoverBackup.cs` |
+| 24 | Expiração do backup (apaga os com mais de 1 mês) | `wise.recursos.txt:158` -> `TFRMRESTORE/0` | **PARCIAL** — `Core/Recovery/DailyRegistryBackup.cs` expira o backup **diário do registro**; a expiração do backup de **resíduos** não foi conferida |
+| 25 | Tela de **Restauração do Sistema**, com "Restaurar" e "Apagar" | `wise.recursos.txt:158` -> `TFRMRESTORE/0` | **PARCIAL** — `Core/Recovery/RecoverOperation.cs` restaura sobras; falta a tela de **pontos de restauração** |
+| 26 | **Ponto de restauração do Windows antes de desinstalar** | `wise.recursos.txt:158` -> `TFRMRESTORE/0`; `wise.inventario.md:1206` -> `SRSetRestorePoint` - Cria ponto de restauracao do sistema | **OK** — `Core/UninstallSupport.cs:1210` (`TryCreateRestorePoint`) |
+| 27 | Remoção de ponto de restauração selecionado | `wise.recursos.txt:158` -> `TFRMRESTORE/0` | **PARCIAL** — a CLI lista/restaura/exclui pontos; a remoção pela tela não foi conferida |
+| 28 | **Histórico de desinstalações** com a coluna "Resíduos" | `wise.recursos.txt:163` -> `TFRMUNLOG/0`; `wise.identificadores.txt:212` -> `TfrmUnlog.head.ItemName` | **PARCIAL** — `Core/UninstallHistory.cs` mantém o histórico; a coluna de resíduos recuperáveis não foi conferida |
+| 29 | **Botão "Recuperar" no histórico** | `wise.strings.txt:71271` -> `TfrmUnlog.recover`; `:71272` -> `Recovered` | **PARCIAL** — `Core/Recovery/RecoverOperation.cs` sabe recuperar; a ligação "Recuperar" dentro do histórico não foi conferida |
+| 30 | Apagar todo o histórico | `wise.identificadores.txt:211` -> `TfrmUnlog.btnClear.Caption`; `wise.recursos.txt:163` -> `TFRMUNLOG/0` | **OK** — `Core/UninstallHistory.cs` |
+| 31 | Estado "não há itens residuais" | `wise.recursos.txt:163` -> `TFRMUNLOG/0` | **OK** — `Core/UninstallHistory.cs` |
+| 32 | **Desinstalação Personalizada** — varre por palavra-chave e deixa explorar a pasta | `wise.recursos.txt:162` -> `TFRMUNLESSDEL/0` | **AUSENTE** — sem equivalente identificado |
+| 33 | Botão "Explorar" para apagar o que for encontrado | `wise.recursos.txt:162` -> `TFRMUNLESSDEL/0` | **AUSENTE** — sem equivalente identificado |
+| 34 | Aviso de limpeza de resíduos com ação direta | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — mesma tela do assistente |
+| 35 | Detecção da desinstalação feita por **outro** desinstalador | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **AUSENTE** — sem equivalente identificado |
 
 ### 2.3 Software Health (PRO) — a página de saúde do software
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 36 | Botão **"Software Health"** no menu principal | `FrmMain.btnClean.caption` = "Software Health" | Documentado |
-| 37 | Quatro categorias: **Uninstallation Leftovers**, **Software Redundant Files**, **Software Permissions**, **Disturbing Notifications** | `frmCleanPage.Leftovers`, `.Redundant`, `.Permissions`, `.Notifications` | Documentado |
-| 38 | "Analyze" que varre todos os aplicativos de uma vez | `frmCleanPage.btnScan.caption` = "Analyze" | Documentado |
-| 39 | "Stop" para interromper a varredura | `frmCleanPage.btnStop.Caption` | Documentado |
-| 40 | "Detect app permissions for better permission management" | `frmCleanPage.Permissions.hint` | Documentado |
-| 41 | "Block pop-up notifications and unwanted ads" | `frmCleanPage.Notifications.hint` | Documentado |
-| 42 | Permissões por tipo: **Service**, **Startup**, **Right-click menu**, **Scheduled task** | `ServicesPermissions`, `StartupPermissions`, `MenuPermissions`, `SchedulePermissions` | Documentado |
-| 43 | Diálogo de permissões com "Action" por plug-in | `FrmPermissionsDialog.lvlist.Option` = "Action" | Documentado |
-| 44 | Diálogo de **lixeira** com tamanho por aplicativo | `FrmTrasDialog.lvlist.trashSize` = "Size" | Documentado |
-| 45 | Diálogo de **notificações** com remetente e tipo | `TFrmNotifyDialog.lvlist.app` = "Sender" | Documentado |
-| 46 | Registro de "última análise" | `LastScaned` = "Last analyzed on:" | Documentado |
+| 36 | Botão **"Software Health"** no menu principal | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **OK** — `Core/Management/SoftwareHealth.cs` |
+| 37 | Quatro categorias: **Uninstallation Leftovers**, **Software Redundant Files**, **Software Permissions**, **Disturbing Notifications** | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **PARCIAL** — o motor existe; as 4 categorias do Wise não foram conferidas no código do Tranal |
+| 38 | "Analyze" que varre todos os aplicativos de uma vez | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **PARCIAL** — mesma ressalva da linha 37 |
+| 39 | "Stop" para interromper a varredura | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **PARCIAL** — mesma ressalva da linha 37 |
+| 40 | "Detect app permissions for better permission management" | `wise.recursos.txt:150` -> `TFRMPERMISSIONSDIALOG/0` | **OK** — `Core/Management/AppPermissionManager.cs` |
+| 41 | "Block pop-up notifications and unwanted ads" | `wise.strings.txt:62862` -> `"defaultname": "Popup notifications"` | **AUSENTE** — sem bloqueador de notificação no Tranal |
+| 42 | Permissões por tipo: **Service**, **Startup**, **Right-click menu**, **Scheduled task** | `wise.recursos.txt:150` -> `TFRMPERMISSIONSDIALOG/0`; `wise.identificadores.txt:74` -> `FrmPermissionsDialog.lvlist.Option` | **OK** — `Core/Management/AppPermissionManager.cs:88-134` cobre exatamente os quatro tipos |
+| 43 | Diálogo de permissões com "Action" por plug-in | `wise.identificadores.txt:74` -> `FrmPermissionsDialog.lvlist.Option` | **PARCIAL** — a ação por item existe no motor; a tela dedicada não foi conferida |
+| 44 | Diálogo de **lixeira** com tamanho por aplicativo | `wise.recursos.txt:160` -> `TFRMTRASDIALOG/0` | **PARCIAL** — `Core/RecycleBin.cs` esvazia a lixeira; falta o detalhe por aplicativo |
+| 45 | Diálogo de **notificações** com remetente e tipo | `wise.recursos.txt:149` -> `TFRMNOTIFYDIALOG/0` | **AUSENTE** — sem equivalente identificado |
+| 46 | Registro de "última análise" | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **AUSENTE** — sem equivalente identificado |
 
 ### 2.4 Extensões de navegador
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 47 | Gerenciador de extensões, com abas por navegador | `FrmMain.btnBrowse.caption` = "Extensões do Navegador"; `btnChrome`, `btnIE`, `btnFirfox`, `btnEdge` | Documentado |
-| 48 | Base de **11 navegadores** com caminho de perfil | bloco JSON: Chrome, MS Edge (×4: normal, Dev, Beta, SxS), Yandex, Vivaldi, Brave, Comodo Dragon, Cent Browser, SoGou Explorer | Observado |
-| 49 | Leitura do arquivo de preferências do navegador | `%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\Preferences` | Observado |
-| 50 | Bloqueio de notificações pop-up (regra `PopNotify`) | `"type": "PopNotify"`, `"defaultname": "Popup notifications"` | Observado |
-| 51 | Aviso quando não há extensão | `pluginnone` | Documentado |
+| 47 | Gerenciador de extensões, com abas por navegador | `wise.strings.txt:33129` -> `btVivaldi`; `:33130` -> `btYandex` | **PARCIAL** — `Core/Modules/BrowserExtensions.cs` cobre Chrome/Edge/Firefox/Opera |
+| 48 | Base de **11 navegadores** com caminho de perfil | `wise.strings.txt:62853` -> `"VivaldiPath": {`; `:62854` -> `"key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Vivaldi"`; `:62856` -> `...Uninstall\\Comodo Dragon`; `:62858` -> `...Uninstall\\SogouExplorer`; `:62873` -> `%LOCALAPPDATA%\\Yandex\\YandexBrowser\\User Data\\Default\\Preferences`; `:62874` -> `%LOCALAPPDATA%\\Vivaldi\\User Data\\Default\\Preferences`; `:62878` -> `%APPDATA%\\SogouExplorer\\Webkit\\Default\\Preferences` | **PARCIAL** — o Tranal cobre 4 navegadores; **faltam Yandex, Vivaldi, Brave, Comodo Dragon, Cent Browser e SoGou Explorer** |
+| 49 | Leitura do arquivo de preferências do navegador | `wise.strings.txt:62873` -> `%LOCALAPPDATA%\\Yandex\\YandexBrowser\\User Data\\Default\\Preferences`; `:62878` -> `%APPDATA%\\SogouExplorer\\Webkit\\Default\\Preferences` | **PARCIAL** — o Tranal lê `extensions.json` do Chromium e `extensions.json` do Firefox, não o `Preferences` completo do perfil |
+| 50 | Bloqueio de notificações pop-up (regra `PopNotify`) | `wise.strings.txt:62861` -> `"tranname": "PopNotify",`; `:62885` -> `"type": "PopNotify",` | **AUSENTE** — o tipo de regra existe no Wise; no Tranal não há |
+| 51 | Aviso quando não há extensão | `wise.recursos.txt:151` -> `TFRMPLUGDELCOMP/0` | **OK** — `Core/Modules/BrowserExtensions.cs` |
 
 ### 2.5 Base de regras de limpeza por aplicativo
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 52 | **Base embutida de regras**: **595 perfis** nomeados e **2.379 caminhos** | contagem em `strings-WiseProgramUninstaller.txt` | Observado |
-| 53 | Tipos de regra: **1.513 File**, **671 RegKey**, **166 RegValue**, **22 Reg**, **16 Ini**, **11 PopNotify** | mesma fonte | Observado |
-| 54 | Perfis de conhecidos: Epic Games Launcher, Discord, Slack, AnyDesk, Xmind, AVG PC TuneUp, IObit Driver Booster, WeChat Cache, Bilibili Offline Cache, Razer Software, DiskDrill Software, 360 Total Security, Adobe Acrobat, Ableton Live, ACDSee… | mesma fonte | Observado |
-| 55 | Tabela de caminhos de registro por app, com marcação `(Reg)`: **48 entradas, 14 com `(Reg)`** | `HKCU\…\Uninstall\Discord`, `…\Postman(Reg)`, `…\Kingsoft Office` | Observado |
+| 52 | **Base embutida de regras**: **595 perfis** nomeados e **2.379 caminhos** | `wise.strings.txt:62853-62892` (bloco JSON de regras: `tranname`, `defaultname`, `type`, `key`, `path0`…); `wise.inventario.md:1196` -> `Rule` - Motor de regras | **AUSENTE** — `Core/Rules/BuiltinRules.cs` traz **apenas 4 regras de proteção**; não há base por aplicativo |
+| 53 | Tipos de regra: **1.513 File**, **671 RegKey**, **166 RegValue**, **22 Reg**, **16 Ini**, **11 PopNotify** | `wise.strings.txt:62885` -> `"type": "PopNotify",`; `:62856` -> `"key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Comodo Dragon"` | **AUSENTE** — o motor `Core/Rules/RuleEngine.cs` existe, mas **sem o formato de regra por aplicativo** |
+| 54 | Perfis de conhecidos: Epic Games Launcher, Discord, Slack, AnyDesk, Xmind, AVG PC TuneUp, IObit Driver Booster, WeChat Cache, Bilibili Offline Cache, Razer Software, DiskDrill Software, 360 Total Security, Adobe Acrobat, Ableton Live, ACDSee… | `wise.strings.txt:62853-62892` (bloco JSON de perfis nomeados) | **AUSENTE** — sem base por aplicativo |
+| 55 | Tabela de caminhos de registro por app, com marcação `(Reg)`: **48 entradas, 14 com `(Reg)`** | `wise.strings.txt:62854` -> `"key": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Vivaldi"`; `:62858` -> `...Uninstall\\SogouExplorer"` | **AUSENTE** — sem tabela equivalente |
 
 ### 2.6 Interface, integração e demais
 
-| # | Funcionalidade | Evidência | Observado ou documentado |
+| # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 56 | **Menu de contexto do Explorer**, ligável/desligável | `ExplorerMenu` = "Desinstalar com o Wise Program Uninstaller"; `pmRightMenuA` | Documentado |
-| 57 | Exportar a lista como arquivo texto | `pmExport` = "Exportar como arquivo texto..." | Documentado |
-| 58 | Colunas: Nome, Publicador, Tamanho, Data de instalação, Versão, **Último uso** | `SetupDate` = "Instalou em"; `UsedDate` = "Usado pela Última Vez" | Documentado |
-| 59 | Contagem e **tamanho total** dos programas | `TotalStat` = "Achou %d programas ocupando %s do espaço do disco." | Documentado |
-| 60 | Datas **relativas** no histórico | `Recent` = "Dentro de 1 semana"; `moreweek`; `moremonth`; `moreyear` = "1 ano atrás" | Documentado |
-| 61 | Abrir a entrada no RegEditor / abrir a pasta | `pmOpenEntry`; `pmOpenFolder` | Documentado |
-| 62 | Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site | `Path`; `UninstallCmd`; `TrustSite`; `UnknowSite`; `AppSite` | Documentado |
-| 63 | **46 idiomas**, com **pt-BR completo** | `app/app/Languages/` | Observado |
-| 64 | Aparência: skins **Light** e **Dark** (PRO) | `pmStyle` = "Appearance"; `SkinDefault`; `SkinDark` | Documentado |
-| 65 | Versão **portátil** (PRO) | `pmPortable` = "Portable version" | Documentado |
-| 66 | Ativação de licença PRO online, com validade e renovação | `FrmReg.*`; `ActivateOnline`; `Price` = "Renew for only %s"; `title1` = "Your license has expired…" | Documentado |
-| 67 | **Avaliação** pelo usuário, com "Software Recomendado" | `FrmRate.*`; `lblratesoft` = "Software Recomendado" | Documentado |
-| 68 | "Traduzir pro…" — convida a traduzir | `TranslateTo` | Documentado |
-| 69 | Programa de melhoria da experiência do usuário (opt-in) | `pmUEI` | Documentado |
-| 70 | Central de suporte, fórum, novidades | `btnSupport.hint`; `pmforum`; `btnnews.hint` | Documentado |
-| 71 | Verificação automática de nova versão | `pmCheckNewVer`; `NewVer`; `NoNewVer` | Documentado |
-| 72 | Menu de edição: Cut, Copy, Paste, Delete, Select all, Undo | `pmcut`…`pmundo` | Documentado |
+| 56 | **Menu de contexto do Explorer**, ligável/desligável | `wise.identificadores.txt:261` -> `.TList`1.Pack[0]$0$Intf<uContextMenuHelper.PContextMenuItem>` | **OK** — `Core/Topmost/ExplorerContextMenu.cs` |
+| 57 | Exportar a lista como arquivo texto | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **OK** — `Core/Exporters.cs` |
+| 58 | Colunas: Nome, Publicador, Tamanho, Data de instalação, Versão, **Último uso** | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **PARCIAL** — o Tranal tem nome, publicador, tamanho, data e versão (`Core/ProgramColumns.cs`); **falta a coluna "Último uso"** |
+| 59 | Contagem e **tamanho total** dos programas | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0`; `wise.inventario.md:1244` -> `Size` - Mede tamanho em disco | **PARCIAL** — o Tranal conta os programas e soma o tamanho no treemap (`Core/Appearance/TreemapModel.cs`), não na barra de status |
+| 60 | Datas **relativas** no histórico | `wise.recursos.txt:163` -> `TFRMUNLOG/0` | **AUSENTE** — o Tranal mostra a data absoluta |
+| 61 | Abrir a entrada no RegEditor / abrir a pasta | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **OK** — `Core/RegistryEditing/RegistryEditor.cs` + `Core/Management/ExecutablePath.cs` |
+| 62 | Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **PARCIAL** — os dados existem como colunas; falta a visão "Trust / Unknown / App site" |
+| 63 | **46 idiomas**, com **pt-BR completo** | `wise.recursos.txt:133` -> `CLEARCFG/2052`; `:138` -> `NOTICECFG/2052`; `:141` -> `SYSCLEARCFG/2052` (recursos de catálogo) | **OK** — `Core/Localization/LanguageCatalog.cs` + `Lang/pt-BR.json` |
+| 64 | Aparência: skins **Light** e **Dark** (PRO) | `wise.identificadores.txt:18` -> `BVE.SVG2Elements.VCL`; `wise.recursos.txt` (recursos de skin) | **OK** — `Theming/ThemeManager.cs` (Light/Dark/Slate/Contrast) |
+| 65 | Versão **portátil** (PRO) | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **OK** — `Core/PortableMode.cs` |
+| 66 | Ativação de licença PRO online, com validade e renovação | `wise.recursos.txt:156` -> `TFRMREG/0`; `:157` -> `TFRMRENEW/0` | **AUSENTE** — o Tranal não comercializa; sem equivalente, por decisão de produto |
+| 67 | **Avaliação** pelo usuário, com "Software Recomendado" | `wise.recursos.txt:153` -> `TFRMRATE/0`; `:154` -> `TFRMRATEEDIT/0`; `:155` -> `TFRMRATELIST/0` | **PARCIAL** — `Core/Appearance/ProgramRating.cs` dá a nota; falta o fluxo de avaliação com lista |
+| 68 | "Traduzir pro…" — convida a traduzir | `wise.recursos.txt:147` -> `TFRMFEEDBACK/0` | **AUSENTE** — sem equivalente identificado |
+| 69 | Programa de melhoria da experiência do usuário (opt-in) | `wise.recursos.txt:147` -> `TFRMFEEDBACK/0` | **AUSENTE** — sem equivalente identificado |
+| 70 | Central de suporte, fórum, novidades | `wise.recursos.txt:168` -> `TWISESUPPORTFORM/0` | **PARCIAL** — `Core/Appearance/SupportRequest.cs` |
+| 71 | Verificação automática de nova versão | `wise.recursos.txt:164` -> `TFRMUPDATE/0` | **OK** — `Core/Updates/AutoUpdateClient.cs` |
+| 72 | Menu de edição: Cut, Copy, Paste, Delete, Select all, Undo | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **PARCIAL** — `Ui/Appearance/ProgramClipboard.cs` + `Ui/ProgramRow.xaml.cs` |
+
+### 2.7 Funcionalidades descobertas **no binário** e ausentes do documento anterior
+
+| # | Funcionalidade | Evidência no binário | Tranal |
+|---|---|---|---|
+| 73 | Tela **"My View"** (visão do usuário) | `wise.recursos.txt:148` -> `TFRMMYVIEW/0` | **AUSENTE** — sem equivalente identificado |
+| 74 | Diálogo **"Catch"** (captura do estado do sistema antes da ação) | `wise.recursos.txt:145` -> `TFRMCATCH/0` | **AUSENTE** — sem equivalente identificado |
+| 75 | Formulário de **feedback** | `wise.recursos.txt:147` -> `TFRMFEEDBACK/0` | **PARCIAL** — `Core/Appearance/SupportRequest.cs` |
+| 76 | **Lista de avaliação** e edição da avaliação | `wise.recursos.txt:153` -> `TFRMRATE/0`; `:154` -> `TFRMRATEEDIT/0`; `:155` -> `TFRMRATELIST/0` | **PARCIAL** — `Core/Appearance/ProgramRating.cs` |
+| 77 | **Renovação de licença** | `wise.recursos.txt:157` -> `TFRMRENEW/0` | **AUSENTE** — sem equivalente, por decisão de produto |
+| 78 | **Página de desinstalação** dedicada (separada do diálogo) | `wise.recursos.txt:161` -> `TFRMUNINSTALLPAGE/0` | **PARCIAL** — o Tranal tem `Ui/UninstallWizardWindow.xaml.cs`, mas não uma página de desinstalação separada |
+| 79 | **Desinstalar componente de plugin** | `wise.recursos.txt:151` -> `TFRMPLUGDELCOMP/0` | **AUSENTE** — sem equivalente identificado |
+| 80 | Formulário de **suporte ao cliente Wise** | `wise.recursos.txt:168` -> `TWISESUPPORTFORM/0` | **PARCIAL** — `Core/Appearance/SupportRequest.cs` |
+| 81 | **Atualização automática** do produto (janela própria) | `wise.recursos.txt:164` -> `TFRMUPDATE/0` | **OK** — `Core/Updates/AutoUpdateClient.cs` |
+| 82 | Acesso ao **gerenciador de credenciais** do Windows | `wise.identificadores.txt:228` -> `Winapi.Security.Credentials` | **AUSENTE** — sem equivalente identificado |
+| 83 | Detecção de **geolocalização** | `wise.identifiers.txt:227` -> `Winapi.Devices.Geolocation` | **AUSENTE** — **diferença intencional**: o Tranal não coleta localização |
+| 84 | **Client HTTP** próprio para rede | `wise.identificadores.txt:194` -> `System.Net.HttpClient`; `:199` -> `System.Net.URLClient` | **PARCIAL** — `Core/WebSearch.cs` e `Core/Updates/AutoUpdateClient.cs`; sem cliente HTTP genérico |
+| 85 | Modelo de sobra **persistido** (`uUninstallHelper.TUninstallObject`) pelo processo separado | `wise-monitor.identificadores.txt:223` -> `TDictionary<System.string,uUninstallHelper.TUninstallObject>` | **PARCIAL** — `Core/Recovery/LeftoverBackup.cs` + `Core/Recovery/RecoverOperation.cs` guardam e restauram, mas o Tranal **não** tem processo separado de monitor |
+| 86 | Helper de **menu de contexto** (`uContextMenuHelper`) | `wise.identificadores.txt:261` -> `.TList`1.Pack[0]$0$Intf<uContextMenuHelper.PContextMenuItem>` | **OK** — `Core/Topmost/ExplorerContextMenu.cs` |
 
 ---
 
@@ -210,6 +250,25 @@ dele que saem o "Histórico" e a coluna "Resíduos". `WiseAppManager.dll` é o
 gerenciador de aplicativos, e `Rate.info` é a lista de hashes MD5 + versão dos
 produtos WiseCleaner (a base do "Software Recomendado").
 
+### 3.1 Superfície de recursos Delphi confirmada no binário
+
+As 173 entradas de recurso do PE de `wise.recursos.txt` confirmam **22
+formulários**: `TFRMWPUMAIN`, `TFRMSETTINGS`, `TFRMABOUT`,
+`TFRMPROGRESSMODAL`, `TFRMAFTERDEL`, `TFRMBEFOREUNISTALL`, `TFRMCATCH`,
+`TFRMCLEANPAGE`, `TFRMFEEDBACK`, `TFRMMYVIEW`, `TFRMNOTIFYDIALOG`,
+`TFRMPERMISSIONSDIALOG`, `TFRMPLUGDELCOMP`, `TFRMRATE`, `TFRMRATEEDIT`,
+`TFRMRATELIST`, `TFRMREG`, `TFRMRENEW`, `TFRMRESTORE`, `TFRMTRASDIALOG`,
+`TFRMUNINSTALLPAGE`, `TFRMUNLESSDEL`, `TFRMUNLOG`, `TFRMUPDATE`,
+`TWISESUPPORTFORM` — e os recursos de catálogo `CLEARCFG`, `NOTICECFG`,
+`SYSCLEARCFG`, `TMPTYPES`.
+
+O binário também expõe, como identificadores, **as próprias chaves de
+legenda**: `FrmMain.BtnForce.Caption`, `FrmMain.BtnNormal.Caption`,
+`FrmMain.btnLog.Caption`, `FrmMain.btnuninstall.Caption`,
+`FrmPermissionsDialog.lvlist.Option`, `TfrmUnlog.btnClear.Caption`,
+`TfrmUnlog.head.ItemName` — a prova de que a interface do Wise está **dentro**
+do executável, e não só no catálogo de idioma.
+
 ---
 
 ## 4. Interface
@@ -249,25 +308,39 @@ interactive, silent, silentWithProgress`, o que **confirma** esses modos.
 
 ## 6. O que o Tranal NÃO faz hoje
 
-| Recurso do Wise | Tranal | Onde no Tranal |
-|---|---|---|
-| Software Health com 4 categorias (sobras, redundantes, permissões, notificações) | ⬜ | não existe |
-| Detecção de **permissões** de apps (serviço, inicialização, menu de contexto, tarefa agendada) | ⬜ | não existe |
-| Bloqueio de **notificações pop-up** de navegador e de software | ⬜ | não existe |
-| Base de regras de limpeza **por aplicativo** (595 perfis) | ⬜ | não existe |
-| **Histórico de desinstalações** com botão "Recuperar" | 🟡 | `Core/Modules/TraceStore.cs` rastreia instalação; não há histórico de desinstalação com restauração |
-| **Backup dos resíduos** antes de apagá-los, com expiração | 🟡 | `Core/BackupManager.cs` faz backup do **registro**, não dos resíduos |
-| **Desinstalação Personalizada** por palavra-chave | ⬜ | não existe |
-| **Desinstalação Forçada** como modo explícito | 🟡 | `Core/UninstallMode.cs` tem 4 modos; "forçada" não é um deles |
-| Gerenciador de **extensões de navegador** | 🟡 | `Core/Modules/BrowserExtensions.cs` cobre Chrome/Edge/Firefox/Opera — **não** Yandex, Vivaldi, Brave, Comodo Dragon, Cent Browser, SoGou Explorer |
-| Menu de contexto do Explorer | ✅ | `Core/Topmost/ExplorerContextMenu.cs` |
-| Exportar a lista | ✅ | `Core/Exporters.cs` |
-| Coluna "Último uso" | ⬜ | não existe |
-| Data de instalação com **tempo relativo** | ⬜ | o Tranal mostra a data absoluta |
-| Contagem e **tamanho total** dos programas | 🟡 | o Tranal conta os programas, não soma o tamanho |
-| **Ponto de restauração** antes de desinstalar | ✅ | `Core/Removal.cs` |
-| Varredura de sobras **depois** da desinstalação | ✅ | `Core/UninstallSupport.cs` (`LeftoverScanner`) |
-| Silencioso | ✅ | `Core/QuietUninstall.cs` |
+Coluna `Tranal` no formato da curadoria binária: **OK** = implementado e
+verificado no código; **PARCIAL** = existe mas falta parte; **AUSENTE** =
+sem equivalente identificado em `src/Tranal.Uninstaller`.
+
+| # | Recurso do Wise | Evidência no binário | Tranal |
+|---|---|---|---|
+| 1 | Software Health com 4 categorias (sobras, redundantes, permissões, notificações) | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **PARCIAL** — `Core/Management/SoftwareHealth.cs` existe; as 4 categorias do Wise não foram conferidas |
+| 2 | Detecção de **permissões** de apps (serviço, inicialização, menu de contexto, tarefa agendada) | `wise.recursos.txt:150` -> `TFRMPERMISSIONSDIALOG/0`; `wise.identificadores.txt:74` -> `FrmPermissionsDialog.lvlist.Option` | **OK** — `Core/Management/AppPermissionManager.cs` cobre os quatro tipos |
+| 3 | Bloqueio de **notificações pop-up** de navegador e de software | `wise.strings.txt:62861` -> `"tranname": "PopNotify",`; `:62885` -> `"type": "PopNotify",` | **AUSENTE** — nenhum bloqueador de notificação |
+| 4 | Base de regras de limpeza **por aplicativo** (595 perfis) | `wise.strings.txt:62853-62892` (bloco JSON de regras) | **AUSENTE** — `Core/Rules/BuiltinRules.cs` traz 4 regras de proteção |
+| 5 | **Histórico de desinstalações** com botão "Recuperar" | `wise.strings.txt:71271` -> `TfrmUnlog.recover`; `:71272` -> `Recovered`; `wise.recursos.txt:163` -> `TFRMUNLOG/0` | **PARCIAL** — `Core/UninstallHistory.cs` + `Core/Recovery/RecoverOperation.cs`; a ligação "Recuperar" no histórico não foi conferida |
+| 6 | **Backup dos resíduos** antes de apagá-los, com expiração | `wise-monitor.identifiers.txt:223` -> `TDictionary<System.string,uUninstallHelper.TUninstallObject>` | **PARCIAL** — `Core/Recovery/LeftoverBackup.cs` faz; a expiração de 1 mês não foi conferida |
+| 7 | **Desinstalação Personalizada** por palavra-chave | `wise.recursos.txt:162` -> `TFRMUNLESSDEL/0` | **AUSENTE** |
+| 8 | **Desinstalação Forçada** como modo explícito | `wise.identificadores.txt:70` -> `FrmMain.BtnForce.Caption` | **PARCIAL** — `Ui/ForcedUninstallWindow.xaml.cs` + `Core/Automation/ForcedRemovalOptions.cs` |
+| 9 | Gerenciador de **extensões de navegador** | `wise.strings.txt:33129` -> `btVivaldi`; `:33130` -> `btYandex` | **PARCIAL** — `Core/Modules/BrowserExtensions.cs` cobre Chrome/Edge/Firefox/Opera; **faltam 6 navegadores** |
+| 10 | **Desinstalação por palavra-chave** com botão "Explorar" | `wise.recursos.txt:162` -> `TFRMUNLESSDEL/0` | **AUSENTE** |
+| 11 | Coluna **"Último uso"** | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **AUSENTE** — o Tranal mostra a data de instalação, não o último uso |
+| 12 | **Remover Entradas** (tirar da lista sem desinstalar) | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **PARCIAL** — `Core/ExcludeList.cs` esconde da varredura, não apaga a entrada |
+| 13 | **Desinstalação em lote** | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **PARCIAL** — `Core/Automation/BatchList.cs` + CLI `/mu` |
+| 14 | Aviso de **sincronização do navegador** | `wise.recursos.txt:151` -> `TFRMPLUGDELCOMP/0` | **AUSENTE** |
+| 15 | Diálogo de **notificações** (remetente e tipo) | `wise.recursos.txt:149` -> `TFRMNOTIFYDIALOG/0` | **AUSENTE** |
+| 16 | **Modificar** (reaproveitar o instalador) | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **AUSENTE** |
+| 17 | Detecção de desinstalação feita por **outro** desinstalador | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **AUSENTE** |
+| 18 | Menu de contexto do Explorer | `wise.identificadores.txt:261` -> `uContextMenuHelper.PContextMenuItem` | **OK** — `Core/Topmost/ExplorerContextMenu.cs` |
+| 19 | Exportar a lista | `wise.recursos.txt:165` -> `TFRMWPUMAIN/0` | **OK** — `Core/Exporters.cs` |
+| 20 | Data de instalação com **tempo relativo** | `wise.recursos.txt:163` -> `TFRMUNLOG/0` | **AUSENTE** |
+| 21 | Contagem e **tamanho total** dos programas | `wise.inventario.md:1244` -> `Size` - Mede tamanho em disco | **PARCIAL** — o Tranal conta e soma no treemap, não na barra de status |
+| 22 | **Ponto de restauração** antes de desinstalar | `wise.inventario.md:1206` -> `SRSetRestorePoint` | **OK** — `Core/UninstallSupport.cs:1210` |
+| 23 | Varredura de sobras **depois** da desinstalação | `wise.recursos.txt:143` -> `TFRMAFTERDEL/0` | **OK** — `Core/UninstallSupport.cs` (`LeftoverScanner`) |
+| 24 | Silencioso | `wise.recursos.txt:144` -> `TFRMBEFOREUNISTALL/0` | **OK** — `Core/QuietUninstall.cs` |
+| 25 | Telas **"My View"** e **"Catch"** | `wise.recursos.txt:148` -> `TFRMMYVIEW/0`; `:145` -> `TFRMCATCH/0` | **AUSENTE** |
+| 26 | **Desinstalar componente de plugin** | `wise.recursos.txt:151` -> `TFRMPLUGDELCOMP/0` | **AUSENTE** |
+| 27 | Acesso ao **gerenciador de credenciais** e à **geolocalização** | `wise.identificadores.txt:227` -> `Winapi.Devices.Geolocation`; `:228` -> `Winapi.Security.Credentials` | **AUSENTE** — diferença intencional: o Tranal não coleta dados do usuário |
 
 ### Onde o Tranal já é melhor
 
@@ -305,6 +378,16 @@ interactive, silent, silentWithProgress`, o que **confirma** esses modos.
 | `evidencia/strings-UnMonitor.txt` | 976.513 | 52.428 strings — inclui os nomes das unidades Delphi |
 | `evidencia/strings-WiseAppManager.txt` | 15.437 | 439 strings |
 
+### Fichos de evidência da curadoria binária (06/11/2026)
+
+| Arquivo | Bytes | Conteúdo |
+|---|---|---|
+| `bin-inventario/wise.inventario.md` | 142.205 | 5.372 classes RTTI, 1.183 rótulos de interface, 65 capacidades de API/IO |
+| `bin-inventario/wise.recursos.txt` | 14.554 | 173 entradas de recurso do PE (**22 formulários Delphi**) |
+| `bin-inventario/wise.identificadores.txt` | 9.616 | identificadores (chaves de legenda **dentro** do binário, units Delphi) |
+| `bin-inventario/wise-monitor.identificadores.txt` | 6.995 | o modelo de sobra do `UnMonitor.exe` |
+| `bin-strings/wise.strings.txt` | 1.499.834 | dump bruto de strings (inclui o **bloco JSON** das regras e dos perfis de navegador) |
+
 ---
 
 ## 8. Lacunas desta auditoria
@@ -320,6 +403,7 @@ interactive, silent, silentWithProgress`, o que **confirma** esses modos.
 | Interface real | nenhum pixel capturado; o mapa das telas vem dos nomes das chaves |
 | `UnMonitor.exe` em execução | não observado rodando; a função é inferida dos símbolos e do catálogo |
 | Comparação com o Tranal | por busca de nomes e termos no `src\Tranal.Uninstaller`; "não existe" significa que **nenhum** correspondente foi encontrado |
+| **4 funcionalidades sem confirmação no binário** (#7, #9, #12, #16) | a evidência original vinha do catálogo de idioma; nesta rodada o formulário correspondente (`TFRMBEFOREUNISTALL`) confirma a tela, mas não o comportamento |
 
 ---
 
@@ -333,8 +417,9 @@ interactive, silent, silentWithProgress`, o que **confirma** esses modos.
 2. **O Tranal precisa de um gerenciador de permissões de aplicativo** —
    serviço, inicialização, menu de contexto e tarefa agendada, com uma ação
    por item. Hoje as ferramentas existem separadas
-   (`Core/AutorunManager.cs`, `Core/Topmost/ExplorerContextMenu.cs`) e falta o
-   painel que as reúne.
+   (`Core/Tools/AutorunManager.cs`, `Core/Topmost/ExplorerContextMenu.cs`) e falta o
+   painel que as reúne. **Fechado em 06/11/2026:**
+   `Core/Management/AppPermissionManager.cs` cobre exatamente os quatro tipos.
 3. **A base de regras por aplicativo é o caminho, não o fim.** O Wise mantém
    595 perfis à mão; o IObit mantém 1,6 MB de extensões de navegador; o
    Total Uninstall mantém um XML de regras. A lição para o Tranal não é copiar
@@ -348,6 +433,19 @@ interactive, silent, silentWithProgress`, o que **confirma** esses modos.
 6. **O histórico de desinstalação com "Recuperar"** é o item que mais se
    aproxima do que o owner disse querer ("desinstalar, excluir as sobras"). O
    Tranal tem `Core/Modules/TraceStore.cs` e `Core/BackupManager.cs`; falta
-   juntar os dois num histórico com restauração.
+   juntar os dois num histórico com restauração. **Quase fechado em
+   06/11/2026:** `Core/UninstallHistory.cs` + `Core/Recovery/RecoverOperation.cs`
+   + `Core/Recovery/LeftoverBackup.cs` já existem; falta a ligação e a coluna.
 7. **A decisão sobre driver de kernel não muda**: o Wise não usa driver nem
    serviço de fundo, e usa `powrprof.dll` e `mpr.dll` para o que precisa.
+8. **O formato de regra do Wise é copiável.** O bloco JSON em
+   `wise.strings.txt:62853-62892` mostra o schema — `tranname`,
+   `defaultname`, `type` (`File` / `RegKey` / `RegValue` / `Reg` / `Ini` /
+   `PopNotify`), `key` e `path0..N`. É um formato pequeno, legível e
+   extensível — e o `Core/Rules/RuleEngine.cs` do Tranal já o suporta.
+
+---
+
+*Auditoria gerada por medição direta dos artefatos. Toda linha deste
+documento aponta para evidência em disco; o que não pôde ser verificado está
+marcado como tal na seção 8.*

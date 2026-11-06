@@ -1,0 +1,55 @@
+# Lacunas - Bulk Crap Uninstaller (BCU)
+
+Binario analisado: `auditoria\bcu\app\BCUninstaller.dll`  sha256: `22935786006E35EAF8799D0CC6CE68A5DF311BA28A2C6F7C2A99C36335D6C0EC`
+Binario analisado: `auditoria\geek\app\geek.exe` — nao se aplica (ver GEEK)
+Complementos analisados: `UninstallTools.dll` (motor), `UninstallerAutomatizer.dll`, `NBug.dll`, `PortableSettingsProvider.dll`, `SimpleTreeMap.dll`, `StoreAppHelper.dll`, `WinUpdateHelper.dll`, `SteamHelper.dll`, `OculusHelper.dll`, `BCU-console.dll`
+Metodo: extracao de strings ASCII/UTF-16 do PE (`bin-strings\bcu.strings.txt`), inventario de metadados .NET — nomes de tipo, metodo e literal carregado (`bin-inventario\bcu.identificadores.txt`, `bcu.inventario.md`) — e varredura do catalogo de recursos. Cada linha abaixo foi reconfirmada por `grep` no dump; a coluna "Evidencia no binario" traz o identificador literal e o arquivo+linha.
+
+> **Proveniencia.** As chaves `Progress_*`, `UninstallerType_*`, `Junk_*_GroupName` e `Confidence_*` vem do **Localisation Pack** (`.resx` traduzido) e **nao** aparecem no dump do DLL (`bcu.strings.txt`: 1 ocorrencia de `UninstallerType`, 0 de `Confidence_*`). Funcoes confirmadas so pelo `.resx` estao marcadas `nao confirmado no binario` na tabela de `BCU.md` e **nao** entram aqui, porque nao ha evidencia binaria verificavel.
+
+## Funcionalidades presentes no binario e ausentes no Tranal
+
+| # | Funcionalidade | Evidencia no binario | Categoria | Impacto (alto/medio/baixo) |
+|---|---|---|---|---|
+| 1 | **Desinstalacao simultanea** com prevencao de colisao entre instaladores | `checkBoxConcurrent` (`bcu.strings.txt:6837`), `checkBoxConcurrentOneLoud` (`:4291`), literal "Disable collision prevention when running" (`bcu.inventario.md:15`) | automacao | alto |
+| 2 | **Ordenacao inteligente**: silencioso antes de loud, para poder sair antes | `checkBoxBatchSortQuiet` (`bcu.strings.txt:6758`), literal "Intelligent uninstaller sorting" (`bcu.inventario.md:180`) | interface | medio |
+| 3 | **Impedir desligamento/reinicio** durante a tarefa de desinstalacao | `checkBoxShutdown` (`bcu.strings.txt:5789`), `PreventSleepOrShutdown` (`:5784`), `AllowSleepOrShutdown` (`:5785`) | automacao | medio |
+| 4 | **Daemon de automatizacao** que vigia desinstaladores silenciosos presos em popups | `checkBoxAutoDaemon` (`bcu.strings.txt:5751`), literal "Monitor \"silent\" uninstallers for popups or other stalls" (`:7514`) | automacao | alto |
+| 5 | **Gerar desinstalador silencioso** por automacao de interface quando o desinstalador nao aceita silent | `checkBoxGenerate` (`bcu.strings.txt:4797`), `checkBoxGenerateStuck` (`:5257`); a tecnica de UI Automation vem do `.resx` | automacao | alto |
+| 6 | **Tentar de novo** os silenciosos que falharam, em modo loud | `checkBoxRetryQuiet` (`bcu.strings.txt:6759`), literal "Do you want to try running quiet uninstallers that failed as loud?" (`:9028`) | automacao | medio |
+| 7 | **Decidir por item** o que fazer quando o silencioso nao existe: rodar em primeiro plano ou remover da tarefa | literal "Following items are missing quiet uninstallers:" (`bcu.strings.txt:9098`) | interface | medio |
+| 8 | **Colocar o PC para dormir** quando a tarefa termina, com contagem regressiva | `checkBoxFinishSleep` (`bcu.strings.txt:5854`), `PutToSleep` (`:5855`), `sleepTimer` (`:6021`), `SleepControls` (`:6508`), `get_UninstallProgressWindow_StatusPuttingToSleepInSeconds` (`:6199`), literal "Put PC to sleep when done" (`bcu.inventario.md:298`) | automacao | medio |
+| 9 | **Hotkeys globais** do sistema, registrados pelo processo | `GlobalHotkeys` (`bcu.strings.txt:6715`), `SetupHotkeys` (`:6716`), `GetHotkeyList` (`:6918`), `HotkeyEntry` (`:7134`), `QKlocman.Subsystems.GlobalHotkeys, KlocTools` (`:8049`) | interface | medio |
+| 10 | **Marcar desinstaladores protegidos** (tag `NoRemove` do editor) e desabilitar essa protecao por item | literais "Protected items are marked with the \"NoRemove\" tag, which means that the publisher doesn't want you to remove them." (`bcu.inventario.md:371`), "Disable protection" (`bcu.strings.txt:7529`), "Modify protected item" (`:9131`) | remocao | alto |
+| 11 | **Desinstalar em modo silencioso quando o desinstalador e do tipo "Simple Delete"** (app sem instalador) | `UninstallerType_SimpleDelete` — **nao confirmado no binario** (so no `.resx`); o painel existe via `BulkCrapUninstaller.Forms.JunkRemoveWindow.resources` (`bcu.identificadores.txt:24`) | remocao | medio |
+| 12 | **Aplicativos relacionados**: sugerir desinstalar junto programas correlacionados | tipo `BulkCrapUninstaller.Forms.RelatedUninstallerAdder.resources` (`bcu.identificadores.txt:30`), literal "Related uninstaller name" (`bcu.inventario.md:314`) | organizacao | alto |
+| 13 | **Modificar/reparar** a instalacao a partir da lista | literal "Modify application" (`bcu.strings.txt:9070`) | remocao | medio |
+| 14 | **Confianca de inicializacao**: sobras oriundas de `RunOnce` ou de entrada compativel com o app | o eixo de confianca existe (`checkBoxHideLowConfidence`, `bcu.strings.txt:4315`); as chaves `Confidence_Startup_*` vem do `.resx` — **nao confirmado no binario** | varredura | medio |
+| 15 | **Desabilitar a inicializacao automatica** do programa em desinstalacao | literal "Disable autostart" (`bcu.strings.txt:8138`) | organizacao | medio |
+| 16 | **Filtro que esconde o que foi publicado pela Microsoft** | literais "Hide published by Microsoft" (`bcu.inventario.md:160`), "Published by Microsoft" (`:296`), "Filter out everything that was published by Microsoft. It's that simple." (`:159`) | interface | baixo |
+| 17 | **Adicionar os selecionados como filtro** (a selecao vira criterio) | `toolStripButtonAddSelectedAsFilters` (`bcu.strings.txt:6620`), `toolStripButtonAddSelectedAsFilters_Click` (`:5235`) | interface | baixo |
+| 18 | **Auto-ajustar a largura de todas as colunas** | literal "Auto-resize all columns" (`bcu.strings.txt:8114`) | interface | baixo |
+| 19 | **Exportar em JSON** (alem de XML/CSV) | `System.Text.Json` (`bcu.strings.txt:5754`), `JsonSerializer` (`:6119`), `JsonSerializerOptions` (`:6565`), `objToJsonserialize` (`:4909`) | relatorio | baixo |
+| 20 | **Compressao Brotli** nos backups e arquivos gerados | `System.IO.Compression.Brotli` (`bcu.strings.txt:5103`), `BrotliStream` (`:5394`), `BrotliCompress` (`:6650`) | organizacao | baixo |
+| 21 | **Relatorio de erro automatico** (crash report) enviado pela web | `NBug.Core.Submission` (`bcu.strings.txt:5611`), `NBugConfigurator` (`:6172`), `NBugDatabaseSenderWrapper` (`:6037`), `SetupNBug` (`:5052`), literal "Failed to send crash report: " (`:13083`) | organizacao | baixo |
+| 22 | **Limpar caches** da propria aplicacao | literal "Clear caches" (`bcu.strings.txt:7412`), "Failed to delete cache: " (`:13043`) | organizacao | baixo |
+| 23 | **Abrir a Limpeza de Disco do Windows** | literal "Start Disk Cleanup" (`bcu.strings.txt:8279`) | integracao | baixo |
+| 24 | **Abrir a chave no Regedit** | `openKeyInRegeditToolStripMenuItem` (`bcu.strings.txt:5505`) | integracao | medio |
+| 25 | **Abrir a Recuperacao do Sistema** | `openSystemRestoreToolStripMenuItem` (`bcu.strings.txt:5451`) | integracao | baixo |
+| 26 | **Assumir propriedade de arquivo/pasta** do programa (o Tranal so faz chave de registro) | `TakeOwnership` (`bcu.strings.txt:5859`), `takeOwnershipToolStripMenuItem` (`:5474`) | remocao | medio |
+| 27 | **Exportar script PowerShell** para remocao de Store Apps | `exportStoreAppsToPowerShellRemoveScriptToolStripMenuItem` (`bcu.strings.txt:5508`) | relatorio | medio |
+| 28 | **Filtro avancado da lista** por condicoes (metodo de comparacao x propriedade alvo, com negacao) | literal "Based on pre-defined rules" (`bcu.strings.txt:8428`), "Advanced filtering" (`bcu.inventario.md:16`); `FilterComparisonMethod_*` vive no motor `UninstallTools.dll` | interface | medio |
+| 29 | **Cabecalho fixo de exportacao XML** (editora, versao, data, tamanho, registro, tipo, cadeia de desinstalacao, cadeia silenciosa, comentarios) | `get_StrExportHeader` (`bcu.strings.txt:5935`), literal "Publisher \| Version \| Date \| Size \| Registry \| Uninstaller type \| Uninstall string \| Quiet uninstall string \| Comments" (`bcu.inventario.md:297`) | relatorio | baixo |
+| 30 | **5 niveis de confianca** em vez de 3 | `UninstallTools.Junk.Confidence` (`bcu.identificadores.txt:115`); os rotulos `Confidence_*` vem do `.resx` | varredura | medio |
+| 31 | **Confianca de pasta** (vazia, com executaveis, com arquivos, muitos arquivos, nome reconhecido, sem subdirs, editor reconhecido) | as chaves `Confidence_PF_*` vem do `.resx`; o eixo existe via `checkBoxHideLowConfidence` (`bcu.strings.txt:4315`) | varredura | medio |
+| 32 | **Aviso explicito** ao mexer em item de baixa confiança ("pode ser muito perigoso") | literal "Junk \| Potentially dangerous" (`bcu.inventario.md:192`), `checkBoxHideLowConfidence` (`bcu.strings.txt:4315`) | interface | medio |
+| 33 | **17 grupos de sobras** com scanners proprios (Firewall, UserAssist, CLSID, compatibilidade, eventos, rastreio, audio...) | o painel existe: `BulkCrapUninstaller.Forms.JunkRemoveWindow.resources` (`bcu.identificadores.txt:24`), literal "Junk/Leftover removal" (`bcu.strings.txt:9130`); os nomes `Junk_*_GroupName` vem do `.resx` | varredura | medio |
+| 34 | **Sincronizar as estrelas de classificacao** com servidor | `BulkCrapUninstaller.Functions.Ratings` (`bcu.strings.txt:6373`), `FetchRatings` (`:6378`), `UploadRatings` (`:6374`), `checkBoxRatings` (`:6383`) | integracao | baixo |
+| 35 | **Marcacao de aplicativo invalido / desinstalador corrompido** (cinza) | `checkBoxInvalidTest` (`bcu.strings.txt:6893`), literal "Use grey color to identify uninstallers that are corrupted or missing." (`bcu.inventario.md:146`) | interface | medio |
+| 36 | **Pastas de instalacao personalizadas** declaradas pelo usuario | `labelProgramFolders` (`bcu.strings.txt:6595`), `checkBoxAutoInstallFolderDetect` (`:6745`) | varredura | medio |
+| 37 | **Catalogo de apps Oculus** (deteccao dedicada, alem da classificacao) | assembly `OculusHelper.dll` presente em `bcu\app`; a chave `UninstallerType_Oculus` vem do `.resx` | varredura | baixo |
+| 38 | **Marcacao de atualizacao** de outro aplicativo | `checkBoxShowUpdates` (`bcu.strings.txt:6342`), literal "Show updates" (`bcu.inventario.md:363`) | interface | baixo |
+| 39 | **Agrupamento com "smart filtering"** das colunas | `checkBoxViewGroups` (`bcu.strings.txt:6588`), literal "Grouping of most of the columns uses smart filtering." (`:7490`) | interface | baixo |
+| 40 | **Modo daltônico** e escalonamento por DPI | `checkBoxColorblind` (`bcu.strings.txt:4261`), `checkBoxDpiaware` (`:4703`) | interface | baixo |
+| 41 | **Telemetria anonima de uso** (opt-in) | `checkBoxSendStats` (`bcu.strings.txt:6651`), `UsageTracker` (`:5982`), `UsageTrackerSendData` (`:3865`), `hBulkCrapUninstaller.Functions.Tracking.UsageTracker` (`:7443`) | integracao | baixo |
+| 42 | **Filtro de confianca das sobras com opcao de mostrar todas as sobras ruins** | `checkBoxShowAllBadJunk` (`bcu.strings.txt:5280`) | interface | baixo |
