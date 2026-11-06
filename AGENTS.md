@@ -447,6 +447,30 @@ caminho, resultado e **código de erro**. A regra mora em
   `System.IO.Directory` dentro da classe, e `Directory.CreateDirectory(...)`
   passaria a tentar criar uma pasta chamada "CreateDirectory".
 
+## A suíte de testes não compila o projeto WPF (verificação obrigatória)
+
+A suíte **não referencia** o projeto gráfico: o Core é compilado por **fonte
+compartilhada** na CLI e na suíte. Isso é deliberado (referenciar os dois
+criaria dois tipos `Core` diferentes), mas tem uma consequência que já
+custou um commit quebrado:
+
+- A CLI e a suíte recebem `System.IO` **implícito**. O projeto WPF **não**
+  recebe (o conjunto dele é `System`, `System.Collections.Generic`,
+  `System.Linq`, `System.Threading`, `System.Threading.Tasks`). Um arquivo do
+  Core que use `Path.`, `File.` ou `Directory.` sem declarar
+  `using System.IO;` passa na suíte — **431 testes verdes** — e **não
+  compila** no aplicativo.
+- Por isso, **toda** rodada que toca o Core compila o projeto gráfico
+  **direto**:
+  `dotnet build src\Tranal.Uninstaller\Tranal.Uninstaller.csproj -c Release`
+- O teste `ImplicitUsingsTests` (`src\Tranal.Tests`) fecha essa porta: ele
+  varre os arquivos do projeto gráfico e reprova quem usa `System.IO` sem
+  declarar o using.
+
+A verificação mais forte é `git archive HEAD` + build da solução numa pasta
+limpa: é o que pega o que a árvore de trabalho esconde (e foi assim que os
+dois commits quebrados apareceram).
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do
