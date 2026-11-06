@@ -108,6 +108,36 @@ public static class MsiProductCatalog
         string? productCode,
         bool silent,
         out string command,
+        out string error) =>
+        TryBuildCommand(productCode, "/x", silent, out command, out error);
+
+    /// <summary>
+    /// Monta o comando de reparo pelo <c>ProductCode</c>: <c>msiexec /fa
+    /// {GUID}</c>. O <c>/fa</c> refaz os arquivos e as chaves do produto.
+    /// </summary>
+    /// <param name="productCode">O <c>ProductCode</c>.</param>
+    /// <param name="silent">Rodar sem interface.</param>
+    /// <param name="command">O comando montado.</param>
+    /// <param name="error">A mensagem de recusa, quando o codigo nao serve.</param>
+    public static bool TryBuildRepairCommand(
+        string? productCode,
+        bool silent,
+        out string command,
+        out string error) =>
+        TryBuildCommand(productCode, "/fa", silent, out command, out error);
+
+    /// <summary>
+    /// Monta o comando do Windows Installer com o verbo pedido.
+    ///
+    /// A regra mora aqui, em um lugar so: desinstalar e repairing usam o
+    /// mesmo caminho de texto, e nenhum dos dois escreve o formato por conta
+    /// propria.
+    /// </summary>
+    private static bool TryBuildCommand(
+        string? productCode,
+        string verb,
+        bool silent,
+        out string command,
         out string error)
     {
         command = string.Empty;
@@ -120,8 +150,8 @@ public static class MsiProductCatalog
         }
 
         command = silent
-            ? $"{MsiexecCommand} /x {code} /qn"
-            : $"{MsiexecCommand} /x {code}";
+            ? $"{MsiexecCommand} {verb} {code} /qn"
+            : $"{MsiexecCommand} {verb} {code}";
 
         return true;
     }
@@ -216,8 +246,38 @@ public static class MsiProductCatalog
     /// saida do Windows Installer (0 = sucesso, 3010 = precisa reiniciar).
     /// </summary>
     public static MsiUninstallResult Uninstall(string productCode, bool silent = true)
+        => RunMsiexec(productCode, "/x", silent, "Produto desinstalado.");
+
+    /// <summary>
+    /// Repara a instalacao MSI do produto: <c>msiexec /fa {GUID}</c>.
+    ///
+    /// A evidencia de que o Revo Uninstaller Pro 5.5.4 tem esse comando esta
+    /// no binario dele: o literal "Change or Repair the installation of
+    /// selected program" aparece no dump de strings do RevoUninPro.exe
+    /// (linha 26799), e o Uninstall Tool 3.8.2 tem a acao "Modify"
+    /// equivalente.
+    ///
+    /// Reparo nao e desinstalacao: e a operacao que devolve o programa para
+    /// o estado em que o Windows espera que ele esteja, sem apagar nada.
+    /// </summary>
+    /// <param name="productCode">O <c>ProductCode</c> do produto.</param>
+    /// <param name="silent">Rodar sem interface.</param>
+    public static MsiUninstallResult Repair(string productCode, bool silent = true)
+        => RunMsiexec(productCode, "/fa", silent, "Instalacao do produto reparada.");
+
+    /// <summary>
+    /// Executa o Windows Installer com o verbo pedido.
+    ///
+    /// A regra mora aqui, em um lugar so: desinstalar e reparar usam o mesmo
+    /// caminho, e nenhum dos dois monta o comando por conta propria.
+    /// </summary>
+    /// <param name="productCode">O <c>ProductCode</c> do produto.</param>
+    /// <param name="verb">O verbo do Windows Installer ("/x" desinstalar, "/fa" reparar).</param>
+    /// <param name="silent">Rodar sem interface.</param>
+    /// <param name="successMessage">A mensagem do sucesso.</param>
+    private static MsiUninstallResult RunMsiexec(string productCode, string verb, bool silent, string successMessage)
     {
-        if (!TryBuildUninstallCommand(productCode, silent, out var command, out var error))
+        if (!TryBuildCommand(productCode, verb, silent, out var command, out var error))
         {
             return new MsiUninstallResult
             {
@@ -230,7 +290,7 @@ public static class MsiProductCatalog
 
         if (!TryNormalizeProductCode(productCode, out var code))
         {
-            // TryBuildUninstallCommand ja recusou o codigo: chegar aqui e impossivel.
+            // TryBuildCommand ja recusou o codigo: chegar aqui e impossivel.
             return new MsiUninstallResult { Success = false, ExitCode = -1, Message = error };
         }
 
@@ -243,7 +303,7 @@ public static class MsiProductCatalog
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
-            startInfo.ArgumentList.Add("/x");
+            startInfo.ArgumentList.Add(verb);
             startInfo.ArgumentList.Add(code);
             if (silent) startInfo.ArgumentList.Add("/qn");
 
@@ -268,7 +328,7 @@ public static class MsiProductCatalog
                 ExitCode = exitCode,
                 Command = command,
                 Message = exitCode == 0
-                    ? "Produto desinstalado."
+                    ? successMessage
                     : $"O Windows Installer terminou com o codigo {exitCode}.",
             };
         }

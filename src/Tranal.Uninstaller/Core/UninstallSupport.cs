@@ -96,6 +96,16 @@ public enum LeftoverReason
     /// arquivo por arquivo o que gravou.
     /// </summary>
     InstallerLog,
+
+    /// <summary>
+    /// E uma entrada de inicializacao do Windows que aponta para o programa:
+    /// o <c>Run</c>, o <c>RunOnce</c> e companhia.
+    ///
+    /// Este e o sinal que a confianca vem do registro de inicializacao, e nao
+    /// do nome: uma entrada que sobe com o Windows e do programa que a
+    /// gravou.
+    /// </summary>
+    StartupEntry,
 }
 
 public sealed class LeftoverItem
@@ -517,6 +527,22 @@ public static class LeftoverScanner
                 });
             }
             catch { }
+        }
+
+        // Entradas de inicializacao do Windows que apontam para o programa.
+        // A confianca vem do registro de inicializacao, e nao do nome: e o
+        // programa que gravou a entrada que sobe com o Windows.
+        foreach (var startup in Discovery.StartupEntries.For(program))
+        {
+            items.Add(new LeftoverItem
+            {
+                Kind = "Registro",
+                Path = $"{startup.Location}\\{startup.Name}",
+                Detail = startup.Command,
+                Confidence = LeftoverConfidence.High,
+                Reason = LeftoverReason.StartupEntry,
+                Selected = true,
+            });
         }
 
         // Deduplicacao canonica: a mesma pasta/registro descoberta por caminhos

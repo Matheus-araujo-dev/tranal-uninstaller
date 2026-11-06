@@ -371,6 +371,7 @@
     "Common.Reason.History":  "It comes from Tranal's own removal history",
     "Common.Reason.ProcessTermination":  "It is the termination of a program process",
     "Common.Reason.InstallerLog":  "The program's own installer registered this item and it was left behind",
+    "Common.Reason.StartupEntry":  "It is a Windows startup entry that points to the program",
     "Advisory.Title.SharedInstallLocation":  "Warning: other programs in the same folder",
     "Advisory.Title.SystemComponent":  "Warning: system component",
     "Advisory.Title.UserData":  "Warning: user data",

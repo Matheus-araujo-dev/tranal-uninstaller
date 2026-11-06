@@ -431,6 +431,9 @@ dos concorrentes tem uma regra por assunto, e cada uma mora em **um lugar só**:
 | Programas relacionados | `Core/Discovery/RelatedProgramFinder.cs` |
 | Destinos do Windows (Registro, Programas e Recursos, Recuperação) | `Core/Management/SystemNavigator.cs` |
 | Trava de desligamento durante a tarefa | `Core/Automation/ShutdownGuard.cs` |
+| Fila de desinstalação (um por vez, colisão, saída da tarefa) | `Core/Automation/UninstallQueue.cs` |
+| Entradas de inicialização do Windows (`Run`, `RunOnce`) | `Core/Discovery/StartupEntries.cs` |
+| Comandos do Windows Installer (desinstalar e reparar) | `Core/Discovery/MsiProductCatalog.cs` |
 | Texto dos avisos | `Core/Localization/AdvisoryLabels.cs` (chave em `Lang/pt-BR.json` **e** `Lang/en-US.json`) |
 
 - **O método da auditoria é binário, não documental.** A evidencia e o artefato
@@ -450,6 +453,22 @@ dos concorrentes tem uma regra por assunto, e cada uma mora em **um lugar só**:
 - **A trava de desligamento e descartavel.** Ela vale enquanto o desinstalador
   nativo roda e e revogada ao fim: uma maquina que nao pode desligar nunca
   e um defeito, nao uma protecao.
+- **A fila de desinstalacao e serial e a trava e de processo inteiro.** Dois
+  instaladores ao mesmo tempo disputam os mesmos arquivos e o mesmo banco do
+  Windows Installer. A trava (`UninstallQueue`) vale para a janela e para a CLI
+  ao mesmo tempo — nao e uma convencao de quem chama.
+- **Quem nao desinstala em silencio sai da tarefa, nao trava o lote.** A fila
+  confere se a entrada do programa continua no registro depois da desinstalacao
+  silenciosa; se continua, o programa deixa a fila e e reportado. E o
+  comportamento do Revo.
+- **A colisao e declarada, nao escondida.** Dois programas que dividem a pasta
+  de instalacao ou o mesmo desinstalador sao marcados no resultado da fila.
+- **A entrada de inicializacao e do programa quando o executavel esta na pasta
+  dele.** O nome no comando e sinal mais fraco: um nome generico casaria com
+  programas que nao sao o programa.
+- **Desinstalar e reparar usam o mesmo construtor de comando.**
+  `MsiProductCatalog.TryBuildCommand` monta os dois; `/x` desinstala e `/fa`
+  repara. Nenhum dos dois monta o texto por conta propria.
 
 ## O alvo da desinstalação em lote (regra do núcleo)
 

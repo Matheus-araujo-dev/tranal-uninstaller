@@ -1012,13 +1012,32 @@ public static class ExtraCommands
         var runBuiltIn = !flags.Contains("/nobuiltin");
         var exit = 0;
 
-        foreach (var program in matched)
-        {
-            Console.WriteLine();
-            Console.WriteLine(new string('-', 60));
+        // A fila serializa: um desinstalador por vez (dois instaladores ao
+        // mesmo tempo disputam os mesmos arquivos), e quem nao desinstala em
+        // silencio sai da tarefa em vez de travar o lote.
+        var queue = UninstallQueue.Run(
+            matched,
+            program =>
+            {
+                Console.WriteLine();
+                Console.WriteLine(new string('-', 60));
 
-            var result = Program.UninstallProgram(program, programs, mode, runBuiltIn, remove: true, flags);
-            if (result != 0) exit = result;
+                var result = Program.UninstallProgram(program, programs, mode, runBuiltIn, remove: true, flags);
+                if (result != 0) exit = result;
+                return result == 0;
+            },
+            Program.IsStillInstalled);
+
+        foreach (var item in queue)
+        {
+            if (item.CollidesWith.Length > 0)
+                Console.WriteLine($"  [colisao] {item.Program.DisplayName} divide recursos com {item.CollidesWith}");
+
+            if (item.Outcome == UninstallQueueOutcome.RemovedFromTask)
+                Console.WriteLine($"  [fora da tarefa] {item.Program.DisplayName}: {item.Detail}");
+
+            if (item.Outcome == UninstallQueueOutcome.Failed)
+                Console.WriteLine($"  [falhou] {item.Program.DisplayName}: {item.Detail}");
         }
 
         return exit;

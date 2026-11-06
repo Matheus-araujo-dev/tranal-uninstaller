@@ -371,6 +371,7 @@
     "Common.Reason.History":  "Veio do histórico de remoção do Tranal",
     "Common.Reason.ProcessTermination":  "É o encerramento de um processo do programa",
     "Common.Reason.InstallerLog":  "O instalador do programa registrou este item e ele sobrou",
+    "Common.Reason.StartupEntry":  "É uma inicialização do Windows que aponta para o programa",
     "Advisory.Title.SharedInstallLocation":  "Atenção: outros programas na mesma pasta",
     "Advisory.Title.SystemComponent":  "Atenção: componente do sistema",
     "Advisory.Title.UserData":  "Atenção: dados do usuário",

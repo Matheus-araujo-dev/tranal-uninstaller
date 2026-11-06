@@ -115,6 +115,10 @@ Criterio aplicado, nesta ordem:
 | B17 | Programas relacionados | Revo Pro, secao `[Uninstaller Toolbar]`: comando de listar programas instalados junto | `Core/Discovery/RelatedProgramFinder.cs`, aviso no assistente |
 | B19 | Impedir desligamento/reinicio durante a tarefa | `SetThreadExecutionState` (API do Windows) usada pelo proprio produto durante a desinstalacao | `Core/Automation/ShutdownGuard.cs`, ligado em `UninstallEngine.RunBuiltInUninstaller` |
 | D16 | Abrir no Registro / Programas e Recursos / Recuperacao do Sistema | Revo Pro, secao `[Uninstaller Toolbar]`: acesso direto a "Programas e Recursos" e ao Registro | `Core/Management/SystemNavigator.cs`, menu de contexto da lista |
+| B7 | Fila de desinstalacao com prevencao de colisao (um desinstalador por vez) | Revo Pro: a desinstalacao em lote e serial | `Core/Automation/UninstallQueue.cs` |
+| B18 | Remover da tarefa quem nao desinstalou em silencio | Revo Pro: o item que precisa de janela sai do lote | `Core/Automation/UninstallQueue.cs` |
+| C7 | Confianca de inicializacao (o `Run`/`RunOnce` do proprio app) | Revo Pro: a varredura trata a inicializacao como sinal do programa | `Core/Discovery/StartupEntries.cs`, motivo `LeftoverReason.StartupEntry` |
+| Fila #4 | Reparo/modificacao de instalacao MSI (`msiexec /fa`) | `strings.txt:26799 = Change or Repair the installation of selected program` | `Core/Discovery/MsiProductCatalog.cs` (`Repair`) |
 
 ### 3.2 Decidido para fora (com motivo)
 
@@ -137,8 +141,7 @@ codigo. Cada linha tem a evidencia no binario de quem tem o recurso.
 | 1 | Varredura de sobras em **todas as contas** do Windows | Revo | `[UninstallerPro] 15352 = Scan all Windows accounts for leftovers` |
 | 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | `[UninstallerPro] 15178 = Export,Import or Edit log` |
 | 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | `strings.txt:26974` (texto do botao "Advanced Uninstall") |
-| 4 | **Reparo/modificacao** de instalacao MSI (`msiexec /fa`) | Revo, Uninstall Tool | `strings.txt:26799 = Change or Repair the installation of selected program` |
-| 5 | Varredura de **fluxos alternativos** (ADS) de arquivo | Total Uninstall | `inv.md:176` |
+| 4 | Varredura de **fluxos alternativos** (ADS) de arquivo | Total Uninstall | `inv.md:176` |
 | 6 | Detectar que o programa foi **desinstalado por fora** | Soft Organizer | `recursos.txt:102` (formulario de deteccao de desinstalacao externa) |
 | 7 | Filtros por **tamanho** e por **uso raro** na lista | Soft Organizer | `inv.md` (filtro "Large Applications" / "Rarely used apps") |
 | 8 | Remocao de item de inicializacao do Autostart sem tocar no resto | BCU, Revo, Wise | `[Auto Run Manager Pro] 15800 = Add` |

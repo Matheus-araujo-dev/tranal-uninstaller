@@ -58,7 +58,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | B4 | **Desinstalar via MsiExec** (GUID) | 🟡 | ✅ | ✅ (`msiexec /x {GUID}`) | 🟡 |
 | B5 | **Desinstalar manualmente** (pular o desinstalador, listar o que apagar) | 🟡 | ✅ | ✅ | 🟡 |
 | B6 | **Desinstalar por janela / diretório / arquivo** | ✅ | ✅ | ✅ (forçada por janela, diretório ou arquivo) | 🟢 |
-| B7 | **Desinstalação simultânea** com prevenção de colisão | ⬜ | ✅ | ⬜ | 🟡 |
+| B7 | **Desinstalação simultânea** com prevenção de colisão | ⬜ | ✅ | ✅ (`Core/Automation/UninstallQueue.cs`: um desinstalador por vez, trava de processo) | — |
 | B8 | **Ordenação inteligente** (loud primeiro) | ⬜ | ✅ | ✅ (`Core/Appearance/SmartOrdering.cs`; o assistente consome) | — |
 | B9 | **Simulação / dry run** | 🟡 | ✅ | ✅ (`/scan`) | — 🟢 Tranal melhor |
 | B10 | **Painel de progresso** com estados (executando/aguardando/concluído/falhou/pulado) | ✅ | ✅ | ✅ | 🟡 |
@@ -69,7 +69,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | B15 | **Comandos antes e depois** da desinstalação | 🟡 | ✅ | ⬜ | 🟡 |
 | B16 | **Assistente de desinstalação em etapas** | ✅ (5 etapas) | ✅ (6 etapas) | ✅ (5 etapas) | — |
 | B17 | Lista de **aplicativos relacionados** que talvez queiram sair junto | 🟡 | ✅ | ✅ (`Core/Discovery/RelatedProgramFinder.cs`; aviso no assistente) | — |
-| B18 | **Remover da tarefa** quem não desinstala em silêncio | 🟡 | ✅ | ⬜ | 🟢 |
+| B18 | **Remover da tarefa** quem não desinstala em silêncio | 🟡 | ✅ | ✅ (`Core/Automation/UninstallQueue.cs`: sai da tarefa e é reportado) | — |
 | B19 | **Impedir desligamento/reinício** durante a tarefa | ⬜ | ✅ | ✅ (`Core/Automation/ShutdownGuard.cs`; ligado no `UninstallEngine`) | — |
 | B20 | **Ponto de restauração** antes de desinstalar | ✅ | ✅ | ✅ | — |
 | B21 | **Backup completo do registro** antes de desinstalar, com script de restauração | ✅ | 🟡 (só .reg) | ✅ | — 🟢 Tranal melhor |
@@ -84,7 +84,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") | ⬜ | ✅ | ✅ (11 motivos, coluna "Porquê") | — |
 | C5 | **Atribuição pela cadeia de desinstalação** (item citado explicitamente) | 🟡 | ✅ | ✅ | 🔴 |
 | C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | 🟡 (confiança pelo nome; não por "pasta vazia/executáveis") | 🟡 |
-| C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | ⬜ | ✅ | ⬜ | 🟢 |
+| C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | ⬜ | ✅ | ✅ (`Core/Discovery/StartupEntries.cs`; motivo `LeftoverReason.StartupEntry`) | — |
 | C8 | Aviso ao mexer em item de **baixa confiança** | ⬜ | ✅ | 🟡 (só não marca) | 🟢 |
 | C9 | **Backup antes de remover sobras** | ✅ | ✅ | ✅ | — |
 | C10 | Arquivos de sobra vão para a **lixeira** | ✅ | ✅ | ✅ | — |
@@ -143,25 +143,23 @@ As tabelas A–E foram escritas durante a auditoria, **antes** da implementaçã
 do backlog. Depois dos oito lotes, a coluna "Tranal" foi conferida item a item
 contra o código (`src/`), não contra a memória. O retrato real de hoje:
 
-- **68 das 86** funcionalidades medidas estão **implementadas** (✅);
+- **71 das 86** funcionalidades medidas estão **implementadas** (✅);
 - **12** estão **parciais** (🟡) — a parte principal existe, falta um detalhe
   medido nos concorrentes;
-- **6** **não existem** (⬜).
+- **3** **não existem** (⬜).
 
-**As 6 que não existem** (a lista completa e honesta):
+**As 3 que não existem** (a lista completa e honesta):
 
 | # | O que falta | Por quê |
 |---|---|---|
-| B7 | **Desinstalação simultânea** com prevenção de colisão | não há fila que impeça dois instaladores ao mesmo tempo |
 | B13 | **Monitorar silencioso** atrás de popups (daemon) | é a automação de interface de desinstaladores de terceiros (item #5 do backlog) |
 | B15 | **Comandos antes e depois** da desinstalação | não há campo para isso |
-| B18 | **Remover da tarefa** quem não desinstala em silêncio | não há fila de tarefas |
-| C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | a confiança vem do nome, não do registro de inicialização |
 | C15 | Desinstalador **simples gerado** para app órfão | decisão do §8 do `PARIDADE.md` |
 
-As seis lacunas fechadas nesta rodada (A12, A14, B8, B17, B19, D16) vieram da
-engenharia reversa descrita em `docs/auditoria/BINARIO.md`: cada uma tem a
-evidencia no binario de um concorrente e o arquivo do Tranal que a implementa.
+As nove lacunas fechadas até agora (A12, A14, B7, B8, B17, B18, B19, C7, D16)
+vieram da engenharia reversa descrita em `docs/auditoria/BINARIO.md`: cada uma
+tem a evidencia no binario de um concorrente e o arquivo do Tranal que a
+implementa.
 
 **As 12 parciais**: A8, A13, A15, A17, B3, B12, C6, C8, C14, D2, D12 e D20 —
 a coluna traz o motivo de cada uma.

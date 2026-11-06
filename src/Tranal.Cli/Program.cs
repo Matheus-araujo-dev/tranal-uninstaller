@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Principal;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
@@ -363,6 +364,65 @@ public static class Program
     /// <param name="runBuiltIn">Roda o desinstalador nativo.</param>
     /// <param name="remove">Remove as sobras (quando falso, é dry-run).</param>
     /// <param name="flags">Os switches da linha de comando.</param>
+    /// <summary>
+    /// Diz se a entrada do programa continua no registro.
+    ///
+    /// É o que separa "desinstalou" de "não desinstalou em silêncio": um
+    /// desinstalador que precisa de interface não apaga a chave, e o programa
+    /// sai da tarefa em vez de travar o lote.
+    /// </summary>
+    /// <param name="program">O programa inspecionado.</param>
+    internal static bool IsStillInstalled(InstalledProgram program)
+    {
+        if (program is null) return false;
+
+        var path = (program.RegistryPath ?? string.Empty).Trim();
+        if (path.Length == 0) return false;
+
+        RegistryHive hive;
+        string rest;
+        if (path.StartsWith(@"HKEY_LOCAL_MACHINE\", StringComparison.OrdinalIgnoreCase))
+        {
+            hive = RegistryHive.LocalMachine;
+            rest = path[@"HKEY_LOCAL_MACHINE\".Length..];
+        }
+        else if (path.StartsWith(@"HKEY_CURRENT_USER\", StringComparison.OrdinalIgnoreCase))
+        {
+            hive = RegistryHive.CurrentUser;
+            rest = path[@"HKEY_CURRENT_USER\".Length..];
+        }
+        else if (path.StartsWith(@"HKEY_CLASSES_ROOT\", StringComparison.OrdinalIgnoreCase))
+        {
+            hive = RegistryHive.ClassesRoot;
+            rest = path[@"HKEY_CLASSES_ROOT\".Length..];
+        }
+        else
+        {
+            return false;
+        }
+
+        try
+        {
+            using (var baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64))
+            using (var key = baseKey.OpenSubKey(rest))
+            {
+                if (key is not null) return true;
+            }
+
+            using (var baseKey32 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry32))
+            using (var key32 = baseKey32.OpenSubKey(rest))
+            {
+                return key32 is not null;
+            }
+        }
+        catch
+        {
+            // Chave protegida ou ausente: nao da para afirmar que o programa
+            // continua instalado, e a fila nao tira ninguem por causa disso.
+            return false;
+        }
+    }
+
     internal static int UninstallProgram(
         InstalledProgram target,
         List<InstalledProgram> allPrograms,
