@@ -44,6 +44,17 @@ public partial class App : Application
         // julgamento, e nao o motor.
         Core.Rules.RuleEngine.Reload();
 
+        // Os comandos que o usuario cadastrou por programa (rodar antes e
+        // depois da desinstalacao) entram no plano. O gancho fica no nucleo
+        // para que a suite de testes nunca leia o arquivo de preferencias do
+        // usuario: quem aponta o gancho e o aplicativo, no arranque.
+        Core.Automation.UninstallPlanBuilder.CustomizationProvider = program =>
+        {
+            if (!Core.ProgramCustomizationStore.Has(program)) return null;
+            var custom = Core.ProgramCustomizationStore.For(program);
+            return (custom.PreCommand, custom.PostCommand);
+        };
+
         // A entrada no menu de contexto do Windows segue a preferencia
         // "Mostrar comandos no menu de contexto do Windows" do Revo.
         ExplorerContextMenu.Apply(AppSettingsStore.Current.ShowContextMenuCommands);

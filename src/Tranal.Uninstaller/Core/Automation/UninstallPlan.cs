@@ -149,6 +149,54 @@ public sealed class UninstallPlanOptions
 public static class UninstallPlanBuilder
 {
     /// <summary>
+    /// De onde vem o comando antes/depois que o usuario cadastrou para o
+    /// programa.
+    ///
+    /// Por padrao, nulo: a suite de testes nao deve ler o arquivo de
+    /// preferencias do usuario. O aplicativo aponta este gancho para o
+    /// <c>ProgramCustomizationStore</c> no arranque.
+    /// </summary>
+    public static Func<InstalledProgram, (string? Pre, string? Post)?>? CustomizationProvider { get; set; }
+
+    /// <summary>
+    /// Junta as opcoes da chamada com o que o usuario cadastrou para o
+    /// programa.
+    ///
+    /// A precedencia mora aqui, em um lugar so: o que a chamada passa
+    /// vence; o que o usuario cadastrou entra na falta.
+    /// </summary>
+    /// <param name="program">O programa a desinstalar.</param>
+    /// <param name="options">As opcoes da chamada.</param>
+    public static UninstallPlanOptions ResolveOptions(
+        InstalledProgram program, UninstallPlanOptions? options)
+    {
+        var opts = options ?? new UninstallPlanOptions();
+
+        var provider = CustomizationProvider;
+        if (provider is null) return opts;
+
+        (string? Pre, string? Post)? saved;
+        try
+        {
+            saved = provider(program);
+        }
+        catch
+        {
+            // A leitura das preferencias nunca derruba a desinstalacao.
+            return opts;
+        }
+
+        if (saved is null) return opts;
+
+        return new UninstallPlanOptions
+        {
+            PreCommand = string.IsNullOrWhiteSpace(opts.PreCommand) ? saved.Value.Pre : opts.PreCommand,
+            PostCommand = string.IsNullOrWhiteSpace(opts.PostCommand) ? saved.Value.Post : opts.PostCommand,
+            Manual = opts.Manual,
+        };
+    }
+
+    /// <summary>
     /// Monta o plano do programa no modo informado.
     /// </summary>
     /// <param name="program">O programa a desinstalar.</param>
@@ -159,7 +207,7 @@ public static class UninstallPlanBuilder
         UninstallMode mode,
         UninstallPlanOptions? options = null)
     {
-        var opts = options ?? new UninstallPlanOptions();
+        var opts = ResolveOptions(program, options);
         var steps = new List<UninstallStep>();
         var name = program.DisplayName.Trim();
 

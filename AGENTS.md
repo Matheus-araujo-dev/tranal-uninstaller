@@ -434,6 +434,7 @@ dos concorrentes tem uma regra por assunto, e cada uma mora em **um lugar só**:
 | Fila de desinstalação (um por vez, colisão, saída da tarefa) | `Core/Automation/UninstallQueue.cs` |
 | Entradas de inicialização do Windows (`Run`, `RunOnce`) | `Core/Discovery/StartupEntries.cs` |
 | Comandos do Windows Installer (desinstalar e reparar) | `Core/Discovery/MsiProductCatalog.cs` |
+| Comandos antes/depois por programa | `Core/ProgramCustomization.cs` guarda; `UninstallPlanBuilder.ResolveOptions` junta com o plano |
 | Texto dos avisos | `Core/Localization/AdvisoryLabels.cs` (chave em `Lang/pt-BR.json` **e** `Lang/en-US.json`) |
 
 - **O método da auditoria é binário, não documental.** A evidencia e o artefato
@@ -469,6 +470,11 @@ dos concorrentes tem uma regra por assunto, e cada uma mora em **um lugar só**:
 - **Desinstalar e reparar usam o mesmo construtor de comando.**
   `MsiProductCatalog.TryBuildCommand` monta os dois; `/x` desinstala e `/fa`
   repara. Nenhum dos dois monta o texto por conta propria.
+- **O comando antes/depois do usuario entra no plano; a chamada vence.**
+  `UninstallPlanBuilder.ResolveOptions` faz a juncao, e e o unico lugar que
+  decide. O gancho (`CustomizationProvider`) e apontado pelo aplicativo no
+  arranque — a suite de testes nunca le o arquivo de preferencias de quem
+  roda.
 
 ## O alvo da desinstalação em lote (regra do núcleo)
 

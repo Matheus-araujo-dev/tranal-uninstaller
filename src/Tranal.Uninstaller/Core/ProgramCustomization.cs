@@ -56,6 +56,21 @@ public sealed class ProgramCustomization
     /// <see cref="ProgramRating"/>; aqui mora so o dado.
     /// </summary>
     public int Rating { get; set; }
+
+    /// <summary>
+    /// Comando que roda **antes** do desinstalador nativo.
+    ///
+    /// Serve para derrubar o programa, fechar o banco de dados ou liberar o
+    /// arquivo antes que o desinstalador tente apaga-lo.
+    /// </summary>
+    public string PreCommand { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Comando que roda **depois** da desinstalacao.
+    ///
+    /// Serve para refazer o que o desinstalador do programa desfez.
+    /// </summary>
+    public string PostCommand { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -228,6 +243,30 @@ public static class ProgramCustomizationStore
         {
             item.Comment = text;
         }
+
+        return Save();
+    }
+
+    /// <summary>
+    /// Guarda (ou apaga) os comandos que o usuario mandou rodar **antes** e
+    /// **depois** da desinstalacao do programa.
+    ///
+    /// Comando vazio remove o comando. Sem nenhum dos dois, a anotacao e
+    /// podada: um programa sem comando nao tem o que guardar.
+    /// </summary>
+    /// <param name="program">O programa.</param>
+    /// <param name="preCommand">O comando que roda antes do desinstalador.</param>
+    /// <param name="postCommand">O comando que roda depois da desinstalacao.</param>
+    public static bool SetCommands(InstalledProgram program, string preCommand, string postCommand)
+    {
+        var pre = (preCommand ?? string.Empty).Trim();
+        var post = (postCommand ?? string.Empty).Trim();
+        var item = FindOrCreate(program);
+
+        item.PreCommand = pre;
+        item.PostCommand = post;
+
+        if (pre.Length == 0 && post.Length == 0) Prune(item);
 
         return Save();
     }
@@ -616,8 +655,8 @@ public static class ProgramCustomizationStore
 
     /// <summary>
     /// Remove a anotacao quando ela ficou sem nada: um programa sem
-    /// comentario, sem icone, sem grupo e sem classificacao nao tem o que
-    /// ser anotado.
+    /// comentario, sem icone, sem grupo, sem classificacao e sem comando
+    /// nao tem o que ser anotado.
     /// </summary>
     private static void Prune(ProgramCustomization item)
     {
@@ -625,7 +664,9 @@ public static class ProgramCustomizationStore
             && item.IconPath.Length == 0
             && item.IconIndex < 0
             && item.Groups.Count == 0
-            && item.Rating == 0)
+            && item.Rating == 0
+            && item.PreCommand.Length == 0
+            && item.PostCommand.Length == 0)
         {
             Current.Programs.Remove(item);
         }

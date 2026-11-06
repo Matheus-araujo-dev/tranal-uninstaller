@@ -119,6 +119,7 @@ Criterio aplicado, nesta ordem:
 | B18 | Remover da tarefa quem nao desinstalou em silencio | Revo Pro: o item que precisa de janela sai do lote | `Core/Automation/UninstallQueue.cs` |
 | C7 | Confianca de inicializacao (o `Run`/`RunOnce` do proprio app) | Revo Pro: a varredura trata a inicializacao como sinal do programa | `Core/Discovery/StartupEntries.cs`, motivo `LeftoverReason.StartupEntry` |
 | Fila #4 | Reparo/modificacao de instalacao MSI (`msiexec /fa`) | `strings.txt:26799 = Change or Repair the installation of selected program` | `Core/Discovery/MsiProductCatalog.cs` (`Repair`) |
+| B15 | Comandos antes e depois da desinstalacao, por programa | o plano ja tinha as etapas "comando antes" e "comando depois" | `Core/ProgramCustomization.cs` + `UninstallPlanBuilder.ResolveOptions`, tela "Comandos de desinstalacao" no menu de contexto |
 
 ### 3.2 Decidido para fora (com motivo)
 

@@ -1163,6 +1163,9 @@ public partial class MainWindow : Window
         var icon = CommandItem(Loc.Get("Cmd.ChangeIcon"), "CmdChangeIcon", () => ChangeIcon(row));
         menu.Items.Add(icon);
 
+        var commands = CommandItem(Loc.Get("Cmd.EditCommands"), "CmdEditCommands", () => EditCommands(row));
+        menu.Items.Add(commands);
+
         // Onde a desinstalacao acontece: o registro do programa, o painel de
         // Programas e Recursos e a Recuperacao do Sistema. O destino vem do
         // nucleo, que e o unico lugar que sabe o comando de cada um.
@@ -1240,6 +1243,36 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog() != true) return;
 
         if (!ProgramCustomizationStore.SetComment(row.Program, dialog.Comment))
+        {
+            ShowSaveError();
+            return;
+        }
+
+        ReloadProgramRows();
+    }
+
+    /// <summary>
+    /// Escreve os comandos que o usuario manda rodar antes e depois da
+    /// desinstalacao do programa.
+    ///
+    /// O plano de desinstalacao ja tinha as duas etapas; aqui mora o texto
+    /// que as preenche.
+    /// </summary>
+    /// <param name="row">O programa do menu de contexto.</param>
+    private void EditCommands(ProgramRow row)
+    {
+        var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
+
+        var dialog = new UninstallCommandsWindow(
+            custom?.PreCommand ?? string.Empty,
+            custom?.PostCommand ?? string.Empty)
+        {
+            Owner = this,
+        };
+
+        if (dialog.ShowDialog() != true) return;
+
+        if (!ProgramCustomizationStore.SetCommands(row.Program, dialog.PreCommand, dialog.PostCommand))
         {
             ShowSaveError();
             return;

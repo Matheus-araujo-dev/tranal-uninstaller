@@ -40,6 +40,17 @@ public static class Program
         // julgamento, e nao o motor.
         Tranal.Uninstaller.Core.Rules.RuleEngine.Reload();
 
+        // Os comandos que o usuario cadastrou por programa (rodar antes e
+        // depois da desinstalacao) entram no plano. O gancho fica no nucleo
+        // para que a suite de testes nunca leia o arquivo de preferencias do
+        // usuario: quem aponta o gancho e o aplicativo, no arranque.
+        Tranal.Uninstaller.Core.Automation.UninstallPlanBuilder.CustomizationProvider = program =>
+        {
+            if (!Tranal.Uninstaller.Core.ProgramCustomizationStore.Has(program)) return null;
+            var custom = Tranal.Uninstaller.Core.ProgramCustomizationStore.For(program);
+            return (custom.PreCommand, custom.PostCommand);
+        };
+
         // Marcador interno: o processo ja foi relancado com elevacao.
         var elevated = args.Contains("/elevated", StringComparer.OrdinalIgnoreCase);
         var effective = args.Where(a => !a.Equals("/elevated", StringComparison.OrdinalIgnoreCase)).ToArray();

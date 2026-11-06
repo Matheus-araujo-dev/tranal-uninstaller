@@ -1,0 +1,43 @@
+<Window x:Class="Tranal.Uninstaller.Ui.UninstallCommandsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Comandos de desinstalação" Height="360" Width="560"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" UseLayoutRounding="True">
+
+  <Grid Margin="12">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" x:Name="PromptText" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+    <TextBlock Grid.Row="1" x:Name="PreLabel" Margin="0,0,0,4" />
+    <TextBox Grid.Row="2" x:Name="PreBox" Margin="0,0,0,10"
+             AutomationProperties.AutomationId="PreCommandBox" />
+
+    <TextBlock Grid.Row="3" x:Name="PostLabel" Margin="0,0,0,4" />
+    <TextBox Grid.Row="4" x:Name="PostBox"
+             AutomationProperties.AutomationId="PostCommandBox" />
+
+    <TextBlock Grid.Row="5" x:Name="HintText" TextWrapping="Wrap" Margin="0,10,0,0"
+               Opacity="0.8" />
+
+    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="OkButton" Content="{loc:Tr Common.Ok}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="CommandsOk"
+              Click="OkButton_Click" />
+      <Button x:Name="CancelButton" Content="{loc:Tr Common.Cancel}" Style="{StaticResource FlatButton}"
+              AutomationProperties.AutomationId="CommandsCancel"
+              Click="CancelButton_Click" />
+    </StackPanel>
+  </Grid>
+</Window>
