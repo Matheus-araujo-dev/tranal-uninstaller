@@ -169,7 +169,7 @@ public static class Program
             return RelaunchElevated(args);
         }
 
-        var target = FindProgram(name);
+        var target = FindProgram(name, out _);
         if (target is null)
         {
             Console.Error.WriteLine($"Programa não encontrado: {name}");
@@ -331,7 +331,7 @@ public static class Program
             return RelaunchElevated(args);
         }
 
-        var target = FindProgram(name);
+        var target = FindProgram(name, out var allPrograms);
         if (target is null)
         {
             Console.Error.WriteLine($"Programa não encontrado: {name}");
@@ -340,6 +340,11 @@ public static class Program
 
         Console.WriteLine($"Alvo: {target.DisplayName}  ({target.VersionOrNoVersion})");
         PrintMode(mode);
+        Console.WriteLine();
+
+        // Avisos de seguranca que precedem a remocao. Na CLI eles sao
+        // impressos e nao perguntados: quem chamou a CLI le a saida.
+        PrintAdvisories(UninstallAdvisories.Build(target, allPrograms));
         Console.WriteLine();
 
         // Ponto de restauracao do sistema: mesma preferencia da interface grafica.
@@ -397,6 +402,12 @@ public static class Program
             items = LeftoverScanner.Scan(
                 target, scanOptions, MsiInstallLogReader.UsableAfter(installLog, uninstalled));
             PrintOtherAccountSummary(items, scanOptions);
+
+            // O aviso de dados do usuario so existe depois da varredura: e a
+            // varredura que diz quais pastas podem conter documentos.
+            var userData = UninstallAdvisories.UserDataAdvisory(items);
+            if (userData is not null) PrintAdvisories(new[] { userData });
+
             Console.WriteLine($"Sobras encontradas: {items.Count}");
 
             var shown = SelectLeftovers(items, flags.Contains("/high"));
@@ -526,18 +537,39 @@ public static class Program
         return RemovalExitCode(report);
     }
 
-    private static InstalledProgram? FindProgram(string name)
+    /// <summary>
+    /// Procura o programa pelo nome e devolve tambem a lista completa de
+    /// instalados. A lista completa e o que permite avisar que outro programa
+    /// divide a pasta de instalacao.
+    /// </summary>
+    private static InstalledProgram? FindProgram(string name, out List<InstalledProgram> all)
     {
-        var programs = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        all = ProgramScanner.Scan(new ProgramScanner.ScanOptions
         {
             IncludeSystemComponents = true,
             IncludeMsiProducts = false,
         });
 
-        return programs.FirstOrDefault(p =>
+        return all.FirstOrDefault(p =>
             p.DisplayName.Contains(name, StringComparison.CurrentCultureIgnoreCase))
-            ?? programs.FirstOrDefault(p =>
+            ?? all.FirstOrDefault(p =>
                 p.DisplayName.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    /// <summary>
+    /// Imprime os avisos de seguranca da desinstalacao.
+    ///
+    /// A regra dos avisos mora no nucleo (<c>Core/UninstallAdvisories.cs</c>);
+    /// a CLI so escreve o resultado. E o mesmo objeto que a interface grafica
+    /// mostra — as duas nunca discordam sobre o que precisa ser avisado.
+    /// </summary>
+    private static void PrintAdvisories(IEnumerable<UninstallAdvisory> advisories)
+    {
+        foreach (var advisory in advisories)
+        {
+            Console.WriteLine($"AVISO: {advisory.Title}");
+            Console.WriteLine($"  {advisory.Message}");
+        }
     }
 
     /// <summary>

@@ -44,4 +44,21 @@ public static class UserMessages
         MessageBox.Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Warning);
         return true;
     }
+
+    /// <summary>
+    /// Faz uma confirmacao e devolve <c>true</c> quando o usuario aceitou.
+    ///
+    /// Esta confirmacao NUNCA e omitida pelas preferencias de mensagem: e a
+    /// pergunta que antecede uma acao destrutiva, e nao uma mensagem
+    /// informativa. O botao padrao e "Nao", para que "Enter" sem querer nao
+    /// autorize a remocao.
+    /// </summary>
+    public static bool Confirm(Window owner, string message, string caption = "Tranal Uninstaller")
+    {
+        var result = MessageBox.Show(
+            owner, message, caption,
+            MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+
+        return result == MessageBoxResult.Yes;
+    }
 }

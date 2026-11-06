@@ -243,6 +243,38 @@ O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller
   compactação do setup é **zip**, e não LZMA, por causa disso: medido nesta máquina, com LZMA o
   McAfee bloqueava e apagava o instalador; com zip o bloqueio desaparece e o tamanho muda 0,3%.
 
+### Novo: os três avisos de segurança que faltavam
+
+O Tranal agora avisa, **antes de apagar**, das mesmas três coisas que o Revo
+avisa — e que estavam faltando aqui:
+
+- **"Estes programas estão instalados na mesma pasta"** — quando outro programa
+  divide a pasta de instalação, as sobras de um podem ser as sobras do outro.
+  A confirmação **não** é omitida pelas preferências de mensagem: ela
+  antecede a remoção.
+- **"Remover este programa pode fazer recursos do Windows ou outros softwares
+  pararem de funcionar corretamente"** — quando o programa é um componente do
+  sistema.
+- **"As pastas abaixo podem conter dados do usuário e documentos"** — um painel
+  aparece na etapa da lista de sobras, com as pastas que caíram dentro de
+  `Documents`, `Desktop`, `Pictures`, `Music`, `Videos`, `Saved Games`,
+  `Favorites`, `3D Objects`, `Contacts`, `Links`, `Searches`, `Downloads` ou
+  `C:\Users\Public`.
+
+A regra mora em **um lugar só** (`Core/UninstallAdvisories.cs`), o texto
+traduzido em `Core/Localization/AdvisoryLabels.cs`, e a interface gráfica e a
+CLI consomem o **mesmo objeto** — elas nunca discordam sobre o que precisa
+ser avisado.
+
+Duas decisões de projeto que vieram junto:
+
+- A comparação de pasta compartilhada é por **igualdade exata** do caminho
+  normalizado. `C:\Program Files\App` e `C:\Program Files` **não** são a mesma
+  pasta: tratar como compartilhada transformaria o aviso em ruído.
+- `AppData` **não** entra no aviso de dados do usuário. Ali mora dado de
+  programa, que é justamente o que a desinstalação deve apagar — e um aviso
+  constante não é aviso nenhum.
+
 ### Correções
 
 - **O aplicativo não abria na primeira execução.** Sem o arquivo de preferências
@@ -277,9 +309,10 @@ O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller
 
 ### Testes
 
-- 378 testes verdes. O primeiro arranque é conferido de ponta a ponta por
-  `tools/test-cold-start.ps1`, que sobe o aplicativo de verdade sem o arquivo de
-  preferências e devolve as preferências de quem rodou o teste.
+- 413 testes verdes (34 novos, todos dos avisos de segurança). O primeiro
+  arranque é conferido de ponta a ponta por `tools/test-cold-start.ps1`, que sobe
+  o aplicativo de verdade sem o arquivo de preferências e devolve as
+  preferências de quem rodou o teste.
 
 ## v1.3 — colunas customizáveis, exportação com escolha de colunas, grupos, comentário e ícone
 

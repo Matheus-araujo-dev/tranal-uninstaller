@@ -114,13 +114,28 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
 
-          <TextBlock Grid.Row="0" Text="{loc:Tr Wizard.Step4.Legend}" TextWrapping="Wrap"
+          <!-- Avisos de seguranca: as pastas que podem conter dados do usuario
+               e documentos sao mostradas AQUI, na lista que o usuario revisa
+               antes de apagar. -->
+          <Border x:Name="AdvisoryPanel" Grid.Row="0" Visibility="Collapsed" Margin="0,0,0,6"
+                  BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" CornerRadius="3"
+                  Padding="8,6" Background="{DynamicResource PanelBrush}">
+            <StackPanel>
+              <TextBlock x:Name="AdvisoryTitleText" FontWeight="SemiBold" TextWrapping="Wrap"
+                         AutomationProperties.AutomationId="WizardAdvisoryTitle" />
+              <TextBlock x:Name="AdvisoryText" TextWrapping="Wrap" Margin="0,3,0,0"
+                         AutomationProperties.AutomationId="WizardAdvisoryText" />
+            </StackPanel>
+          </Border>
+
+          <TextBlock Grid.Row="1" Text="{loc:Tr Wizard.Step4.Legend}" TextWrapping="Wrap"
                      Foreground="{DynamicResource TextDimBrush}" Margin="0,0,0,6" />
 
-          <WrapPanel Grid.Row="1" Margin="0,0,0,6">
+          <WrapPanel Grid.Row="2" Margin="0,0,0,6">
             <Button x:Name="SelectAllButton" Content="{loc:Tr Wizard.Step4.SelectAll}" Style="{StaticResource FlatButton}"
                     AutomationProperties.AutomationId="WizardSelectAllButton" Margin="0,0,6,0"
                     Click="SelectAllButton_Click" />
@@ -131,7 +146,7 @@
                        Foreground="{DynamicResource TextDimBrush}" />
           </WrapPanel>
 
-          <ListView x:Name="LeftoversList" Grid.Row="2" AutomationProperties.AutomationId="LeftoversList"
+          <ListView x:Name="LeftoversList" Grid.Row="3" AutomationProperties.AutomationId="LeftoversList"
                     Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush}"
                     AlternationCount="2" />
         </Grid>

@@ -384,6 +384,30 @@ A varredura de sobras casa por **nome**; a cadeia do instalador casa por
 - **Falhar em silêncio é o comportamento certo.** Quando o caminho não fecha
   (bundles e payloads: Python, .NET Toolset), o Tranal não reporta nada errado.
 
+## Avisos de segurança da desinstalação (regra do núcleo)
+
+O original avisa sobre três coisas que o Tranal agora também avisa: outro
+programa instalado na **mesma pasta**, a remoção de um **componente do
+sistema**, e as pastas que podem conter **dados do usuário e documentos**.
+
+A regra mora em **um lugar só**: `Core/UninstallAdvisories.cs`. O texto
+traduzido mora em `Core/Localization/AdvisoryLabels.cs`. A interface gráfica
+e a CLI consomem o **mesmo objeto** `UninstallAdvisory` — elas nunca
+discordam sobre o que precisa ser avisado.
+
+- A comparação de pasta compartilhada é por **igualdade exata** do caminho
+  normalizado. "C:\Program Files\App" e "C:\Program Files" **não** são a mesma
+  pasta: tratar como compartilhada transformaria o aviso em ruído.
+- O aviso de dados do usuário vale para as pastas de **conteúdo**
+  (`Documents`, `Desktop`, `Pictures`, `Music`, `Videos`, `Saved Games`,
+  `Favorites`, `3D Objects`, `Contacts`, `Links`, `Searches`, `Downloads`) e
+  para `C:\Users\Public`. `AppData` **não** entra: ali mora dado de programa,
+  que é justamente o que a desinstalação deve apagar — e um aviso constante
+  não é aviso nenhum.
+- A confirmação que precede a remoção **nunca** é omitida pelas preferências
+  de mensagem (`UserMessages.Confirm`). As preferências tratam só das
+  mensagens informativas e de aviso.
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do

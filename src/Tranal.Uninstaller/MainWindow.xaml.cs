@@ -1221,7 +1221,8 @@ public partial class MainWindow : Window
             if (confirm != MessageBoxResult.Yes) return;
         }
 
-        var wizard = new Ui.UninstallWizardWindow(targets.Select(t => t.Program).ToList(), quick)
+        var wizard = new Ui.UninstallWizardWindow(
+            targets.Select(t => t.Program).ToList(), quick, _all.Select(r => r.Program).ToList())
         {
             Owner = this,
         };
@@ -1235,7 +1236,8 @@ public partial class MainWindow : Window
     /// </summary>
     public void StartUninstallFor(InstalledProgram program)
     {
-        var wizard = new Ui.UninstallWizardWindow(new List<InstalledProgram> { program }, quick: false)
+        var wizard = new Ui.UninstallWizardWindow(
+            new List<InstalledProgram> { program }, quick: false, _all.Select(r => r.Program).ToList())
         {
             Owner = this,
         };

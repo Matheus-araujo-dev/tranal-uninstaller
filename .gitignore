@@ -4,6 +4,7 @@ obj/
 publish/
 dist/
 dist-*/
+bin-verif/
 *.exe
 *.dll
 *.pdb

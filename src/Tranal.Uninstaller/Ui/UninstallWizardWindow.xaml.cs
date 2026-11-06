@@ -37,6 +37,14 @@ public partial class UninstallWizardWindow : Window
     private static string RestorePointHint => Loc.Get("Wizard.RestorePointHint");
 
     private readonly List<InstalledProgram> _programs;
+
+    /// <summary>
+    /// Todos os programas instalados. E o que permite avisar que outro
+    /// programa divide a pasta de instalacao — e o aviso que o original da
+    /// antes de rodar o desinstalador.
+    /// </summary>
+    private readonly IReadOnlyList<InstalledProgram>? _allPrograms;
+
     private readonly bool _quick;
     private readonly ObservableCollection<LeftoverItem> _leftovers = new();
     private int _step;
@@ -92,7 +100,13 @@ public partial class UninstallWizardWindow : Window
     /// <summary>Cria o assistente para a lista de programas informada.</summary>
     /// <param name="programs">Programas a desinstalar.</param>
     /// <param name="quick">True quando a desinstalacao foi pedido em modo rapido.</param>
-    public UninstallWizardWindow(List<InstalledProgram> programs, bool quick)
+    /// <param name="allPrograms">
+    /// Todos os programas instalados. E o que permite avisar que outro
+    /// programa divide a pasta de instalacao. Pode ser nulo: sem a lista, o
+    /// aviso de pasta compartilhada simplesmente nao existe.
+    /// </param>
+    public UninstallWizardWindow(
+        List<InstalledProgram> programs, bool quick, IReadOnlyList<InstalledProgram>? allPrograms = null)
     {
         InitializeComponent();
 
@@ -101,6 +115,7 @@ public partial class UninstallWizardWindow : Window
         BuildLeftoversView();
 
         _programs = programs;
+        _allPrograms = allPrograms;
         _quick = quick;
         StepsBar.ItemsSource = StepNames;
         LeftoversList.ItemsSource = _leftovers;
@@ -277,6 +292,7 @@ public partial class UninstallWizardWindow : Window
             {
                 case 0:
                     await AnalyzeAsync();
+                    if (!ConfirmPreUninstallAdvisories()) return;
                     ShowStep(1);
                     break;
 
@@ -351,6 +367,55 @@ public partial class UninstallWizardWindow : Window
             .ToList());
 
         StatusText.Text = Loc.Get("Wizard.Analyzed", _analysis.Count);
+    }
+
+    /// <summary>
+    /// Os avisos que precedem a desinstalacao: outro programa divide a pasta
+    /// de instalacao, ou o programa e um componente do sistema.
+    ///
+    /// A confirmacao NUNCA e omitida pelas preferencias de mensagem: e a
+    /// pergunta que antecede a remocao, nao uma mensagem informativa. E o
+    /// original faz a mesma coisa antes de rodar o desinstalador nativo.
+    /// </summary>
+    private bool ConfirmPreUninstallAdvisories()
+    {
+        var advisories = new List<UninstallAdvisory>();
+
+        foreach (var program in _programs)
+        {
+            var shared = UninstallAdvisories.SharedInstallLocationAdvisory(program, _allPrograms);
+            if (shared is not null) advisories.Add(shared);
+
+            var system = UninstallAdvisories.SystemComponentAdvisory(program);
+            if (system is not null) advisories.Add(system);
+        }
+
+        if (advisories.Count == 0) return true;
+
+        var text = string.Join(
+            Environment.NewLine + Environment.NewLine,
+            advisories.Select(a => a.Title + Environment.NewLine + a.Message));
+
+        return UserMessages.Confirm(this, text);
+    }
+
+    /// <summary>
+    /// Mostra o aviso de pastas que podem conter dados do usuario e
+    /// documentos. Ele fica na etapa da lista de sobras, que e onde o
+    /// usuario revisa o que vai ser apagado.
+    /// </summary>
+    private void ShowLeftoverAdvisory()
+    {
+        var advisory = UninstallAdvisories.UserDataAdvisory(_leftovers);
+        if (advisory is null)
+        {
+            AdvisoryPanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        AdvisoryTitleText.Text = advisory.Title;
+        AdvisoryText.Text = advisory.Message;
+        AdvisoryPanel.Visibility = Visibility.Visible;
     }
 
     /// <summary>
@@ -445,6 +510,8 @@ public partial class UninstallWizardWindow : Window
         _survivors = items.Count(i => before.Contains(ItemKey(i)));
 
         StatusText.Text = Loc.Get("Wizard.ItemsFound", _leftovers.Count);
+
+        ShowLeftoverAdvisory();
     }
 
     /// <summary>
