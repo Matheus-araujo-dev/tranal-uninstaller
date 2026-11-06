@@ -143,12 +143,11 @@ codigo. Cada linha tem a evidencia no binario de quem tem o recurso.
 | 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | `[UninstallerPro] 15178 = Export,Import or Edit log` |
 | 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | `strings.txt:26974` (texto do botao "Advanced Uninstall") |
 | 4 | Varredura de **fluxos alternativos** (ADS) de arquivo | Total Uninstall | `inv.md:176` |
-| 6 | Detectar que o programa foi **desinstalado por fora** | Soft Organizer | `recursos.txt:102` (formulario de deteccao de desinstalacao externa) |
-| 7 | Filtros por **tamanho** e por **uso raro** na lista | Soft Organizer | `inv.md` (filtro "Large Applications" / "Rarely used apps") |
-| 8 | Remocao de item de inicializacao do Autostart sem tocar no resto | BCU, Revo, Wise | `[Auto Run Manager Pro] 15800 = Add` |
-| 9 | Busca por **Regex** na lista (e no motor de regras) | Revo, Geek, BCU | Revo le o filtro por registro (`ADVAPI32.dll` → `RegQueryValueExW`) |
-| 10 | Arvore de **mudancas** entre dois snapshots, com perfis | Total Uninstall | `recursos.txt:134 TDLGCOMPARESNS` |
-| 11 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) |
+| 5 | Detectar que o programa foi **desinstalado por fora** | Soft Organizer | `recursos.txt:102` (formulario de deteccao de desinstalacao externa) |
+| 6 | Filtros por **tamanho** e por **uso raro** na lista | Soft Organizer | `inv.md` (filtro "Large Applications" / "Rarely used apps") |
+| 7 | Busca por **Regex** na lista (e no motor de regras) | Revo, Geek, BCU | Revo le o filtro por registro (`ADVAPI32.dll` → `RegQueryValueExW`) |
+| 8 | Arvore de **mudancas** entre dois snapshots, com perfis | Total Uninstall | `recursos.txt:134 TDLGCOMPARESNS` |
+| 9 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) |
 
 ### 3.4 Ja resolvido e reclassificado
 
@@ -160,7 +159,8 @@ ausente, mas `Core/Management/ServiceManager.cs` e
 ausentes tambem ja existem no Tranal: log por item com codigo de erro
 (`Core/RemovalLog.cs`), undo/redo da restauracao (`Core/Recovery/ProgramBackup.cs`),
 validacao de cadeia de certificados (`Core/Discovery/UninstallerCertificate.cs`),
-comparacao de snapshots e aviso de pasta compartilhada.
+comparacao de snapshots, aviso de pasta compartilhada e remocao de item de
+inicializacao (`Core/Tools/AutorunManager.cs`, que faz `Remove`).
 
 ---
 
