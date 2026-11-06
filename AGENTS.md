@@ -41,6 +41,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Va
 
 Baseline de avisos: **0**. Qualquer aviso novo é regressão.
 
+**`dotnet test` sozinho NÃO compila a interface gráfica.** A suíte referencia o
+projeto da CLI (e, por consequência, o `Core` compartilhado), mas o projeto WPF
+`Tranal.Uninstaller` só entra no build quando se compila a **solução**. Um
+erro de compilação na tela passa os testes e só aparece no CI.
+
+> Antes de dizer que está verde, rode os **dois**:
+> `dotnet build Tranal.Uninstaller.slnx -c Release` **e** o `dotnet test`.
+> A verificação mais forte é `git archive HEAD` para uma pasta limpa, build da
+> solução e teste de lá — ela pega o que a árvore de trabalho esconde.
+
 ## Regras do projeto
 
 - **Português (pt-BR)** em comentários, XML docs, textos de interface e mensagens.
