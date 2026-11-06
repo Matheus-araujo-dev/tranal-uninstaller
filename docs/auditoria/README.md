@@ -36,15 +36,11 @@ documento diz **"não verificado"** e explica o motivo.
 | HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ auditado |
 | Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ auditado |
 | Geek Uninstaller 1.6.0.200 | [GEEK.md](GEEK.md) | ✅ auditado |
-| HiBit Uninstaller | — | em curso |
-| Geek Uninstaller | — | em curso |
-| Uninstalr | — | em curso |
-| IObit Uninstaller | — | em curso |
-| Total Uninstall | — | em curso |
-| Ashampoo UnInstaller | — | pendente |
-| Uninstall Tool | — | pendente |
-| Soft Organizer | — | pendente |
-| Wise Program Uninstaller | — | pendente |
+| Wise Program Uninstaller 3.2.7.271 | [WISE.md](WISE.md) | ✅ auditado |
+| Total Uninstall 7.6.2 | — | em curso |
+| Ashampoo UnInstaller | — | em curso |
+| Uninstall Tool | — | em curso |
+| Soft Organizer | — | em curso |
 
 A matriz consolidada ("Revo + 10 concorrentes → o que falta para ser igual
 ou melhor em TUDO") fica em [MATRIZ.md](MATRIZ.md), e é atualizada a cada

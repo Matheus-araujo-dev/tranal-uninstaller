@@ -168,10 +168,16 @@ item aponta para a auditoria que o revelou.
 | 13 | Limpeza de pastas "Arquivos de Programas" vazias/pela metade | BCU C12 |
 | 14 | Comandos antes e depois da desinstalação | BCU B15 |
 | 15 | Verificação de certificado do desinstalador | BCU D8 |
-| 16 | Colunas novas: ✅ Tipo de desinstalador e ✅ Código do produto (implementados); ⬜ Desinstalador silencioso, Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
+| 16 | Colunas novas: ✅ Tipo de desinstalador, ✅ Código do produto e ✅ Desinstalador silencioso (implementados); ⬜ Localização do desinstalador, Fonte, Componente do sistema, Protegido, GUID, Inicialização | BCU D1 |
 | 17 | Gerenciador de inicialização integrado ao ciclo de desinstalação | BCU C13 |
 | 18 | Remoção definitiva de drivers | Revo E10 |
 | 19 | **Um switch de CLI por ferramenta** (o HiBit tem 19) + a forma longa com sufixo ` RUN` | HiBit H.2 |
+| 20 | **Painel único de "Software Health"** com 4 categorias: sobras, arquivos redundantes, permissões e notificações | IObit · **Wise H.5** — dois concorrentes independentes, mesma ideia: deixa de ser nicho |
+| 21 | **Histórico de desinstalações com "Recuperar"** — juntar o `TraceStore` (rastreio de instalação) com o `BackupManager` (backup) num histórico que volta as sobras | **Wise H.5** — a forma mais direta de "desinstalar, excluir as sobras e voltar atrás" |
+| 22 | **Backup dos resíduos** antes de apagá-los, com expiração | **Wise H.5** — hoje o Tranal faz backup do registro, não dos resíduos |
+| 23 | **Desinstalação Forçada** como modo explícito, e **Desinstalação Personalizada** por palavra-chave | **Wise H.5** |
+| 24 | Gerenciador de permissões de app: serviço, inicialização, menu de contexto, tarefa agendada | **Wise H.5** |
+| 25 | Base de regras de limpeza **por aplicativo** (o Wise mantém 595 perfis; o Total Uninstall, um XML de regras) | **Wise H.5** · Total Uninstall |
 
 ### F.3 🟢 Ganho pequeno
 
@@ -342,6 +348,53 @@ passar o caminho como argumento também não fez nada.
 varredura por nome não acha o que o instalador pôs fora da pasta do
 programa — e é exatamente o item F.1-2 do backlog.
 
+### H.5 Wise Program Uninstaller 3.2.7.271 — [WISE.md](WISE.md)
+
+| Recurso | Wise | Tranal | Prioridade |
+|---|---|---|---|
+| **Histórico de desinstalações com botão "Recuperar"** (coluna "Resíduos") | ✅ | ⬜ | 🔴 **alta** — é a combinação "desinstalar + excluir sobras + voltar atrás" |
+| **Backup automático dos resíduos** antes de apagá-los, com expiração (1 mês) | ✅ | 🟡 | 🔴 **alta** — o Tranal faz backup do registro, não dos resíduos |
+| **Desinstalação Forçada** como modo explícito | ✅ | 🟡 | 🔴 **alta** |
+| **Desinstalação Personalizada** por palavra-chave, com "Explorar" | ✅ | ⬜ | 🟡 |
+| **Software Health** em 4 categorias (sobras, redundantes, permissões, notificações) | ✅ | ⬜ | 🔴 **alta** — o **mesmo** painel do IObit: agora são dois concorrentes, deixa de ser nicho |
+| Detecção de **permissões** de app: serviço, inicialização, menu de contexto, tarefa agendada | ✅ | ⬜ | 🟡 |
+| Bloqueio de **notificações pop-up** (navegador e software) | ✅ | ⬜ | 🟡 |
+| Base de regras de limpeza **por aplicativo** (**595 perfis**, 2.379 caminhos) | ✅ | ⬜ | 🟡 |
+| Gerenciador de extensões de navegador — **11** navegadores | ✅ | 🟡 | 🟡 — faltam Yandex, Vivaldi, Brave, Comodo Dragon, Cent Browser, SoGou |
+| Coluna "**Usado pela Última Vez**" | ✅ | ⬜ | 🟢 |
+| **Tamanho total** dos programas na lista | ✅ | 🟡 | 🟢 |
+| Datas com **tempo relativo** ("%d semana(s) atrás") | ✅ | ⬜ | 🟢 |
+| **46 idiomas**, com pt-BR completo (218 chaves) | ✅ | ✅ | — |
+| Skins Light/Dark, WebView2, SVG | ✅ | 🟡 | 🟢 |
+| Menu de contexto do Explorer | ✅ | ✅ | — |
+| Exportar a lista | ✅ | ✅ | — |
+| Ponto de restauração antes de desinstalar | ✅ | ✅ | — |
+| Varredura de sobras **depois** da desinstalação | ✅ | ✅ | — |
+| **Atribuição pela cadeia** (lê o `.msi` em cache) | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **Justificativa por item** (o *porquê* de cada sobra) | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| **Silencioso com switch medido por família** | ❌ (só avisa que não dá) | ✅ | — 🟢 **Tranal melhor** |
+| **CLI** (`/scan`, `/mu`, `/export`) | ❌ | ✅ | — 🟢 **Tranal melhor** |
+| Driver de kernel / serviço de fundo | ❌ | ❌ | — |
+
+**O achado que confirma a decisão de produto:** o "Software Health" com as
+**mesmas 4 categorias** apareceu no IObit e agora no Wise — dois concorrentes
+independentes, mesma ideia. Deixa de ser curiosidade e vira **prioridade**:
+o Tranal tem as ferramentas separadas (`AutorunManager`, `ExplorerContextMenu`,
+`JunkCleaner`), e falta o **painel único** que as reúne.
+
+**O achado que dá o próximo passo do núcleo:** o histórico do Wise com
+**"Recuperar"** é a forma mais direta de atender o que o owner disse querer —
+"desinstalar, excluir as sobras". O Tranal já tem as duas metades
+(`TraceStore` registra a instalação; `BackupManager` faz o backup do
+registro) e não tem o **histórico com restauração** que junta as duas.
+
+**A correção de domínio:** `wiseuninstaller.com` responde **403** a esta
+máquina (com e sem `www`, e com User-Agent de navegador) — é a mesma
+armadilha de SEO do `hibituninstaller.com` e do `totaluninstall.com`. O
+fabricante é a **Lespeed Technology Co., Ltd** (Beijing), o site é
+`wisecleaner.com` e o download sai de `downloads.wisecleaner.com`, confirmado
+pelo manifesto do winget com o SHA-256 conferido.
+
 ---
 
 ## G. Estado da auditoria
@@ -353,14 +406,11 @@ programa — e é exatamente o item F.1-2 do backlog.
 | HiBit Uninstaller 4.0.10 | [HIBIT.md](HIBIT.md) | ✅ completo — 58 funcionalidades, 21+ ferramentas, 802 legendas pt-BR, 33 DLLs importadas |
 | Uninstalr 3.2 | [UNINSTALR.md](UNINSTALR.md) | ✅ completo — 49 funcionalidades medidas, deep search de 25 min medido, 162 apps / 846 arquivos / 1.562 pastas / 394 chaves |
 | Geek Uninstaller 1.6.0.200 | [GEEK.md](GEEK.md) | ✅ completo — **60 strings** (superfície inteira), menus e assistente capturados |
-| HiBit Uninstaller | — | 🔄 em curso |
-| Geek Uninstaller | — | 🔄 em curso |
-| Uninstalr | — | 🔄 em curso |
+| Wise Program Uninstaller 3.2.7.271 | [WISE.md](WISE.md) | ✅ completo — 72 funcionalidades, 292 chaves de catálogo (218 em pt-BR), 15 formulários, **595 perfis** de limpeza por aplicativo |
 | Total Uninstall | — | 🔄 em curso |
-| Ashampoo UnInstaller | — | ⏳ na fila |
-| Uninstall Tool | — | ⏳ na fila |
-| Soft Organizer | — | ⏳ na fila |
-| Wise Program Uninstaller | — | ⏳ na fila |
+| Ashampoo UnInstaller | — | 🔄 em curso |
+| Uninstall Tool | — | 🔄 em curso |
+| Soft Organizer | — | 🔄 em curso |
 
 Cada auditoria concluída **atualiza esta matriz** e pode **mudar o backlog** —
 um recurso que só o BCU tem hoje pode ser comum a todos, e aí vira
