@@ -307,6 +307,9 @@
                     Background="{DynamicResource PanelBrush}"
                     AlternationCount="2"
                     SelectionMode="Extended"
+                    ScrollViewer.CanContentScroll="True"
+                    VirtualizingStackPanel.IsVirtualizing="True"
+                    VirtualizingStackPanel.VirtualizationMode="Recycling"
                     PreviewMouseRightButtonDown="ProgramsList_PreviewMouseRightButtonDown">
             <!--
               A grade (ListView.View) e montada em codigo: o usuario escolhe

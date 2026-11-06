@@ -88,15 +88,10 @@ public partial class MainWindow : Window
         };
 
         var programs = await Task.Run(() => ProgramScanner.Scan(options));
-        MemProbe.Mark("scan-done");
 
         _all.Clear();
-        if (!MemProbe.SkipRows)
-        {
-            foreach (var program in programs)
-                _all.Add(new ProgramRow(program));
-        }
-        MemProbe.Mark("rows-added");
+        foreach (var program in programs)
+            _all.Add(new ProgramRow(program));
 
         // O arquivo de preferencias do usuario pode estar invalido (e foi
         // preservado) ou travado (e nao deu para ler). Nao avisar deixaria
@@ -110,7 +105,6 @@ public partial class MainWindow : Window
 
         ApplyFilter();
         UpdateStatus();
-        MemProbe.Mark("filter-applied");
     }
 
     private void UpdateStatus()

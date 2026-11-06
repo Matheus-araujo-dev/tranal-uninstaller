@@ -36,7 +36,10 @@
     <!-- Lista -->
     <ListView x:Name="ItemsList" Grid.Row="2" BorderThickness="0"
               Background="{DynamicResource PanelBrush}" AlternationCount="2"
-              SelectionMode="Extended" />
+              SelectionMode="Extended"
+              ScrollViewer.CanContentScroll="True"
+              VirtualizingStackPanel.IsVirtualizing="True"
+              VirtualizingStackPanel.VirtualizationMode="Recycling" />
 
     <!-- Status -->
     <Border Grid.Row="3" Background="{DynamicResource StatusBarBrush}"

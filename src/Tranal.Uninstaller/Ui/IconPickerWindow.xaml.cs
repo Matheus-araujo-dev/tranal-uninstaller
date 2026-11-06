@@ -127,6 +127,14 @@ public sealed partial class IconPickerWindow : Window
 
         try
         {
+            // O campo DisplayIcon do registro costuma apontar para o proprio
+            // executavel do programa. O WPF nao decodifica executavel: ele
+            // copia o arquivo inteiro para a memoria antes de descobrir que
+            // ele nao e uma imagem (um Chrome de 4 MB por linha da lista).
+            // Reconhecer a imagem pela assinatura evita essa copia, e o
+            // resultado continua o mesmo: executavel nao vira icone.
+            if (!EhImagem(path)) return null;
+
             var image = new BitmapImage();
             image.BeginInit();
             image.UriSource = new Uri(path, UriKind.Absolute);
@@ -140,5 +148,54 @@ public sealed partial class IconPickerWindow : Window
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// True quando o arquivo comeca pela assinatura de uma imagem que o WPF
+    /// decodifica (PNG, JPEG, GIF, BMP, ICO, TIFF, WMF, EMF).
+    /// </summary>
+    private static bool EhImagem(string path)
+    {
+        Span<byte> assinatura = stackalloc byte[12];
+
+        int lidos;
+        try
+        {
+            using var fluxo = File.OpenRead(path);
+            lidos = fluxo.Read(assinatura);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (lidos >= 8 && assinatura[0] == 0x89 && assinatura[1] == 'P' && assinatura[2] == 'N' && assinatura[3] == 'G')
+            return true; // PNG
+
+        if (lidos >= 3 && assinatura[0] == 0xFF && assinatura[1] == 0xD8 && assinatura[2] == 0xFF)
+            return true; // JPEG
+
+        if (lidos >= 6 && assinatura[0] == 'G' && assinatura[1] == 'I' && assinatura[2] == 'F' && assinatura[3] == '8')
+            return true; // GIF
+
+        if (lidos >= 2 && assinatura[0] == 'B' && assinatura[1] == 'M')
+            return true; // BMP
+
+        if (lidos >= 4 && assinatura[0] == 0x00 && assinatura[1] == 0x00 && assinatura[2] == 0x01 && assinatura[3] == 0x00)
+            return true; // ICO
+
+        if (lidos >= 4 && assinatura[0] == 'I' && assinatura[1] == 'I' && assinatura[2] == 0x2A && assinatura[3] == 0x00)
+            return true; // TIFF
+
+        if (lidos >= 4 && assinatura[0] == 'M' && assinatura[1] == 'M' && assinatura[2] == 0x00 && assinatura[3] == 0x2A)
+            return true; // TIFF
+
+        if (lidos >= 4 && assinatura[0] == 0xD7 && assinatura[1] == 0xCD && assinatura[2] == 0xC6 && assinatura[3] == 0x9A)
+            return true; // WMF
+
+        if (lidos >= 4 && assinatura[0] == 0x01 && assinatura[1] == 0x00 && assinatura[2] == 0x00 && assinatura[3] == 0x00)
+            return true; // EMF
+
+        return false;
     }
 }
