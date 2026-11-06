@@ -33,19 +33,19 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | A1 | Enumeração pelo registro (32 e 64 bits) | ✅ | ✅ | ✅ | — |
 | A2 | **Classificação do desinstalador** (MsiExec, Inno, NSIS, InstallShield, SDBInst, Steam, Store, WinFeature, WinUpdate, Chocolatey, Oculus, PowerShell, Simple Delete) | 🟡 | ✅ (14 tipos) | ✅ (12 tipos) | — |
 | A3 | Detecção de **Windows Store Apps** | ✅ | ✅ | ✅ (122 MSIX) | — |
-| A4 | Detecção de **Windows Features** (WMI) | ⬜ | ✅ | ⬜ | 🟡 |
-| A5 | Detecção de **Windows Updates** (WUA) | ⬜ | ✅ | ⬜ | 🟡 |
-| A17 | **Remoção de extensões de navegador** com base maliciosa/ad | ⬜ | ⬜ | ⬜ | 🟡 |
-| A6 | Detecção de **aplicativos Steam** | ⬜ | ✅ | ⬜ | 🟡 |
-| A7 | Detecção de **Chocolatey / Scoop** | ⬜ | ✅ | ⬜ | 🟢 |
-| A8 | Detecção de **Oculus** | ⬜ | ✅ | ⬜ | 🟢 |
-| A9 | **Varredura de drives** atrás de apps não registrados | ⬜ | ✅ | ⬜ | 🟡 |
-| A10 | Detecção de **produtos MSI** por GUID | 🟡 | ✅ | ⬜ | 🟡 |
+| A4 | Detecção de **Windows Features** (WMI) | ⬜ | ✅ | ✅ (WMI) | 🟡 |
+| A5 | Detecção de **Windows Updates** (WUA) | ⬜ | ✅ | ✅ (COM) | 🟡 |
+| A17 | **Remoção de extensões de navegador** com base maliciosa/ad | ⬜ | ⬜ | 🟡 (remove a extensão; sem base maliciosa) | 🟡 |
+| A6 | Detecção de **aplicativos Steam** | ⬜ | ✅ | ✅ | 🟡 |
+| A7 | Detecção de **Chocolatey / Scoop** | ⬜ | ✅ | ✅ | 🟢 |
+| A8 | Detecção de **Oculus** | ⬜ | ✅ | 🟡 (classifica o tipo; sem catálogo de aplicativos) | 🟢 |
+| A9 | **Varredura de drives** atrás de apps não registrados | ⬜ | ✅ | ✅ | 🟡 |
+| A10 | Detecção de **produtos MSI** por GUID | 🟡 | ✅ | ✅ | 🟡 |
 | A11 | Marcação de **componente do sistema** | ✅ | ✅ | ✅ | — |
-| A12 | Marcação de **protegido** (`NoRemove`) | ✅ | ✅ | ⬜ | 🟡 |
-| A13 | Marcação de **atualização** de outro app | 🟡 | ✅ | ⬜ | 🟢 |
-| A14 | Detecção de **desinstalador corrompido/ausente** | ✅ | ✅ | ⬜ | 🟡 |
-| A15 | **Pastas de instalação personalizadas** do usuário | ⬜ | ✅ | ⬜ | 🟢 |
+| A12 | Marcação de **protegido** (`NoRemove`) | ✅ | ✅ | ⬜ (sem leitura de `NoRemove`) | 🟡 |
+| A13 | Marcação de **atualização** de outro app | 🟡 | ✅ | 🟡 (lê o registro; não marca na lista) | 🟢 |
+| A14 | Detecção de **desinstalador corrompido/ausente** | ✅ | ✅ | ⬜ (entradas sem desinstalador ficam invisíveis) | 🟡 |
+| A15 | **Pastas de instalação personalizadas** do usuário | ⬜ | ✅ | 🟡 (lê a pasta do programa; sem pastas extras do usuário) | 🟢 |
 | A16 | **Filtros rápidos** (só básicas / só sistema / só auto-inicialização / só navegadores) | ✅ | ✅ | ✅ | — |
 
 ## B. Desinstalação
@@ -53,17 +53,17 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | # | Funcionalidade | Revo | BCU | Tranal | Prioridade |
 |---|---|---|---|---|---|
 | B1 | Rodar o desinstalador nativo | ✅ | ✅ | ✅ | — |
-| B2 | **Desinstalação silenciosa** | ✅ | ✅ | ⬜ (modo `builtin` só) | 🔴 |
-| B3 | **Gerar desinstalador silencioso ausente** (inclusive por automação de interface) | 🟡 | ✅ | ⬜ | 🔴 |
-| B4 | **Desinstalar via MsiExec** (GUID) | 🟡 | ✅ | ⬜ | 🟡 |
-| B5 | **Desinstalar manualmente** (pular o desinstalador, listar o que apagar) | 🟡 | ✅ | ⬜ | 🟡 |
-| B6 | **Desinstalar por janela / diretório / arquivo** | ✅ | ✅ | 🟡 (overlay) | 🟢 |
+| B2 | **Desinstalação silenciosa** | ✅ | ✅ | ✅ (comando silencioso por família do desinstalador) | 🔴 |
+| B3 | **Gerar desinstalador silencioso ausente** (inclusive por automação de interface) | 🟡 | ✅ | 🟡 (deriva o comando; não gera um desinstalador) | 🔴 |
+| B4 | **Desinstalar via MsiExec** (GUID) | 🟡 | ✅ | ✅ (`msiexec /x {GUID}`) | 🟡 |
+| B5 | **Desinstalar manualmente** (pular o desinstalador, listar o que apagar) | 🟡 | ✅ | ✅ | 🟡 |
+| B6 | **Desinstalar por janela / diretório / arquivo** | ✅ | ✅ | ✅ (forçada por janela, diretório ou arquivo) | 🟢 |
 | B7 | **Desinstalação simultânea** com prevenção de colisão | ⬜ | ✅ | ⬜ | 🟡 |
 | B8 | **Ordenação inteligente** (loud primeiro) | ⬜ | ✅ | ⬜ | 🟢 |
 | B9 | **Simulação / dry run** | 🟡 | ✅ | ✅ (`/scan`) | — 🟢 Tranal melhor |
-| B10 | **Painel de progresso** com estados (executando/aguardando/concluído/falhou/pulado) | ✅ | ✅ | 🟡 | 🟡 |
-| B11 | Controle manual do progresso: **pular / encerrar / rodar agora** | ⬜ | ✅ | 🟡 (só matar) | 🟡 |
-| B12 | **Abortar a tarefa** sem matar o desinstalador em execução | ⬜ | ✅ | ⬜ | 🟢 |
+| B10 | **Painel de progresso** com estados (executando/aguardando/concluído/falhou/pulado) | ✅ | ✅ | ✅ | 🟡 |
+| B11 | Controle manual do progresso: **pular / encerrar / rodar agora** | ⬜ | ✅ | ✅ (pular / encerrar / rodar agora) | 🟡 |
+| B12 | **Abortar a tarefa** sem matar o desinstalador em execução | ⬜ | ✅ | 🟡 (encerra a fila; não mata o desinstalador nativo) | 🟢 |
 | B13 | **Monitorar silencioso** atrás de popups (daemon de automatização) | ⬜ | ✅ | ⬜ | 🟡 |
 | B14 | **Finalizar automaticamente** desinstalador travado | ✅ | ✅ | ✅ | — |
 | B15 | **Comandos antes e depois** da desinstalação | 🟡 | ✅ | ⬜ | 🟡 |
@@ -82,15 +82,15 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | C2 | **4 modos** (builtin / seguro / moderado / avançado) | ✅ | 🟡 (varredura de lixo por nível) | ✅ | — |
 | C3 | **Níveis de confiança** | 🟡 (negrito = alta) | ✅ (5 níveis) | ✅ (3 níveis) | — |
 | C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") | ⬜ | ✅ | ✅ (11 motivos, coluna "Porquê") | — |
-| C5 | **Atribuição pela cadeia de desinstalação** (item citado explicitamente) | 🟡 | ✅ | ⬜ | 🔴 |
-| C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | ⬜ | 🟡 |
+| C5 | **Atribuição pela cadeia de desinstalação** (item citado explicitamente) | 🟡 | ✅ | ✅ | 🔴 |
+| C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | 🟡 (confiança pelo nome; não por "pasta vazia/executáveis") | 🟡 |
 | C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | ⬜ | ✅ | ⬜ | 🟢 |
 | C8 | Aviso ao mexer em item de **baixa confiança** | ⬜ | ✅ | 🟡 (só não marca) | 🟢 |
 | C9 | **Backup antes de remover sobras** | ✅ | ✅ | ✅ | — |
 | C10 | Arquivos de sobra vão para a **lixeira** | ✅ | ✅ | ✅ | — |
-| C11 | **Exportar lista de sobras** | ⬜ | ✅ | ⬜ | 🟢 |
-| C12 | **Limpeza de pastas "Arquivos de Programas"** (vazias e pela metade) | 🟡 | ✅ | ⬜ | 🟡 |
-| C13 | **Gerenciador de inicialização** integrado | ✅ | ✅ | 🟡 | 🟡 |
+| C11 | **Exportar lista de sobras** | ⬜ | ✅ | ✅ | 🟢 |
+| C12 | **Limpeza de pastas "Arquivos de Programas"** (vazias e pela metade) | 🟡 | ✅ | ✅ | 🟡 |
+| C13 | **Gerenciador de inicialização** integrado | ✅ | ✅ | ✅ | 🟡 |
 | C14 | Limpeza de **regras de firewall**, UserAssist, relatórios de erro, CLSID, áudio, eventos | ⬜ | ✅ (17 grupos) | 🟡 (ferramentas próprias) | 🟢 |
 | C15 | Desinstalador **simples gerado** para app órfão | ⬜ | ✅ | ⬜ (decisão do §8 do PARIDADE) | 🟢 |
 
@@ -99,25 +99,25 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | # | Funcionalidade | Revo | BCU | Tranal | Prioridade |
 |---|---|---|---|---|---|
 | D1 | **Colunas customizáveis** | ✅ | ✅ (18 fixas) | ✅ (14) | 🟡 (mais colunas) |
-| D2 | **Filtro por Regex** e condições (incluir/excluir, negação) | ⬜ | ✅ | ⬜ | 🟡 |
-| D3 | **Lista de desinstalação em arquivo** (`.bcul`) | ⬜ | ✅ | ⬜ | 🟡 |
-| D4 | **Desinstalação em lote roteirizável** pela linha de comando | ⬜ | ✅ | ⬜ | 🟡 |
-| D5 | **Treemap** | ✅ | ✅ | ⬜ | 🟢 |
-| D6 | **Legenda de cores** | ✅ | ✅ | ⬜ | 🟢 |
-| D7 | **Classificação do usuário** (estrelas) | ⬜ | ✅ | ⬜ | 🟢 |
-| D8 | **Verificação de certificado** do desinstalador | ✅ | ✅ | ⬜ | 🟡 |
-| D9 | **Cópia avançada** para a área de transferência (padrão composto) | 🟡 | ✅ | ⬜ | 🟢 |
+| D2 | **Filtro por Regex** e condições (incluir/excluir, negação) | ⬜ | ✅ | 🟡 (regex só no motor de regras, não no filtro da lista) | 🟡 |
+| D3 | **Lista de desinstalação em arquivo** (`.bcul`) | ⬜ | ✅ | ✅ (`/batch`) | 🟡 |
+| D4 | **Desinstalação em lote roteirizável** pela linha de comando | ⬜ | ✅ | ✅ (`/batch` + script) | 🟡 |
+| D5 | **Treemap** | ✅ | ✅ | ✅ | 🟢 |
+| D6 | **Legenda de cores** | ✅ | ✅ | ✅ | 🟢 |
+| D7 | **Classificação do usuário** (estrelas) | ⬜ | ✅ | ✅ | 🟢 |
+| D8 | **Verificação de certificado** do desinstalador | ✅ | ✅ | ✅ | 🟡 |
+| D9 | **Cópia avançada** para a área de transferência (padrão composto) | 🟡 | ✅ | ✅ | 🟢 |
 | D10 | **Exportar** dados do programa | ✅ | ✅ (XML) | ✅ (CSV/XML/HTML) | — |
-| D11 | **Exportar para script** de desinstalação em lote | ⬜ | ✅ | ⬜ | 🟢 |
-| D12 | Script PowerShell para remover Store Apps | ⬜ | ✅ | ⬜ | 🟢 |
-| D13 | **Renomear entrada** | 🟡 | ✅ | ⬜ | 🟢 |
-| D14 | **Excluir entrada do registro** sem desinstalar | ✅ | ✅ | ⬜ | 🟢 |
-| D15 | **Assumir a propriedade** | ⬜ | ✅ | ⬜ | 🟢 |
+| D11 | **Exportar para script** de desinstalação em lote | ⬜ | ✅ | ✅ | 🟢 |
+| D12 | Script PowerShell para remover Store Apps | ⬜ | ✅ | 🟡 (remove o pacote; sem script exportado) | 🟢 |
+| D13 | **Renomear entrada** | 🟡 | ✅ | ✅ | 🟢 |
+| D14 | **Excluir entrada do registro** sem desinstalar | ✅ | ✅ | ✅ | 🟢 |
+| D15 | **Assumir a propriedade** | ⬜ | ✅ | ✅ | 🟢 |
 | D16 | Abrir chave no **Regedit** / Programas e Recursos / Recuperação do Sistema | 🟡 | ✅ | ⬜ | 🟢 |
-| D17 | **Pesquisar on-line** o programa (Google, AlternativeTo, GitHub…) | 🟡 | ✅ | 🟡 | 🟢 |
-| D18 | **Painel lateral** de configurações | 🟡 | ✅ | ⬜ | 🟢 |
-| D19 | **Agrupamento** automático pela coluna de ordenação | 🟡 | ✅ | ⬜ | 🟢 |
-| D20 | **Modo para daltônicos** / DPI / tema do sistema | 🟡 | ✅ | 🟡 | 🟢 |
+| D17 | **Pesquisar on-line** o programa (Google, AlternativeTo, GitHub…) | 🟡 | ✅ | ✅ | 🟢 |
+| D18 | **Painel lateral** de configurações | 🟡 | ✅ | ✅ | 🟢 |
+| D19 | **Agrupamento** automático pela coluna de ordenação | 🟡 | ✅ | ✅ | 🟢 |
+| D20 | **Modo para daltônicos** / DPI / tema do sistema | 🟡 | ✅ | 🟡 (tema por brushes; sem modo daltônico) | 🟢 |
 | D21 | **Grupos e anotações** do usuário | ✅ | ⬜ | ✅ | — |
 | D22 | **Galeria de ícones** | ✅ | ⬜ | ✅ | — |
 | D23 | **Atualização automática** | ✅ | ✅ | ✅ | — |
@@ -135,7 +135,38 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | E7 | **Janela flutuante sobre o app** (kill, desinstalar, propriedades) | ✅ | ⬜ | ✅ | — |
 | E8 | **Menu de contexto do Explorer** | ✅ | ⬜ | ✅ | — |
 | E9 | **Gerenciador de backups** (restaurar tudo, item a item, por tempo) | ✅ | ⬜ | ✅ | — |
-| E10 | Remoção definitiva de **drivers** | ✅ | 🟡 | ⬜ | 🟡 |
+| E10 | Remoção definitiva de **drivers** | ✅ | 🟡 | ✅ | 🟡 |
+
+### E.1 A coluna "Tranal" reconciliada com o código (06/11/2026)
+
+As tabelas A–E foram escritas durante a auditoria, **antes** da implementação
+do backlog. Depois dos oito lotes, a coluna "Tranal" foi conferida item a item
+contra o código (`src/`), não contra a memória. O retrato real de hoje:
+
+- **62 das 86** funcionalidades medidas estão **implementadas** (✅);
+- **12** estão **parciais** (🟡) — a parte principal existe, falta um detalhe
+  medido nos concorrentes;
+- **12** **não existem** (⬜).
+
+**As 12 que não existem** (a lista completa e honesta):
+
+| # | O que falta | Por quê |
+|---|---|---|
+| A12 | Marcação de **protegido** (`NoRemove`) | o registro tem o valor, o Tranal não o lê |
+| A14 | Detecção de **desinstalador corrompido/ausente** | hoje a entrada sem desinstalador fica invisível, em vez de aparecer marcada |
+| B7 | **Desinstalação simultânea** com prevenção de colisão | não há fila que impeça dois instaladores ao mesmo tempo |
+| B8 | **Ordenação inteligente** (loud primeiro) | a ordem é a da lista, não por risco |
+| B13 | **Monitorar silencioso** atrás de popups (daemon) | é a automação de interface de desinstaladores de terceiros (item #5 do backlog) |
+| B15 | **Comandos antes e depois** da desinstalação | não há campo para isso |
+| B17 | Lista de **aplicativos relacionados** | não há correlação entre programas |
+| B18 | **Remover da tarefa** quem não desinstala em silêncio | não há fila de tarefas |
+| B19 | **Impedir desligamento/reinício** durante a tarefa | não há trava de sessão |
+| C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | a confiança vem do nome, não do registro de inicialização |
+| C15 | Desinstalador **simples gerado** para app órfão | decisão do §8 do `PARIDADE.md` |
+| D16 | Abrir chave no **Regedit** / Programas e Recursos | não há comando de abertura |
+
+**As 12 parciais**: A8, A13, A15, A17, B3, B12, C6, C8, C14, D2, D12 e D20 —
+a coluna traz o motivo de cada uma.
 
 ---
 
