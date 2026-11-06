@@ -111,6 +111,13 @@ public static class MsiInstallLogReader
     {
         ArgumentNullException.ThrowIfNull(program);
 
+        // So um produto do Windows Installer tem log de instalacao para ler.
+        // Sem esta trava, um programa de outro tipo que por acaso tivesse um
+        // GUID no comando de desinstalacao seria lido com o pacote de outro
+        // produto — e as sobras viriam atribuidas ao programa errado.
+        if (UninstallerClassifier.Classify(program) != UninstallerKind.MsiExec)
+            return null;
+
         var productCode = program.ProductCode;
         if (string.IsNullOrWhiteSpace(productCode))
             productCode = UninstallerClassifier.ExtractProductCode(program.UninstallString);

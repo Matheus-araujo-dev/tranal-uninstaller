@@ -232,6 +232,23 @@ public class MsiInstallLogTests : IDisposable
     }
 
     [Fact]
+    public void UmGuidNoComandoDeOutroDesinstaladorNaoTrazLogDeOutroProduto()
+    {
+        // Um programa que NAO e do Windows Installer, mas cujo comando tem um
+        // GUID: sem a trava, o log seria lido do pacote de outro produto e as
+        // sobras seriam atribuidas ao programa errado.
+        var program = new InstalledProgram
+        {
+            DisplayName = "Programa de Teste Tranal",
+            Kind = UninstallerKind.Nsis,
+            ProductCode = "{00000000-0000-0000-0000-000000000000}",
+            UninstallString = @"""C:\Program Files\MeuApp\uninstall.exe"" /X{00000000-0000-0000-0000-000000000000}",
+        };
+
+        Assert.Null(MsiInstallLogReader.Capture(program));
+    }
+
+    [Fact]
     public void OLogDeUmProdutoQueNaoEstaInstaladoEhNulo()
     {
         Assert.Null(MsiInstallLogReader.Capture("{00000000-0000-0000-0000-000000000000}"));
