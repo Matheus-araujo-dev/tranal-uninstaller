@@ -10,8 +10,39 @@ namespace Tranal.Uninstaller.Core.Settings;
 /// </summary>
 public sealed class AppSettings
 {
-    /// <summary>Tema ativo: "Dark" ou "Light".</summary>
+    /// <summary>Tema ativo: "Dark", "Slate", "Contrast" ou "Light".</summary>
     public string Theme { get; set; } = "Dark";
+
+    /// <summary>
+    /// As cores personalizadas do usuario, por papel.
+    ///
+    /// O papel e o nome do enum <c>ThemeColorRole</c>; o valor e a cor em
+    /// hexadecimal. Uma cor invalida e ignorada na hora de aplicar — um
+    /// arquivo de preferencia corrompido nao pode deixar a tela sem cor.
+    /// </summary>
+    public Dictionary<string, string> CustomThemeColors { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Desativa as animacoes de texto da interface.
+    ///
+    /// Corresponde a opcao de desactivar as animacoes do Revo Uninstaller Pro.
+    /// Padrao: <c>false</c>.
+    /// </summary>
+    public bool DisableTextAnimations { get; set; }
+
+    /// <summary>
+    /// Mostra a tela de inicializacao (splash) ao abrir o aplicativo.
+    /// Padrao: <c>true</c>.
+    /// </summary>
+    public bool ShowSplashScreen { get; set; } = true;
+
+    /// <summary>
+    /// Oferece manter as preferencias do programa ao desinstalar.
+    ///
+    /// Corresponde a pergunta do Revo ("Do you want to keep your
+    /// preferences? Icons, comments, groups"). Padrao: <c>true</c>.
+    /// </summary>
+    public bool KeepPreferencesOnUninstall { get; set; } = true;
 
     /// <summary>Codigo de idioma ativo (ver <see cref="Localization.LanguageCatalog"/>).</summary>
     public string Language { get; set; } = "pt-BR";

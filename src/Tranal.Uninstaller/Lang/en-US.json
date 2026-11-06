@@ -662,5 +662,9 @@
     "Sidebar.GroupSystem":  "System",
     "Desc.SystemManagement":  "The permissions each program leaves in Windows, the services, scheduled tasks, drivers and the software health.",
     "Module.SystemManagement":  "System Management",
-    "Cmd.Discovery":  "System discovery"
+    "Cmd.Discovery":  "System discovery",
+    "Options.ShowSplashScreen":  "Show the splash screen",
+    "Options.DisableTextAnimations":  "Disable text animations",
+    "Options.CustomColors":  "Custom colors",
+    "Options.KeepPreferencesOnUninstall":  "Keep preferences when uninstalling"
 }

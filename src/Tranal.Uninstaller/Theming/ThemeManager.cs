@@ -1,15 +1,18 @@
 using System.Collections;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Theming;
 
 /// <summary>
-/// Troca de tema em runtime (UI escura / UI classica), como no Revo Pro
-/// ("Menu -&gt; Opcoes -&gt; Tema" e a escolha no primeiro lancamento).
+/// Troca de tema em runtime (UI escura / UI classica / ardosia / alto
+/// contraste), como no Revo Pro ("Menu -> Opcoes -> Tema" e a escolha no
+/// primeiro lancamento).
 ///
-/// Os dois temas ficam carregados no catalogo (App.xaml) e cada um e apenas um
+/// Os temas ficam carregados no catalogo (App.xaml) e cada um e apenas um
 /// conjunto de brushes. Os estilos sao compartilhados (Themes/Styles.xaml).
 ///
 /// Por que a troca e feita assim — e nao trocando dicionarios XAML:
@@ -29,11 +32,18 @@ namespace Tranal.Uninstaller.Theming;
 /// A troca final e a mais direta do WPF: escrever as brushes em
 /// Application.Resources. Isso notifica a interface e todos os DynamicResource
 /// sao reavaliados, sem recarregar a janela.
+///
+/// O **catalogo** de temas (quantos existem, o nome de cada um) vive no
+/// nucleo (`Core/Appearance/ThemePalette.cs`), e nao aqui: e a opcoes de tema,
+/// o painel de configuracao e a linha de comando que precisam da mesma
+/// lista. Aqui mora so a parte que e WPF — a escrita das brushes.
 /// </summary>
 public static class ThemeManager
 {
     public const string Dark = "Dark";
     public const string Light = "Light";
+    public const string Slate = "Slate";
+    public const string Contrast = "Contrast";
 
     /// <summary>Chave do catalogo de temas em Application.Resources.</summary>
     private const string CatalogKey = "ThemeCatalog";
@@ -41,29 +51,46 @@ public static class ThemeManager
     /// <summary>Chave usada para conferir, depois da troca, que o tema pegou.</summary>
     private const string ProbeKey = "SidebarBrush";
 
+    /// <summary>
+    /// De qual brush do XAML cada papel de cor do usuario se sobrepoe.
+    ///
+    /// E o mapa que faz a cor personalizada chegar na tela: o painel de
+    /// configuracao fala em "fundo", "texto", "selecao" — e o XAML conhece
+    /// "SidebarBrush", "TextBrush", "SelectionBrush". O mapa mora aqui, e nao
+    /// espalhado pelo painel, para que o papel e a brush nunca se separem.
+    /// </summary>
+    private static readonly IReadOnlyDictionary<ThemeColorRole, string> RoleBrushes =
+        new Dictionary<ThemeColorRole, string>
+        {
+            [ThemeColorRole.Background] = "SidebarBrush",
+            [ThemeColorRole.Panel] = "PanelBrush",
+            [ThemeColorRole.Header] = "HeaderBrush",
+            [ThemeColorRole.Text] = "TextBrush",
+            [ThemeColorRole.MutedText] = "TextDimBrush",
+            [ThemeColorRole.Selection] = "SelectionBrush",
+            [ThemeColorRole.SelectionText] = "SelectionTextBrush",
+            [ThemeColorRole.Accent] = "AccentBrush",
+            [ThemeColorRole.Border] = "BorderBrush",
+            [ThemeColorRole.Button] = "ButtonFaceBrush",
+        };
+
     private static string _current = Dark;
 
     /// <summary>Dispara depois que o tema foi aplicado.</summary>
     public static event EventHandler? ThemeChanged;
 
-    /// <summary>Tema ativo ("Dark" ou "Light").</summary>
+    /// <summary>Tema ativo ("Dark", "Slate", "Contrast" ou "Light").</summary>
     public static string Current => _current;
 
-    /// <summary>True quando o tema ativo e o escuro.</summary>
-    public static bool IsDark => string.Equals(_current, Dark, StringComparison.OrdinalIgnoreCase);
+    /// <summary>True quando o tema ativo e escuro.</summary>
+    public static bool IsDark => ThemeSkinCatalog.Get(_current)?.IsDark ?? true;
 
     /// <summary>Nomes dos temas disponiveis.</summary>
-    public static IReadOnlyList<string> Available { get; } = new[] { Dark, Light };
+    public static IReadOnlyList<string> Available { get; } =
+        ThemeSkinCatalog.All.Select(s => s.Id).ToList();
 
-    /// <summary>Normaliza um nome de tema ("claro", "light", "CLARO" -&gt; "Light").</summary>
-    public static string Normalize(string? name) =>
-        !string.IsNullOrWhiteSpace(name)
-        && (name.Trim().Equals(Light, StringComparison.OrdinalIgnoreCase)
-            || name.Trim().Equals("claro", StringComparison.OrdinalIgnoreCase)
-            || name.Trim().Equals("clássico", StringComparison.OrdinalIgnoreCase)
-            || name.Trim().Equals("classico", StringComparison.OrdinalIgnoreCase))
-            ? Light
-            : Dark;
+    /// <summary>Normaliza um nome de tema ("claro", "light", "CLARO" -> "Light").</summary>
+    public static string Normalize(string? name) => ThemeSkinCatalog.Normalize(name);
 
     /// <summary>Aplica o tema e persiste a preferencia.</summary>
     public static void Apply(string theme)
@@ -72,6 +99,7 @@ public static class ThemeManager
         _current = normalized;
 
         Swap(normalized);
+        ApplyCustomColors();
 
         AppSettingsStore.Update(s => s.Theme = normalized);
         ThemeChanged?.Invoke(null, EventArgs.Empty);
@@ -90,6 +118,7 @@ public static class ThemeManager
         _current = stored;
 
         Swap(stored);
+        ApplyCustomColors();
     }
 
     /// <summary>
@@ -111,6 +140,34 @@ public static class ThemeManager
         }
 
         Verify(theme);
+    }
+
+    /// <summary>
+    /// Aplica as cores personalizadas do usuario por cima do tema.
+    ///
+    /// A cor personalizada **ganha** do tema: e o que o usuario pediu. Uma
+    /// cor invalida no arquivo de preferencias e ignorada — o tema continua
+    /// no lugar, em vez de a tela ficar sem cor nenhuma.
+    /// </summary>
+    public static void ApplyCustomColors()
+    {
+        var app = Application.Current;
+        if (app is null) return;
+
+        var custom = AppSettingsStore.Current.CustomThemeColors;
+        if (custom is null || custom.Count == 0) return;
+
+        foreach (var (role, hex) in custom)
+        {
+            if (!ThemePalette.TryParseRole(role, out var parsed)) continue;
+            if (!RoleBrushes.TryGetValue(parsed, out var brushKey)) continue;
+            if (!ThemePalettes.TryParseColor(hex, out var argb)) continue;
+
+            app.Resources[brushKey] = new SolidColorBrush(Color.FromRgb(
+                (byte)((argb >> 16) & 0xFF),
+                (byte)((argb >> 8) & 0xFF),
+                (byte)(argb & 0xFF)));
+        }
     }
 
     /// <summary>Brushes do tema pedido, vindas do catalogo de App.xaml.</summary>

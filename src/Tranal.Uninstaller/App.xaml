@@ -7,9 +7,13 @@
       <!-- Os dois temas sao carregados aqui, uma unica vez, por caminho
            relativo (XAML). A troca de tema em runtime nao carrega nenhum
            dicionario: ela escreve as brushes do tema escolhido em
-           Application.Resources, que e o caminho que o WPF notifica. -->
+           Application.Resources, que e o caminho que o WPF notifica.
+           O catalogo de temas (quantos existem, o nome de cada um) vive em
+           Core/Appearance/ThemePalette.cs — este dicionario e so as cores. -->
       <ResourceDictionary x:Key="ThemeCatalog">
         <ResourceDictionary x:Key="Dark" Source="Themes/Dark.xaml" />
+        <ResourceDictionary x:Key="Slate" Source="Themes/Slate.xaml" />
+        <ResourceDictionary x:Key="Contrast" Source="Themes/Contrast.xaml" />
         <ResourceDictionary x:Key="Light" Source="Themes/Light.xaml" />
       </ResourceDictionary>
 

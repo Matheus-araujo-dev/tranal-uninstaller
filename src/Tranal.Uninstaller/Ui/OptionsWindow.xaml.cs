@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
@@ -35,12 +36,17 @@ public partial class OptionsWindow : Window
         StorageSectionText.Text = StorageSection;
         LayoutSectionText.Text = LayoutSection;
 
+        // A lista de temas vem do catalogo do nucleo: e a mesma que a linha de
+        // comando e o painel de configuracao listam. Um tema que existe no
+        // XAML e nao esta no catalogo nao aparece para o usuario.
+        BuildThemeCombo();
+        BuildColorRows();
+
         foreach (var language in LanguageCatalog.All)
         {
             var item = new ComboBoxItem
             {
-                Content = $"{language.NativeName} ({language.EnglishName})",
-                Tag = language.Code,
+                Content = $"{language.NativeName} ({language.EnglishName})",                Tag = language.Code,
             };
             LanguageCombo.Items.Add(item);
         }
@@ -54,6 +60,9 @@ public partial class OptionsWindow : Window
         NewDaysBox.Text = settings.NewProgramsDays.ToString();
 
         ShowWebShortcutsCheck.IsChecked = settings.ShowWebPageShortcuts;
+        DisableTextAnimationsCheck.IsChecked = settings.DisableTextAnimations;
+        ShowSplashScreenCheck.IsChecked = settings.ShowSplashScreen;
+        KeepPreferencesCheck.IsChecked = settings.KeepPreferencesOnUninstall;
         AdvancedModeCheck.IsChecked = settings.AdvancedMode;
         FastLoadingCheck.IsChecked = settings.FastLoadingMode;
         CheckUpdateCheck.IsChecked = settings.CheckForUpdateOnStartup;
@@ -82,8 +91,127 @@ public partial class OptionsWindow : Window
         WebSearchBox.Text = settings.WebSearchEngine;
     }
 
-    private static void SelectByTag(ComboBox combo, string tag)
+    /// <summary>
+    /// Monta a lista de temas a partir do catalogo do nucleo.
+    ///
+    /// A lista e a mesma que a linha de comando e o painel de configuracao
+    /// mostram: um tema novo entra no catalogo do nucleo e aparece aqui
+    /// sem precisar tocar nesta tela.
+    /// </summary>
+    private void BuildThemeCombo()
     {
+        foreach (var skin in ThemeSkinCatalog.All)
+        {
+            ThemeCombo.Items.Add(new ComboBoxItem
+            {
+                Content = $"{skin.DisplayName} — {skin.Description}",
+                Tag = skin.Id,
+            });
+        }
+    }
+
+    /// <summary>
+    /// Monta as linhas das cores personalizadas.
+    ///
+    /// Cada linha e um papel de cor do nucleo, e o texto inicial e a cor
+    /// que o tema escolhido ja usa. O usuario edita o hexadecimal e ve a
+    /// amostra mudar; a cor so e gravada se for valida.
+    /// </summary>
+    private void BuildColorRows()
+    {
+        CustomColorsTitleText.Text = Loc.Get("Options.CustomColors");
+        CustomColorsPanel.Items.Clear();
+
+        var palette = ThemePalettes.Of(AppSettingsStore.Current.Theme);
+        var custom = AppSettingsStore.Current.CustomThemeColors;
+
+        foreach (var role in ThemePalettes.Roles)
+        {
+            var hex = palette.ColorOf(role);
+            if (custom.TryGetValue(role.ToString(), out var chosen) && chosen.Length > 0)
+                hex = chosen;
+
+            CustomColorsPanel.Items.Add(new ColorRow
+            {
+                Role = role,
+                Label = ThemePalettes.DescribeRole(role),
+                Hex = hex,
+                BoxId = "OptColor" + role,
+            });
+        }
+    }
+
+    /// <summary>
+    /// As cores personalizadas escolhidas, com as invalidas descartadas.
+    ///
+    /// Uma cor invalida nao e gravada: e melhor a tela ficar com a cor do
+    /// tema do que ficar sem cor nenhuma.
+    /// </summary>
+    private Dictionary<string, string> ReadCustomColors()
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var row in CustomColorsPanel.Items.OfType<ColorRow>())
+        {
+            if (ThemePalette.TryNormalizeHex(row.Hex, out var hex))
+                result[row.Role.ToString()] = hex;
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Uma linha de cor personalizada: o rotulo, a amostra e o hexadecimal.
+    /// </summary>
+    private sealed class ColorRow : System.ComponentModel.INotifyPropertyChanged
+    {
+        private string _hex = string.Empty;
+
+        /// <summary>O papel da cor no tema.</summary>
+        public ThemeColorRole Role { get; init; }
+
+        /// <summary>O nome do papel, como o usuario ve.</summary>
+        public string Label { get; init; } = string.Empty;
+
+        /// <summary>O identificador da caixa de texto, para a automacao.</summary>
+        public string BoxId { get; init; } = string.Empty;
+
+        /// <summary>O hexadecimal que o usuario digitou.</summary>
+        public string Hex
+        {
+            get => _hex;
+            set
+            {
+                _hex = value ?? string.Empty;
+                Brush = MakeBrush(_hex);
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Hex)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Brush)));
+            }
+        }
+
+        /// <summary>A amostra da cor, para o usuario ver o que digitou.</summary>
+        public System.Windows.Media.Brush Brush { get; private set; } = System.Windows.Media.Brushes.Transparent;
+
+        /// <summary>Avisa que a linha mudou.</summary>
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// A cor da amostra. Uma cor invalida deixa a amostra transparente:
+        /// e o jeito de dizer "isso aqui nao e uma cor" sem travar a digitacao.
+        /// </summary>
+        private static System.Windows.Media.Brush MakeBrush(string hex)
+        {
+            if (!ThemePalettes.TryParseColor(hex, out var argb))
+                return System.Windows.Media.Brushes.Transparent;
+
+            return new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(
+                    (byte)((argb >> 16) & 0xFF),
+                    (byte)((argb >> 8) & 0xFF),
+                    (byte)(argb & 0xFF)));
+        }
+    }
+    private static void SelectByTag(ComboBox combo, string tag)    {
         foreach (var item in combo.Items.OfType<ComboBoxItem>())
         {
             if (string.Equals(item.Tag?.ToString(), tag, StringComparison.OrdinalIgnoreCase))
@@ -137,7 +265,10 @@ public partial class OptionsWindow : Window
             s.ForciblyStopRunningExecutables = ForciblyStopExecutablesCheck.IsChecked == true;
             s.ShowScanAllAccountsOption = ShowScanAllAccountsCheck.IsChecked == true;
 
-            s.PortableDataFolder = PortableFolderBox.Text.Trim();
+            s.CustomThemeColors = ReadCustomColors();
+            s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;
+            s.ShowSplashScreen = ShowSplashScreenCheck.IsChecked == true;
+            s.KeepPreferencesOnUninstall = KeepPreferencesCheck.IsChecked == true;            s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();
         });
 

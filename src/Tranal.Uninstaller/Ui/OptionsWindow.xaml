@@ -17,16 +17,49 @@
       <StackPanel>
 
         <TextBlock Text="{loc:Tr Options.Theme}" FontWeight="SemiBold" Margin="0,0,0,4" />
-        <ComboBox x:Name="ThemeCombo" Margin="0,0,0,12" AutomationProperties.AutomationId="OptThemeCombo">
-          <ComboBoxItem Content="{loc:Tr Cmd.ThemeDark}" Tag="Dark" />
-          <ComboBoxItem Content="{loc:Tr Cmd.ThemeLight}" Tag="Light" />
-        </ComboBox>
+        <ComboBox x:Name="ThemeCombo" Margin="0,0,0,12" AutomationProperties.AutomationId="OptThemeCombo" />
+
+        <!-- As cores personalizadas. A lista de papeis vem do nucleo
+             (Core/Appearance/ThemePalette.cs): o que o usuario pode mudar e
+             o que a tela usa, e as duas coisas nao se separam. -->
+        <TextBlock x:Name="CustomColorsTitleText" FontWeight="SemiBold" Margin="0,0,0,4" />
+        <ItemsControl x:Name="CustomColorsPanel" Margin="0,0,0,12"
+                      AutomationProperties.AutomationId="OptCustomColors">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Grid Margin="0,2,0,2">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="96" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding Label}" />
+                <Border Grid.Column="1" Width="20" Height="20" Margin="6,0,6,0"
+                        VerticalAlignment="Center" BorderThickness="1"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        Background="{Binding Brush}" />
+                <TextBox Grid.Column="2" VerticalContentAlignment="Center"
+                         AutomationProperties.AutomationId="{Binding BoxId}"
+                         Text="{Binding Hex, UpdateSourceTrigger=PropertyChanged}" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
         <TextBlock Text="{loc:Tr Options.Language}" FontWeight="SemiBold" Margin="0,0,0,4" />
         <ComboBox x:Name="LanguageCombo" Margin="0,0,0,12"
                   AutomationProperties.AutomationId="OptLanguageCombo" />
 
         <TextBlock Text="{loc:Tr Options.Behavior}" FontWeight="SemiBold" Margin="0,0,0,4" />
+        <CheckBox x:Name="DisableTextAnimationsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.DisableTextAnimations}"
+                  AutomationProperties.AutomationId="OptDisableTextAnimations" />
+        <CheckBox x:Name="ShowSplashScreenCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowSplashScreen}"
+                  AutomationProperties.AutomationId="OptShowSplashScreen" />
+        <CheckBox x:Name="KeepPreferencesCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.KeepPreferencesOnUninstall}"
+                  AutomationProperties.AutomationId="OptKeepPreferences" />
         <CheckBox x:Name="SystemComponentsCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Cmd.ShowSystemComponents}"
                   AutomationProperties.AutomationId="OptSystemComponents" />

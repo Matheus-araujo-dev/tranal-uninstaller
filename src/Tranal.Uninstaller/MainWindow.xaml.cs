@@ -723,11 +723,16 @@ public partial class MainWindow : Window
 
         menu.Items.Add(BuildPanelsMenu());
 
+        // Os temas do menu sao os do catalogo do nucleo: a mesma lista que a
+        // janela de opcoes mostra. Um tema novo entra no catalogo e aparece
+        // nos dois lugares sem tocar em nenhum dos dois.
         var themeMenu = new MenuItem { Header = Loc.Get("Cmd.Theme") };
-        themeMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ThemeDark"), "CmdThemeDark",
-            () => ThemeManager.Apply(ThemeManager.Dark)));
-        themeMenu.Items.Add(MenuItemFor(Loc.Get("Cmd.ThemeLight"), "CmdThemeLight",
-            () => ThemeManager.Apply(ThemeManager.Light)));
+        foreach (var skin in Core.Appearance.ThemeSkinCatalog.All)
+        {
+            var id = skin.Id;
+            themeMenu.Items.Add(MenuItemFor(skin.DisplayName, "CmdTheme" + id,
+                () => ThemeManager.Apply(id)));
+        }
         menu.Items.Add(themeMenu);
 
         var languageMenu = new MenuItem { Header = Loc.Get("Cmd.Language") };

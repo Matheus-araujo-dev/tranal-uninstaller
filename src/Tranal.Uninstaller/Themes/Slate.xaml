@@ -1,0 +1,54 @@
+<!--
+  Tema ardosia do Tranal Uninstaller Pro.
+
+  Um tema escuro de tom azulado, para tela com muito texto. As cores sao as
+  mesmas da paleta "Slate" de Core/Appearance/ThemePalette.cs — o painel de
+  configuracao e a linha de comando mostram a paleta, e o XAML e o que a tela
+  usa. Mudar um sem o outro e um defeito.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ===== Superficies ===== -->
+  <SolidColorBrush x:Key="SidebarBrush" Color="#FF1E2A38" />
+  <SolidColorBrush x:Key="PanelBrush" Color="#FF27384C" />
+  <SolidColorBrush x:Key="HeaderBrush" Color="#FF223142" />
+  <SolidColorBrush x:Key="DescriptionBrush" Color="#FF223142" />
+  <SolidColorBrush x:Key="ToolBarBrush" Color="#FF223142" />
+  <SolidColorBrush x:Key="StatusBarBrush" Color="#FF1E2A38" />
+  <SolidColorBrush x:Key="GroupHeaderBrush" Color="#FF1E2A38" />
+  <SolidColorBrush x:Key="PopupBrush" Color="#FF27384C" />
+  <SolidColorBrush x:Key="RowAlternateBrush" Color="#FF2E4157" />
+
+  <!-- ===== Texto ===== -->
+  <SolidColorBrush x:Key="TextBrush" Color="#FFE8EEF5" />
+  <SolidColorBrush x:Key="TitleTextBrush" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="TextDimBrush" Color="#FF9FB0C4" />
+  <SolidColorBrush x:Key="DisabledBrush" Color="#FF6E7F93" />
+  <SolidColorBrush x:Key="LinkBrush" Color="#FF5AA9E6" />
+
+  <!-- ===== Contorno e interacao ===== -->
+  <SolidColorBrush x:Key="BorderBrush" Color="#FF16202C" />
+  <SolidColorBrush x:Key="PopupBorderBrush" Color="#FF16202C" />
+  <SolidColorBrush x:Key="HoverBrush" Color="#FF31465E" />
+  <SolidColorBrush x:Key="PressedBrush" Color="#FF3B5573" />
+  <SolidColorBrush x:Key="SelectionBrush" Color="#FF2A6FA8" />
+  <SolidColorBrush x:Key="SelectionTextBrush" Color="#FFFFFFFF" />
+  <SolidColorBrush x:Key="AccentBrush" Color="#FF5AA9E6" />
+
+  <!-- ===== Controles ===== -->
+  <SolidColorBrush x:Key="ButtonFaceBrush" Color="#FF31465E" />
+  <SolidColorBrush x:Key="ButtonBorderBrush" Color="#FF3B5573" />
+  <SolidColorBrush x:Key="ButtonHoverBrush" Color="#FF3B5573" />
+  <SolidColorBrush x:Key="InputBrush" Color="#FF223142" />
+  <SolidColorBrush x:Key="InputBorderBrush" Color="#FF16202C" />
+  <SolidColorBrush x:Key="ColumnHeaderBrush" Color="#FF2A3B4F" />
+  <SolidColorBrush x:Key="ColumnHeaderTextBrush" Color="#FFE8EEF5" />
+  <SolidColorBrush x:Key="ColumnHeaderBorderBrush" Color="#FF16202C" />
+
+  <!-- ===== Semanticos ===== -->
+  <SolidColorBrush x:Key="DangerBrush" Color="#FFFF6B6B" />
+  <SolidColorBrush x:Key="SuccessBrush" Color="#FF6BDF6B" />
+  <SolidColorBrush x:Key="WarningBrush" Color="#FFFFD166" />
+
+</ResourceDictionary>
