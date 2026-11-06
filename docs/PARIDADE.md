@@ -19,7 +19,7 @@ Legenda: ✅ implementado · 🟡 parcial · ⬜ fora de escopo
 | Seção do original | Strings | Tranal | Onde |
 |---|---|---|---|
 | `UninstallerPro` | 331 | 🟡 | `Ui/UninstallWizardWindow.*` — assistente de 5 etapas, 4 modos, lista de sobras com confiança, resumo por contagem |
-| `Scan After Uninstall` | 63 | ✅ | `Core/UninstallSupport.cs` (`LeftoverScanner`), `Core/Removal.cs`, `Core/RecycleBin.cs`, `Core/DeferredDelete.cs` |
+| `Scan After Uninstall` | 63 | ✅ | `Core/UninstallSupport.cs` (`LeftoverScanner`), `Core/MsiInstallLog.cs` (atribuição pela cadeia do instalador), `Core/Removal.cs`, `Core/RecycleBin.cs`, `Core/DeferredDelete.cs` |
 | `Uninstaller Options` | 6 | ✅ | `Ui/OptionsWindow.*` — ponto de restauração do sistema, somente o desinstalador nativo, desativar histórico, atalhos de páginas web |
 | `Uninstaller List` | 10 | ✅ | `MainWindow.xaml` — lista montada a partir do catálogo de colunas (`Core/ProgramColumns.cs`), grupos, ordenação por cabeçalho |
 | `Uninstaller Toolbar` | 29 | ✅ | `MainWindow.xaml` — barra de ferramentas e "Mais Comandos" |
@@ -130,6 +130,7 @@ O original tem quatro modos. No Tranal eles são **um único enum**
 | Item em uso | "will be deleted during the next system restart" | `DeferredDelete.Schedule` (`MoveFileEx` + `MOVEFILE_DELAY_UNTIL_REBOOT`) |
 | Itens em negrito | "Only checked bolded items and their subitems will be deleted" | `LeftoverConfidence.High` é o único que vem marcado |
 | **O porquê de cada item** | (não existe no original: o negrito é a única pista) | ✅ **melhor que o original** — todo item tem um **motivo** (`LeftoverReason`), exibido na coluna "Porquê" da lista de sobras e na saída da CLI. A confiança sozinha diz o quanto o Tranal acredita no item, mas não diz por quê; o motivo acompanha sempre, decidido no mesmo julgamento (`LeftoverScanner.Judge`) |
+| **Atribuição pela cadeia** | (o original grava o log do próprio programa; a versão free 2.7.0 não tem) | ✅ **melhor que o original** — para os produtos do Windows Installer (**149 dos 211** desta máquina) o Tranal lê o pacote `.msi` em cache pela API do próprio Windows Installer e sabe que o item **é** do programa, com o motivo "o instalador do programa registrou este item e ele sobrou". O casamento por nome sozinho erra — e errar aqui é apagar coisa de outro programa. Medido: 149 de 149 pacotes abriram; 63,1% dos caminhos e 83,0% dos valores de registro resolvem para item que existe hoje (`Core/MsiInstallLog.cs`) |
 
 Medido nesta máquina, varredura do "Revo Uninstaller 2.7.0" em modo avançado:
 

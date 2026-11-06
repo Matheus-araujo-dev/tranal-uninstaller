@@ -2,6 +2,66 @@
 
 ## v1.4 — partida a frio corrigida, integridade das preferências por programa e instalador
 
+### Novo: as sobras agora vêm do registro do instalador, não só do nome
+
+Até aqui o Tranal procurava sobras **pelo nome**: casava pastas e chaves pelo
+nome do programa. Isso é heurística — e é o tipo de erro que apaga coisa de
+outro programa. O Revo resolve o mesmo problema de outro jeito: ele grava o
+que o programa instalou e compara com o que restou depois.
+
+Para os programas do Windows Installer, essa comparação **já existe pronta**:
+o pacote `.msi` fica em cache em `%WINDIR%\Installer` e descreve, arquivo por
+arquivo e chave por chave, tudo o que ele colocou no sistema. São **149 dos
+211 programas** desta máquina.
+
+Agora o Tranal lê esse registro pela API do próprio Windows Installer
+(`msi.dll`), sem dependência externa, e o resultado vira um item de sobra com
+o motivo mais forte que existe:
+
+> **Por quê:** *"O instalador do programa registrou este item e ele sobrou"*
+
+O ciclo importa, e ele é medido:
+
+| Momento | O que acontece |
+|---|---|
+| **Antes** do desinstalador nativo | o log é capturado — depois dele o pacote sai do cache e não há mais o que ler |
+| O desinstalador nativo roda | o `msiexec /X{…}` faz o que o instalador promete |
+| **Depois** | o log é conferido: o que o instalador gravou e **continua no sistema** é sobra de verdade |
+
+Uma trava protege o caso perigoso: se o desinstalador nativo **não** rodou ou
+**falhou**, o log é descartado. Sem isso o log descreveria o programa inteiro
+como "sobra" — e a etapa seguinte apagaria justamente o que o usuário queria
+manter.
+
+**Medido nesta máquina** (211 programas, 149 MSI):
+
+| Métrica | Resultado |
+|---|---|
+| Pacotes MSI com log aberto | **149 de 149** |
+| Arquivos lidos do log | 26.210 |
+| Valores de registro lidos do log | 21.105 |
+| Caminhos que resolvem para arquivo que existe | **63,1%** |
+| Valores de registro que ainda existem | **83,0%** |
+
+Os produtos grandes batem quase 100%: Node.js **1987/1987**, EA app
+**902/902**, Epic Games Launcher **4389/4404** (99,7%), ClickOnce Bootstrapper
+e o pacote IntelliSense **100%**. Os que ficam em 0% são **bundles e
+payloads** (Python 3.12, .NET Toolset): o `.msi` descreve o payload, que foi
+instalado por outro mecanismo — e, quando o caminho não fecha, o Tranal
+**não reporta nada errado**.
+
+As regras de leitura do pacote saíram de **medição**, não de suposição:
+
+| Regra | De onde veio |
+|---|---|
+| `DefaultDir` vem no formato `origem\|destino` e o que fica no disco é o **destino** | o pacote do WSL traz `x0zlheba\|wslsettings` e existe `wslsettings` |
+| O ponto (`.`) significa **a mesma pasta do pai** | o pacote do Epic Games usa `DefaultDir = .` em `SELECTEDINSTALLFOLDER` |
+| Um pacote de 32 bits instala em `Program Files (x86)` | o `Template` do sumário do pacote (`x64;1033` / `Intel;1033`) diz qual é |
+| A tabela `File` traz `curto\|longo`, e o **longo** é o que fica em disco | `ozn7dfvi.dll\|wslserviceproxystub.dll` → `wslserviceproxystub.dll` |
+
+A regra fica em **um lugar só** (`MsiInstallLogReader.UsableAfter`), para que
+a interface gráfica e a linha de comando nunca possam divergir.
+
 ### Novo: o Tranal agora sabe que tipo de desinstalador cada programa tem
 
 Até aqui o Tranal tratava todo desinstalador do mesmo jeito: rodava a cadeia de
@@ -217,7 +277,7 @@ O Tranal agora tem **instalador de verdade**, como o Revo: um `TranalUninstaller
 
 ### Testes
 
-- 302 testes verdes. O primeiro arranque é conferido de ponta a ponta por
+- 378 testes verdes. O primeiro arranque é conferido de ponta a ponta por
   `tools/test-cold-start.ps1`, que sobe o aplicativo de verdade sem o arquivo de
   preferências e devolve as preferências de quem rodou o teste.
 

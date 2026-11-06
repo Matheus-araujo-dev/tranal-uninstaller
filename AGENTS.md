@@ -357,6 +357,33 @@ isso nunca são decididos separados:
 - **O motivo não é um botão de remoção.** Só a confiança alta entra marcada
   para remoção; o motivo é informação, e não muda a regra de seleção.
 
+## Atribuição pela cadeia de desinstalação (regra do núcleo)
+
+A varredura de sobras casa por **nome**; a cadeia do instalador casa por
+**registro**. São dois níveis de prova, e o segundo é mais forte:
+
+- `Core/MsiInstallLog.cs` guarda a leitura do pacote `.msi` em cache pela API
+  do próprio Windows Installer (`msi.dll`), sem dependência externa. O log
+  descreve, arquivo por arquivo e chave por chave, o que o instalador gravou.
+- **O ciclo é o que importa:** o log é capturado **antes** do desinstalador
+  nativo (depois dele o pacote sai do cache e não há mais o que ler) e
+  conferido **depois**. O que o instalador gravou e continua no sistema é
+  sobra de verdade.
+- **A regra que decide se o log vale mora em um lugar só**:
+  `MsiInstallLogReader.UsableAfter`. Sem desinstalador nativo bem-sucedido o
+  log é descartado — senão ele descreveria o programa inteiro como sobra, e a
+  etapa seguinte apagaria o que o usuário queria manter. A interface gráfica e
+  a CLI consomem esse mesmo método, para que não possam divergir.
+- **O motivo novo é `LeftoverReason.InstallerLog`**, e a tradução continua em
+  `Core/Localization/LeftoverLabels.cs`.
+- **As regras de leitura do pacote são medidas, não supostas**:
+  `DefaultDir` traz `origem|destino` e o que fica em disco é o **destino**; o
+  ponto (`.`) significa **a mesma pasta do pai**; um pacote de 32 bits instala
+  em `Program Files (x86)` (o `Template` do sumário do pacote diz qual é).
+  Há teste que fixa cada uma delas.
+- **Falhar em silêncio é o comportamento certo.** Quando o caminho não fecha
+  (bundles e payloads: Python, .NET Toolset), o Tranal não reporta nada errado.
+
 ## Auditoria de concorrentes (regras da auditoria)
 
 A pasta `docs/auditoria/` guarda a engenharia reversa de cada concorrente do
