@@ -420,8 +420,8 @@ Resumo por impacto:
 
 | Impacto | Quantidade | Exemplos |
 |---|---|---|
-| 🔴 alto | 6 | desinstalação simultânea com prevenção de colisão, daemon de automação, geração de silencioso por UI Automation, marcação `NoRemove`, catálogo de relacionados, hotkeys globais |
-| 🟡 médio | 18 | ordenação inteligente, retry de silencioso falhado, sono ao terminar, modify/repair, confiança de inicialização, filtro avançado da lista, cabeçalho XML fixo |
+| 🔴 alto | 5 | desinstalação simultânea com prevenção de colisão, daemon de automação, geração de silencioso por UI Automation, marcação `NoRemove`, catálogo de relacionados, hotkeys globais |
+| 🟡 médio | 20 | ordenação inteligente, retry de silencioso falhado, sono ao terminar, modify/repair, confiança de inicialização, filtro avançado da lista, cabeçalho XML fixo |
 | ⚪ baixo | 18 | JSON, Brotli, crash report, limpar caches, abrir Limpeza de Disco, auto-resize de colunas, daltônico/DPI |
 
 > **Proveniência das evidências.** As chaves `Progress_*`, `UninstallerType_*`,

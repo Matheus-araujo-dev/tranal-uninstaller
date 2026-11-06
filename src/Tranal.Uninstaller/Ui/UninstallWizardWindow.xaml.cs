@@ -153,7 +153,7 @@ public partial class UninstallWizardWindow : Window
         // A ordem inteligente e a do Revo: os desinstaladores que abrem janela
         // vao primeiro, enquanto o usuario ainda esta attentive; os
         // silenciosos depois, em lote.
-        _programs = SmartOrdering.Order(programs);
+        _programs = SmartOrdering.Order(programs).ToList();
         _allPrograms = allPrograms;
         _quick = quick;
         StepsBar.ItemsSource = StepNames;

@@ -337,6 +337,23 @@ extensões de imagem — **74 programas / 29,0 MB** — em vez dos
 | O **Windows Updates** na prática (a string existe, o uso não foi observado) | não navigado |
 | Quais itens do `Installer\Folders` o Geek remove | a varredura existe; o critério, não |
 
+### 8.2 Lacunas de **funcionalidade** (medidas no binário, ausentes no Tranal)
+
+A lista completa e evidenciada está em **[`BINARIO-GEEK.md`](BINARIO-GEEK.md)** — 30
+linhas, cada uma com o identificador do binário e o arquivo+linha do dump.
+Resumo por impacto:
+
+| Impacto | Quantidade | Exemplos |
+|---|---|---|
+| 🔴 alto | 7 | Modify/repair, Batch Force Removal, Batch Remove Entries, desregistro de COM via `regsvr32`, varredura de sobras de MSI pelo registro do Installer, limpeza de `MrtCache`, backup da `Applistbackup` |
+| 🟡 médio | 17 | falso positivo de `InstallLocation`, Levenshtein, `Local AppData\Programs`, cache de uninstall, painel "Active Files", diálogo de órfãos, "Browse..." nas sobras, confirmação ao cancelar |
+| ⚪ baixo | 6 | aviso "No matching items", abrir na Microsoft Store, Browse Source, log por programa, total agregado no rodapé, enumeração MSIX por SID |
+
+> **Nota.** A varredura de sobras de MSI aparece na tabela de funcionalidades
+> como `OK` porque o Tranal já tem `Core/MsiInstallLog.cs`. O que falta de fato
+> é a **varredura do registro do Windows Installer** (`Installer\UserData\…\Products`
+> e `Installer\Folders`), registrada à parte em `BINARIO-GEEK.md`.
+
 ---
 
 ## 9. Decisões que este documento obriga
