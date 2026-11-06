@@ -54,6 +54,23 @@ diz que nao alcancou.
 | Entradas de interface do Revo Pro (com pt-BR) | 1.141 |
 | Capacidades confirmadas por API importada, por concorrente | 44 a 51 |
 | Concorrentes com documento canonico reescrito a partir do binario | 11 (10 + Revo) |
+| Linhas de lacuna medidas (funcionalidade no binario, ausente no Tranal) | **486** em 11 listas |
+
+### As listas de lacuna, por concorrente
+
+| Concorrente | Linhas de lacuna | Observacao |
+|---|---|---|
+| BCU | 42 | |
+| Geek | 30 | |
+| Uninstalr | 34 | |
+| IObit | 34 | 7 linhas sem confirmacao no binario |
+| HiBit | 56 | 7 linhas sem confirmacao no binario |
+| Wise | 58 | |
+| Total Uninstall | 41 | 22 AUSENTE + 19 PARCIAL |
+| Uninstall Tool | 60 | 32 AUSENTE + 28 PARCIAL |
+| Soft Organizer | 45 | 26 AUSENTE + 19 PARCIAL |
+| Revo Pro | 27 | as 9 lacunas `AUSENTE` reais |
+| Ashampoo | 59 | **53 linhas sem confirmacao**: o payload do aplicativo esta comprimido e nao foi alcancado (ver §5) |
 
 ---
 
@@ -113,17 +130,33 @@ Criterio aplicado, nesta ordem:
 ### 3.3 Fila (medida, priorizada)
 
 A ordem abaixo vem das listas de lacuna dos 11 concorrentes, cruzadas com o
-codigo. O **numero** e a contagem de linhas marcadas `AUSENTE` ou `PARCIAL` no
-documento do respectivo concorrente.
+codigo. Cada linha tem a evidencia no binario de quem tem o recurso.
 
-| # | Funcionalidade | Quem tem | Lacuna |
+| # | Funcionalidade | Quem tem | Evidencia |
 |---|---|---|---|
-| 1 | Varredura de sobras em todas as contas do Windows | Revo | Revo |
-| 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | Revo, BCU |
-| 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | Revo |
-| 4 | Remocao de item de inicializacao do Autostart sem tocar no resto | BCU, Revo, Wise | BCU, Revo, Wise |
-| 5 | Busca por Regex na lista (e no motor de regras) | Revo, Geek, BCU | Revo |
-| 6 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) |
+| 1 | Varredura de sobras em **todas as contas** do Windows | Revo | `[UninstallerPro] 15352 = Scan all Windows accounts for leftovers` |
+| 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | `[UninstallerPro] 15178 = Export,Import or Edit log` |
+| 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | `strings.txt:26974` (texto do botao "Advanced Uninstall") |
+| 4 | **Reparo/modificacao** de instalacao MSI (`msiexec /fa`) | Revo, Uninstall Tool | `strings.txt:26799 = Change or Repair the installation of selected program` |
+| 5 | Varredura de **fluxos alternativos** (ADS) de arquivo | Total Uninstall | `inv.md:176` |
+| 6 | Detectar que o programa foi **desinstalado por fora** | Soft Organizer | `recursos.txt:102` (formulario de deteccao de desinstalacao externa) |
+| 7 | Filtros por **tamanho** e por **uso raro** na lista | Soft Organizer | `inv.md` (filtro "Large Applications" / "Rarely used apps") |
+| 8 | Remocao de item de inicializacao do Autostart sem tocar no resto | BCU, Revo, Wise | `[Auto Run Manager Pro] 15800 = Add` |
+| 9 | Busca por **Regex** na lista (e no motor de regras) | Revo, Geek, BCU | Revo le o filtro por registro (`ADVAPI32.dll` → `RegQueryValueExW`) |
+| 10 | Arvore de **mudancas** entre dois snapshots, com perfis | Total Uninstall | `recursos.txt:134 TDLGCOMPARESNS` |
+| 11 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) |
+
+### 3.4 Ja resolvido e reclassificado
+
+A conferencia no codigo, feita depois da curadoria, **corrigiu** uma alegacao de
+lacuna: o gerenciador de **servicos e tarefas agendadas** foi marcado como
+ausente, mas `Core/Management/ServiceManager.cs` e
+`Core/Management/ScheduledTaskManager.cs` ja fazem `List`, `Disable`, `Enable`,
+`Stop` e `Delete`. Outros itens que os documentos de lacuna apontaram como
+ausentes tambem ja existem no Tranal: log por item com codigo de erro
+(`Core/RemovalLog.cs`), undo/redo da restauracao (`Core/Recovery/ProgramBackup.cs`),
+validacao de cadeia de certificados (`Core/Discovery/UninstallerCertificate.cs`),
+comparacao de snapshots e aviso de pasta compartilhada.
 
 ---
 

@@ -247,7 +247,7 @@ Resumo por impacto:
 |---|---|---|
 | 🔴 alto | 6 | motor que dirige a interface de desinstaladores de terceiros, retomar após reinício (`RunOnce`), sobras por MuiCache, sobras por TypeLib, sobras por AppX ModelID, backup da `Applistbackup` |
 | 🟡 médio | 20 | país de origem, detecção por Chocolatey/Steam/Epic/BigFish/NuGet/PortableApps, matching fuzzy, detecção automática de caminhos a ignorar, Deep Analysis, reinício automático, remover atalhos/pastas automaticamente, `PreStartupDelete.bat` |
-| ⚪ baixo | 12 | opções de acessibilidade, modo de exibição do sistema, "speedhacks", varredura só do disco do sistema, salvar posição da janela e filtros, telemetria opt-in, licença Pro embutida |
+| ⚪ baixo | 8 | opções de acessibilidade, modo de exibição do sistema, "speedhacks", varredura só do disco do sistema, salvar posição da janela e filtros, telemetria opt-in, licença Pro embutida |
 
 > **Nota.** O binário do Uninstalr está comprimido com UPX, então as strings
 > do app só existem no **dump de memória** (`instalr\strings-uninstalr-own.txt`).
