@@ -94,6 +94,22 @@ public enum ProgramColumn
 
     /// <summary>Chave do registro de desinstalacao (a identidade do programa).</summary>
     RegistryKey,
+
+    /// <summary>
+    /// O pais do editor, com a bandeira (ex.: "Brasil 🇧🇷").
+    ///
+    /// O dado vem do proprio executavel: o <c>CountryDetector</c> le o recurso
+    /// de versao do arquivo. Vazio quando o executavel nao diz de onde e — um
+    /// palpite seria pior do que a celula vazia.
+    /// </summary>
+    Country,
+
+    /// <summary>
+    /// A data da instalacao em tempo relativo ("Hoje", "Ontem", "3 semanas
+    /// atras"). O dado e o mesmo da coluna <see cref="Date"/>; a diferenca e
+    /// so a forma de falar.
+    /// </summary>
+    RelativeDate,
 }
 
 /// <summary>
@@ -189,6 +205,8 @@ public static class ProgramColumns
         new(ProgramColumn.Group, "Common.Group", "Grupo", "Group"),
         new(ProgramColumn.Note, "Common.Note", "Anotação", "Note"),
         new(ProgramColumn.RegistryKey, "Common.RegistryKey", "Chave do registro", "RegistryKey"),
+        new(ProgramColumn.Country, "Common.Country", "País", "Country", "Common.Country"),
+        new(ProgramColumn.RelativeDate, "Common.Date", "Data (relativa)", "RelativeDate", "Common.RelativeDate"),
     };
 
     /// <summary>Todas as colunas, na ordem em que aparecem na lista.</summary>
@@ -254,7 +272,49 @@ public static class ProgramColumns
             case ProgramColumn.Group: return GroupOf(custom);
             case ProgramColumn.Note: return custom?.Comment ?? string.Empty;
             case ProgramColumn.RegistryKey: return program.RegistryKey;
+            case ProgramColumn.Country: return CountryOf(program);
+            case ProgramColumn.RelativeDate: return Modules.RelativeDate.Format(program.InstallDateValue);
             default: return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// O pais do editor, com a bandeira.
+    ///
+    /// A leitura e feita do executavel do programa (o recurso de versao do
+    /// arquivo), e nao do nome do publisher: o nome vem da empresa que
+    /// registrou o programa, que nem sempre e de onde o software foi feito.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static string CountryOf(InstalledProgram program)
+    {
+        if (program is null) return string.Empty;
+
+        var caminho = ExecutablePathOf(program);
+        if (caminho.Length == 0) return string.Empty;
+
+        var pais = Appearance.CountryDetector.Detect(caminho);
+        return pais?.Label ?? string.Empty;
+    }
+
+    /// <summary>
+    /// O caminho do executavel do programa, quando ele existe.
+    ///
+    /// A regra e uma so: e o proprio <see cref="Discovery.UsageSignals"/>
+    /// que sabe onde o executavel esta (o desinstalador, quando existe; senao,
+    /// o executavel dentro da pasta de instalacao). Sem executavel, nao ha
+    /// pais.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    private static string ExecutablePathOf(InstalledProgram program)
+    {
+        try
+        {
+            return Discovery.UsageSignals.ExecutableOf(program);
+        }
+        catch
+        {
+            return string.Empty;
         }
     }
 

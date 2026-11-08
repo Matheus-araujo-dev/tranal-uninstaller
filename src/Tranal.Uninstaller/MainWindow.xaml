@@ -347,6 +347,94 @@
               <TextBlock Text="{loc:Tr Module.SystemManagement}" />
             </StackPanel>
           </Button>
+
+          <!-- Diagnostico: informacoes do sistema, impacto, falhas e relocacao. -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupInsights}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="SystemInfo" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolSystemInfo">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5A5;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.SystemInfo}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="ProgramImpact" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolProgramImpact">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4CA;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.ProgramImpact}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="CrashAnalyzer" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolCrashAnalyzer">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F41B;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.CrashAnalyzer}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="Relocation" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolRelocation">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F69A;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Relocation}" />
+            </StackPanel>
+          </Button>
+
+          <!-- Limpeza: destravador, internet, disco, atalhos, MRU e componentes. -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupCleanup}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="Unlocker" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolUnlocker">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F512;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Unlocker}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="InternetCleaner" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolInternetCleaner">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F310;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.InternetCleaner}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="DriveCleaner" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolDriveCleaner">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C4;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.DriveCleaner}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="ShortcutFixer" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolShortcutFixer">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F517;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.ShortcutFixer}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="MruCleaner" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolMruCleaner">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5D1;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.MruCleaner}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="SharedDlls" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolSharedDlls">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C5;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.SharedDlls}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>

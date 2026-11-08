@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Tranal.Uninstaller</RootNamespace>
+    <!-- NU1510: o pacote do Event Log vem implicito; a referencia explicita
+         e o que garante a compilacao do tipo EventRecord. -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
     <AssemblyName>TranalUninstaller</AssemblyName>
     <ApplicationIcon>Assets\Tranal.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -22,6 +25,15 @@
 
   <ItemGroup>
     <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+
+  <!--
+    O Crash Analyzer le o Windows Event Log (System.Diagnostics.Eventing.Reader).
+    O pacote vem implicito no .NET 10 (aviso NU1510, suprimido aqui porque a
+    referencia explicita e o que garante a compilacao do tipo EventRecord).
+  -->
+  <ItemGroup>
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.0" />
   </ItemGroup>
 
   <!-- Mesma razao da CLI: os testes acessam alguns membros internos do nucleo. -->

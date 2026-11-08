@@ -1,4 +1,4 @@
-# Extrai o catalogo de funcionalidades dos 11 concorrentes para um dado unico.
+﻿# Extrai o catalogo de funcionalidades dos 11 concorrentes para um dado unico.
 #
 # Uso: powershell -NoProfile -ExecutionPolicy Bypass -File tools\auditoria\extrair-catalogo.ps1
 #
@@ -27,63 +27,12 @@ $concorrentes = Get-ChildItem $docs -Filter '*.md' |
     Where-Object { $_.Name -notmatch '^(BINARIO|README|MATRIZ|RECON|PARIDADE)' } |
     ForEach-Object { $_.BaseName }
 
-function Dividir-Celulas {
-    param([string]$Linha)
+# As funcoes compartilhadas moram em UM lugar so: a regra de cabecalho de
+# tabela de funcionalidade precisa ser a MESMA no extrator e no aplicador.
+# Se os dois discordarem, o ID "T{n>#<numero>" do catalogo nao bate com o do
+# mapa de reconciliacao, e a prova de paridade deixa de casar as linhas.
+. (Join-Path $scriptDir 'auditoria-comum.ps1')
 
-    $partes = New-Object System.Collections.Generic.List[string]
-    $atual = New-Object System.Text.StringBuilder
-    $dentro = $false
-    $tamanhoCerca = 0
-    $dentroAspas = $false
-
-    # Uma contagem IMPAR de crases ou de aspas indica um escape defeituoso
-    # no documento (uma crase dentro de um texto de codigo, por exemplo).
-    # Com o escape quebrado, o escopo nao fecha e a coluna seguinte seria
-    # engolida. Nesse caso o escopo daquela marca e desativado: o pipe
-    # volta a separar coluna, que e o comportamento correto para uma
-    # evidencia que nao tem pipe dentro.
-    $crasesImpares = (([regex]::Matches($Linha, '`')).Count % 2) -ne 0
-    $aspasImpares = (([regex]::Matches($Linha, '"')).Count % 2) -ne 0
-
-    for ($i = 0; $i -lt $Linha.Length; $i++) {
-        $c = $Linha[$i]
-
-        # O pipe so separa coluna FORA de crase e FORA de aspas duplas.
-        # As evidencias trazem trechos como 'literal "PowerShell script|*.ps1"'
-        # e 'strings L80711 | ...': sem isso, a coluna da evidencia seria
-        # partida ao meio e o estado da funcionalidade seria lido do lugar
-        # errado.
-        if ($c -eq [char]34 -and -not $aspasImpares) { $dentroAspas = -not $dentroAspas; [void]$atual.Append($c); continue }
-
-        if ($c -eq [char]96 -and -not $crasesImpares) {
-            # A cerca de crase tem um tamanho: um texto que CONTEM crase
-            # (o tipo generico do .NET, por exemplo) e escrito com duas
-            # crases nas pontas. Contar a crase uma a uma desbalancearia a
-            # linha e a coluna seguinte seria engolida.
-            $tamanho = 0
-            while ($i -lt $Linha.Length -and $Linha[$i] -eq [char]96) { $tamanho++; $i++ }
-            $i--
-
-            if (-not $dentro) {
-                $dentro = $true
-                $tamanhoCerca = $tamanho
-            }
-            elseif ($tamanho -eq $tamanhoCerca) {
-                $dentro = $false
-                $tamanhoCerca = 0
-            }
-
-            [void]$atual.Append(('`' * $tamanho))
-            continue
-        }
-
-        if ($c -eq '|' -and -not $dentro -and -not $dentroAspas) { $partes.Add($atual.ToString()); [void]$atual.Clear(); continue }
-        [void]$atual.Append($c)
-    }
-
-    $partes.Add($atual.ToString())
-    return $partes
-}
 
 function Classificar {
     param([string]$Celula)
@@ -113,7 +62,10 @@ foreach ($concorrente in $concorrentes) {
     while ($i -lt $linhas.Count) {
         $linha = $linhas[$i]
 
-        if ($linha -match '^\|' -and $linha -match 'Funcionalidade') {
+        # Cabecalho de tabela de funcionalidade: uma CELULA com o texto
+        # exatamente "Funcionalidade" (regra estrita - ver
+        # tools\auditoria\auditoria-comum.ps1).
+        if (Eh-CabecalhoFuncionalidade $linha) {
             # Cabecalho: guarda as posicoes das colunas uteis.
             $cabecalho = $linha.Trim('|').Split('|') | ForEach-Object { $_.Trim() }
             $colFunc = -1

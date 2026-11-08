@@ -70,6 +70,18 @@ public sealed class ProgramRow : INotifyPropertyChanged
     public string RegistryKeyText => ProgramColumns.Value(ProgramColumn.RegistryKey, Program, Custom);
 
     /// <summary>
+    /// O pais do editor, com a bandeira ("Brasil 🇧🇷"). Vazio quando o
+    /// executavel nao diz de onde e — a celula vazia e melhor que um palpite.
+    /// </summary>
+    public string CountryText => ProgramColumns.Value(ProgramColumn.Country, Program, Custom);
+
+    /// <summary>
+    /// A data da instalacao em tempo relativo ("Hoje", "Ontem", "3 semanas
+    /// atras").
+    /// </summary>
+    public string RelativeDateText => ProgramColumns.Value(ProgramColumn.RelativeDate, Program, Custom);
+
+    /// <summary>
     /// Janela de "programas novos". O Revo usa o par "New programs type" / "New Days"
     /// em HKCU\Software\VS Revo Group\Revo Uninstaller\Uninstaller, com o padrao de 7 dias.
     /// O corte conta o dia inteiro: a partir da meia-noite de (hoje - 7 dias).

@@ -117,7 +117,7 @@ $linhas = New-Object System.Collections.Generic.List[string]
 $linhas.Add('# Prova de cobertura por concorrente')
 $linhas.Add('')
 $linhas.Add('Gerado por `tools\auditoria\provar-paridade.ps1`. Cada linha diz o que o')
-$linhas.Add('concorrente tem e o que o Tranal tem, **conferido no codigo**.')
+$linhas.Add('o concorrente tem e o que o Tranal tem, **conferido no codigo**.')
 $linhas.Add('')
 $linhas.Add('Estado: `OK` o Tranal tem · `PARCIAL` tem parte · `AUSENTE` falta ·')
 $linhas.Add('`FORA` limite declarado · `NAO CONFIRMADO` o dump do concorrente nao permite confirmar.')
@@ -216,7 +216,7 @@ foreach ($c in $catalogo.concorrentes) {
     $faltando = @($c.funcionalidades | Where-Object { $_.estado -eq 'AUSENTE' })
     if ($faltando.Count -eq 0) { continue }
 
-    $linhas.Add("### $($c.concurrente) — $($faltando.Count)")
+    $linhas.Add("### $($c.concorrente) — $($faltando.Count)")
     $linhas.Add('')
     $linhas.Add('| # | Funcionalidade | Evidencia no codigo |')
     $linhas.Add('|---|---|---|')

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory = $true)]
     [string]$Recon,
 
@@ -43,6 +43,12 @@ if (-not [System.IO.Path]::IsPathRooted($Recon)) { $Recon = Join-Path $raiz $Rec
 if (-not [System.IO.Path]::IsPathRooted($Catalogo)) { $Catalogo = Join-Path $raiz $Catalogo }
 if (-not [System.IO.Path]::IsPathRooted($Ancoras)) { $Ancoras = Join-Path $raiz $Ancoras }
 
+# As funcoes compartilhadas moram em UM lugar so: a regra de cabecalho de
+# tabela de funcionalidade precisa ser a MESMA no extrator e no aplicador.
+# Se os dois discordarem, o ID "T{n>#<numero>" do catalogo nao bate com o do
+# mapa de reconciliacao, e a prova de paridade deixa de casar as linhas.
+. (Join-Path $raiz 'tools\auditoria\auditoria-comum.ps1')
+
 $mapaEstado = @{
     'JA EXISTE'               = 'OK'
     'NAO EXISTE'              = 'AUSENTE'
@@ -75,27 +81,48 @@ foreach ($linha in $linhasRelatorio) {
     }
 
     if (-not $dentroDaSecao) { continue }
-    if ($linha -notmatch '^\|\s*(\d+)\s*\|') { continue }
+
+    # A coluna "#" do relatorio pode trazer o numero da linha do catalogo
+    # (relatorios antigos) ou o ID unico "T{tabela}#{numero}" (relatorios
+    # novos, como o RECON-CATALOGO-HIBIT-GEEK.md). As duas formas sao
+    # aceitas: com o ID, o casamento passa a ser exato.
+    if ($linha -notmatch '^\|\s*(\d+|T\d+#\d+)\s*\|') { continue }
 
     # O numero e guardado na hora: um "-match" depois sobrescreve $matches.
-    $numero = [int]$matches[1]
+    $celulaNumero = $matches[1].Trim()
 
-    $celulas = $linha -split '\|'
+    # As celulas saem pelo MESMO divisor do catalogo (o pipe dentro de crase
+    # ou de aspas nao separa coluna). Sem isso, a evidencia de um relatorio
+    # com pipe escapado era cortada na primeira barra: o texto chegava
+    # truncado ao catalogo e a linha Markdown perdia uma coluna.
+    $celulas = @(Dividir-Celulas $linha | ForEach-Object { $_.Trim() })
     if ($celulas.Count -lt 5) { continue }
+
+    # A ultima celula util e a ultima antes da barra final (ou a ultima de
+    # todas, quando a linha nao termina em barra).
+    $ultima = $celulas.Count - 1
+    if ($celulas[$ultima] -eq '') { $ultima-- }
 
     # O estado e reconhecido pelo TEXTO, e nao pela posicao: os relatorios
     # tem dois formatos — "| # | Funcionalidade | Estado | Evidencia |" e
     # "| # | Funcionalidade | O que existe | Estado | Evidencia |". O que
     # decide e a celula cujo texto e um estado conhecido.
     $indiceEstado = -1
-    foreach ($i in 2..($celulas.Count - 2)) {
-        if ($mapaEstado.ContainsKey($celulas[$i].Trim())) { $indiceEstado = $i; break }
+    foreach ($i in 2..$ultima) {
+        if ($mapaEstado.ContainsKey($celulas[$i])) { $indiceEstado = $i; break }
     }
     if ($indiceEstado -lt 0) { continue }
 
-    $funcionalidade = $celulas[2].Trim()
-    $estado = $celulas[$indiceEstado].Trim()
-    $evidencia = $celulas[$indiceEstado + 1].Trim()
+    $funcionalidade = $celulas[2]
+    $estado = $celulas[$indiceEstado]
+
+    # A evidencia e a ultima coluna: as celulas restantes sao remontadas com
+    # a barra, para nao perder texto quando o relatorio traz pipe dentro da
+    # evidencia (o texto truncado chegava ao catalogo pela metade).
+    $evidencia = ''
+    if (($indiceEstado + 1) -le $ultima) {
+        $evidencia = (($celulas[($indiceEstado + 1)..$ultima]) -join '|').Trim()
+    }
 
     if (-not $mapaEstado.ContainsKey($estado)) { continue }
 
@@ -103,8 +130,22 @@ foreach ($linha in $linhasRelatorio) {
     $rotulo = $mapaEstado[$estado]
     if ($rotulo -eq 'OK' -and $evidencia -match '\*\*Nota\*\*') { $rotulo = 'PARCIAL' }
 
+    # O relatorio pode trazer o ID do catalogo na coluna "#" (no formato
+    # "T2#14"). Quando traz, o casamento e exato e nao precisa de similaridade
+    # nem de ancora: e o proprio relatorio apontando a linha.
+    $idCatalogo = ''
+    $numero = 0
+    if ($celulaNumero -match '^T\d+#\d+$') {
+        $idCatalogo = $celulaNumero
+        $numero = [int](($celulaNumero -split '#')[1])
+    }
+    else {
+        $numero = [int]$celulaNumero
+    }
+
     $reconLines += @{
         Numero         = $numero
+        IdCatalogo     = $idCatalogo
         Funcionalidade = $funcionalidade
         Rotulo         = $rotulo
         Evidencia      = $evidencia
@@ -298,7 +339,12 @@ for ($i = 0; $i -lt $limite; $i++) {
     $linha = $linhasCatalogo[$i]
 
     if ($linha -match '^\|') {
-        if ($linha -match 'Funcionalidade') {
+        # Cabecalho de tabela de funcionalidade: uma CELULA com o texto
+        # exatamente "Funcionalidade" (regra estrita - a mesma do extrator,
+        # em tools\auditoria\auditoria-comum.ps1). A regra antiga ("a linha
+        # contem a palavra Funcionalidade") contava linha de DADOS de outra
+        # tabela e deslocava o ID "T{n>#<numero>" de todas as linhas.
+        if (Eh-CabecalhoFuncionalidade $linha) {
             if (-not $dentroTabela) { $indiceTabela++ }
             $dentroTabela = $true
             continue
@@ -315,7 +361,7 @@ for ($i = 0; $i -lt $limite; $i++) {
 
     $numero = [int]$matches[1]
 
-    $celulas = $linha -split '\|'
+    $celulas = @(Dividir-Celulas $linha | ForEach-Object { $_.Trim() })
     if ($celulas.Count -lt 5) { continue }
 
     $alvos += @{
@@ -323,7 +369,7 @@ for ($i = 0; $i -lt $limite; $i++) {
         Numero         = $numero
         Id             = "T$indiceTabela#$numero"
         Tabela         = $indiceTabela
-        Funcionalidade = $celulas[2].Trim()
+        Funcionalidade = $celulas[2]
         Usado          = $false
     }
 }
@@ -361,8 +407,32 @@ foreach ($linhaRec in $reconLines) {
     # linhas e o relatorio reconcilia em uma so.
     $alvosAncora = @()
     $chaveAncora = "$Secao|$($linhaRec.Numero)"
-    if ($mapaAncoras.ContainsKey($chaveAncora)) {
-        $motivoAncora = $mapaAncoras[$chaveAncora].Motivo
+
+    # O caminho do ID e TERMINAL, e o caminho da ancora tambem: os dois
+    # apontam a linha exata. MEDIDO: antes, o ID era apenas COLETADO e o
+    # estado caia no caminho de similaridade - o caminho do ID exato nunca
+    # aplicava nada. Com a regra lax, o ID do relatorio e o do catalogo
+    # divergiam, e a similaridade era o unico caminho que restava.
+    $via = ''
+    $motivo = ''
+
+    if ($linhaRec.IdCatalogo) {
+        foreach ($cand in @($alvos | Where-Object { $_.Id -eq $linhaRec.IdCatalogo })) {
+            $alvosAncora += $cand
+        }
+
+        # Se o ID nao existe no catalogo, relatorio e catalogo estao fora de
+        # passo: isso e uma linha sem correspondencia, e nao um caso para
+        # "casar por similaridade" (o estado cairia em outra funcionalidade).
+        if ($alvosAncora.Count -eq 0) {
+            $divergentes += "#$($linhaRec.Numero) '$($linhaRec.Funcionalidade)' (ID do catalogo '$($linhaRec.IdCatalogo)' nao existe em $([System.IO.Path]::GetFileName($Catalogo)))"
+            continue
+        }
+
+        $via = 'id'
+    }
+    elseif ($mapaAncoras.ContainsKey($chaveAncora)) {
+        $motivo = $mapaAncoras[$chaveAncora].Motivo
 
         foreach ($n in ($mapaAncoras[$chaveAncora].Catalogo -split ',')) {
             $referencia = $n.Trim()
@@ -372,8 +442,13 @@ foreach ($linhaRec in $reconLines) {
             # tabela a linha esta, e alguns catalogos repetem a numeracao.
             $candidatos = @($alvos | Where-Object { $_.Id -eq $referencia })
             if ($candidatos.Count -eq 0) {
-                $numeroAlvo = [int]$referencia
-                $candidatos = @($alvos | Where-Object { $_.Numero -eq $numeroAlvo })
+                # A ancora pode apontar pelo ID unico ("T2#14") ou pelo numero
+                # ("14"). Um ID que nao e numero nao vira numero:
+                # [int]"T1#1" lancaria excecao e derrubaria a execucao.
+                $numeroAlvo = 0
+                if ([int]::TryParse($referencia, [ref]$numeroAlvo)) {
+                    $candidatos = @($alvos | Where-Object { $_.Numero -eq $numeroAlvo })
+                }
             }
             if ($candidatos.Count -eq 0) { continue }
 
@@ -390,35 +465,43 @@ foreach ($linhaRec in $reconLines) {
             $alvosAncora += $escolhido
         }
 
-        if ($alvosAncora.Count -gt 0) {
-            foreach ($destino in $alvosAncora) {
-                $celulas = $linhasCatalogo[$destino.Indice] -split '\|'
+        if ($alvosAncora.Count -gt 0) { $via = 'ancora' }
+    }
 
-                # Um pipe dentro do texto quebraria a tabela: a barra vira barra.
-                $texto = ($linhaRec.Evidencia -replace '\|', '/')
+    # A linha apontada pelo ID ou pela ancora recebe o estado medido.
+    if ($alvosAncora.Count -gt 0) {
+        foreach ($destino in $alvosAncora) {
+            # A linha do catalogo e dividida pelo MESMO divisor do
+            # relatorio: o pipe dentro de crase nao separa coluna. Sem
+            # isso, a barra escapada de uma evidencia virava separador e a
+            # linha do catalogo perdia a estrutura - a coluna Tranal recebia
+            # o texto errado.
+            $celulas = @(Dividir-Celulas $linhasCatalogo[$destino.Indice])
 
-                $celulas[$celulas.Count - 2] = " **$($linhaRec.Rotulo)** - $texto "
-                $linhasCatalogo[$destino.Indice] = ($celulas -join '|')
+            # Um pipe dentro do texto quebraria a tabela: a barra vira barra.
+            $texto = ($linhaRec.Evidencia -replace '\\\|', '|' -replace '\|', '/')
 
-                $destino.Usado = $true
-                $aplicadas++
+            $celulas[$celulas.Count - 2] = " **$($linhaRec.Rotulo)** - $texto "
+            $linhasCatalogo[$destino.Indice] = ($celulas -join '|')
 
-                $pares += [pscustomobject]@{
-                    Rec      = $linhaRec.Numero
-                    Catalogo = $destino.Numero
-                    CatalogoId = $destino.Id
-                    Nota     = 'ancora'
-                    ViaAncora = $true
-                    Motivo   = $motivoAncora
-                    FuncRec  = $linhaRec.Funcionalidade
-                    FuncCat  = $destino.Funcionalidade
-                    Estado   = $linhaRec.Rotulo
-                    Evidencia = $linhaRec.Evidencia
-                }
+            $destino.Usado = $true
+            $aplicadas++
+
+            $pares += [pscustomobject]@{
+                Rec      = $linhaRec.Numero
+                Catalogo = $destino.Numero
+                CatalogoId = $destino.Id
+                Nota     = $via
+                ViaAncora = ($via -eq 'ancora')
+                Motivo   = $motivo
+                FuncRec  = $linhaRec.Funcionalidade
+                FuncCat  = $destino.Funcionalidade
+                Estado   = $linhaRec.Rotulo
+                Evidencia = $linhaRec.Evidencia
             }
-
-            continue
         }
+
+        continue
     }
 
     # Sem ancora: o melhor casamento por conteudo, entre as linhas do
@@ -441,9 +524,11 @@ foreach ($linhaRec in $reconLines) {
         continue
     }
 
-    $celulas = $linhasCatalogo[$melhor.Indice] -split '\|'
+    # A linha do catalogo e dividida pelo MESMO divisor do relatorio (ver
+    # a nota da escrita por ancora).
+    $celulas = @(Dividir-Celulas $linhasCatalogo[$melhor.Indice])
 
-    $texto = ($linhaRec.Evidencia -replace '\|', '/')
+    $texto = ($linhaRec.Evidencia -replace '\\\|', '|' -replace '\|', '/')
 
     $celulas[$celulas.Count - 2] = " **$($linhaRec.Rotulo)** - $texto "
     $linhasCatalogo[$melhor.Indice] = ($celulas -join '|')
@@ -493,7 +578,24 @@ if (Test-Path -LiteralPath $mapaPath) {
     }
 }
 
-$mapa[$chaveCatalogo] = @($pares | ForEach-Object {
+# O mapa do competidor e ACUMULADO entre execucoes, e nao substituido: uma
+# reconciliacao nova nao pode apagar as linhas medidas por outra. A chave e a
+# LINHA do catalogo ("T{tabela}#{numero}"): quando a reconciliacao nova mede a
+# mesma linha, o estado novo substitui o antigo (a medicao mais recente
+# vence) e as demais linhas continuam no mapa.
+#
+# As entradas de uma execucao anterior so valem se o ID ainda existe no
+# catalogo: e assim que um ID do esquema antigo (laxo) deixa de sobreviver a
+# troca de regra.
+$idsValidos = @($alvos | ForEach-Object { $_.Id })
+$anteriores = @()
+if ($mapa.ContainsKey($chaveCatalogo)) {
+    $anteriores = @($mapa[$chaveCatalogo] | Where-Object { $idsValidos -contains $_.catalogoId })
+}
+$idsMedidos = @($pares | ForEach-Object { $_.CatalogoId })
+$mantidos = @($anteriores | Where-Object { $idsMedidos -notcontains $_.catalogoId })
+
+$mapa[$chaveCatalogo] = @($mantidos + @($pares | ForEach-Object {
     [pscustomobject]@{
         recon     = $_.Rec
         catalogo  = $_.Catalogo
@@ -503,7 +605,7 @@ $mapa[$chaveCatalogo] = @($pares | ForEach-Object {
         via       = $_.Nota
         motivo    = $_.Motivo
     }
-})
+}))
 
 $docMapa = [pscustomobject]@{
     geradoPor = 'tools\auditoria\aplicar-recon.ps1'

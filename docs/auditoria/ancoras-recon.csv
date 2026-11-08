@@ -8,37 +8,39 @@
 # identifica a linha sem ambiguidade, porque alguns catalogos (IOBIT,
 # HIBIT) tem varias tabelas com a mesma numeracao.
 #
+# O ID usa a REGRA ESTRITA de tabela de funcionalidade: a tabela so conta
+# quando tem uma CELULA cujo texto, aparado, e EXATAMENTE "Funcionalidade".
+# A regra antiga (a linha contem a palavra "Funcionalidade") contava linha de
+# DADOS de outra tabela como cabecalho e deslocava o indice: no HIBIT a
+# tabela de funcionalidade que comeca na linha 66 era a T2, e nao a T1.
+#
 # A ancora existe para os casos em que o casamento por conteudo nao
 # funciona: o relatorio e o catalogo descrevem a mesma funcionalidade com
 # palavras diferentes. Sem a ancora, o estado medido cairia na linha
-# errada — ou em nenhuma.
+# errada - ou em nenhuma.
 #
 # MEDIDO: cada linha foi conferida contra o texto das duas pontas.
 #
 # As linhas de dados NAO levam marcador de comentario: o script pula as
 # linhas que comecam por "#" ou "//".
 
-# --- HiBit -------------------------------------------------------------
-# RECON "colunas completas: falta Tipo (32/64)" e a propria linha da
-# coluna "Lista com colunas" do catalogo — o relatorio mede o que FALTA
-# na lista, o catalogo descreve a lista.
-HiBit;1;T2#1;RECON mede a lacuna de "Tipo (32/64)" na lista de colunas; CAT T2#1 e a linha "Lista com colunas: Nome, Versao, Editor, ...". Mesmo item,_redacao diferente.
+HiBit;1;T1#1;RECON mede a lacuna de "Tipo (32/64)" na lista de colunas; CAT T2#1 e a linha "Lista com colunas: Nome, Versao, Editor, ...". Mesmo item,_redacao diferente.
 # RECON "relatorios HTML por ferramenta" = CAT "Relatorios HTML por ferramenta".
-HiBit;8;T2#8;RECON "Relatorios HTML por ferramenta (servicos, drivers, tarefas, inicializacao, menu de contexto)" = CAT T2#8 "Relatorios HTML por ferramenta: OpReport, ScanLog, ...".
+HiBit;8;T1#8;RECON "Relatorios HTML por ferramenta (servicos, drivers, tarefas, inicializacao, menu de contexto)" = CAT T2#8 "Relatorios HTML por ferramenta: OpReport, ScanLog, ...".
 # RECON "apagar a entrada do registro do programa" = CAT "Deletar entrada do registro do programa".
-HiBit;10;T2#10;RECON "Apagar a entrada do registro do programa como acao avulsa" = CAT T2#10 "Deletar entrada do registro do programa".
+HiBit;10;T1#10;RECON "Apagar a entrada do registro do programa como acao avulsa" = CAT T2#10 "Deletar entrada do registro do programa".
 # RECON "gerenciador de inicializacao que cria e edita" = CAT "Gerenciador de Inicializacao (Startup)".
-HiBit;67;T5#67;RECON "Gerenciador de Inicializacao que cria e edita itens de autostart" = CAT T5#67 "Gerenciador de Inicializacao (Startup)".
+HiBit;67;T4#67;RECON "Gerenciador de Inicializacao que cria e edita itens de autostart" = CAT T5#67 "Gerenciador de Inicializacao (Startup)".
 # RECON "gerenciador de servicos que cria servico" = CAT "Gerenciador de Servicos".
-HiBit;68;T5#68;RECON "Gerenciador de Servicos que cria servico" = CAT T5#68 "Gerenciador de Servicos".
+HiBit;68;T4#68;RECON "Gerenciador de Servicos que cria servico" = CAT T5#68 "Gerenciador de Servicos".
 # RECON "gerenciador de menu de contexto" = CAT "Gerenciador de Menu de Contexto".
-HiBit;71;T5#71;RECON "Gerenciador de Menu de Contexto (janela propria)" = CAT T5#71 "Gerenciador de Menu de Contexto".
+HiBit;71;T4#71;RECON "Gerenciador de Menu de Contexto (janela propria)" = CAT T5#71 "Gerenciador de Menu de Contexto".
 # RECON "Backups & Reports" = CAT "Backups & Reports".
-HiBit;75;T5#75;RECON "Backups & Reports (painel proprio de backup e de relatorio)" = CAT T5#75 "Backups & Reports".
+HiBit;75;T4#75;RECON "Backups & Reports (painel proprio de backup e de relatorio)" = CAT T5#75 "Backups & Reports".
 # RECON "destruidor de arquivos com 5 algoritmos de hash" = CAT "Destruidor de Arquivos (MD5/SHA-1/...)".
-HiBit;81;T5#81;RECON "Destruidor de Arquivos com 5 algoritmos de hash e relatorio de hash" = CAT T5#81 "Destruidor de Arquivos (MD5 / SHA-1 / SHA-256 / SHA-512 / CRC32)".
+HiBit;81;T4#81;RECON "Destruidor de Arquivos com 5 algoritmos de hash e relatorio de hash" = CAT T5#81 "Destruidor de Arquivos (MD5 / SHA-1 / SHA-256 / SHA-512 / CRC32)".
 # RECON "gerenciador de atualizacoes do Windows" = CAT "Gerenciador de Atualizacoes do Windows".
-HiBit;86;T5#86;RECON "Gerenciador de Atualizacoes do Windows (painel proprio)" = CAT T5#86 "Gerenciador de Atualizacoes do Windows".
+HiBit;86;T4#86;RECON "Gerenciador de Atualizacoes do Windows (painel proprio)" = CAT T5#86 "Gerenciador de Atualizacoes do Windows".
 
 # --- Geek --------------------------------------------------------------
 # RECON "Batch Force Removal" = CAT "**Batch Force Removal**".
@@ -54,13 +56,13 @@ Geek;27;T1#12;RECON "Ciclo de mensagens do assistente (Gerando lista de tracos -
 
 # --- IOBIT -------------------------------------------------------------
 # RECON "remocao de extensoes com base de assinaturas maliciosa/ad" = CAT "Remocao de extensoes de navegador com base propria (PlugDB.dbd)".
-IObit;1;T2#1;RECON "Remocao de extensoes de navegador com base de assinaturas maliciosa/ad" = CAT T2#1 "Remocao de extensoes de navegador com base propria (PlugDB.dbd, 1,6 MB)".
+IObit;1;T1#1;RECON "Remocao de extensoes de navegador com base de assinaturas maliciosa/ad" = CAT T2#1 "Remocao de extensoes de navegador com base propria (PlugDB.dbd, 1,6 MB)".
 # RECON "remocao de plugins NPAPI/ActiveX" = CAT "Remocao de plugins do navegador".
-IObit;4;T2#4;RECON "Remocao de plugins de navegador (NPAPI/ActiveX)" = CAT T2#4 "Remocao de plugins do navegador".
+IObit;4;T1#4;RECON "Remocao de plugins de navegador (NPAPI/ActiveX)" = CAT T2#4 "Remocao de plugins do navegador".
 # RECON "botao de destruicao no Explorer" = CAT "Botao Shred no Explorer".
-IObit;23;T7#23;RECON "Botao de destruicao no Explorer (handler de menu de contexto)" = CAT T7#23 "Botao Shred no Explorer".
+IObit;23;T6#23;RECON "Botao de destruicao no Explorer (handler de menu de contexto)" = CAT T7#23 "Botao Shred no Explorer".
 # RECON "catalogo embutido de Appx pre-instalados" = CAT "Catalogo embutido de Appx pre-instalados".
-IObit;38;T8#38;RECON "Catalogo embutido de Appx pre-instalados do Windows" = CAT T8#38 "Catalogo embutido de Appx pre-instalados (a lista do que o Windows traz de fabrica)".
+IObit;38;T7#38;RECON "Catalogo embutido de Appx pre-instalados do Windows" = CAT T8#38 "Catalogo embutido de Appx pre-instalados (a lista do que o Windows traz de fabrica)".
 
 # --- Uninstalr ---------------------------------------------------------
 # RECON "motor de desinstalacao que dirige a interface de terceiros" = CAT "Motor de desinstalacao proprio".
@@ -83,3 +85,34 @@ Ashampoo;29;T4#41;RECON "filtro de tamanho no Junk/Cache cleaner" = CAT T4#41 "D
 Ashampoo;4;T3#34;RECON "comparacao de snapshots que mostra o que mudou" = CAT T3#34 "Comparar dois snapshots e visualizar as diferencas por categoria". O #3 do RECON e a biblioteca de snapshots (#33).
 # RECON "Move / Revert relocation" cobre DUAS linhas do catalogo.
 Ashampoo;18;T4#56,T4#57;RECON "Move / Revert relocation" cobre as linhas #56 "Move: mover um programa para outro local" e #57 "Revert relocation: devolver o programa movido". Uma ancora pode apontar para varias linhas, separadas por virgula.
+
+# --- Ashampoo: linhas do RECON-ASHAMPOO-TOTALUNINSTALL.md (31-59) ----
+# O casamento por conteudo nao passou do limite de 0,45 e a linha ficou sem
+# estado. As duas pontas foram conferidas: a linha do RECON e a linha do
+# catalogo descrevem a MESMA funcionalidade.
+Ashampoo;41;T1#20;RECON "Visao unica de instalacoes/desinstalacoes recentes, com acao de desinstalar" = CAT T1#20 "Historico das instalacoes/desinstalacoes recentes, com botao de desinstalar".
+Ashampoo;54;T2#12;RECON "Importar logs do UnInstaller 4 (formato de terceiro)" = CAT T2#12 "Importar logs do UnInstaller 4".
+Ashampoo;55;T5#65;RECON "Instalacao via Ashampoo App (loja de aplicativos propria)" = CAT T5#65 "Instalacao via Ashampoo App".
+Ashampoo;56;T7#67;RECON "Instalador Inno Setup 7.0.0.3 como tecnologia de empacotamento" = CAT T7#67 "Instalador Inno Setup 7.0.0.3 com mensagens em ingles".
+
+# --- Total Uninstall: linhas do RECON-ASHAMPOO-TOTALUNINSTALL.md (12-94) ----
+Total Uninstall;17;T2#17;RECON "Comparar snapshots com perfis, incluindo modificados e removidos" = CAT T2#17 "Comparar snapshots do sistema, com perfis de comparacao".
+Total Uninstall;19;T2#19;RECON "Par include/exclude por perfil de scanning" = CAT T2#19 "Perfil de scanning com chaves/pastas incluidas e excluidas". MEDIDO: sem esta ancora o RECON #19 caia em T3#43 ("Cleaner com 6 categorias de regras") - outra funcionalidade.
+Total Uninstall;43;T3#43;RECON "Motor de regras do Cleaner em 6 categorias com Include/Exclude" = CAT T3#43 "Cleaner com 6 categorias de regras".
+Total Uninstall;45;T3#45;RECON "Classificacao de sobras por extensao com informacao de versao" = CAT T3#45 "Classificacao por extensao de arquivo".
+Total Uninstall;90;T7#90;RECON "Distinguir programa novo de programa atualizado na lista" = CAT T7#90 "Detectar programa novo ou atualizado".
+
+# --- Wise: linhas do RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE.md ---------------
+# O casamento por conteudo nao passou do limite de 0,45, apesar de as duas
+# pontas descreverem a mesma funcionalidade.
+Wise;6;T1#6;RECON "Desinstalacao Forcada - modo explicito no painel principal" = CAT T1#6 "Desinstalacao Forcada - para quando o desinstalador normal nao resolve".
+Wise;37;T3#37;RECON "Software Health com 4 categorias: sobras, arquivos redundantes, permissoes, notificacoes" = CAT T3#37 "Quatro categorias: Uninstallation Leftovers, Software Redundant Files, Software Permissions, Disturbing Notifications".
+Wise;41;T3#41;RECON "Bloqueio de notificacoes pop-up e ads unwanted (dentro do Software Health)" = CAT T3#41 "Block pop-up notifications and unwanted ads".
+Wise;60;T6#60;RECON "Datas relativas no historico" = CAT T6#60 "Datas relativas no historico".
+
+# --- Uninstall Tool: linha do RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE.md ------
+# MEDIDO: o BINARIO-UNINSTALLTOOL.md lista a MESMA funcionalidade duas vezes
+# (linhas 8 e 71, mesmo texto e mesmo evidence: strings.txt:14234) e o
+# catalogo tem UMA linha para ela (T6#71). O RECON #8 ja mede essa linha;
+# o RECON #71 e a mesma funcionalidade e aponta para a mesma linha.
+Uninstall Tool;71;T6#71;RECON "Realce dos programas recem-instalados" = CAT T6#71 "Realce dos programas recem-instalados". MESMA funcionalidade do RECON #8 (duplicada na lista de lacunas).

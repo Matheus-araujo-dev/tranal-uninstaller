@@ -69,10 +69,61 @@ public static class ToolCatalog
     /// </summary>
     public const string Appearance = "Appearance";
 
-    /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
-    public const string HistoryCleaner = "HistoryCleaner";
+    /// <summary>
+    /// Informacoes do sistema: sistema operacional, processador, memoria, disco,
+    /// video e tempo de atividade.
+    /// </summary>
+    public const string SystemInfo = "SystemInfo";
 
-    /// <summary>Tracks Cleaner: modulo dos navegadores.</summary>
+    /// <summary>
+    /// Impacto dos programas: quais pesam mais na maquina (CPU e memoria).
+    /// </summary>
+    public const string ProgramImpact = "ProgramImpact";
+
+    /// <summary>
+    /// Relatorio de falhas: as quedas do Windows agrupadas por programa.
+    /// </summary>
+    public const string CrashAnalyzer = "CrashAnalyzer";
+
+    /// <summary>
+    /// Relocacao: os programas movidos entre discos, e a volta ao lugar
+    /// original.
+    /// </summary>
+    public const string Relocation = "Relocation";
+
+    /// <summary>
+    /// Destravador: quem esta segurando um arquivo, e as acoes para soltar.
+    /// </summary>
+    public const string Unlocker = "Unlocker";
+
+    /// <summary>
+    /// Limpador de internet: cookies, historico, cache e formularios dos
+    /// navegadores.
+    /// </summary>
+    public const string InternetCleaner = "InternetCleaner";
+
+    /// <summary>
+    /// Drive Cleaner: arquivos desnecessarios do disco, por categoria.
+    /// </summary>
+    public const string DriveCleaner = "DriveCleaner";
+
+    /// <summary>
+    /// Conserto de atalhos quebrados do Menu Iniciar e da Area de Trabalho.
+    /// </summary>
+    public const string ShortcutFixer = "ShortcutFixer";
+
+    /// <summary>
+    /// Limpeza do cache MRU do Windows ("uso recente").
+    /// </summary>
+    public const string MruCleaner = "MruCleaner";
+
+    /// <summary>
+    /// Catalogo de componentes compartilhados (DLLs compartilhadas).
+    /// </summary>
+    public const string SharedDlls = "SharedDlls";
+
+    /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
+    public const string HistoryCleaner = "HistoryCleaner";    /// <summary>Tracks Cleaner: modulo dos navegadores.</summary>
     public const string TracksBrowsers = "TracksBrowsers";
 
     /// <summary>Tracks Cleaner: modulo do Microsoft Office.</summary>
@@ -99,9 +150,19 @@ public static class ToolCatalog
         RegistryCleaner,
         PrivacyTraces,
         AlternateDataStreams,
+        Unlocker,
+        InternetCleaner,
+        DriveCleaner,
+        ShortcutFixer,
+        MruCleaner,
+        SharedDlls,
         CustomTools,
         Processes,
         SystemManagement,
         Appearance,
+        SystemInfo,
+        ProgramImpact,
+        CrashAnalyzer,
+        Relocation,
     };
 }

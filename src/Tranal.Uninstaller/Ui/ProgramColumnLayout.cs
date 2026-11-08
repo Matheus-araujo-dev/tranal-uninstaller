@@ -42,6 +42,8 @@ public static class ProgramColumnLayout
         ProgramColumn.Protected => 90,
         ProgramColumn.Startup => 110,
         ProgramColumn.Rating => 90,
+        ProgramColumn.Country => 140,
+        ProgramColumn.RelativeDate => 130,
         _ => 120,
     };
 
@@ -71,6 +73,8 @@ public static class ProgramColumnLayout
         ProgramColumn.Protected => nameof(ProgramRow.ProtectedText),
         ProgramColumn.Startup => nameof(ProgramRow.StartupText),
         ProgramColumn.Rating => nameof(ProgramRow.RatingText),
+        ProgramColumn.Country => nameof(ProgramRow.CountryText),
+        ProgramColumn.RelativeDate => nameof(ProgramRow.RelativeDateText),
         _ => null,
     };
 

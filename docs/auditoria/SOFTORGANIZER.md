@@ -115,20 +115,20 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
 | 1 | Lista de aplicativos instalados | `recursos.txt:103` → `TAPPLICATIONSFRAME/0` | OK — `Core/ProgramScanner.cs`, `Ui/Modules/ModuleViews.cs` |
-| 2 | Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES | nao confirmado no binario | PARCIAL — `Ui/Modules/ModuleViews.cs` mostra ações, mas não a ação "INSTALL WITH TRACING" |
+| 2 | Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES | nao confirmado no binario | **PARCIAL** - A acao de instalar e rastrear existe, mas no painel do modulo "Programas Monitorados"; nao ha painel lateral com essa acao. |
 | 3 | Busca rápida por nome | nao confirmado no binario | OK — `Core/Appearance/ProgramFilters.cs` |
-| 4 | Ordenação e agrupamento da lista | nao confirmado no binario | PARCIAL — `Core/ProgramColumns.cs` ordena; o agrupamento é só por `GroupingModel.cs` |
+| 4 | Ordenação e agrupamento da lista | nao confirmado no binario | **OK** - Ordenacao inteligente e agrupamento por criterio existem e sao ligados na tela de aparencia (`src/Tranal.Uninstaller/Ui/Appearance/AppearanceView.xaml.cs:197`). |
 | 5 | Desinstalar vários aplicativos de uma vez | nao confirmado no binario | OK — `Core/Automation/BatchList.cs` |
 | 6 | Executa primeiro o **desinstalador nativo**, depois limpa as sobras | nao confirmado no binario | OK — `Core/Removal.cs` + `Core/UninstallSupport.cs` |
 | 7 | **Modo forçado** de desinstalação | nao confirmado no binario | OK — `Core/Modules/HunterMode.cs` |
 | 8 | "Delete from the List Without Uninstalling" | nao confirmado no binario | OK — `Core/RegistryEditing/RegistryEditor.cs` |
-| 9 | **Removal tools from the developers** (link para o desinstalador oficial) | `recursos.txt:107` → `TAPPLICATIONSREMOVALTOOLSFORM/0` | AUSENTE |
-| 10 | Filtro **"Large Applications"** | nao confirmado no binario | AUSENTE |
-| 11 | Verificação de novas versões com "Update to X" | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` atualiza o próprio SO, não os programas listados |
+| 9 | **Removal tools from the developers** (link para o desinstalador oficial) | `recursos.txt:107` → `TAPPLICATIONSREMOVALTOOLSFORM/0` | **AUSENTE** - A coluna mostra o caminho do desinstalador (`ProgramColumns.cs:283`, `UninstallerLocationOf`), nao um link para a ferramenta de remocao do desenvolvedor. Grep sem resultado em `src/`. |
+| 10 | Filtro **"Large Applications"** | nao confirmado no binario | **OK** - O filtro por tamanho classifica a lista em small, medium e large, o que cobre o "Large Applications" do concorrente. |
+| 11 | Verificação de novas versões com "Update to X" | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | **AUSENTE** - Nao ha consulta de versao de programas instalados. Grep sem resultado em `src/`: a unica atualizacao do codigo e a do proprio Tranal (`Core/Updates/AutoUpdateClient.cs:56`). |
 | 12 | Atualização automática do próprio Soft Organizer | `recursos.txt:131` → `TSILENTUPDATESCHECKDATAMODULE/0` | OK — `Core/Updates/AutoUpdateClient.cs` |
 | 13 | Avaliação/rating dos programas | nao confirmado no binario | OK — `Core/Appearance/ProgramRating.cs` |
 | 14 | Relatório final da desinstalação | nao confirmado no binario | OK — `Core/RemovalLog.cs` |
-| 15 | Notificações internas (sino) e dicas | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | AUSENTE |
+| 15 | Notificações internas (sino) e dicas | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | **AUSENTE** - Grep por sino, notificacao interna e dicas: sem resultado em `src/`. A categoria "Notificacoes" do Software Health (`src/Tranal.Uninstaller/Core/Management/SoftwareHealth.cs:289`) trata do estado dos programas, nao de avisos internos do aplicativo. |
 | 16 | Painel de configurações em árvore | `recursos.txt:129` → `TSETTINGSFORM/0` | OK — `Ui/OptionsWindow.xaml.cs` |
 
 ### 2.2 Scanning e removal (17–31)
@@ -138,17 +138,17 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | 17 | Varredura de sobras com pré-visualização e seleção | `recursos.txt:106` → `TAPPLICATIONSLOGVIEWFORM/0` | OK — `Core/UninstallSupport.cs` |
 | 18 | "REMOVED APPLICATIONS LEFTOVERS" e botão **REMOVE LEFTOVERS** | `recursos.txt:100` → `TAPPLICATIONSDELETEDFORM/0` | OK — `Core/Tools/TrackCleaner.cs` |
 | 19 | Mensagens de estado da remoção de sobras | nao confirmado no binario | OK — `Core/RemovalLog.cs` |
-| 20 | Backup automático antes da remoção | nao confirmado no binario | PARCIAL — `Core/BackupManager.cs` faz backup, mas não é automático por padrão |
+| 20 | Backup automático antes da remoção | nao confirmado no binario | **PARCIAL** - As sobras sao guardadas antes de sumirem e a CLI oferece restauro, mas o backup e das sobras; nao ha backup automatico do item instalado ligado ao fluxo da interface. |
 | 21 | Diretório de backups configurável | nao confirmado no binario | OK — `Core/BackupManager.cs` |
-| 22 | **Undo Changes Center** | `recursos.txt:134` → `TUNDOINGCHANGESCENTERFORM/0` | AUSENTE |
-| 23 | Reverter uninstallação cronologicamente, renomear ou restaurar | `recursos.txt:134` → `TUNDOINGCHANGESCENTERFORM/0` | AUSENTE |
-| 24 | Descarte de mudanças antigas do histórico | nao confirmado no binario | AUSENTE |
-| 25 | Aviso "use o Undo Changes Center para cancelar" | nao confirmado no binario | AUSENTE |
-| 26 | Trace manager: excluir itens e editar valores antes de aplicar | nao confirmado no binario | PARCIAL — `Core/Tracing/*` grava o log; não há edição de valores do log |
+| 22 | **Undo Changes Center** | `recursos.txt:134` → `TUNDOINGCHANGESCENTERFORM/0` | **PARCIAL** - O motor de desfazer e refazer existe (`ProgramBackup.Undo`, linha 228) e a CLI restaura sobras, mas nao ha "Undo Changes Center" na interface: `Record` e `Undo` nao tem consumidor de producao (so `src/Tranal.Tests/RecoveryTests.cs:407`). |
+| 23 | Reverter uninstallação cronologicamente, renomear ou restaurar | `recursos.txt:134` → `TUNDOINGCHANGESCENTERFORM/0` | **PARCIAL** - Desfazer e refazer existem como motor; nao ha linha do tempo cronologica nem acao de renomear ou restaurar item a item na interface. |
+| 24 | Descarte de mudanças antigas do histórico | nao confirmado no binario | **PARCIAL** - O backup de sobras expira em 30 dias (`Expire(30)`), o que e descarte de dado antigo; nao ha descarte de mudancas antigas do historico de desinstalacao. |
+| 25 | Aviso "use o Undo Changes Center para cancelar" | nao confirmado no binario | **AUSENTE** - Nao ha aviso que remeta o usuario ao centro de reversao. Grep sem resultado em `src/`. |
+| 26 | Trace manager: excluir itens e editar valores antes de aplicar | nao confirmado no binario | **PARCIAL** - Excluir, editar, renomear, mesclar e ignorar entradas do log existem e a tela de log os expoe (`src/Tranal.Uninstaller/Ui/TracedLogWindow.xaml.cs:348`), mas a edicao e sobre o log ja gravado, nao antes de aplicar a remocao. |
 | 27 | "View all traces" | nao confirmado no binario | OK — `Ui/TracingWindow.xaml.cs` |
 | 28 | Link "Search" na página de tracing | nao confirmado no binario | OK — `Core/Appearance/ProgramFilters.cs` |
-| 29 | Aviso para melhorar a qualidade do rastreio | nao confirmado no binario | AUSENTE |
-| 30 | **Ignore List** global de itens a não remover | nao confirmado no binario | PARCIAL — `Core/ExcludeList.cs` é global, mas sem a semântica de "não remover na limpeza" |
+| 29 | Aviso para melhorar a qualidade do rastreio | nao confirmado no binario | **AUSENTE** - Grep por aviso de qualidade de rastreio: sem resultado em `src/`. |
+| 30 | **Ignore List** global de itens a não remover | nao confirmado no binario | **OK** - A lista global de exclusao existe com tela propria e e lida pelo motor de regras (`src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:113`). |
 | 31 | Limpeza automática de leftovers após a remoção | nao confirmado no binario | OK — `Core/Tools/TrackCleaner.cs` |
 
 ### 2.3 Tracing / Uninstall monitor (32–47)
@@ -159,17 +159,17 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | 33 | Relatório do que mudou, **salvo em log** | `recursos.txt:104` → `TAPPLICATIONSLOGCREATEFORM/0` | OK — `Core/Modules/TraceStore.cs`, `Core/Reporting/TraceLogExporter.cs` |
 | 34 | Etiqueta "Traced" na lista | nao confirmado no binario | OK — `Core/ProgramColumns.cs` |
 | 35 | **Snapshot do registro** antes/depois da instalação | `imports.txt:8` → `ADVAPI32.dll / RegNotifyChangeKeyValue`, `RegSaveKeyExW` | OK — `Core/Modules/SystemSnapshot.cs` |
-| 36 | Rastreamento do **disco em tempo real** | `imports.txt:10` → `KERNEL32.dll / FindFirstChangeNotificationW`, `FindNextChangeNotification` | PARCIAL — `Core/Modules/SystemSnapshot.cs` faz polling; não há notificação do SO |
+| 36 | Rastreamento do **disco em tempo real** | `imports.txt:10` → `KERNEL32.dll / FindFirstChangeNotificationW`, `FindNextChangeNotification` | **OK** - O disco e observado em tempo real por `ReadDirectoryChangesW` durante o rastreio, com a tela de rastreio ligada ao observador. |
 | 37 | Varredura profunda quando o app não foi rastreado | nao confirmado no binario | OK — `Core/Tracing/ForensicAnalyzer.cs` |
 | 38 | Módulo interno de rastreamento de registro | `imports.txt:8` → `ADVAPI32.dll / RegNotifyChangeKeyValue` | OK — `Core/Tracing/*` |
-| 39 | Log de mudanças em arquivo por app (`TracedApp.changes`) | nao confirmado no binario | PARCIAL — `Core/Modules/TraceStore.cs` grava log por app, mas sem o formato de snapshot de registro |
-| 40 | Rastreamento de **DLLs em pastas do sistema** | nao confirmado no binario | PARCIAL — `Core/UninstallSupport.cs` detecta DLLs em System32 no scan de sobras |
-| 41 | **Monitor em processo separado** (app de rastreamento) | nao confirmado no binario | PARCIAL — `Core/Modules/InstallMonitor.cs` roda no processo principal |
-| 42 | Rastreamento de **aplicativos adicionais** instalados junto | nao confirmado no binario | AUSENTE |
-| 43 | Extensão de shell COM para o menu de contexto | nao confirmado no PE (a DLL da extensão é arquivo do payload) | PARCIAL — `Core/Topmost/ExplorerContextMenu.cs` |
-| 44 | Chave de configuração "Windows context menu commands" | nao confirmado no binario | PARCIAL — `Core/Settings/AppSettings.cs` |
+| 39 | Log de mudanças em arquivo por app (`TracedApp.changes`) | nao confirmado no binario | **PARCIAL** - Ha um log por programa rastreado, em JSON, e a fusao dos logs do mesmo programa existe; nao ha o arquivo `TracedApp.changes` por aplicativo com o formato do concorrente. |
+| 40 | Rastreamento de **DLLs em pastas do sistema** | nao confirmado no binario | **AUSENTE** - As raizes varridas sao Program Files, Program Files (x86), CommonApplicationData, LocalApplicationData e ApplicationData (`src/Tranal.Uninstaller/Core/Modules/SystemSnapshot.cs:106`); `C:\Windows` nao entra. Grep por rastreamento de DLL em pasta de sistema sem resultado em `src/`. |
+| 41 | **Monitor em processo separado** (app de rastreamento) | nao confirmado no binario | **AUSENTE** - Nao ha processo separado de rastreamento: a solucao tem apenas `src/Tranal.Uninstaller/Tranal.Uninstaller.csproj`, `src/Tranal.Cli/Tranal.Cli.csproj` e `src/Tranal.Tests/Tranal.Tests.csproj`. |
+| 42 | Rastreamento de **aplicativos adicionais** instalados junto | nao confirmado no binario | **PARCIAL** - A instalacao rastreada compara o antes e o depois da varredura e acha os programas novos; a deteccao e por comparacao de snapshot, nao por evento, e nao ha monitor rodando. |
+| 43 | Extensão de shell COM para o menu de contexto | nao confirmado no PE (a DLL da extensão é arquivo do payload) | **PARCIAL** - O menu de contexto e um verb do registro e a gerencia das entradas de menu por programa existe; nao ha extensao COM (DLL de shell) empacotada. |
+| 44 | Chave de configuração "Windows context menu commands" | nao confirmado no binario | **AUSENTE** - Nao ha chave de configuracao para os comandos do menu de contexto do Explorer: grep sem resultado em `src/`. |
 | 45 | **Arrastar ícone** para o atalho | nao confirmado no binario | OK — `Core/Modules/HunterMode.cs` |
-| 46 | Detecção de **desinstalação externa** (app removido por fora) | `recursos.txt:102` → `TAPPLICATIONSEXTERNALDELETEMODULE/0` | AUSENTE |
+| 46 | Detecção de **desinstalação externa** (app removido por fora) | `recursos.txt:102` → `TAPPLICATIONSEXTERNALDELETEMODULE/0` | **OK** - O verificador detecta que o programa deixou de existir e o comando `/external` expoe a varredura. |
 | 47 | Remoção de **Universal Windows Apps** | `imports.txt:63` → `API-MS-WIN-CORE-WINRT-L1-1-0.DLL` | OK — `Core/Modules/WindowsApps.cs` |
 
 ### 2.4 Integração e organização (48–53)
@@ -178,39 +178,39 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 |---|---|---|---|
 | 48 | Export da lista para HTML | nao confirmado no binario | OK — `Core/Exporters.cs` |
 | 49 | Atalhos instalados, com destino, alvo e working directory | nao confirmado no binario | OK — `Core/Management/ShortcutManager.cs` |
-| 50 | "Rarely used apps" | nao confirmado no binario | AUSENTE |
-| 51 | Leftovers de programas **já desinstalados** (lista de apps deletadas) | `recursos.txt:100` → `TAPPLICATIONSDELETEDFORM/0` | PARCIAL — `Core/Tools/TrackCleaner.cs` limpa rastros; falta a lista de apps já desinstalados |
-| 52 | Instalação silenciosa de programas | nao confirmado no binario | AUSENTE |
-| 53 | Instalação de novas versões | nao confirmado no binario | PARCIAL |
+| 50 | "Rarely used apps" | nao confirmado no binario | **OK** - O filtro de uso raro se apoia nos sinais do Windows (UserAssist e Prefetch) e a coluna de ultimo uso vem dos mesmos sinais. |
+| 51 | Leftovers de programas **já desinstalados** (lista de apps deletadas) | `recursos.txt:100` → `TAPPLICATIONSDELETEDFORM/0` | **PARCIAL** - A remocao por fora e detectada e o historico e gravado, mas nao ha lista de programas ja deletados com as sobras de cada um. |
+| 52 | Instalação silenciosa de programas | nao confirmado no binario | **AUSENTE** - Nao ha instalacao silenciosa: grep por "MsiInstallProduct" e por instalacao silenciosa sem resultado em `src/`. So existem desinstalacao e reparo MSI (`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:242`). |
+| 53 | Instalação de novas versões | nao confirmado no binario | **AUSENTE** - Nao ha instalacao de versao nova: grep sem resultado em `src/`. |
 
 ### 2.5 Linhas novas: funcionalidades presentes no binário e ainda não no documento
 
 | # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 54 | **Centro de dicas "Did You Know"** com dicas contextuais (arrastar para desinstalar, desinstalação externa, atualização, multilíngue) | `recursos.txt:112` → `TDIDYOUKNOWCENTERFORM/0`; `:101` → `TAPPLICATIONSDIDYOUKNOWTIPSDATA/0` | AUSENTE |
-| 55 | Aviso de **atualização do próprio app** ("Update This App") | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | PARCIAL — `Core/Updates/AutoUpdateClient.cs` atualiza, mas não há o painel "Update This App" |
-| 56 | **Backup e restauração de chaves de registro inteiras** | `imports.txt:8` → `ADVAPI32.dll / RegSaveKeyExW`, `RegRestoreKeyW` | PARCIAL — `Core/FullRegistryBackup.cs` exporta/importa hive `.reg`; o SO salva e restaura a chave selecionada |
-| 57 | **Carga e descarregamento de chaves** e substituição de chave | `imports.txt:8` → `ADVAPI32.dll / RegLoadKeyW`, `RegUnLoadKeyW`, `RegReplaceKeyW` | AUSENTE |
-| 58 | **Reiniciar o gerenciador** (Restart Manager) para liberar arquivos em uso | `imports.txt:76` → `Rstrtmgr.dll / RmStartSession`, `RmGetList`, `RmRegisterResources`, `RmRestart`, `RmShutdown`, `RmEndSession` | PARCIAL — `Core/ProcessTerminator.cs` termina processos e `Core/DeferredDelete.cs` adia o arquivo; falta o Restart Manager |
-| 59 | **Verificação de assinatura digital** de executáveis | `imports.txt:56` → `CRYPT32.dll / CryptQueryObject`, `CryptMsgGetParam` | AUSENTE |
-| 60 | **Enumeração de impressoras** e fila de impressão (para desinstalar driver de impressora) | `imports.txt:18` → `WINSPOOL.DRV / EnumPrintersW`, `GetDefaultPrinterW`, `OpenPrinterW` | AUSENTE |
-| 61 | **Descoberta de dispositivos Bluetooth LE** | `identificadores.txt:58` → `Windows.Devices.Bluetooth`; `strings.txt:15394` → `TWinRTBluetoothLEAdapter` | AUSENTE |
+| 54 | **Centro de dicas "Did You Know"** com dicas contextuais (arrastar para desinstalar, desinstalação externa, atualização, multilíngue) | `recursos.txt:112` → `TDIDYOUKNOWCENTERFORM/0`; `:101` → `TAPPLICATIONSDIDYOUKNOWTIPSDATA/0` | **AUSENTE** - Grep por centro de dicas: sem resultado em `src/`. |
+| 55 | Aviso de **atualização do próprio app** ("Update This App") | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | **PARCIAL** - A verificacao de atualizacao do proprio Tranal existe e e desligada por padrao, mas nao ha a tela "Update This App" do concorrente: grep por "Update This App" sem resultado em `src/`. |
+| 56 | **Backup e restauração de chaves de registro inteiras** | `imports.txt:8` → `ADVAPI32.dll / RegSaveKeyExW`, `RegRestoreKeyW` | **PARCIAL** - O backup exporta os hives inteiros (HKLM, HKU, HKCU, HKCR, HKCC) com `reg.exe` e gera o script de restauracao; nao ha backup de chave arbitraria: grep por "RegSaveKey" e por "RegRestoreKey" sem resultado em `src/`. |
+| 57 | **Carga e descarregamento de chaves** e substituição de chave | `imports.txt:8` → `ADVAPI32.dll / RegLoadKeyW`, `RegUnLoadKeyW`, `RegReplaceKeyW` | **AUSENTE** - Grep por "RegLoadKey", "RegUnLoadKey" e "RegReplaceKey": sem resultado em `src/`. |
+| 58 | **Reiniciar o gerenciador** (Restart Manager) para liberar arquivos em uso | `imports.txt:76` → `Rstrtmgr.dll / RmStartSession`, `RmGetList`, `RmRegisterResources`, `RmRestart`, `RmShutdown`, `RmEndSession` | **PARCIAL** - A classe existe com a API do Restart Manager (`RmStartSession`, `RmGetList`, `RmRegisterResources`), mas nao tem consumidor de producao: em `src/` so aparecem a propria classe e os testes. |
+| 59 | **Verificação de assinatura digital** de executáveis | `imports.txt:56` → `CRYPT32.dll / CryptQueryObject`, `CryptMsgGetParam` | **PARCIAL** - A verificacao existe (`WinVerifyTrust` com `X509Chain`, linhas 114 e 178), mas so e chamada pelos testes; a interface nao mostra o resultado da assinatura. |
+| 60 | **Enumeração de impressoras** e fila de impressão (para desinstalar driver de impressora) | `imports.txt:18` → `WINSPOOL.DRV / EnumPrintersW`, `GetDefaultPrinterW`, `OpenPrinterW` | **AUSENTE** - Grep por "EnumPrinters" e por fila de impressao: sem resultado em `src/`. |
+| 61 | **Descoberta de dispositivos Bluetooth LE** | `identificadores.txt:58` → `Windows.Devices.Bluetooth`; `strings.txt:15394` → `TWinRTBluetoothLEAdapter` | **AUSENTE** - Grep por "Bluetooth" e por WinRT de dispositivo: sem resultado em `src/`. |
 | 62 | Monitoramento de processos **por sessão** | `imports.txt:50` → `WTSAPI32.dll / WTSEnumerateProcessesW` | OK — `Core/ProcessTerminator.cs` |
-| 63 | Informações de **usuário e estação de rede** | `imports.txt:12` → `NETAPI32.dll / NetUserGetInfo`, `NetWkstaGetInfo` | AUSENTE |
-| 64 | Consulta da **Lixeira** para reportar itens removidos | `imports.txt:30` → `SHELL32.dll / SHQueryRecycleBinW` | AUSENTE |
-| 65 | **Configuração completa de MSI** (instalar, modificar, reparar) | `imports.txt:74` → `msi.dll / MsiConfigureProductW`, `MsiSetExternalUIW`, `MsiSetInternalUI`, `MsiEnumProductsExW`, `MsiQueryProductStateW` | PARCIAL — `Core/MsiInstallLog.cs` e `Core/Discovery/MsiProductCatalog.cs` leem o MSI; falta configurar/reparar |
+| 63 | Informações de **usuário e estação de rede** | `imports.txt:12` → `NETAPI32.dll / NetUserGetInfo`, `NetWkstaGetInfo` | **AUSENTE** - Grep por "NetUserGetInfo" e por "NetWkstaGetInfo": sem resultado em `src/`. |
+| 64 | Consulta da **Lixeira** para reportar itens removidos | `imports.txt:30` → `SHELL32.dll / SHQueryRecycleBinW` | **AUSENTE** - A lixeira e esvaziada (`SHEmptyRecycleBin`), nao consultada: grep por "SHQueryRecycleBin" sem resultado em `src/`. |
+| 65 | **Configuração completa de MSI** (instalar, modificar, reparar) | `imports.txt:74` → `msi.dll / MsiConfigureProductW`, `MsiSetExternalUIW`, `MsiSetInternalUI`, `MsiEnumProductsExW`, `MsiQueryProductStateW` | **PARCIAL** - Reparo e desinstalacao MSI sao montados, mas a interface nao os aciona (`Repair` so nos testes) e nao ha a configuracao do Windows Installer: grep por "MsiConfigureProduct" e por "MsiSetExternalUI" sem resultado em `src/`. |
 | 66 | Download de arquivos pela web | `imports.txt:42` → `URLMON.DLL / URLDownloadToFileW` | OK — `Core/Updates/AutoUpdateClient.cs` |
-| 67 | **Tarefas de segundo plano** executadas pelo app | `recursos.txt:110` → `TBACKGROUNDTASKSMODULE/0` | AUSENTE |
-| 68 | **Itens compartilhados e dependentes** entre programas | `recursos.txt:130` → `TSHAREDANDDEPENDENTDATAMODULE/0` | AUSENTE |
-| 69 | **Startup gear** (gerenciador de inicialização próprio) | `recursos.txt:132` → `TSTARTUPGEARDATAMODULE/0` | AUSENTE |
-| 70 | Formulário de **notações do log** de rastreamento | `recursos.txt:105` → `TAPPLICATIONSLOGNOTATIONSFORM/0` | AUSENTE |
-| 71 | Formulário do **resultado da reversão do log** | `recursos.txt:108` → `TAPPLICATIONSREVERTLOGRESULTFORM/0` | AUSENTE |
+| 67 | **Tarefas de segundo plano** executadas pelo app | `recursos.txt:110` → `TBACKGROUNDTASKSMODULE/0` | **PARCIAL** - O Tranal gerencia as tarefas agendadas do Windows (listar, habilitar, desabilitar, criar, excluir); nao ha registro das tarefas internas do proprio Tranal. |
+| 68 | **Itens compartilhados e dependentes** entre programas | `recursos.txt:130` → `TSHAREDANDDEPENDENTDATAMODULE/0` | **PARCIAL** - Relacionados e pasta compartilhada sao avisados; o `Analyze` do contador so roda na CLI (`src/Tranal.Cli/RegistryCommands.cs:197`) e nao ha deteccao de dependencia. |
+| 69 | **Startup gear** (gerenciador de inicialização próprio) | `recursos.txt:132` → `TSTARTUPGEARDATAMODULE/0` | **OK** - O modulo varre Run, RunOnce, RunServices, pastas de inicializacao, servicos e tarefas agendadas (`AutorunManager.cs:110-120`) e habilita, desabilita e remove itens. |
+| 70 | Formulário de **notações do log** de rastreamento | `recursos.txt:105` → `TAPPLICATIONSLOGNOTATIONSFORM/0` | **PARCIAL** - O log aceita edicao, remocao, renomear e entrada nova (`Core/Modules/LogOperations.cs:193-490`) na tela de log; nao ha formulario de notacoes separado. |
+| 71 | Formulário do **resultado da reversão do log** | `recursos.txt:108` → `TAPPLICATIONSREVERTLOGRESULTFORM/0` | **PARCIAL** - O modelo da operacao reversivel existe, com desfazer e refazer (`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` e `:255`), mas nao ha tela de resultado da reversao. |
 | 72 | Painel de **progresso próprio** | `recursos.txt:128` → `TPROGRESSFRAME/0` | OK — `Core/Automation/RemovalProgress.cs` |
 | 73 | Troca de **idioma em runtime** (multilíngue) | `recursos.txt:125` → `TMULTILANGUAGESUPPORTFORM/0` | OK — `Core/Localization/LanguageCatalog.cs` |
-| 74 | Telas de **licenciamento** (chave, assinatura, expiração da assinatura) | `recursos.txt:118` → `TLICENSINGKEYENTERINGFORM/0`; `:121` → `TLICENSINGSUBSCRIPTIONEXPIREDFORM/0` | AUSENTE — o Tranal não tem licença (sem impacto funcional) |
+| 74 | Telas de **licenciamento** (chave, assinatura, expiração da assinatura) | `recursos.txt:118` → `TLICENSINGKEYENTERINGFORM/0`; `:121` → `TLICENSINGSUBSCRIPTIONEXPIREDFORM/0` | **FORA POR DECISAO** - Fora de escopo por decisao: o Tranal e reimplementacao independente, sem licenca, sem cadastro e sem telemetria. |
 | 75 | Tema **escuro "Charcoal Dark Slate"** embarcado | `recursos.txt:6` → `VCLSTYLE/CHARCOALDARKSLATE` | OK — `Theming/ThemeManager.cs` |
-| 76 | **Impersonação de token** e verificação de privilégios | `imports.txt:8` → `ADVAPI32.dll / ImpersonateLoggedOnUser`, `SetThreadToken`, `PrivilegeCheck`, `RevertToSelf`, `AdjustTokenPrivileges` | PARCIAL — `Core/ProcessTerminator.cs` termina processos com privilégio; falta impersonação de token |
-| 77 | **Notificações internas agendadas** (avisos de dica) | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | AUSENTE |
+| 76 | **Impersonação de token** e verificação de privilégios | `imports.txt:8` → `ADVAPI32.dll / ImpersonateLoggedOnUser`, `SetThreadToken`, `PrivilegeCheck`, `RevertToSelf`, `AdjustTokenPrivileges` | **AUSENTE** - Grep por "ImpersonateLoggedOnUser", "SetThreadToken", "PrivilegeCheck" e "RevertToSelf": sem resultado em `src/`. |
+| 77 | **Notificações internas agendadas** (avisos de dica) | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | **AUSENTE** - Grep por notificacao interna agendada: sem resultado em `src/`. |
 
 ### 2.6 Lacunas confirmadas no binário
 

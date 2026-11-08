@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Tranal.Cli</RootNamespace>
+    <!-- NU1510: o pacote do Event Log vem implicito; a referencia explicita
+         e o que garante a compilacao do tipo EventRecord no nucleo compartilhado. -->
+    <NoWarn>$(NoWarn);NU1510</NoWarn>
     <AssemblyName>tranal</AssemblyName>
     <Version>1.4.0</Version>
     <Product>Tranal Uninstaller</Product>
@@ -22,6 +25,14 @@
 
   <ItemGroup>
     <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+
+  <!--
+    O nucleo compartilhado usa o Windows Event Log (o Crash Analyzer).
+    A CLI compila o Core, entao precisa da mesma referencia.
+  -->
+  <ItemGroup>
+    <PackageReference Include="System.Diagnostics.EventLog" Version="10.0.0" />
   </ItemGroup>
 
   <!-- A suite de testes precisa de alguns membros internos (redirecionar a
