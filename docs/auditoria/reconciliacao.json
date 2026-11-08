@@ -1,0 +1,1572 @@
+{
+    "geradoPor":  "tools\\auditoria\\aplicar-recon.ps1",
+    "mapa":  {
+                 "UNINSTALR":  [
+                                   {
+                                       "recon":  1,
+                                       "catalogo":  3,
+                                       "catalogoId":  "T1#3",
+                                       "estado":  "FORA POR DECISAO",
+                                       "evidencia":  "`docs/auditoria/MATRIZ.md` F.1 linha 5: \"**A parte de dirigir a interface do desinstalador de terceiros (o sentido do Uninstalr) nao foi feita** - exige automacao de interface\"; `docs/auditoria/BINARIO.md` 3.2: \"**Gerar** um desinstalador silencioso para programa orfao - Exige automacao de interface de desinstaladores de terceiros\"",
+                                       "via":  "ancora",
+                                       "motivo":  "RECON \"Motor de desinstalacao que dirige a interface de desinstaladores de terceiros\" = CAT T1#3 \"Motor de desinstalacao proprio - Most other uninstallers simply run the default uninstaller program\"."
+                                   },
+                                   {
+                                       "recon":  2,
+                                       "catalogo":  24,
+                                       "catalogoId":  "T1#24",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Nada grava `RunOnce` (grep so acha leitura em `Core/Discovery/StartupEntries.cs` e `Core/Tools/AutorunManager.cs`); `Core/DeferredDelete.cs` reagenda so **arquivo**; `Core/Automation/UninstallSession.cs` grava a sessao mas `UninstallSession.Pending` so e consumido em `Tranal.Tests` - nenhum consumidor em Core/Ui/Cli retoma",
+                                       "via":  0.76,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  3,
+                                       "catalogo":  15,
+                                       "catalogoId":  "T1#15",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Grep \"MuiCache\" sem resultado em `src/`",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  4,
+                                       "catalogo":  15,
+                                       "catalogoId":  "T1#15",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Grep \"TypeLib\" sem resultado em `src/`",
+                                       "via":  "ancora",
+                                       "motivo":  "RECON \"Deteccao de sobras por TypeLib\" = CAT T1#15 \"Deteccao de sobras via MuiCache / TypeLib / AppX ModelID\"."
+                                   },
+                                   {
+                                       "recon":  5,
+                                       "catalogo":  15,
+                                       "catalogoId":  "T1#15",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Grep \"ModelId\"/\"ModelID\" sem resultado. `Core/Modules/WindowsApps.cs` gerencia pacotes MSIX (listar/remover), mas nao varre sobras por ModelID",
+                                       "via":  "ancora",
+                                       "motivo":  "RECON \"Deteccao de sobras por AppX ModelID (registro, chaves, arquivos e pastas)\" = CAT T1#15 \"Deteccao de sobras via MuiCache / TypeLib / AppX ModelID\". Mesma linha do catalogo: e a mesma capacidade (deteccao de sobras por familia de chave)."
+                                   },
+                                   {
+                                       "recon":  6,
+                                       "catalogo":  16,
+                                       "catalogoId":  "T1#16",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Grep \"country\"/\"Country\" sem resultado em `src/`",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  7,
+                                       "catalogo":  37,
+                                       "catalogoId":  "T2#37",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Depende da linha 6: nao ha pais de origem no codigo",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  8,
+                                       "catalogo":  38,
+                                       "catalogoId":  "T2#38",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/Discovery/PackageManagerCatalog.cs:248` (`DiscoverChocolatey`), (`Detect`), (`PackageManagerRoots`)",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  9,
+                                       "catalogo":  39,
+                                       "catalogoId":  "T2#39",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/Discovery/PackageManagerCatalog.cs:196` (`DiscoverSteam`), (`ReadSteamLibraryPaths`)",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  10,
+                                       "catalogo":  40,
+                                       "catalogoId":  "T2#40",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "\"Epic Games\" so aparece como nome de pasta conhecido em `Core/Discovery/FolderConfidenceEvaluator.cs` - isso e heuristica de confianca, nao deteccao de plataforma",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  11,
+                                       "catalogo":  14,
+                                       "catalogoId":  "T1#14",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Sem lastro no codigo",
+                                       "via":  0.85,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  12,
+                                       "catalogo":  41,
+                                       "catalogoId":  "T2#41",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Sem lastro no codigo",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  13,
+                                       "catalogo":  42,
+                                       "catalogoId":  "T2#42",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Sem lastro no codigo",
+                                       "via":  0.8,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  14,
+                                       "catalogo":  35,
+                                       "catalogoId":  "T2#35",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Grep \"Fuzzy\"/\"Levensh\" sem resultado. O filtro e regex exato + termos de exclusao (`Core/Appearance/ProgramFilters.cs:215/228`)",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  15,
+                                       "catalogo":  17,
+                                       "catalogoId":  "T1#17",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/FullRegistryBackup.cs`, `Core/UninstallRemovalOptions.cs` (`FullRegistryBackup`), `Core/Settings/ProgramCache.cs` (`ProgramCacheStore`)",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  16,
+                                       "catalogo":  11,
+                                       "catalogoId":  "T1#11",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/UninstallSupport.cs:397` (`SafetyRules.IsProtectedFolder`); `Core/Discovery/DriveScanner.cs` (`ExcludedFolderNames`, `$Recycle.Bin` em ); `Core/ExcludeList.cs:40/67`",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  17,
+                                       "catalogo":  26,
+                                       "catalogoId":  "T1#26",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Nao ha \"deep analysis\". O que existe e outro: revisao de sobras do instalador (`Core/Automation/AdvancedUninstallReview.cs:56`) e modo forcado (`Core/Automation/ForcedRemovalOptions.cs`)",
+                                       "via":  0.64,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  18,
+                                       "catalogo":  21,
+                                       "catalogoId":  "T1#21",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "`Core/Automation/ShutdownGuard.cs:18` faz o **contrario** (impede desligamento durante a tarefa); nao ha reinicio automatico",
+                                       "via":  0.62,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  19,
+                                       "catalogo":  7,
+                                       "catalogoId":  "T1#7",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/UninstallSupport.cs:523` (`LeftoverScanner`) apaga atalho obsoleto (`LeftoverReason.ObsoleteShortcut`, ) e Menu Iniciar obsoleto  junto com pastas e registro; `Core/UninstallRemovalOptions.cs` usa a Lixeira",
+                                       "via":  "ancora",
+                                       "motivo":  "RECON \"Remocao automatica de atalhos, pastas e proximos passos ao desinstalar\" = CAT T1#7 \"Deteccao e remocao de sobras de programas ja desinstalados\"."
+                                   },
+                                   {
+                                       "recon":  20,
+                                       "catalogo":  23,
+                                       "catalogoId":  "T1#23",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "`Core/Reporting/BatchScriptWriter.cs:35` gera script de **desinstalacao em lote** sob demanda; nao ha script de limpeza agendado para o proximo arranque",
+                                       "via":  0.54,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  21,
+                                       "catalogo":  50,
+                                       "catalogoId":  "T2#50",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/ProgramCustomization.cs:291` (`SetCommands`), `Core/Automation/UninstallPlan.cs` (`UninstallPlanOptions.PreCommand`/`PostCommand`), tela `Ui/UninstallCommandsWindow.xaml.cs`",
+                                       "via":  0.75,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  22,
+                                       "catalogo":  30,
+                                       "catalogoId":  "T1#30",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Nao ha essas opcoes. WPF ja entrega acessibilidade de sistema; nao ha registro de decisao sobre isso nos docs de decisao",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  23,
+                                       "catalogo":  51,
+                                       "catalogoId":  "T2#51",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Nao ha preferencia nesses 3 estados. O mais perto e incluir/excluir componentes do sistema (`Core/ProgramScanner.cs`, `IncludeSystemComponents`)",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  24,
+                                       "catalogo":  47,
+                                       "catalogoId":  "T2#47",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Sem lastro no codigo (nao ha flag equivalente a \"desligar verificacoes lentas\")",
+                                       "via":  0.77,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  25,
+                                       "catalogo":  44,
+                                       "catalogoId":  "T2#44",
+                                       "estado":  "PARCIAL",
+                                       "evidencia":  "`Core/ProgramScanner.cs:32` (`IncludeSystemComponents`), `Core/ExcludeList.cs:40/67`, `Core/Appearance/ProgramFilters.cs` (`AddExclusion`). **Nota**: nao ha eixo dedicado \"ignorar programas de usuario\" (o caminho oposto existe: `Core/Discovery/UserInstallFolders.cs`)",
+                                       "via":  0.61,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  26,
+                                       "catalogo":  13,
+                                       "catalogoId":  "T1#13",
+                                       "estado":  "OK",
+                                       "evidencia":  "`Core/ProgramScanner.cs:42` (`ComputeFolderSize`) + (`MeasureFolder`) - mede a pasta de verdade em vez de confiar no registro",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  27,
+                                       "catalogo":  49,
+                                       "catalogoId":  "T2#49",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Sem opcao de auto-fechar no codigo",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  28,
+                                       "catalogo":  46,
+                                       "catalogoId":  "T2#46",
+                                       "estado":  "PARCIAL",
+                                       "evidencia":  "Filtros e preferencias: `Core/Settings/AppSettings.cs:287` (`AppSettingsStore`, `hiddenColumns`, `recentPrograms`), `Core/Settings/ProgramCache.cs`, `Core/Appearance/PreferenceRetention.cs`. **Nota**: **posicao da janela nao e salva** - `AppSettings` nao tem campo de posicao/tamanho",
+                                       "via":  1,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  29,
+                                       "catalogo":  36,
+                                       "catalogoId":  "T2#36",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "Grep \"manifest\"/\"Manifest\" sem resultado em `src/`. A editora vem do registro (`Core/ProgramColumns.cs` `Company`) e dos pacotes (`Core/Modules/WindowsApps.cs`)",
+                                       "via":  "ancora",
+                                       "motivo":  "RECON \"Publisher extraido do manifesto do executavel\" = CAT T2#36 \"Dados do publicador extraidos do manifesto do executavel\"."
+                                   },
+                                   {
+                                       "recon":  30,
+                                       "catalogo":  43,
+                                       "catalogoId":  "T2#43",
+                                       "estado":  "AUSENTE",
+                                       "evidencia":  "`Core/ProgramScanner.cs` varre so chave de desinstalacao, catalogo MSI e Store (`Core/ProgramColumns.cs` `ProgramSource`). Atalhos so entram como sobra (`Core/UninstallSupport.cs`)",
+                                       "via":  0.71,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  31,
+                                       "catalogo":  48,
+                                       "catalogoId":  "T2#48",
+                                       "estado":  "PARCIAL",
+                                       "evidencia":  "`Core/Discovery/DriveScanner.cs:16` (`Roots`), (`Default`, as unidades fixas prontas) - quem escolhe as raizes escolhe o disco. **Nota**: e opt-in, nao e a opcao padrao",
+                                       "via":  0.68,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  32,
+                                       "catalogo":  31,
+                                       "catalogoId":  "T1#31",
+                                       "estado":  "FORA POR DECISAO",
+                                       "evidencia":  "`docs/auditoria/BINARIO.md` 3.2: \"Base de logs **online** do Revo - Decisao de produto: o Tranal e offline, sem cadastro e sem telemetria\"",
+                                       "via":  0.75,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  33,
+                                       "catalogo":  32,
+                                       "catalogoId":  "T1#32",
+                                       "estado":  "FORA POR DECISAO",
+                                       "evidencia":  "Mesma decisao de produto (BINARIO.md 3.2) e o registro em `docs/auditoria/BINARIO-IOBIT.md` (Observacoes): o Tranal nao comercializa",
+                                       "via":  0.94,
+                                       "motivo":  ""
+                                   },
+                                   {
+                                       "recon":  34,
+                                       "catalogo":  33,
+                                       "catalogoId":  "T1#33",
+                                       "estado":  "PARCIAL",
+                                       "evidencia":  "Edicao: `Core/ProgramCustomization.cs:246/263/306/317`, `Ui/CommentWindow.xaml.cs`, `Ui/RenameWindow.xaml.cs`, `Ui/IconPickerWindow.xaml.cs`. **Nota**: nao ha \"adicionar app manualmente\" ao catalogo; o caminho equivalente e a desinstalacao forcada por alvo (`Core/Automation/ForcedRemovalOptions.cs`, `Ui/ForcedUninstallWindow.xaml.cs`)",
+                                       "via":  0.82,
+                                       "motivo":  ""
+                                   }
+                               ],
+                 "ASHAMPOO":  [
+                                  {
+                                      "recon":  1,
+                                      "catalogo":  14,
+                                      "catalogoId":  "T2#14",
+                                      "estado":  "OK",
+                                      "evidencia":  "Analise forense pos-instalacao com procedencia `medido`/`inferido` marcada (`ForensicAnalyzer.cs:74`)",
+                                      "via":  0.93,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  2,
+                                      "catalogo":  15,
+                                      "catalogoId":  "T2#15",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep Analyze` mostra so a assinatura por `InstalledProgram`; `SoftwareHealth.Analyze` (`:119`) varre todos, mas e health, nao forense",
+                                      "via":  0.89,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  3,
+                                      "catalogo":  33,
+                                      "catalogoId":  "T3#33",
+                                      "estado":  "OK",
+                                      "evidencia":  "`Ui/Tracing/TracingWindow.xaml.cs:361` cria, `:408` apaga, `:519` lista",
+                                      "via":  0.52,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  4,
+                                      "catalogo":  34,
+                                      "catalogoId":  "T3#34",
+                                      "estado":  "OK",
+                                      "evidencia":  "Expoe `ModifiedFiles`, `ModifiedRegistryValues`, `RemovedFiles`, `UnchangedFiles` (`TracingWindow.xaml.cs:578-583` mostra as contagens)",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"comparacao de snapshots que mostra o que mudou\" = CAT T3#34 \"Comparar dois snapshots e visualizar as diferencas por categoria\". O #3 do RECON e a biblioteca de snapshots (#33)."
+                                  },
+                                  {
+                                      "recon":  5,
+                                      "catalogo":  46,
+                                      "catalogoId":  "T4#46",
+                                      "estado":  "OK",
+                                      "evidencia":  "**FALSO POSITIVO do documento:** ele afirma que o Tranal so abre `services.msc` (`Core/Tools/WindowsToolsCatalog.cs:85`); o gerenciador proprio existe - `docs/auditoria/BINARIO.md:160-161`",
+                                      "via":  0.81,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  6,
+                                      "catalogo":  48,
+                                      "catalogoId":  "T4#48",
+                                      "estado":  "OK",
+                                      "evidencia":  "**FALSO POSITIVO do documento:** ele afirma que so abre `taskschd.msc` (`WindowsToolsCatalog.cs:78`) - `docs/auditoria/BINARIO.md:160-161`",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"gerenciador proprio de tarefas agendadas\" = CAT \"Boot Center: ... autorun e tarefas agendadas (enable/disable/delete)\". O casamento por texto apontava para \"Autorun / StartUp Tuner\" (0,25), que e outra funcionalidade."
+                                  },
+                                  {
+                                      "recon":  7,
+                                      "catalogo":  10,
+                                      "catalogoId":  "T2#10",
+                                      "estado":  "OK",
+                                      "evidencia":  "Edicao de entrada (arquivo, pasta, chave, valor) com gravacao do log",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  8,
+                                      "catalogo":  9,
+                                      "catalogoId":  "T2#9",
+                                      "estado":  "OK",
+                                      "evidencia":  "Usa o tipo real do valor (`GetValueKind`): binario sai `hex:`",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  9,
+                                      "catalogo":  27,
+                                      "catalogoId":  "T5#27",
+                                      "estado":  "OK",
+                                      "evidencia":  "O log exporta nesses tres formatos (a lista exporta em `Core/Exporters.cs:39,49,63`)",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  10,
+                                      "catalogo":  26,
+                                      "catalogoId":  "T1#26",
+                                      "estado":  "OK",
+                                      "evidencia":  "Casa cada item importado com o instalado por nome e versao",
+                                      "via":  0.47,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  11,
+                                      "catalogo":  50,
+                                      "catalogoId":  "T4#50",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "Encerrar processo e adiar remocao para o reboot existem; **reinicio do Explorer e `DllUnregister` nao**: `grep regsvr32",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  12,
+                                      "catalogo":  52,
+                                      "catalogoId":  "T4#52",
+                                      "estado":  "PARCIAL",
+                                      "evidencia":  "Recupera **o que o proprio Tranal removeveu** (backup antes da remocao); nao ha undelete de arquivo apagado fora do Tranal",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  13,
+                                      "catalogo":  51,
+                                      "catalogoId":  "T4#51",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "O Tranal **limpa** Event Logs (6 grupos em `PrivacyTraceCleaner.cs:12-31`); nao agrupa crash por programa",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  14,
+                                      "catalogo":  43,
+                                      "catalogoId":  "T4#43",
+                                      "estado":  "PARCIAL",
+                                      "evidencia":  "Sobrescrita do arquivo removido existe; **nao ha** varredura de espaco livre por volume (`grep FreeSpace` -\u003e so `Core/Settings/ProgramCache.cs:345`)",
+                                      "via":  0.81,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  15,
+                                      "catalogo":  44,
+                                      "catalogoId":  "T4#44",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep FileAssoc",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  16,
+                                      "catalogo":  54,
+                                      "catalogoId":  "T4#54",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep Hibernat",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  17,
+                                      "catalogo":  55,
+                                      "catalogoId":  "T4#55",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "So ha ordenacao e mapa de **tamanho**; nenhuma medicao de CPU/memoria por programa",
+                                      "via":  0.83,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  18,
+                                      "catalogo":  56,
+                                      "catalogoId":  "T4#56",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep Relocat",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"Move / Revert relocation\" cobre as linhas #56 \"Move: mover um programa para outro local\" e #57 \"Revert relocation: devolver o programa movido\". Uma ancora pode apontar para varias linhas, separadas por virgula."
+                                  },
+                                  {
+                                      "recon":  18,
+                                      "catalogo":  57,
+                                      "catalogoId":  "T4#57",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep Relocat",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"Move / Revert relocation\" cobre as linhas #56 \"Move: mover um programa para outro local\" e #57 \"Revert relocation: devolver o programa movido\". Uma ancora pode apontar para varias linhas, separadas por virgula."
+                                  },
+                                  {
+                                      "recon":  19,
+                                      "catalogo":  53,
+                                      "catalogoId":  "T4#53",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "O feed do Tranal atualiza **so o proprio Tranal**; nao ha atualizador de terceiros",
+                                      "via":  0.79,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  20,
+                                      "catalogo":  59,
+                                      "catalogoId":  "T1#59",
+                                      "estado":  "FORA POR DECISAO",
+                                      "evidencia":  "Base online exige servico: `docs/auditoria/BINARIO.md` secao 3.2 (1a linha, \"o Tranal e offline, sem cadastro e sem telemetria\") e `docs/PARIDADE.md:481`",
+                                      "via":  0.76,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  21,
+                                      "catalogo":  45,
+                                      "catalogoId":  "T4#45",
+                                      "estado":  "FORA POR DECISAO",
+                                      "evidencia":  "Nao e dominio de desinstalacao: `docs/auditoria/BINARIO.md` secao 3.2 (analisador de disco, gerenciador de conexoes, de fontes, papel de parede, destruidor de arquivos: nao e dominio de desinstalacao)",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  22,
+                                      "catalogo":  24,
+                                      "catalogoId":  "T1#24",
+                                      "estado":  "OK",
+                                      "evidencia":  "**FALSO POSITIVO do documento:** afirma \"nenhum filtro por tamanho localizado no `src/`\"; existem `all`/`small`/`medium`/`large` - `docs/auditoria/MATRIZ.md:146`",
+                                      "via":  0.62,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  23,
+                                      "catalogo":  62,
+                                      "catalogoId":  "T1#62",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "Existe estimativa e medicao isoladas; **nao ha** tela de comparacao nem sincronizacao",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  24,
+                                      "catalogo":  64,
+                                      "catalogoId":  "T1#64",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep Country",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  25,
+                                      "catalogo":  63,
+                                      "catalogoId":  "T1#63",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "Agrupamento por coluna existe; **nao ha** categoria \"Unsorted\" nem reset - `grep Unsorted",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  26,
+                                      "catalogo":  42,
+                                      "catalogoId":  "T4#42",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "Nao ha whitelist de cookies; os 6 grupos sao fixos",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  27,
+                                      "catalogo":  40,
+                                      "catalogoId":  "T4#40",
+                                      "estado":  "PARCIAL",
+                                      "evidencia":  "Otimizador de registro e regras de protecao existem; **nao ha** o modo \"Super Safe Mode\" nomeado",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  28,
+                                      "catalogo":  38,
+                                      "catalogoId":  "T4#38",
+                                      "estado":  "OK",
+                                      "evidencia":  "Exclusao por data existe nos dois niveis (backup de sobras e pontos de restauracao)",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  29,
+                                      "catalogo":  41,
+                                      "catalogoId":  "T4#41",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "A varredura do lixo nao tem filtro de tamanho",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"filtro de tamanho no Junk/Cache cleaner\" = CAT T4#41 \"Drive Cleaner (arquivos desnecessarios, com selecao por categoria e relatorio)\"."
+                                  },
+                                  {
+                                      "recon":  30,
+                                      "catalogo":  61,
+                                      "catalogoId":  "T2#61",
+                                      "estado":  "AUSENTE",
+                                      "evidencia":  "`grep InstallerGuard",
+                                      "via":  0.86,
+                                      "motivo":  ""
+                                  }
+                              ],
+                 "IOBIT":  [
+                               {
+                                   "recon":  1,
+                                   "catalogo":  1,
+                                   "catalogoId":  "T2#1",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "`docs/auditoria/BINARIO.md` 3.2: \"Base de **reputacao** de extensoes de navegador (maliciosa/ad) - Exige consulta a um servico online; o Tranal e offline por decisao. A remocao da extensao existe.\" Confirmado em `MATRIZ.md` E.1 (A17)",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Remocao de extensoes de navegador com base de assinaturas maliciosa/ad\" = CAT T2#1 \"Remocao de extensoes de navegador com base propria (PlugDB.dbd, 1,6 MB)\"."
+                               },
+                               {
+                                   "recon":  2,
+                                   "catalogo":  2,
+                                   "catalogoId":  "T2#2",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "Mesma decisao (BINARIO.md 3.2; MATRIZ.md E.1, A17)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  3,
+                                   "catalogo":  3,
+                                   "catalogoId":  "T2#3",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "O modulo so lista e remove extensoes (`Core/Modules/BrowserExtensions.cs:86` (`List`), `Core/Modules/BrowserExtensions.cs:113` (`Remove`)); a limpeza de rastros (`Core/Tools/TrackCleaner.cs`) nao mexe em pagina inicial nem motor de busca",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  4,
+                                   "catalogo":  4,
+                                   "catalogoId":  "T2#4",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Nao ha catalogo nem remocao de plugins NPAPI/ActiveX; so extensoes Chromium/Firefox (`Core/Modules/BrowserExtensions.cs`)",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Remocao de plugins de navegador (NPAPI/ActiveX)\" = CAT T2#4 \"Remocao de plugins do navegador\"."
+                               },
+                               {
+                                   "recon":  5,
+                                   "catalogo":  38,
+                                   "catalogoId":  "T8#38",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Grep \"Bloat\" sem resultado; nao ha lista de Appx pre-instalados. O que existe e catalogo de pacotes gerenciados (`Core/Discovery/PackageManagerCatalog.cs`)",
+                                   "via":  0.54,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  6,
+                                   "catalogo":  6,
+                                   "catalogoId":  "T3#6",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Grep \"bundle\" sem resultado em `src/`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  7,
+                                   "catalogo":  7,
+                                   "catalogoId":  "T3#7",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Grep \"Stubborn\" sem resultado. O Tranal tem desinstalacao forcada por alvo/palavra-chave (`Core/Automation/ForcedRemovalOptions.cs:41/50`) e remocao manual assistida (`Core/Automation/ManualRemoval.cs`) - nao e base de conhecimento",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  8,
+                                   "catalogo":  8,
+                                   "catalogoId":  "T3#8",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Automation/ForcedRemovalOptions.cs` (`ForTarget`), (`ForKeyword`), (`Resolve`); `Ui/ForcedUninstallWindow.xaml.cs`; entradas sem desinstalador em `Core/ProgramScanner.cs:61` (`IncludeEntriesWithoutUninstaller`); executaveis que parecem desinstalador em `Core/Discovery/DriveScanner.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  12,
+                                   "catalogo":  12,
+                                   "catalogoId":  "T4#12",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/UninstallSupport.cs:49` (`LeftoverReason`, 15 membros) e (`LeftoverScanner`); servico e tarefa tem gerenciador proprio (`Core/Management/ServiceManager.cs:113`, `Core/Management/ScheduledTaskManager.cs:79`). **Nota**: DLL nao e um motivo de sobra no Tranal",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  17,
+                                   "catalogo":  17,
+                                   "catalogoId":  "T4#17",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Ui/Modules/HunterView.xaml` (`AllowDrop`, `Drop`, `DragOver`) + `Core/Modules/HunterMode.cs:41` (`Resolve`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  18,
+                                   "catalogo":  18,
+                                   "catalogoId":  "T5#18",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Modules/InstallMonitor.cs:103/119`; `Core/Tracing/TraceLogV2.cs:89` (`Create`), (`Save`); `Core/Modules/TraceStore.cs:165` (`Save`); restauracao pela desinstalacao a partir do log (`Core/Modules/TracedPrograms.cs:119` (`Uninstall`), `Core/Modules/TracedPrograms.cs:143` (`UninstallByLogPath`)",
+                                   "via":  0.53,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  19,
+                                   "catalogo":  19,
+                                   "catalogoId":  "T5#19",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "O log e JSON (`Core/Tracing/TraceLogV2.cs` `Save`); nao ha SQLite no codigo",
+                                   "via":  0.5,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  20,
+                                   "catalogo":  20,
+                                   "catalogoId":  "T5#20",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Modules/TracedPrograms.cs:119` (`Uninstall`), (`UninstallByLogPath`), (`Install`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  22,
+                                   "catalogo":  22,
+                                   "catalogoId":  "T7#22",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Tools/UnrecoverableDelete.cs` (`Delete(paths, passes)`, `DefaultPasses`, `BytesOverwritten`) + `Ui/Tools/ToolViews.cs:477-568`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  23,
+                                   "catalogo":  23,
+                                   "catalogoId":  "T7#23",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "O menu de contexto do Explorer do Tranal e o de desinstalar (`Core/Topmost/ExplorerContextMenu.cs`); nao ha entrada de destruicao",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Botao de destruicao no Explorer (handler de menu de contexto)\" = CAT T7#23 \"Botao Shred no Explorer\"."
+                               },
+                               {
+                                   "recon":  24,
+                                   "catalogo":  24,
+                                   "catalogoId":  "T7#24",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Grep \"Relocat\" sem resultado. O Tranal varre drives atras de apps nao registrados (`Core/Discovery/DriveScanner.cs`), nao os move",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  27,
+                                   "catalogo":  27,
+                                   "catalogoId":  "T7#27",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Updates/AutoUpdateClient.cs:74` (`CheckAsync(feedUrl)`) e o atualizador **do proprio Tranal**, alimentado por um feed; nao ha atualizador de programas de terceiros",
+                                   "via":  0.66,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  28,
+                                   "catalogo":  28,
+                                   "catalogoId":  "T7#28",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "Jump Lists: `Core/Tools/EvidenceRemover.cs` e (`ScanJumpLists`). **Nota**: item fixado na barra de tarefas nao e tratado (grep \"Taskbar\" sem resultado)",
+                                   "via":  0.64,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  29,
+                                   "catalogo":  29,
+                                   "catalogoId":  "T7#29",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Discovery/WindowsFeatures.cs:350/357` so catalogam; nao ha remocao de KB",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  32,
+                                   "catalogo":  32,
+                                   "catalogoId":  "T8#32",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Discovery/RelatedProgramFinder.cs:46` (`Find`), `Core/UninstallAdvisories.cs` (`RelatedProgramsAdvisory`), aviso no assistente",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  33,
+                                   "catalogo":  33,
+                                   "catalogoId":  "T8#33",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Modules/BrowserExtensions.cs` (`Remove`) remove direto, sem aviso de sincronizacao",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  34,
+                                   "catalogo":  34,
+                                   "catalogoId":  "T8#34",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Nao ha integracao; o mais perto e `Core/Management/SoftwareHealth.cs` (`HealthCategory.Notifications`), que e aviso interno",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  35,
+                                   "catalogo":  35,
+                                   "catalogoId":  "T8#35",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Management/ScheduledTaskManager.cs:79` (`List`), (`ListFor`), (`Delete`), (Disable/Enable). **Nota**: via `schtasks`, nao via COM Task Scheduler 1.0",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  36,
+                                   "catalogo":  36,
+                                   "catalogoId":  "T8#36",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Nao ha coleta de votos; ha avaliacao local por estrelas (`Core/Appearance/ProgramRating.cs`, `Core/ProgramCustomization.cs`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  37,
+                                   "catalogo":  37,
+                                   "catalogoId":  "T8#37",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Appearance/SupportRequest.cs:44/91` monta texto e URL com os dados do programa; grep \"screenshot\"/\"captura\"/\"Image\" sem resultado - nao ha captura de tela",
+                                   "via":  0.82,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  38,
+                                   "catalogo":  38,
+                                   "catalogoId":  "T8#38",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Igual a linha 5: nao ha essa lista no codigo",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Catalogo embutido de Appx pre-instalados do Windows\" = CAT T8#38 \"Catalogo embutido de Appx pre-instalados (a lista do que o Windows traz de fabrica)\"."
+                               },
+                               {
+                                   "recon":  39,
+                                   "catalogo":  39,
+                                   "catalogoId":  "T8#39",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "`docs/auditoria/BINARIO.md` 3.2 (produto offline, sem cadastro) e o proprio `docs/auditoria/BINARIO-IOBIT.md` (Observacoes): \"a linha 39 (licenca) e a linha 40 (telemetria) nao sao backlog - o Tranal nao comercializa e nao tem telemetria por decisao\"",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  40,
+                                   "catalogo":  40,
+                                   "catalogoId":  "T8#40",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "Mesma base (BINARIO.md 3.2: \"o Tranal e offline, sem cadastro e sem telemetria\")",
+                                   "via":  1,
+                                   "motivo":  ""
+                               }
+                           ],
+                 "HIBIT":  [
+                               {
+                                   "recon":  1,
+                                   "catalogo":  1,
+                                   "catalogoId":  "T2#1",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/ProgramColumns.cs:21` (`ProgramColumn.Type`, \"32 ou 64 bits\"); local em `Core/Appearance/ProgramTextFormatter.cs` e `Core/Appearance/ProgramFilters.cs` (`HighlightScope.InstallLocation`). **Nota**: o local de instalacao nao e coluna da grade, aparece em detalhes/copia/filtro",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON mede a lacuna de \"Tipo (32/64)\" na lista de colunas"
+                               },
+                               {
+                                   "recon":  4,
+                                   "catalogo":  4,
+                                   "catalogoId":  "T2#4",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/DeferredDelete.cs` reagenda **arquivo** com `MoveFileEx(DELAY_UNTIL_REBOOT)`, nao a operacao; `Core/Automation/UninstallSession.cs:130` grava sessao, mas `UninstallSession.Pending` so e consumido em `Tranal.Tests`; nao ha escrita em `RunOnce` (grep so acha leitura em `Core/Discovery/StartupEntries.cs` e `Core/Tools/AutorunManager.cs`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  5,
+                                   "catalogo":  5,
+                                   "catalogoId":  "T2#5",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/UninstallSupport.cs:523` (`LeftoverScanner`) + 15 motivos em `LeftoverReason` (`Core/UninstallSupport.cs:49-117`), incluindo atalho obsoleto (`LeftoverReason.ObsoleteShortcut`), Menu Iniciar obsoleto (`LeftoverReason.ObsoleteStartMenu`) e entrada de inicializacao (`LeftoverReason.StartupEntry`). **Nota**: servico e tarefa tem gerenciador proprio (`Core/Management/ServiceManager.cs:113`, `Core/Management/ScheduledTaskManager.cs:79`) e nao entram na arvore de sobras",
+                                   "via":  0.53,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  6,
+                                   "catalogo":  6,
+                                   "catalogoId":  "T2#6",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/BackupManager.cs:165/193/225/282/601`, `Core/FullRegistryBackup.cs`, `Core/Recovery/ProgramBackup.cs`, `Core/Recovery/LeftoverBackup.cs`, `Ui/BackupManagerWindow.xaml.cs`. Formato e JSON + arquivos, nao `.dbh`",
+                                   "via":  0.9,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  8,
+                                   "catalogo":  8,
+                                   "catalogoId":  "T2#8",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Exporta HTML da **lista** (`Core/Exporters.cs:63`) e do **log de instalacao** (`Core/Reporting/TraceLogExporter.cs`); `Core/Reporting/ReportFormats.cs` trata lista/registro. Nao ha relatorio dedicado por ferramenta",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Relatorios HTML por ferramenta (servicos, drivers, tarefas, inicializacao, menu de contexto)\" = CAT T2#8 \"Relatorios HTML por ferramenta: OpReport, ScanLog, ...\"."
+                               },
+                               {
+                                   "recon":  10,
+                                   "catalogo":  10,
+                                   "catalogoId":  "T2#10",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/RegistryEditing/RegistryEditor.cs:125` (`DeleteKey`) e (`DeleteValue`); o fluxo de remocao apaga a chave em `Core/UninstallSupport.cs:2001` (`DeleteSubKeyTree`). **Nota**: nao ha botao dedicado \"remover so a entrada\" no assistente",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Apagar a entrada do registro do programa como acao avulsa\" = CAT T2#10 \"Deletar entrada do registro do programa\"."
+                               },
+                               {
+                                   "recon":  11,
+                                   "catalogo":  11,
+                                   "catalogoId":  "T2#11",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/ProgramCustomization.cs:246/263/306/317/460` (nome, comentario, icone, grupo, estrelas) + `Ui/RenameWindow.xaml.cs`, `Ui/CommentWindow.xaml.cs`, `Ui/IconPickerWindow.xaml.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  13,
+                                   "catalogo":  13,
+                                   "catalogoId":  "T2#13",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Appearance/ProgramTextFormatter.cs:47` (`Format`, `ClipboardFormat`) + `Ui/Appearance/ProgramClipboard.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  15,
+                                   "catalogo":  15,
+                                   "catalogoId":  "T2#15",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`) e (`Repair`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  17,
+                                   "catalogo":  17,
+                                   "catalogoId":  "T3#17",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Topmost/ExplorerContextMenu.cs` registra apenas o menu de desinstalacao do Tranal; nao ha entrada do monitor",
+                                   "via":  0.48,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  18,
+                                   "catalogo":  18,
+                                   "catalogoId":  "T3#18",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Management/ContextMenuManager.cs:70/137/148` faz List/ListFor/Remove de handlers; `Core/Topmost/ExplorerContextMenu.cs:189/156` instala/remove o menu **do proprio Tranal**. Nao ha criacao de menu arbitrario, nem \"Restaurar\"/\"Excluir tudo\"",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  20,
+                                   "catalogo":  20,
+                                   "catalogoId":  "T3#20",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Modules/InstallMonitor.cs:103` (`Start`) e (`StopAndSave`); `Core/Tracing/WriteWatcher.cs` (observacao de escrita, sem driver); `Core/Tracing/TraceEntry.cs` (`TraceChangeKind`)",
+                                   "via":  0.81,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  21,
+                                   "catalogo":  21,
+                                   "catalogoId":  "T3#21",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Discovery/WindowsFeatures.cs:350` (`ListInstalled`) e (`ListAvailable`) so catalogam; nao existe comando de remocao de KB",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  59,
+                                   "catalogo":  59,
+                                   "catalogoId":  "T4#59",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Ui/Modules/HunterView.xaml` (`AllowDrop`) + `Core/Modules/HunterMode.cs:41` (`Resolve`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  61,
+                                   "catalogo":  61,
+                                   "catalogoId":  "T4#61",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Appearance/ThemePalette.cs:94-124` (`ThemeSkinCatalog.All`), seletor em `Theming/ThemeManager.cs` e `Ui/Appearance/AppearanceView.xaml.cs`. **Nota**: 4 temas (Dark/Slate/Contrast/Light), nao 7",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  65,
+                                   "catalogo":  65,
+                                   "catalogoId":  "T4#65",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "A barra de status existe (`MainWindow.xaml:409-411`) mas mostra **contagem**, nao tamanho: `MainWindow.xaml.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  66,
+                                   "catalogo":  66,
+                                   "catalogoId":  "T4#66",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Ui/Tools/TopmostOverlayWindow.xaml.cs:485-486` (editora, local), `Core/ProgramColumns.cs` (`HomePage`) e (`RegistryKey`), `Core/Appearance/ProgramTextFormatter.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  67,
+                                   "catalogo":  67,
+                                   "catalogoId":  "T5#67",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Tools/AutorunManager.cs:105` (`Scan`), (`SetEnabled`), (`Remove`), (`Add`); painel em `Ui/Tools/ToolViews.cs:112-115`. **Nota**: o painel expoe Refresh/Enable/Disable/Remove, nao um botao \"criar\"",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Gerenciador de Inicializacao que cria e edita itens de autostart\" = CAT T5#67 \"Gerenciador de Inicializacao (Startup)\"."
+                               },
+                               {
+                                   "recon":  68,
+                                   "catalogo":  68,
+                                   "catalogoId":  "T5#68",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Management/ServiceManager.cs:113/148/199/209/217/242` - List/ListFor/Disable/Enable/Stop/Delete. Nenhum `Create`",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Gerenciador de Servicos que cria servico\" = CAT T5#68 \"Gerenciador de Servicos\"."
+                               },
+                               {
+                                   "recon":  69,
+                                   "catalogo":  69,
+                                   "catalogoId":  "T5#69",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/ProcessTerminator.cs:61/107/156` encerra processos e `Ui/Tools/TopmostOverlayWindow.xaml.cs` tem \"Kill process\"; nao existe listagem/painel de processos do sistema",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  70,
+                                   "catalogo":  70,
+                                   "catalogoId":  "T5#70",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Management/ScheduledTaskManager.cs:79/114/125/137/149` + `Ui/Management/ManagementView.xaml.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  71,
+                                   "catalogo":  71,
+                                   "catalogoId":  "T5#71",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Management/ContextMenuManager.cs:70` + `Ui/Management/ManagementView.xaml.cs`. **Nota**: sem \"Restaurar\" e sem \"Excluir tudo\"",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Gerenciador de Menu de Contexto (janela propria)\" = CAT T5#71 \"Gerenciador de Menu de Contexto\"."
+                               },
+                               {
+                                   "recon":  72,
+                                   "catalogo":  72,
+                                   "catalogoId":  "T5#72",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/ProgramScanner.cs:64` so le chave de desinstalacao, catalogo MSI e Store (`Core/ProgramColumns.cs`); nao ha enumerador de DLL compartilhada entre programas",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  73,
+                                   "catalogo":  73,
+                                   "catalogoId":  "T5#73",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Modules/BrowserExtensions.cs:76-80` cobre apenas chrome, edge, opera (+ firefox em ); nao ha Brave, Vivaldi, Yandex",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  74,
+                                   "catalogo":  74,
+                                   "catalogoId":  "T5#74",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "`docs/auditoria/BINARIO.md` 3.2: \"Analisador de disco, gerenciador de conexoes, de fontes, papel de parede, destruidor de arquivos - Nao e dominio de desinstalacao\"",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  75,
+                                   "catalogo":  75,
+                                   "catalogoId":  "T5#75",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Ui/BackupManagerWindow.xaml.cs` e `Ui/Reporting/ReportingWindow.xaml.cs`",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Backups \u0026 Reports (painel proprio de backup e de relatorio)\" = CAT T5#75 \"Backups \u0026 Reports\"."
+                               },
+                               {
+                                   "recon":  76,
+                                   "catalogo":  76,
+                                   "catalogoId":  "T5#76",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/BackupManager.cs` (`Create`) e `Core/UninstallSupport.cs:1391` (`TryCreateRestorePoint`); painel em `Ui/BackupManagerWindow.xaml.cs`. **Nota**: cria ponto; nao exclui pontos de restauracao do Windows",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  77,
+                                   "catalogo":  77,
+                                   "catalogoId":  "T5#77",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Tools/RegistryOptimizer.cs` trata so entradas obsoletas do Menu Iniciar; `Core/Tools/PrivacyTraceCleaner.cs` tem 6 grupos de rastros; nao ha MUICache no codigo (grep \"MuiCache\" sem resultado) nem ActiveX/FileTypes/SharedDLLs/IFEO",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  78,
+                                   "catalogo":  78,
+                                   "catalogoId":  "T5#78",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Tools/JunkCleaner.cs:60-81` - 8 varreduras/categorias: temp do usuario, temp do Windows, cache do Windows Update, caches dos navegadores, logs antigos, prefetch, miniaturas, lixeira. **Nota**: 8, nao 17",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  80,
+                                   "catalogo":  80,
+                                   "catalogoId":  "T5#80",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`LeftoverReason.ObsoleteShortcut` (`Core/UninstallSupport.cs`) so **apaga** atalho obsoleto; nao ha verificacao nem reparo do alvo do atalho",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  81,
+                                   "catalogo":  81,
+                                   "catalogoId":  "T5#81",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Tools/UnrecoverableDelete.cs:118` (`Delete(paths, passes)`, `DefaultPasses`) + `Ui/Tools/ToolViews.cs:477-568`. **Nota**: sobrescreve e apaga; nao tem MD5/SHA-1/SHA-256/SHA-512/CRC32 nem relatorio de hash",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Destruidor de Arquivos com 5 algoritmos de hash e relatorio de hash\" = CAT T5#81 \"Destruidor de Arquivos (MD5 / SHA-1 / SHA-256 / SHA-512 / CRC32)\"."
+                               },
+                               {
+                                   "recon":  82,
+                                   "catalogo":  82,
+                                   "catalogoId":  "T5#82",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Tools/EvidenceRemover.cs` so apaga rastros; nao ha busca por nome de arquivo ou de chave",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  83,
+                                   "catalogo":  83,
+                                   "catalogoId":  "T5#83",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Management/SoftwareHealth.cs:184` (`DuplicateFindings`) + `HealthCategory.RedundantFiles`, opt-in via `SoftwareHealth.scanDuplicates`. **Nota**: nao e localizador autonomo, e uma categoria do painel Software Health",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  84,
+                                   "catalogo":  84,
+                                   "catalogoId":  "T5#84",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "`docs/auditoria/BINARIO.md` 3.2 (analisador de disco nao e dominio de desinstalacao)",
+                                   "via":  0.9,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  86,
+                                   "catalogo":  86,
+                                   "catalogoId":  "T5#86",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Ui/Discovery/DiscoveryWindow.xaml.cs:42` (categoria \"Atualizacoes do Windows\") + (`WindowsUpdateCatalog.ListInstalled`). **Nota**: vive dentro do Discovery, nao e ferramenta separada",
+                                   "via":  "ancora",
+                                   "motivo":  "RECON \"Gerenciador de Atualizacoes do Windows (painel proprio)\" = CAT T5#86 \"Gerenciador de Atualizacoes do Windows\"."
+                               },
+                               {
+                                   "recon":  87,
+                                   "catalogo":  87,
+                                   "catalogoId":  "T6#87",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Nao existe nem listagem de processos do sistema (ver linha 69)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  88,
+                                   "catalogo":  88,
+                                   "catalogoId":  "T6#88",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Nenhum uso de `GetProcessAffinityMask`/`SetProcessAffinityMask` no codigo",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  89,
+                                   "catalogo":  89,
+                                   "catalogoId":  "T6#89",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "`docs/auditoria/BINARIO.md` 3.2: \"Base de logs **online** do Revo - Decisao de produto: o Tranal e offline, sem cadastro e sem telemetria\". **Ver Limites**: a decisao nao nomeia o VirusTotal",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  90,
+                                   "catalogo":  90,
+                                   "catalogoId":  "T6#90",
+                                   "estado":  "FORA POR DECISAO",
+                                   "evidencia":  "Mesma decisao offline (BINARIO.md 3.2); o Tranal apenas protege o Defender da desinstalacao (`Core/Rules/BuiltinRules.cs`). **Ver Limites**",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  91,
+                                   "catalogo":  91,
+                                   "catalogoId":  "T6#91",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Tools/AutorunManager.cs` (`Add`). **Nota**: o painel da ferramenta nao expoe o botao \"criar\" (`Ui/Tools/ToolViews.cs:112-115`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  92,
+                                   "catalogo":  92,
+                                   "catalogoId":  "T6#92",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Management/ServiceManager.cs` nao tem `Create` (so List/Disable/Enable/Stop/Delete)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  93,
+                                   "catalogo":  93,
+                                   "catalogoId":  "T6#93",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "`Core/Management/ScheduledTaskManager.cs` nao tem `Create` (so List/Disable/Enable/Delete)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  94,
+                                   "catalogo":  94,
+                                   "catalogoId":  "T6#94",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Topmost/ExplorerContextMenu.cs:189` (`Apply`), (`BuildRegistryScript`), (`RemoveRegistryScript`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  95,
+                                   "catalogo":  95,
+                                   "catalogoId":  "T6#95",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Rules/RuleEngine.cs:207/222/178`, `Core/Rules/RemovalRule.cs`, `Core/Tools/CustomToolRegistry.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  96,
+                                   "catalogo":  96,
+                                   "catalogoId":  "T6#96",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/ExcludeList.cs:128/141/154/166/249` + `Ui/ExcludeListWindow.xaml.cs` + `Core/Rules/RuleEngine.cs:274` (`IsPathProtected`). **Nota**: lista global, nao uma por ferramenta",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  97,
+                                   "catalogo":  97,
+                                   "catalogoId":  "T6#97",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/BackupManager.cs` (`Restore`), `Core/Recovery/ProgramBackup.cs`, `Core/Recovery/RecoverOperation.cs`",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  98,
+                                   "catalogo":  98,
+                                   "catalogoId":  "T6#98",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "Nao ha verificacao de integridade por hash. A limpeza pontual existe (`Core/Tools/JunkCleaner.cs`, `Core/Tools/EvidenceRemover.cs`, `Core/Tools/UnrecoverableDelete.cs`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  99,
+                                   "catalogo":  99,
+                                   "catalogoId":  "T6#99",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "`Core/Appearance/ThemePalette.cs:94-124` - 4 temas no catalogo. **Nota**: 4, nao 7",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  100,
+                                   "catalogo":  100,
+                                   "catalogoId":  "T6#100",
+                                   "estado":  "AUSENTE",
+                                   "evidencia":  "O estado e JSON: `Core/Settings/ProgramCache.cs` (`ProgramCacheStore`), `Core/Modules/TraceStore.cs`, manifesto em `Core/BackupManager.cs`. Nao ha banco local",
+                                   "via":  1,
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  101,
+                                   "catalogo":  101,
+                                   "catalogoId":  "T6#101",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Modules/LogOperations.cs:165`, `Core/RemovalLog.cs`, `Core/Reporting/TraceLogExporter.cs:203` (`Write`), `Core/Tools/WindowsToolsCatalog.cs:289` (`ToolLog`)",
+                                   "via":  1,
+                                   "motivo":  ""
+                               }
+                           ],
+                 "GEEK":  [
+                              {
+                                  "recon":  1,
+                                  "catalogo":  7,
+                                  "catalogoId":  "T1#7",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), (`Repair`); produtos MSI expostos em `Ui/Discovery/DiscoveryWindow.xaml.cs`",
+                                  "via":  0.68,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  2,
+                                  "catalogo":  9,
+                                  "catalogoId":  "T1#9",
+                                  "estado":  "OK",
+                                  "evidencia":  "Lote na interface: `MainWindow.xaml` (`SelectionMode=\"Extended\"`) + `MainWindow.xaml.cs` (`Cmd.UninstallManyConfirm`) + `Core/Automation/UninstallQueue.cs`; forcado por alvo/palavra-chave: `Core/Automation/ForcedRemovalOptions.cs:41/50`, `Ui/ForcedUninstallWindow.xaml.cs`; CLI: `Tranal.Cli/ExtraCommands.cs` (`/batch`)",
+                                  "via":  "ancora",
+                                  "motivo":  "RECON \"Batch Force Removal - remocao forca de varios programas de uma vez\" = CAT T1#9 \"Batch Force Removal\"."
+                              },
+                              {
+                                  "recon":  3,
+                                  "catalogo":  10,
+                                  "catalogoId":  "T1#10",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "O editor de registro e unitario: `Core/RegistryEditing/RegistryEditor.cs:125/174`. Nao ha acao em lote so de chaves",
+                                  "via":  0.5,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  4,
+                                  "catalogo":  29,
+                                  "catalogoId":  "T2#29",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Nenhum uso de `regsvr32` no codigo (grep sem resultado em `src/`)",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  5,
+                                  "catalogo":  27,
+                                  "catalogoId":  "T2#27",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/MsiInstallLog.cs:110` (`Capture`) e (`FindLeftovers`); `Core/Discovery/MsiProductCatalog.cs:177/205`",
+                                  "via":  0.89,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  6,
+                                  "catalogo":  28,
+                                  "catalogoId":  "T2#28",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Discovery/MsiProductCatalog.cs:248` (`Uninstall`), (`TryNormalizeProductCode`)",
+                                  "via":  0.81,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  7,
+                                  "catalogo":  27,
+                                  "catalogoId":  "T2#27",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/MsiInstallLog.cs:110/130` (`Capture`), (`UsableAfter`); o log do instalador vira sobras por `LeftoverReason.InstallerLog` (`Core/UninstallSupport.cs`)",
+                                  "via":  "ancora",
+                                  "motivo":  "RECON \"Varredura de sobras de MSI em traces de instalacao\" = CAT T2#27 \"Varredura de sobras de MSI pelo registro do Installer\". O RECON #5 e o mesmo item pelo outro angulo (registro do Installer) e ja ocupou esta linha: a ancora aponta para a linha que descreve a MESMA capacidade."
+                              },
+                              {
+                                  "recon":  8,
+                                  "catalogo":  35,
+                                  "catalogoId":  "T2#35",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Grep \"MrtCache\" sem resultado em `src/`. O MRU existente e o de Office (`Core/Tools/TrackCleaner.cs:55-58`), nao essa chave",
+                                  "via":  "ancora",
+                                  "motivo":  "RECON \"Limpeza do cache MRU do Windows (Software\\Classes\\Local Settings\\MrtCache)\" = CAT T2#35 \"Limpeza do cache MRU do Windows\"."
+                              },
+                              {
+                                  "recon":  9,
+                                  "catalogo":  30,
+                                  "catalogoId":  "T2#30",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/DeferredDelete.cs:27` (`Schedule`) e (`MoveFileEx` + `MOVEFILE_DELAY_UNTIL_REBOOT`); `Core/UninstallRemovalOptions.cs` (`DeferToNextRestart`); `Core/Removal.cs:8` (`RemovalStatus.Deferred`); `Core/RemovalLog.cs:69` (`DeferredToReboot`)",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  10,
+                                  "catalogo":  32,
+                                  "catalogoId":  "T2#32",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Discovery/FolderConfidenceEvaluator.cs:165` (`Evaluate`, 7 criterios); avisos de baixa confianca em `Core/UninstallSupport.cs:199` (`LeftoverWarnings`) e (`LowConfidenceItems`)",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  11,
+                                  "catalogo":  33,
+                                  "catalogoId":  "T2#33",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Grep \"Levensh\" sem resultado. O que existe: variantes por palavra inteira (`Core/UninstallSupport.cs:552` (`NameVariants`), `Core/UninstallSupport.cs:292` (`ContainsWord`) e `LeftoverReason.SimilarNameMatch`",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  12,
+                                  "catalogo":  31,
+                                  "catalogoId":  "T2#31",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Discovery/UserInstallFolders.cs:87` (`IsUserInstallPath`) e (`Scan`); `Core/MsiInstallLog.cs` resolve \"LocalAppDataProgramFilesFolder\"",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  13,
+                                  "catalogo":  34,
+                                  "catalogoId":  "T2#34",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "O Menu Iniciar so aparece como entrada obsoleta (`Core/Tools/RegistryOptimizer.cs`, `ScanStartMenu`) e atalho so como sobra (`Core/UninstallSupport.cs`). Nao ha varredura de atalhos para descobrir icone/local do programa",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  14,
+                                  "catalogo":  37,
+                                  "catalogoId":  "T2#37",
+                                  "estado":  "PARCIAL",
+                                  "evidencia":  "`Core/Settings/ProgramCache.cs:85` (`ProgramCache`), (`ProgramCacheStore`: Save/TryLoad/Invalidate) + `Core/Modules/TraceStore.cs`. **Nota**: e JSON, nao XML",
+                                  "via":  0.75,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  15,
+                                  "catalogo":  39,
+                                  "catalogoId":  "T2#39",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Nao ha painel dedicado. A **deteccao** existe (o item em uso vira \"adiado para o proximo reinicio\": `Core/Removal.cs`, `Core/RemovalLog.cs`), mas nao a tela listando arquivos em uso",
+                                  "via":  0.76,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  16,
+                                  "catalogo":  12,
+                                  "catalogoId":  "T1#12",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Discovery/DriveScanner.cs:82` (`OrphanUninstaller`) e (`DriveScanResult`), categoria em `Ui/Discovery/DiscoveryWindow.xaml.cs:44`; remocao assistida em `Core/Automation/ForcedRemovalOptions.cs`",
+                                  "via":  0.5,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  17,
+                                  "catalogo":  13,
+                                  "catalogoId":  "T1#13",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Ui/UserMessages.cs:60` (`Confirm`) - a confirmacao do lote nunca e omitida (ver `MATRIZ.md` F.1 linha 27)",
+                                  "via":  0.49,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  18,
+                                  "catalogo":  14,
+                                  "catalogoId":  "T1#14",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Ha o relatorio de remocao com codigo de erro (`Core/RemovalLog.cs`, `Core/Removal.cs`) e a desinstalacao forcada como caminho separado (`Ui/ForcedUninstallWindow.xaml.cs`), mas nao o dialogo \"a desinstalacao falhou, quer limpar a entrada e os arquivos?\"",
+                                  "via":  0.79,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  19,
+                                  "catalogo":  15,
+                                  "catalogoId":  "T1#15",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "A lista de sobras e `LeftoverItem` (`Core/UninstallSupport.cs`) em lista simples, sem acao de navegar para o item",
+                                  "via":  0.54,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  20,
+                                  "catalogo":  5,
+                                  "catalogoId":  "T1#5",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Nao ha estado/aviso de lista vazia por filtro (grep \"NoResults\"/\"Sem resultados\" sem resultado). O filtro tem validacao de regex (`Core/Appearance/ProgramFilters.cs`) e exclusoes (`ProgramFilters.AddExclusion`), mas nenhum aviso de \"nada corresponde\"",
+                                  "via":  0.59,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  21,
+                                  "catalogo":  16,
+                                  "catalogoId":  "T1#16",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "Grep \"ms-windows-store\" sem resultado. Ha o modulo de apps Store (`Core/Modules/WindowsApps.cs`) para listar/remover, mas nao o comando \"abrir na Store\"",
+                                  "via":  0.5,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  22,
+                                  "catalogo":  22,
+                                  "catalogoId":  "T1#22",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "A **origem** do item existe (`Core/ProgramColumns.cs:112` (`ProgramSource`) e `Core/ProgramColumns.cs:304` (`SourceOf`), mas nao ha localizacao do instalador-fonte nem acao de browse",
+                                  "via":  "ancora",
+                                  "motivo":  "RECON \"Browse Source... - localizar o instalador-fonte do programa\" = CAT T1#22 \"Browse Location... e Browse Source...\"."
+                              },
+                              {
+                                  "recon":  23,
+                                  "catalogo":  44,
+                                  "catalogoId":  "T2#44",
+                                  "estado":  "PARCIAL",
+                                  "evidencia":  "A listagem de Store/MSIX existe (`Core/Modules/WindowsApps.cs`, `Ui/Modules/ModuleViews.cs`); a categoria vazia simplesmente nao mostra linhas. **Nota**: e um texto de estado, nao uma feature",
+                                  "via":  0.45,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  24,
+                                  "catalogo":  42,
+                                  "catalogoId":  "T2#42",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "`Core/Modules/WindowsApps.cs` usa `Get-AppxPackage` (usuario atual), sem `-AllUsers` e sem SID",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  25,
+                                  "catalogo":  41,
+                                  "catalogoId":  "T2#41",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/RemovalLog.cs` (`RemovalLog`, CSV/JSON por operacao) com codigo de erro do Windows (`Core/Removal.cs`)",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  26,
+                                  "catalogo":  26,
+                                  "catalogoId":  "T1#26",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Removal.cs` (`ErrorCodeOf`, 5 = acesso negado) + `Core/RemovalLog.cs`; o relatorio mostra a falha com codigo",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  27,
+                                  "catalogo":  12,
+                                  "catalogoId":  "T1#12",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/Automation/RemovalProgress.cs` (`BeginStep`), (`EndStep`); etapas em `Core/Automation/UninstallPlan.cs` (`UninstallStepKind`); tela `Ui/UninstallWizardWindow.xaml.cs`",
+                                  "via":  "ancora",
+                                  "motivo":  "RECON \"Ciclo de mensagens do assistente (Gerando lista de tracos -\u003e Todos os tracos removidos)\" = CAT T1#12 \"Mensagens do assistente, medidas em execucao: ...\"."
+                              },
+                              {
+                                  "recon":  28,
+                                  "catalogo":  25,
+                                  "catalogoId":  "T1#25",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Ui/Discovery/DiscoveryWindow.xaml.cs:143` e (`WindowsUpdateCatalog.ListInstalled`)",
+                                  "via":  0.53,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  29,
+                                  "catalogo":  2,
+                                  "catalogoId":  "T1#2",
+                                  "estado":  "AUSENTE",
+                                  "evidencia":  "O rodape mostra a **contagem** (`MainWindow.xaml.cs`), nao o tamanho total. O total so aparece no resumo do treemap (`Ui/Appearance/AppearanceView.xaml.cs`)",
+                                  "via":  1,
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  30,
+                                  "catalogo":  38,
+                                  "catalogoId":  "T2#38",
+                                  "estado":  "OK",
+                                  "evidencia":  "`Core/ProgramScanner.cs:405` (`MeasureFolder`) + `ScanOptions.ComputeFolderSize`",
+                                  "via":  0.62,
+                                  "motivo":  ""
+                              }
+                          ]
+             }
+}

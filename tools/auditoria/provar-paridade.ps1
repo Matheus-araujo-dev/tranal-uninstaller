@@ -41,91 +41,62 @@ foreach ($c in $catalogo.concorrentes) {
 }
 
 # ------------------------------------------------------------------
-# 2. Apuracao (RECON-*.md)
+# 2. A reconciliacao (docs\auditoria\reconciliacao.json)
 # ------------------------------------------------------------------
+
+# O estado reconciliado vem do MAPA, e nao do RECON lido aqui.
+#
+# O mapa e gravado por tools\auditoria\aplicar-recon.ps1: cada entrada e o
+# par (linha do RECON -> linha do catalogo) com o estado medido. Ler o RECON
+# e casar por numero seria medir errado com aparencia de medir certo: o
+# numero do RECON e o da lista de lacunas (BINARIO-<C>.md), que tem a sua
+# propria numeracao. Medido: o RECON #3 do UNINSTALR (MuiCache) nao e a
+# linha 3 do catalogo.
+$reconPath = Join-Path $docs 'reconciliacao.json'
+$recon = $null
+if (Test-Path -LiteralPath $reconPath) {
+    $recon = Get-Content -LiteralPath $reconPath -Raw -Encoding UTF8 | ConvertFrom-Json
+}
+
+# O rotulo do estado ja vem pronto do mapa: nao ha traducao a fazer aqui.
 $mapear = @{
-    'JÁ EXISTE' = 'OK'
-    'JA EXISTE' = 'OK'
-    'NÃO EXISTE' = 'AUSENTE'
-    'NAO EXISTE' = 'AUSENTE'
-    'FORA POR DECISÃO' = 'FORA'
+    'OK'               = 'OK'
+    'PARCIAL'          = 'PARCIAL'
+    'AUSENTE'          = 'AUSENTE'
     'FORA POR DECISAO' = 'FORA'
-    'NÃO CONFIRMADO NO BINÁRIO' = 'NAO CONFIRMADO'
-    'NAO CONFIRMADO NO BINARIO' = 'NAO CONFIRMADO'
 }
 
 $apuracoes = 0
-foreach ($arquivo in (Get-ChildItem $docs -Filter 'RECON-*.md' -ErrorAction SilentlyContinue)) {
-    $competentes = @()
-    $secaoAtual = $null
-
-    foreach ($linha in (Get-Content -LiteralPath $arquivo.FullName -Encoding UTF8)) {
-        # A secao do relatorio diz de qual concorrente a tabela e
-        # ("## 1. HiBit Uninstaller"). E de onde vem o nome quando a
-        # tabela nao tem a coluna do concorrente.
-        if ($linha -match '^##\s*\d+\.\s*(.+?)\s*$') { $secaoAtual = $Matches[1].Trim(); continue }
-
-        if ($linha -notmatch '^\|') { continue }
-        if ($linha -match '^\|\s*-') { continue }
-        if ($linha -match '^\|\s*#') { continue }
-
-        $celulas = $linha.Trim('|').Split('|')
-        if ($celulas.Count -lt 4) { continue }
-
-        # A coluna do competidor existe quando o SEGUNDO campo e o numero.
-        # O primeiro campo e o nome do competidor; sem ele, o primeiro e o
-        # numero da funcionalidade.
-        $temColunaConcorrente = ($celulas.Count -ge 5) -and ($celulas[1].Trim() -match '^\d+$')
-
-        if ($temColunaConcorrente) {
-            if ($celulas.Count -lt 5) { continue }
-            $numero = [int]$celulas[1].Trim()
-            $estadoTexto = $celulas[3].Trim()
-            $evidencia = $celulas[4].Trim()
-            $nome = $celulas[0].Trim()
-        }
-        else {
-            # Sem coluna do competidor: o primeiro campo e o numero. Uma
-            # linha que nao comeca com numero e cabecalho (ou outra tabela).
-            if ($celulas[0].Trim() -notmatch '^\d+$') { continue }
-            $numero = [int]$celulas[0].Trim()
-            $estadoTexto = $celulas[2].Trim()
-            $evidencia = $celulas[3].Trim()
-            $nome = $secaoAtual
-        }
-
-        if (-not $nome) { continue }
-        if ($nome -match '^(Funcionalidade|Estado|Evidencia|Evidência)') { continue }
-
-        $chave = $null
-        foreach ($k in $mapear.Keys) {
-            if ($estadoTexto -like "$k*") { $chave = $k; break }
-        }
-        if (-not $chave) { continue }
+if ($recon -and $recon.mapa) {
+    foreach ($prop in $recon.mapa.PSObject.Properties) {
+        $chaveCatalogo = $prop.Name.ToUpperInvariant()
 
         $alvo = $null
-        # O titulo da secao e o nome do produto ("HiBit Uninstaller"), e o
-        # catalogo usa a chave ("HIBIT"). A comparacao ignora espacos e
-        # caixa: e a mesma chave dos dois lados.
-        $chaveNormalizada = ($nome -replace '\s', '').ToUpperInvariant()
-
         foreach ($c in $catalogo.concorrentes) {
-            $chaveCatalogo = ($c.concorrente -replace '\s', '').ToUpperInvariant()
-            if ($chaveCatalogo.Contains($chaveNormalizada) -or $chaveNormalizada.Contains($chaveCatalogo)) {
+            if (($c.concorrente -replace '\s', '').ToUpperInvariant() -eq $chaveCatalogo) {
                 $alvo = $c
                 break
             }
         }
         if (-not $alvo) { continue }
 
-        foreach ($f in $alvo.funcionalidades) {
-            if ([int]$f.numero -eq $numero) {
-                # O estado reconciliado passa a ser o estado do catalogo: e
-                # dele que sai a contagem de cobertura.
-                $f.estado = $mapear[$chave]
-                $f.evidenciaCodigo = $evidencia
-                $apuracoes++
-                break
+        foreach ($p in @($prop.Value)) {
+            $rotulo = $p.estado
+            if (-not $mapear.ContainsKey($rotulo)) { continue }
+
+            # O casamento e pelo ID unico da linha do catalogo ("T2#14"),
+            # e nao pelo numero: alguns catalogos tem varias tabelas de
+            # funcionalidade com a mesma numeracao.
+            $idAlvo = $p.catalogoId
+            if (-not $idAlvo) { continue }
+
+            foreach ($f in $alvo.funcionalidades) {
+                if ($f.id -eq $idAlvo) {
+                    $f.estado = $mapear[$rotulo]
+                    $f.evidenciaCodigo = $p.evidencia
+                    $apuracoes++
+                    break
+                }
             }
         }
     }
@@ -148,15 +119,22 @@ $linhas.Add('')
 $linhas.Add('Gerado por `tools\auditoria\provar-paridade.ps1`. Cada linha diz o que o')
 $linhas.Add('concorrente tem e o que o Tranal tem, **conferido no codigo**.')
 $linhas.Add('')
-$linhas.Add('Estado: `OK` o Tranal tem · `AUSENTE` falta · `FORA` limite declarado ·')
-$linhas.Add('`NAO CONFIRMADO` o dump do concorrente nao permite afirmar.')
+$linhas.Add('Estado: `OK` o Tranal tem · `PARCIAL` tem parte · `AUSENTE` falta ·')
+$linhas.Add('`FORA` limite declarado · `NAO CONFIRMADO` o dump do concorrente nao permite confirmar.')
 $linhas.Add('')
-$linhas.Add('| Concorrente | Funcionalidades medidas | OK | Ausente | Fora | Nao confirmado | Cobertura |')
-$linhas.Add('|---|---:|---:|---:|---:|---:|---:|')
+$linhas.Add('A **cobertura** conta `OK` e `FORA` (o que o Tranal tem, ou o que foi')
+$linhas.Add('declarado fora por decisao). `PARCIAL` aparece na coluna propria: a')
+$linhas.Add('funcionalidade existe, mas nao inteira — por isso ela NAO entra na')
+$linhas.Add('cobertura, e por isso o total medido e sempre maior que a soma das')
+$linhas.Add('colunas.')
+$linhas.Add('')
+$linhas.Add('| Concorrente | Funcionalidades medidas | OK | Parcial | Ausente | Fora | Nao confirmado | Cobertura |')
+$linhas.Add('|---|---:|---:|---:|---:|---:|---:|---:|')
 
 $resumo = @()
 $grandTotal = 0
 $grandOk = 0
+$grandPar = 0
 $grandAus = 0
 $grandFora = 0
 $grandNc = 0
@@ -164,18 +142,20 @@ $grandNc = 0
 foreach ($c in $catalogo.concorrentes) {
     $total = @($c.funcionalidades).Count
     $ok = @($c.funcionalidades | Where-Object { $_.estado -eq 'OK' }).Count
+    $par = @($c.funcionalidades | Where-Object { $_.estado -eq 'PARCIAL' }).Count
     $aus = @($c.funcionalidades | Where-Object { $_.estado -eq 'AUSENTE' }).Count
     $fora = @($c.funcionalidades | Where-Object { $_.estado -eq 'FORA' }).Count
     $nc = @($c.funcionalidades | Where-Object { $_.estado -eq 'NAO CONFIRMADO' }).Count
 
     $cobertura = if ($total -gt 0) { [math]::Round(100.0 * ($ok + $fora) / $total, 1) } else { 0 }
 
-    $linhas.Add("| $($c.concorrente) | $total | $ok | $aus | $fora | $nc | $cobertura% |")
+    $linhas.Add("| $($c.concorrente) | $total | $ok | $par | $aus | $fora | $nc | $cobertura% |")
 
     $resumo += [pscustomobject]@{
         Concorrente = $c.concorrente
         Total = $total
         OK = $ok
+        Parcial = $par
         Ausente = $aus
         Fora = $fora
         NaoConfirmado = $nc
@@ -184,6 +164,7 @@ foreach ($c in $catalogo.concorrentes) {
 
     $grandTotal += $total
     $grandOk += $ok
+    $grandPar += $par
     $grandAus += $aus
     $grandFora += $fora
     $grandNc += $nc
@@ -192,17 +173,19 @@ foreach ($c in $catalogo.concorrentes) {
 if ($revo) {
     $total = @($revo.linhas).Count
     $ok = @($revo.linhas | Where-Object { $_.status -eq 'OK' }).Count
+    $par = @($revo.linhas | Where-Object { $_.status -eq 'PARCIAL' }).Count
     $aus = @($revo.linhas | Where-Object { $_.status -eq 'AUSENTE' }).Count
     $fora = @($revo.linhas | Where-Object { $_.status -eq 'FORA' }).Count
-    $nc = @($revo.linhas | Where-Object { $_.status -eq 'PARCIAL' }).Count
+    $nc = @($revo.linhas | Where-Object { $_.status -eq 'NAO CONFIRMADO' }).Count
     $cobertura = if ($total -gt 0) { [math]::Round(100.0 * ($ok + $fora) / $total, 1) } else { 0 }
 
-    $linhas.Add("| REVO PRO 5.5.4 | $total | $ok | $aus | $fora | $nc | $cobertura% |")
+    $linhas.Add("| REVO PRO 5.5.4 | $total | $ok | $par | $aus | $fora | $nc | $cobertura% |")
 
     $resumo += [pscustomobject]@{
         Concorrente = 'REVO PRO 5.5.4'
         Total = $total
         OK = $ok
+        Parcial = $par
         Ausente = $aus
         Fora = $fora
         NaoConfirmado = $nc
@@ -211,13 +194,14 @@ if ($revo) {
 
     $grandTotal += $total
     $grandOk += $ok
+    $grandPar += $par
     $grandAus += $aus
     $grandFora += $fora
     $grandNc += $nc
 }
 
 $coberturaGeral = if ($grandTotal -gt 0) { [math]::Round(100.0 * ($grandOk + $grandFora) / $grandTotal, 1) } else { 0 }
-$linhas.Add("| **TOTAL** | **$grandTotal** | **$grandOk** | **$grandAus** | **$grandFora** | **$grandNc** | **$coberturaGeral%** |")
+$linhas.Add("| **TOTAL** | **$grandTotal** | **$grandOk** | **$grandPar** | **$grandAus** | **$grandFora** | **$grandNc** | **$coberturaGeral%** |")
 $linhas.Add('')
 $linhas.Add("Apuracoes linha a linha aplicadas: $apuracoes.")
 $linhas.Add('')
@@ -225,7 +209,7 @@ $linhas.Add('')
 # ------------------------------------------------------------------
 # 5. O que ainda falta, por concorrente
 # ------------------------------------------------------------------
-$linhas.Add('## O que ainda falta (estado `AUSENTE`)')
+$linhas.Add('## O que ainda falta (estado AUSENTE)')
 $linhas.Add('')
 
 foreach ($c in $catalogo.concorrentes) {

@@ -3,48 +3,52 @@
 Gerado por `tools\auditoria\provar-paridade.ps1`. Cada linha diz o que o
 concorrente tem e o que o Tranal tem, **conferido no codigo**.
 
-Estado: `OK` o Tranal tem · `AUSENTE` falta · `FORA` limite declarado ·
-`NAO CONFIRMADO` o dump do concorrente nao permite afirmar.
+Estado: `OK` o Tranal tem · `PARCIAL` tem parte · `AUSENTE` falta ·
+`FORA` limite declarado · `NAO CONFIRMADO` o dump do concorrente nao permite confirmar.
 
-| Concorrente | Funcionalidades medidas | OK | Ausente | Fora | Nao confirmado | Cobertura |
-|---|---:|---:|---:|---:|---:|---:|
-| ASHAMPOO | 76 | 16 | 27 | 0 | 0 | 21.1% |
-| BCU | 97 | 44 | 26 | 0 | 0 | 45.4% |
-| GEEK | 44 | 25 | 17 | 0 | 0 | 56.8% |
-| HIBIT | 66 | 43 | 13 | 4 | 6 | 71.2% |
-| IOBIT | 40 | 16 | 14 | 4 | 6 | 50% |
-| SOFTORGANIZER | 77 | 32 | 26 | 0 | 0 | 41.6% |
-| TOTALUNINSTALL | 94 | 45 | 22 | 0 | 0 | 47.9% |
-| UNINSTALLTOOL | 94 | 33 | 32 | 0 | 0 | 35.1% |
-| UNINSTALR | 51 | 16 | 28 | 3 | 0 | 37.3% |
-| WISE | 86 | 26 | 26 | 0 | 0 | 30.2% |
-| REVO PRO 5.5.4 | 70 | 68 | 0 | 2 | 0 | 100% |
-| **TOTAL** | **795** | **364** | **231** | **13** | **12** | **47.4%** |
+A **cobertura** conta `OK` e `FORA` (o que o Tranal tem, ou o que foi
+declarado fora por decisao). `PARCIAL` aparece na coluna propria: a
+funcionalidade existe, mas nao inteira — por isso ela NAO entra na
+cobertura, e por isso o total medido e sempre maior que a soma das
+colunas.
 
-Apuracoes linha a linha aplicadas: 163.
+| Concorrente | Funcionalidades medidas | OK | Parcial | Ausente | Fora | Nao confirmado | Cobertura |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| ASHAMPOO | 76 | 25 | 24 | 25 | 2 | 0 | 35.5% |
+| BCU | 97 | 47 | 24 | 26 | 0 | 0 | 48.5% |
+| GEEK | 44 | 28 | 3 | 13 | 0 | 0 | 63.6% |
+| HIBIT | 66 | 23 | 15 | 24 | 4 | 0 | 40.9% |
+| IOBIT | 40 | 12 | 7 | 17 | 4 | 0 | 40% |
+| SOFTORGANIZER | 77 | 32 | 19 | 26 | 0 | 0 | 41.6% |
+| TOTALUNINSTALL | 94 | 45 | 27 | 22 | 0 | 0 | 47.9% |
+| UNINSTALLTOOL | 94 | 33 | 29 | 32 | 0 | 0 | 35.1% |
+| UNINSTALR | 51 | 21 | 7 | 20 | 3 | 0 | 47.1% |
+| WISE | 86 | 28 | 32 | 26 | 0 | 0 | 32.6% |
+| REVO PRO 5.5.4 | 70 | 68 | 0 | 0 | 2 | 0 | 100% |
+| **TOTAL** | **795** | **362** | **187** | **231** | **15** | **0** | **47.4%** |
 
-## O que ainda falta (estado `AUSENTE`)
+Apuracoes linha a linha aplicadas: 173.
 
-### ASHAMPOO — 27
+## O que ainda falta (estado AUSENTE)
+
+### ASHAMPOO — 25
 
 | # | Funcionalidade | Verificado |
 |---|---|---|
-| 24 | Filtrar a lista **por tamanho** (subtópicos) | nao apurado |
-| 59 | Ratings por estrelas (1–5) com base online e download de database | nao apurado |
+| 62 | Comparação de tamanho declarado vs. real do programa, sincronizável com o Windows | nao apurado |
+| 63 | Categoria automática expandida + reset para "Unsorted" | nao apurado |
 | 64 | País do editor com bandeira e nome | nao apurado |
 | 66 | Desinstalar o próprio produto pelo Windows "Apps & Features" | nao apurado |
-| 9 | Exportar alterações de registro do log (.reg) | nao apurado |
-| 10 | Editar manualmente o log de instalação (remover entradas) | nao apurado |
 | 12 | Importar logs do UnInstaller 4 | nao apurado |
-| 14 | **Análise forense / log pós-instalação** para programas instalados sem monitoramento ("Create post-install log") | nao apurado |
 | 15 | Análise forense em lote (processar todas as aplicações compatíveis de uma vez) | nao apurado |
 | 61 | Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar | nao apurado |
 | 36 | Wizard de snapshots por caso de uso, com nomes automáticos | nao apurado |
 | 37 | Snapshot: seleção de drives incluídos e pastas excluídas | nao apurado |
+| 41 | Drive Cleaner (arquivos desnecessários, com seleção por categoria e relatório) | nao apurado |
+| 42 | Internet Cleaner (cookies, histórico, exceções e "cookies seguros" / whitelist) | nao apurado |
 | 44 | File Associator (tipos de arquivo sem programa associado, editar/undo) | nao apurado |
-| 45 | Desfragmentação de drives (citada entre as ferramentas) | nao apurado |
+| 50 | **Unlocker**: desbloquear arquivos em uso, reiniciar o Explorer, desregistrar DLL, encerrar processo | nao apurado |
 | 51 | **Crash Analyzer**: relatórios de falha do Windows Event Log, agrupados por programa, com export e busca online | nao apurado |
-| 52 | **Undeleter**: recuperar arquivos apagados acidentalmente | nao apurado |
 | 53 | **Software Updater**: atualizar programas instalados, em lote, com lista negra de atualizações | nao apurado |
 | 54 | **Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois | nao apurado |
 | 55 | **Impact**: programas com maior impacto na performance (CPU e memória) | nao apurado |
@@ -88,47 +92,54 @@ Apuracoes linha a linha aplicadas: 163.
 | 93 | **Compressão Brotli** em backups/arquivos gerados | nao apurado |
 | 95 | Filtro que **esconde o que foi publicado pela Microsoft** | nao apurado |
 
-### GEEK — 17
+### GEEK — 13
 
 | # | Funcionalidade | Verificado |
 |---|---|---|
-| 3 | Indicação de app 32-bit dentro do nome ("(32-bit)") | nao apurado |
-| 4 | **Filtro incremental por digitação**, sem campo visível ("Type to find a program") | nao apurado |
-| 8 | **Force Removal** — remoção sem executar o desinstalador, com confirmação | nao apurado |
-| 11 | **Assistente de desinstalação** com sobras em **2 categorias**: File System (%d items) e Registry (%d items), em **árvore** | nao apurado |
-| 13 | **Cancelamento** da remoção de sobras com confirmação | nao apurado |
+| 2 | Total agregado no rodapé ("%d programs of %s size in total") | nao apurado |
+| 5 | Aviso "No matching items, press ESC to reset" | nao apurado |
+| 10 | **Remove Entry** + **Batch Remove Entries** | nao apurado |
+| 14 | Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos** | nao apurado |
 | 15 | "Browse..." dentro das sobras encontradas | nao apurado |
-| 18 | **Tema** automático (light/dark do Windows) | nao apurado |
-| 19 | **Interface multilíngue** (pt-BR incluído) | nao apurado |
-| 20 | **Exportação em HTML** ("Generated by %s on %s", "Installed Programs (%s)") | nao apurado |
-| 21 | Ir para a **chave do registro**, a **pasta de instalação**, o **site do programa**, a **Microsoft Store** | nao apurado |
+| 16 | Aba de **Microsoft Store Apps** (`Ctrl+Tab`) | nao apurado |
 | 22 | **Browse Location…** e **Browse Source…** | nao apurado |
-| 24 | Verificação de **nova versão** (HTTP) | nao apurado |
+| 29 | **Desregistro de COM** (`regsvr32 /u`) antes de remover | nao apurado |
 | 33 | **Correspondência aproximada (Levenshtein)** de caminho de instalação | nao apurado |
 | 34 | **Varredura de atalhos do Menu Iniciar e da Área de Trabalho** para achar ícone e localização | nao apurado |
 | 35 | **Limpeza do cache MRU do Windows** | nao apurado |
 | 39 | **Painel "Active Files"** de arquivos em uso | nao apurado |
 | 42 | **Enumeração por SID do usuário** dos pacotes MSIX | nao apurado |
 
-### HIBIT — 13
+### HIBIT — 24
 
 | # | Funcionalidade | Verificado |
 |---|---|---|
+| 4 | **Desinstalação forçada** ("Remoção Forçada") — reagendada para o próximo logon via `RunOnce` | nao apurado |
 | 8 | **Relatórios HTML por ferramenta**: `OpReport`, `ScanLog`, `ProgramCompReport`, `WindowsStoreReport`, `ServicesReport`, `DriversReport`, `StartupReport`, `SchedulerReport`, `ContextMenuReport`, `UninstallerReport` | nao apurado |
+| 9 | **Ocultar entrada de desinstalação** ("Hide original uninstallation entry") | nao apurado |
 | 17 | **Menu de contexto do Monitor de Instalação**: `Msi.Package\shell\HiBitMonitor` e `exefile\shell\HiBitMonitor` | nao apurado |
 | 18 | **Gerenciador do Menu de Contexto** — lista, cria e remove menus do shell, com "Restaurar" e "Excluir tudo" | nao apurado |
+| 21 | Desinstalar **atualizações do Windows**: `cmd.exe /c wusa.exe /uninstall /` + `KBID=` | nao apurado |
+| 60 | Painel de informações do sistema no banner (CPU, GPU, RAM disponível, SO, tempo de atividade) | nao apurado |
+| 62 | Botão **Doar** (adicionado na 4.0.10) | nao apurado |
+| 63 | Data de instalação com **tempo relativo** ("Hoje", "Ontem", "1 mês atrás", "2 meses antes", "1 ano atrás") | nao apurado |
+| 64 | Coluna **Tipo** com `32bit` / `64bit` por programa | nao apurado |
 | 65 | Contadores na barra de status: total de programas **e tamanho total ocupado** ("Total: 79 Unidade", "Tamanho: 610 GB") | nao apurado |
 | 68 | Gerenciador de **Serviços** | nao apurado |
+| 69 | Gerenciador de **Processos** (painel) | nao apurado |
 | 72 | Gerenciador de **Componentes de Programas** (DLLs compartilhadas) | nao apurado |
 | 73 | Gerenciador de **Extensões de Navegador** | nao apurado |
+| 77 | **Limpador de Registro** (15+ categorias: ActiveX, FileTypes, SharedDLLs, IFEO, FirewallRules, MUICache) | nao apurado |
 | 80 | **Fixador de Atalhos** (atalhos corrompidos) | nao apurado |
 | 82 | **Localizador de Arquivos e Registros** | nao apurado |
 | 87 | **Propriedades de processo** (painel dedicado) | nao apurado |
 | 88 | **Afinidade de processador** do programa | nao apurado |
+| 92 | **Criar serviço** do Windows | nao apurado |
+| 93 | **Criar tarefa agendada** | nao apurado |
 | 98 | **Verificação de integridade de arquivo** e limpeza pontual de arquivo | nao apurado |
 | 100 | **Banco local embutido** (`LOCALDB`) | nao apurado |
 
-### IOBIT — 14
+### IOBIT — 17
 
 | # | Funcionalidade | Verificado |
 |---|---|---|
@@ -137,10 +148,13 @@ Apuracoes linha a linha aplicadas: 163.
 | 5 | **Bloatware Remover**: pré-instalados do Windows, Windows Accessories e Windows Features, com marcação *Permanent* / *Warning* | nao apurado |
 | 6 | **Bundleware**: detectar o que veio junto com o programa e desinstalar em conjunto | nao apurado |
 | 7 | **Stubborn Program Remover** com base de **4.000+ programas** travados | nao apurado |
+| 11 | Confirmar/avisar antes de apagar **arquivo pessoal** | nao apurado |
 | 19 | Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas) | nao apurado |
 | 23 | Botão **Shred no Explorer** | nao apurado |
 | 24 | **Software Relocator**: mover software instalado entre discos | nao apurado |
+| 25 | **Bloqueio de popups** de notificação | nao apurado |
 | 27 | **Software Updater** integrado (atualizar todos) | nao apurado |
+| 29 | **Desinstalar Windows Updates** | nao apurado |
 | 33 | Aviso de **sincronização do Chrome** ao remover extensão | nao apurado |
 | 34 | Integração com a **Central de Ações do Windows** (Action Center) | nao apurado |
 | 36 | **Voto / avaliação** de programas e plugins pela comunidade | nao apurado |
@@ -242,30 +256,22 @@ Apuracoes linha a linha aplicadas: 163.
 | 92 | **Validação de cadeia de certificados** embarcada (CRYPTO/SSL) | nao apurado |
 | 94 | **Install Tracker com driver de kernel**: minifiltro de sistema de arquivos + callback de registro + callback de processos | nao apurado |
 
-### UNINSTALR — 28
+### UNINSTALR — 20
 
 | # | Funcionalidade | Verificado |
 |---|---|---|
-| 2 | **Desinstalação não assistida** — "everything is removed without any user interaction" | nao apurado |
-| 3 | **Motor de desinstalação próprio** — "Most other uninstallers simply run the default uninstaller program" | nao apurado |
-| 4 | **2 modos**: Normal e Silent | nao apurado |
-| 5 | **Automatiza desinstaladores que não aceitam silent**, tentando `/passive /norestart /quiet`, `/quiet`, `/silent`, `/passive`, `/verysilent` | nao apurado |
-| 6 | **Remoção de programas SEM desinstalador** (apaga pasta + registro + sobras) | nao apurado |
-| 7 | Detecção e remoção de **sobras de programas já desinstalados** | nao apurado |
 | 10 | **Exclusão** de arquivos/pastas/unidades, configurável | nao apurado |
-| 11 | **Detecção automática de caminhos a ignorar** (`$Recycle.Bin`, `System Volume Information`, `Windows.~BT`, `Windows.~WS`, `Recovery`, pastas de backup do sistema) | nao apurado |
-| 12 | **Lista única** com todos os apps, **tamanho em disco calculado em tempo real** (não o valor do Windows) | nao apurado |
-| 13 | **Corrigir o tamanho errado** que o Windows mostra na lista de instalados | nao apurado |
 | 14 | **16 tipos de app** com detecção dedicada: normal, MS Store, portable, sobras, Chocolatey, Ninite, PortableApps.com, Steam, EA App, Epic, Riot, GOG Galaxy, Wargaming.net, Battle.net, itch.io, Big Fish | nao apurado |
-| 17 | **Backup da lista de instalados** do Windows antes de alterar (chave `Applistbackup`) | nao apurado |
-| 18 | **Ponto de restauração** antes da desinstalação, com opção "só uma vez por sessão" | nao apurado |
-| 20 | **Fechar programas e serviços** em execução automaticamente | nao apurado |
-| 22 | **Executar scripts de desinstalação** automaticamente (ligado por padrão) | nao apurado |
+| 15 | Detecção de sobras via **MuiCache / TypeLib / AppX ModelID** | nao apurado |
+| 16 | **País de origem** do app, com bandeira | nao apurado |
+| 21 | **Reiniciar automaticamente** para finalizar (avisa que pode reiniciar 1 ou 2 vezes) | nao apurado |
 | 23 | **Gerar `.bat`** para desinstalação em lote + `PreStartupDelete.bat` para o próximo arranque | nao apurado |
+| 24 | **Retomar a desinstalação após reinício** via `RunOnce` (`Uninstalr_Unsetup_`, `Uninstalr_Rerun_`) | nao apurado |
+| 26 | **Deep Analysis** sob demanda, com aviso de que pode levar minutos | nao apurado |
 | 27 | Tooltip por app com Publisher, Tipo, Versão, Data, **País**, "Automatically starts with Windows", pasta, chave de registro, uninstall key, comando completo, executável principal, atalho principal | nao apurado |
-| 29 | Tema claro/escuro com 3 opções | nao apurado |
 | 30 | Opções de **acessibilidade** (leitor de tela, moldura padrão, botões padrão) | nao apurado |
 | 35 | **Correspondência difusa (fuzzy)** de elementos e de termos de busca | nao apurado |
+| 36 | **Dados do publicador extraídos do manifesto do executável** | nao apurado |
 | 37 | **Seleção em massa por país** (selecionar/desmarcar por país) | nao apurado |
 | 40 | **Detecção de Epic Games** e **Big Fish** como plataforma | nao apurado |
 | 41 | **Detecção de NuGet** como plataforma | nao apurado |

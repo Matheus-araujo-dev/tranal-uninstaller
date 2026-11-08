@@ -1,0 +1,85 @@
+# As ancoras entre o relatorio de reconciliacao (RECON) e o catalogo canonico.
+#
+# Formato: <competidor>;<numero do RECON>;<ID do catalogo>;<motivo>
+#
+# O numero do RECON e o da tabela do relatorio (a mesma numeracao do
+# BINARIO-<concorrente>.md). O ID do catalogo e "<tabela>#<numero>", onde a
+# tabela e a ordem da tabela de funcionalidade dentro do documento: e o que
+# identifica a linha sem ambiguidade, porque alguns catalogos (IOBIT,
+# HIBIT) tem varias tabelas com a mesma numeracao.
+#
+# A ancora existe para os casos em que o casamento por conteudo nao
+# funciona: o relatorio e o catalogo descrevem a mesma funcionalidade com
+# palavras diferentes. Sem a ancora, o estado medido cairia na linha
+# errada — ou em nenhuma.
+#
+# MEDIDO: cada linha foi conferida contra o texto das duas pontas.
+#
+# As linhas de dados NAO levam marcador de comentario: o script pula as
+# linhas que comecam por "#" ou "//".
+
+# --- HiBit -------------------------------------------------------------
+# RECON "colunas completas: falta Tipo (32/64)" e a propria linha da
+# coluna "Lista com colunas" do catalogo — o relatorio mede o que FALTA
+# na lista, o catalogo descreve a lista.
+HiBit;1;T2#1;RECON mede a lacuna de "Tipo (32/64)" na lista de colunas; CAT T2#1 e a linha "Lista com colunas: Nome, Versao, Editor, ...". Mesmo item,_redacao diferente.
+# RECON "relatorios HTML por ferramenta" = CAT "Relatorios HTML por ferramenta".
+HiBit;8;T2#8;RECON "Relatorios HTML por ferramenta (servicos, drivers, tarefas, inicializacao, menu de contexto)" = CAT T2#8 "Relatorios HTML por ferramenta: OpReport, ScanLog, ...".
+# RECON "apagar a entrada do registro do programa" = CAT "Deletar entrada do registro do programa".
+HiBit;10;T2#10;RECON "Apagar a entrada do registro do programa como acao avulsa" = CAT T2#10 "Deletar entrada do registro do programa".
+# RECON "gerenciador de inicializacao que cria e edita" = CAT "Gerenciador de Inicializacao (Startup)".
+HiBit;67;T5#67;RECON "Gerenciador de Inicializacao que cria e edita itens de autostart" = CAT T5#67 "Gerenciador de Inicializacao (Startup)".
+# RECON "gerenciador de servicos que cria servico" = CAT "Gerenciador de Servicos".
+HiBit;68;T5#68;RECON "Gerenciador de Servicos que cria servico" = CAT T5#68 "Gerenciador de Servicos".
+# RECON "gerenciador de menu de contexto" = CAT "Gerenciador de Menu de Contexto".
+HiBit;71;T5#71;RECON "Gerenciador de Menu de Contexto (janela propria)" = CAT T5#71 "Gerenciador de Menu de Contexto".
+# RECON "Backups & Reports" = CAT "Backups & Reports".
+HiBit;75;T5#75;RECON "Backups & Reports (painel proprio de backup e de relatorio)" = CAT T5#75 "Backups & Reports".
+# RECON "destruidor de arquivos com 5 algoritmos de hash" = CAT "Destruidor de Arquivos (MD5/SHA-1/...)".
+HiBit;81;T5#81;RECON "Destruidor de Arquivos com 5 algoritmos de hash e relatorio de hash" = CAT T5#81 "Destruidor de Arquivos (MD5 / SHA-1 / SHA-256 / SHA-512 / CRC32)".
+# RECON "gerenciador de atualizacoes do Windows" = CAT "Gerenciador de Atualizacoes do Windows".
+HiBit;86;T5#86;RECON "Gerenciador de Atualizacoes do Windows (painel proprio)" = CAT T5#86 "Gerenciador de Atualizacoes do Windows".
+
+# --- Geek --------------------------------------------------------------
+# RECON "Batch Force Removal" = CAT "**Batch Force Removal**".
+Geek;2;T1#9;RECON "Batch Force Removal - remocao forca de varios programas de uma vez" = CAT T1#9 "Batch Force Removal".
+# RECON "varredura de sobras de MSI em traces" = CAT "Varredura de sobras de MSI pelo registro do Installer".
+Geek;7;T2#27;RECON "Varredura de sobras de MSI em traces de instalacao" = CAT T2#27 "Varredura de sobras de MSI pelo registro do Installer". O RECON #5 e o mesmo item pelo outro angulo (registro do Installer) e ja ocupou esta linha: a ancora aponta para a linha que descreve a MESMA capacidade.
+# RECON "limpeza do cache MRU" = CAT "Limpeza do cache MRU do Windows".
+Geek;8;T2#35;RECON "Limpeza do cache MRU do Windows (Software\Classes\Local Settings\MrtCache)" = CAT T2#35 "Limpeza do cache MRU do Windows".
+# RECON "Browse Source" = CAT "Browse Location... e Browse Source...".
+Geek;22;T1#22;RECON "Browse Source... - localizar o instalador-fonte do programa" = CAT T1#22 "Browse Location... e Browse Source...".
+# RECON "ciclo de mensagens do assistente" = CAT "Mensagens do assistente, medidas em execucao".
+Geek;27;T1#12;RECON "Ciclo de mensagens do assistente (Gerando lista de tracos -> Todos os tracos removidos)" = CAT T1#12 "Mensagens do assistente, medidas em execucao: ...".
+
+# --- IOBIT -------------------------------------------------------------
+# RECON "remocao de extensoes com base de assinaturas maliciosa/ad" = CAT "Remocao de extensoes de navegador com base propria (PlugDB.dbd)".
+IObit;1;T2#1;RECON "Remocao de extensoes de navegador com base de assinaturas maliciosa/ad" = CAT T2#1 "Remocao de extensoes de navegador com base propria (PlugDB.dbd, 1,6 MB)".
+# RECON "remocao de plugins NPAPI/ActiveX" = CAT "Remocao de plugins do navegador".
+IObit;4;T2#4;RECON "Remocao de plugins de navegador (NPAPI/ActiveX)" = CAT T2#4 "Remocao de plugins do navegador".
+# RECON "botao de destruicao no Explorer" = CAT "Botao Shred no Explorer".
+IObit;23;T7#23;RECON "Botao de destruicao no Explorer (handler de menu de contexto)" = CAT T7#23 "Botao Shred no Explorer".
+# RECON "catalogo embutido de Appx pre-instalados" = CAT "Catalogo embutido de Appx pre-instalados".
+IObit;38;T8#38;RECON "Catalogo embutido de Appx pre-instalados do Windows" = CAT T8#38 "Catalogo embutido de Appx pre-instalados (a lista do que o Windows traz de fabrica)".
+
+# --- Uninstalr ---------------------------------------------------------
+# RECON "motor de desinstalacao que dirige a interface de terceiros" = CAT "Motor de desinstalacao proprio".
+Uninstalr;1;T1#3;RECON "Motor de desinstalacao que dirige a interface de desinstaladores de terceiros" = CAT T1#3 "Motor de desinstalacao proprio - Most other uninstallers simply run the default uninstaller program".
+# RECON "deteccao de sobras por TypeLib" = CAT "Deteccao de sobras via MuiCache / TypeLib / AppX ModelID".
+Uninstalr;4;T1#15;RECON "Deteccao de sobras por TypeLib" = CAT T1#15 "Deteccao de sobras via MuiCache / TypeLib / AppX ModelID".
+# RECON "deteccao de sobras por AppX ModelID" = CAT "Deteccao de sobras via MuiCache / TypeLib / AppX ModelID".
+Uninstalr;5;T1#15;RECON "Deteccao de sobras por AppX ModelID (registro, chaves, arquivos e pastas)" = CAT T1#15 "Deteccao de sobras via MuiCache / TypeLib / AppX ModelID". Mesma linha do catalogo: e a mesma capacidade (deteccao de sobras por familia de chave).
+# RECON "remocao automatica de atalhos, pastas e proximos passos" = CAT "Detecao e remocao de sobras de programas ja desinstalados".
+Uninstalr;19;T1#7;RECON "Remocao automatica de atalhos, pastas e proximos passos ao desinstalar" = CAT T1#7 "Deteccao e remocao de sobras de programas ja desinstalados".
+# RECON "publisher extraido do manifesto" = CAT "Dados do publicador extraidos do manifesto do executavel".
+Uninstalr;29;T2#36;RECON "Publisher extraido do manifesto do executavel" = CAT T2#36 "Dados do publicador extraidos do manifesto do executavel".
+
+# --- Ashampoo ----------------------------------------------------------
+# RECON "gerenciador proprio de tarefas agendadas" = CAT "Boot Center: ... autorun e tarefas agendadas (enable/disable/delete)".
+Ashampoo;6;T4#48;RECON "gerenciador proprio de tarefas agendadas" = CAT "Boot Center: ... autorun e tarefas agendadas (enable/disable/delete)". O casamento por texto apontava para "Autorun / StartUp Tuner" (0,25), que e outra funcionalidade.
+# RECON "filtro de tamanho no Junk/Cache cleaner" = CAT "Drive Cleaner".
+Ashampoo;29;T4#41;RECON "filtro de tamanho no Junk/Cache cleaner" = CAT T4#41 "Drive Cleaner (arquivos desnecessarios, com selecao por categoria e relatorio)".
+# RECON "comparacao de snapshots que mostra o que mudou" = CAT "Comparar dois snapshots".
+Ashampoo;4;T3#34;RECON "comparacao de snapshots que mostra o que mudou" = CAT T3#34 "Comparar dois snapshots e visualizar as diferencas por categoria". O #3 do RECON e a biblioteca de snapshots (#33).
+# RECON "Move / Revert relocation" cobre DUAS linhas do catalogo.
+Ashampoo;18;T4#56,T4#57;RECON "Move / Revert relocation" cobre as linhas #56 "Move: mover um programa para outro local" e #57 "Revert relocation: devolver o programa movido". Uma ancora pode apontar para varias linhas, separadas por virgula.
