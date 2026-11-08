@@ -216,12 +216,15 @@ foreach ($c in $catalogo.concorrentes) {
     $faltando = @($c.funcionalidades | Where-Object { $_.estado -eq 'AUSENTE' })
     if ($faltando.Count -eq 0) { continue }
 
-    $linhas.Add("### $($c.concorrente) — $($faltando.Count)")
+    $linhas.Add("### $($c.concurrente) — $($faltando.Count)")
     $linhas.Add('')
-    $linhas.Add('| # | Funcionalidade | Verificado |')
+    $linhas.Add('| # | Funcionalidade | Evidencia no codigo |')
     $linhas.Add('|---|---|---|')
     foreach ($f in $faltando) {
-        $v = if ($f.verificado) { $f.verificado } else { 'nao apurado' }
+        # A evidencia do codigo vem da reconciliacao (o mapa) quando existe;
+        # sem ela, o que resta e a evidencia do binario do concorrente.
+        $v = if ($f.evidenciaCodigo) { $f.evidenciaCodigo } elseif ($f.evidencia) { $f.evidencia } else { 'nao apurado' }
+        $v = ($v -replace '\|', '/')
         $linhas.Add("| $($f.numero) | $($f.funcionalidade) | $v |")
     }
     $linhas.Add('')
