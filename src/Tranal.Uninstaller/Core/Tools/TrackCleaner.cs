@@ -17,6 +17,15 @@ public enum TrackModule
 
     /// <summary>Rastros do proprio Windows (documentos recentes, MRU, miniaturas, dumps).</summary>
     Windows,
+
+    /// <summary>
+    /// Fragmentos de arquivo recuperados pelo CHKDSK (o "Check Disk" do
+    /// Windows), que ficam na raiz das unidades. No Revo eles fazem parte do
+    /// limpador do Windows (item 725); aqui eles tambem tem modulo proprio,
+    /// porque a regra de quais arquivos sao fragmentos e de como eles sao
+    /// removidos mora em <see cref="ChkdskFragmentCleaner"/>.
+    /// </summary>
+    Chkdsk,
 }
 
 /// <summary>
@@ -73,6 +82,7 @@ public static class TrackCleaner
     {
         TrackModule.Browsers => ScanBrowsers(),
         TrackModule.Office => ScanOffice(),
+        TrackModule.Chkdsk => ScanChkdsk(),
         _ => ScanWindows(),
     };
 
@@ -294,11 +304,9 @@ public static class TrackCleaner
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp"));
 
         // Fragmentos recuperados pelo chkdsk ficam na raiz das unidades.
-        foreach (var drive in DriveLetters())
-        {
-            AddFolder(items, seen, "windows-chkdsk",
-                "Fragmentos recuperados pelo CHKDSK", drive, drive + "\\", filter: "*.CHK");
-        }
+        // A regra — quais arquivos sao fragmentos, e como eles sao removidos —
+        // mora em ChkdskFragmentCleaner.
+        items.AddRange(ScanChkdsk());
 
         // "Empty the Recycle Bin" do Windows Tracks Cleaner do Revo. E um item
         // sintetico: nao existe caminho removivel, a operacao e a da propria
@@ -325,6 +333,53 @@ public static class TrackCleaner
             $@"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit");
 
         return items;
+    }
+
+    /// <summary>
+    /// Fragmentos de arquivo recuperados pelo CHKDSK (item 725 do Windows
+    /// Tracks Cleaner do Revo: "Delete Chkdsk (Check Disk) recovered file
+    /// fragments").
+    ///
+    /// Cada fragmento e um item: o arquivo em si, e nao a raiz da unidade.
+    /// Listar a raiz com um filtro "*.CHK" esconderia o que existe de verdade
+    /// — e, com o filtro trocado, apagaria o conteudo inteiro da unidade.
+    /// </summary>
+    private static IReadOnlyList<HistoryItem> ScanChkdsk()
+    {
+        var items = new List<HistoryItem>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var fragment in ChkdskFragmentCleaner.FindFragments())
+        {
+            if (!seen.Add(ChkdskFragmentCleaner.CategoryId + "|" + fragment)) continue;
+
+            items.Add(new HistoryItem
+            {
+                Kind = "Arquivo",
+                Path = fragment,
+                CategoryId = ChkdskFragmentCleaner.CategoryId,
+                Detail = $"Fragmentos recuperados pelo CHKDSK — {DriveLabel(fragment)}",
+                SizeBytes = SafeLength(fragment),
+                Selected = true,
+            });
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// A unidade a que o arquivo pertence (ex.: "C:\").
+    /// </summary>
+    private static string DriveLabel(string path)
+    {
+        try
+        {
+            var root = Path.GetPathRoot(path);
+            if (!string.IsNullOrEmpty(root)) return root;
+        }
+        catch { /* caminho invalido: sem unidade */ }
+
+        return string.Empty;
     }
 
     // -----------------------------------------------------------------
@@ -374,6 +429,11 @@ public static class TrackCleaner
             {
                 return Fail(entry, "item na lista de exclusões");
             }
+
+            // Os fragmentos do CHKDSK tem regra propria de remocao (vão para a
+            // Lixeira), e essa regra mora em ChkdskFragmentCleaner.
+            if (entry.CategoryId == ChkdskFragmentCleaner.CategoryId && entry.Kind == "Arquivo")
+                return ClearChkdsk(entry);
 
             switch (entry.Kind)
             {
@@ -491,6 +551,27 @@ public static class TrackCleaner
     // -----------------------------------------------------------------
 
     /// <summary>
+    /// Limpa um fragmento do CHKDSK e traduz o resultado para o relatorio
+    /// canonico. A remocao em si e feita por <see cref="ChkdskFragmentCleaner"/>.
+    /// </summary>
+    private static RemovalOutcome ClearChkdsk(HistoryItem entry)
+    {
+        var result = ChkdskFragmentCleaner.Clean(entry.Path);
+
+        return new RemovalOutcome
+        {
+            Item = ToLeftover(entry),
+            Status = result.Status switch
+            {
+                ChkdskCleanupStatus.Removed => RemovalStatus.Removed,
+                ChkdskCleanupStatus.AlreadyAbsent => RemovalStatus.AlreadyAbsent,
+                _ => RemovalStatus.Failed,
+            },
+            Message = result.Message,
+        };
+    }
+
+    /// <summary>
     /// Resolve os alvos concretos dentro de uma pasta de rastro: os arquivos
     /// filtrados, ou todo o conteudo quando a limpeza e da pasta inteira.
     /// A propria pasta nunca e removida — apenas o conteudo.
@@ -563,16 +644,6 @@ public static class TrackCleaner
         catch { /* sem perfis: nada a listar */ }
 
         return result;
-    }
-
-    private static IEnumerable<string> DriveLetters()
-    {
-        foreach (var drive in DriveInfo.GetDrives())
-        {
-            if (!drive.IsReady) continue;
-            var name = drive.Name.TrimEnd('\\');
-            if (name.Length == 2) yield return name;
-        }
     }
 
     private static void AddFile(List<HistoryItem> items, HashSet<string> seen, string id,

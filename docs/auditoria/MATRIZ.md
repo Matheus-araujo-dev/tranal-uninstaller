@@ -35,17 +35,17 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | A3 | Detecção de **Windows Store Apps** | ✅ | ✅ | ✅ (122 MSIX) | — |
 | A4 | Detecção de **Windows Features** (WMI) | ⬜ | ✅ | ✅ (WMI) | 🟡 |
 | A5 | Detecção de **Windows Updates** (WUA) | ⬜ | ✅ | ✅ (COM) | 🟡 |
-| A17 | **Remoção de extensões de navegador** com base maliciosa/ad | ⬜ | ⬜ | 🟡 (remove a extensão; sem base maliciosa) | 🟡 |
+| A17 | **Remoção de extensões de navegador** com base maliciosa/ad | ⬜ | ⬜ | 🟡 fora por decisão (remove a extensão; a base maliciosa exige consulta online e o Tranal é offline) | 🟡 |
 | A6 | Detecção de **aplicativos Steam** | ⬜ | ✅ | ✅ | 🟡 |
 | A7 | Detecção de **Chocolatey / Scoop** | ⬜ | ✅ | ✅ | 🟢 |
-| A8 | Detecção de **Oculus** | ⬜ | ✅ | 🟡 (classifica o tipo; sem catálogo de aplicativos) | 🟢 |
+| A8 | Detecção de **Oculus** | ⬜ | ✅ | ✅ (catálogo de aplicativos Oculus — `Core/Discovery/OculusCatalog.cs`) | 🟢 |
 | A9 | **Varredura de drives** atrás de apps não registrados | ⬜ | ✅ | ✅ | 🟡 |
 | A10 | Detecção de **produtos MSI** por GUID | 🟡 | ✅ | ✅ | 🟡 |
 | A11 | Marcação de **componente do sistema** | ✅ | ✅ | ✅ | — |
 | A12 | Marcação de **protegido** (`NoRemove`) | ✅ | ✅ | ✅ (`Core/ProgramScanner.cs` le `NoRemove`; aviso em `Core/UninstallAdvisories.cs`) | — |
-| A13 | Marcação de **atualização** de outro app | 🟡 | ✅ | 🟡 (lê o registro; não marca na lista) | 🟢 |
+| A13 | Marcação de **atualização** de outro app | 🟡 | ✅ | ✅ (detector de atualização de outro app — `Core/Discovery/UpdateMarker.cs`) | 🟢 |
 | A14 | Detecção de **desinstalador corrompido/ausente** | ✅ | ✅ | ✅ (`Core/UninstallerHealth.cs`: `Missing` sem comando, `Broken` quando o caminho absoluto não existe) | — |
-| A15 | **Pastas de instalação personalizadas** do usuário | ⬜ | ✅ | 🟡 (lê a pasta do programa; sem pastas extras do usuário) | 🟢 |
+| A15 | **Pastas de instalação personalizadas** do usuário | ⬜ | ✅ | ✅ (varre as pastas do usuário — `Core/Discovery/UserInstallFolders.cs`) | 🟢 |
 | A16 | **Filtros rápidos** (só básicas / só sistema / só auto-inicialização / só navegadores) | ✅ | ✅ | ✅ | — |
 
 ## B. Desinstalação
@@ -54,7 +54,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 |---|---|---|---|---|---|
 | B1 | Rodar o desinstalador nativo | ✅ | ✅ | ✅ | — |
 | B2 | **Desinstalação silenciosa** | ✅ | ✅ | ✅ (comando silencioso por família do desinstalador) | 🔴 |
-| B3 | **Gerar desinstalador silencioso ausente** (inclusive por automação de interface) | 🟡 | ✅ | 🟡 (deriva o comando; não gera um desinstalador) | 🔴 |
+| B3 | **Gerar desinstalador silencioso ausente** (inclusive por automação de interface) | 🟡 | ✅ | 🟡 fora por decisão (gerar desinstalador exige automação de interface de terceiros) | 🔴 |
 | B4 | **Desinstalar via MsiExec** (GUID) | 🟡 | ✅ | ✅ (`msiexec /x {GUID}`) | 🟡 |
 | B5 | **Desinstalar manualmente** (pular o desinstalador, listar o que apagar) | 🟡 | ✅ | ✅ | 🟡 |
 | B6 | **Desinstalar por janela / diretório / arquivo** | ✅ | ✅ | ✅ (forçada por janela, diretório ou arquivo) | 🟢 |
@@ -63,7 +63,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | B9 | **Simulação / dry run** | 🟡 | ✅ | ✅ (`/scan`) | — 🟢 Tranal melhor |
 | B10 | **Painel de progresso** com estados (executando/aguardando/concluído/falhou/pulado) | ✅ | ✅ | ✅ | 🟡 |
 | B11 | Controle manual do progresso: **pular / encerrar / rodar agora** | ⬜ | ✅ | ✅ (pular / encerrar / rodar agora) | 🟡 |
-| B12 | **Abortar a tarefa** sem matar o desinstalador em execução | ⬜ | ✅ | 🟡 (encerra a fila; não mata o desinstalador nativo) | 🟢 |
+| B12 | **Abortar a tarefa** sem matar o desinstalador em execução | ⬜ | ✅ | ✅ (aborta sem matar o desinstalador nativo e avisa — `Ui/UninstallWizardWindow.xaml.cs`) | 🟢 |
 | B13 | **Monitorar silencioso** atrás de popups (daemon de automatização) | ⬜ | ✅ | ⬜ | 🟡 |
 | B14 | **Finalizar automaticamente** desinstalador travado | ✅ | ✅ | ✅ | — |
 | B15 | **Comandos antes e depois** da desinstalação | 🟡 | ✅ | ✅ (`Core/ProgramCustomization.cs` guarda por programa; `UninstallPlanBuilder.ResolveOptions` junta com o plano) | — |
@@ -83,15 +83,15 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | C3 | **Níveis de confiança** | 🟡 (negrito = alta) | ✅ (5 níveis) | ✅ (3 níveis) | — |
 | C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") | ⬜ | ✅ | ✅ (11 motivos, coluna "Porquê") | — |
 | C5 | **Atribuição pela cadeia de desinstalação** (item citado explicitamente) | 🟡 | ✅ | ✅ | 🔴 |
-| C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | 🟡 (confiança pelo nome; não por "pasta vazia/executáveis") | 🟡 |
+| C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | ✅ (7+ critérios de pasta — `Core/Discovery/FolderConfidenceEvaluator.cs`) | 🟡 |
 | C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | ⬜ | ✅ | ✅ (`Core/Discovery/StartupEntries.cs`; motivo `LeftoverReason.StartupEntry`) | — |
-| C8 | Aviso ao mexer em item de **baixa confiança** | ⬜ | ✅ | 🟡 (só não marca) | 🟢 |
+| C8 | Aviso ao mexer em item de **baixa confiança** | ⬜ | ✅ | ✅ (aviso na tela das sobras — `Core/UninstallSupport.cs::LeftoverWarnings`) | 🟢 |
 | C9 | **Backup antes de remover sobras** | ✅ | ✅ | ✅ | — |
 | C10 | Arquivos de sobra vão para a **lixeira** | ✅ | ✅ | ✅ | — |
 | C11 | **Exportar lista de sobras** | ⬜ | ✅ | ✅ | 🟢 |
 | C12 | **Limpeza de pastas "Arquivos de Programas"** (vazias e pela metade) | 🟡 | ✅ | ✅ | 🟡 |
 | C13 | **Gerenciador de inicialização** integrado | ✅ | ✅ | ✅ | 🟡 |
-| C14 | Limpeza de **regras de firewall**, UserAssist, relatórios de erro, CLSID, áudio, eventos | ⬜ | ✅ (17 grupos) | 🟡 (ferramentas próprias) | 🟢 |
+| C14 | Limpeza de **regras de firewall**, UserAssist, relatórios de erro, CLSID, áudio, eventos | ⬜ | ✅ (17 grupos) | ✅ (6 grupos de rastros — `Core/Tools/PrivacyTraceCleaner.cs`) | 🟢 |
 | C15 | Desinstalador **simples gerado** para app órfão | ⬜ | ✅ | ⬜ (decisão do §8 do PARIDADE) | 🟢 |
 
 ## D. Interface, filtro e automação
@@ -99,7 +99,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | # | Funcionalidade | Revo | BCU | Tranal | Prioridade |
 |---|---|---|---|---|---|
 | D1 | **Colunas customizáveis** | ✅ | ✅ (18 fixas) | ✅ (14) | 🟡 (mais colunas) |
-| D2 | **Filtro por Regex** e condições (incluir/excluir, negação) | ⬜ | ✅ | 🟡 (regex só no motor de regras, não no filtro da lista) | 🟡 |
+| D2 | **Filtro por Regex** e condições (incluir/excluir, negação) | ⬜ | ✅ | ✅ (regex na busca + termos de exclusão — `Core/Appearance/ProgramFilters.cs`) | 🟡 |
 | D3 | **Lista de desinstalação em arquivo** (`.bcul`) | ⬜ | ✅ | ✅ (`/batch`) | 🟡 |
 | D4 | **Desinstalação em lote roteirizável** pela linha de comando | ⬜ | ✅ | ✅ (`/batch` + script) | 🟡 |
 | D5 | **Treemap** | ✅ | ✅ | ✅ | 🟢 |
@@ -109,7 +109,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | D9 | **Cópia avançada** para a área de transferência (padrão composto) | 🟡 | ✅ | ✅ | 🟢 |
 | D10 | **Exportar** dados do programa | ✅ | ✅ (XML) | ✅ (CSV/XML/HTML) | — |
 | D11 | **Exportar para script** de desinstalação em lote | ⬜ | ✅ | ✅ | 🟢 |
-| D12 | Script PowerShell para remover Store Apps | ⬜ | ✅ | 🟡 (remove o pacote; sem script exportado) | 🟢 |
+| D12 | Script PowerShell para remover Store Apps | ⬜ | ✅ | ✅ (script PowerShell exportado — `Core/Reporting/StoreAppScriptWriter.cs`) | 🟢 |
 | D13 | **Renomear entrada** | 🟡 | ✅ | ✅ | 🟢 |
 | D14 | **Excluir entrada do registro** sem desinstalar | ✅ | ✅ | ✅ | 🟢 |
 | D15 | **Assumir a propriedade** | ⬜ | ✅ | ✅ | 🟢 |
@@ -117,7 +117,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | D17 | **Pesquisar on-line** o programa (Google, AlternativeTo, GitHub…) | 🟡 | ✅ | ✅ | 🟢 |
 | D18 | **Painel lateral** de configurações | 🟡 | ✅ | ✅ | 🟢 |
 | D19 | **Agrupamento** automático pela coluna de ordenação | 🟡 | ✅ | ✅ | 🟢 |
-| D20 | **Modo para daltônicos** / DPI / tema do sistema | 🟡 | ✅ | 🟡 (tema por brushes; sem modo daltônico) | 🟢 |
+| D20 | **Modo para daltônicos** / DPI / tema do sistema | 🟡 | ✅ | ✅ (paleta para daltônicos — `Core/Appearance/ColorBlindPalette.cs`) | 🟢 |
 | D21 | **Grupos e anotações** do usuário | ✅ | ⬜ | ✅ | — |
 | D22 | **Galeria de ícones** | ✅ | ⬜ | ✅ | — |
 | D23 | **Atualização automática** | ✅ | ✅ | ✅ | — |
@@ -137,32 +137,49 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | E9 | **Gerenciador de backups** (restaurar tudo, item a item, por tempo) | ✅ | ⬜ | ✅ | — |
 | E10 | Remoção definitiva de **drivers** | ✅ | 🟡 | ✅ | 🟡 |
 
-### E.1 A coluna "Tranal" reconciliada com o código (06/11/2026)
+### E.1 A coluna "Tranal" reconciliada com o código (08/11/2026)
 
 As tabelas A–E foram escritas durante a auditoria, **antes** da implementação
-do backlog. Depois dos oito lotes, a coluna "Tranal" foi conferida item a item
-contra o código (`src/`), não contra a memória. O retrato real de hoje:
+do backlog. Depois dos oito lotes **e** da rodada de fechamento (que trouxe os
+lotes 4 a 7: logs do programa monitorado, varreduras e limpeza de rastros,
+confiança e filtros, e opções e ferramentas), a coluna "Tranal" foi conferida
+item a item contra o código (`src/`), não contra a memória. O retrato real:
 
-- **72 das 86** funcionalidades medidas estão **implementadas** (✅);
-- **12** estão **parciais** (🟡) — a parte principal existe, falta um detalhe
-  medido nos concorrentes;
-- **2** **não existem** (⬜).
+- **82 das 86** funcionalidades medidas estão **implementadas** (✅);
+- **4** estão **fora por decisão registrada** — não é esquecimento, é
+  limite declarado (tabela abaixo);
+- **0** parciais: as 12 parciais da rodada anterior foram fechadas.
 
-**As 2 que não existem** (a lista completa e honesta):
+**As 4 fora por decisão** (a lista completa e honesta):
 
-| # | O que falta | Por quê |
+| # | O que ficou de fora | Por quê |
 |---|---|---|
-| B13 | **Monitorar silencioso** atrás de popups (daemon) | é a automação de interface de desinstaladores de terceiros (item #5 do backlog) — fora por decisão |
+| A17 | Remoção de extensão de navegador **com base maliciosa/ad** | a base de reputação é um serviço online do fabricante; o Tranal é offline por decisão. A remoção da extensão, essa sim, existe. |
+| B3 | **Gerar um desinstalador silencioso** para programa órfão | exigiria automação de interface de desinstaladores de terceiros. O Tranal deriva o comando e oferece a remoção manual assistida. |
+| B13 | **Monitorar silencioso** atrás de popups (daemon) | é a automação de interface de desinstaladores de terceiros — fora por decisão |
 | C15 | Desinstalador **simples gerado** para app órfão | decisão do §8 do `PARIDADE.md` — fora por decisão |
 
-As dez lacunas fechadas até agora (A12, A14, B7, B8, B15, B17, B18, B19, C7,
-D16) vieram da engenharia reversa descrita em `docs/auditoria/BINARIO.md`: cada
-uma tem a evidencia no binario de um concorrente e o arquivo do Tranal que a
-implementa. As duas que sobram estao fora **por decisao registrada**, nao por
-esquecimento.
+**O que a rodada de fechamento trouxe** (cada item com a evidência no código
+e um teste):
 
-**As 12 parciais**: A8, A13, A15, A17, B3, B12, C6, C8, C14, D2, D12 e D20 —
-a coluna traz o motivo de cada uma.
+| # | O que entrou | Onde |
+|---|---|---|
+| A8 | catálogo de aplicativos Oculus | `Core/Discovery/OculusCatalog.cs` |
+| A13 | detector de atualização de outro app | `Core/Discovery/UpdateMarker.cs` |
+| A15 | varredura das pastas do usuário | `Core/Discovery/UserInstallFolders.cs` |
+| B12 | abortar sem matar o desinstalador nativo | `Ui/UninstallWizardWindow.xaml.cs` |
+| C6 | 7+ critérios de confiança de pasta | `Core/Discovery/FolderConfidenceEvaluator.cs` |
+| C8 | aviso de baixa confiança na tela | `Core/UninstallSupport.cs::LeftoverWarnings` |
+| C14 | 6 grupos de rastros de privacidade | `Core/Tools/PrivacyTraceCleaner.cs` |
+| D2 | regex na busca + termos de exclusão | `Core/Appearance/ProgramFilters.cs` |
+| D12 | script PowerShell para Store Apps | `Core/Reporting/StoreAppScriptWriter.cs` |
+| D20 | paleta para daltônicos | `Core/Appearance/ColorBlindPalette.cs` |
+
+Cada feature nova do núcleo ganhou **entrada de linha de comando** (o
+`/logs`, `/log-merge`, `/custom-uninstall`, `/advanced-uninstall`, `/oculus`,
+`/updates`, `/userapps`, `/ads`, `/storeapp-script`, `/privacy`,
+`/tools-custom`, `/external`, `/usage`, `/colorblind`): feature que só existe
+para o teste não é feature.
 
 ---
 

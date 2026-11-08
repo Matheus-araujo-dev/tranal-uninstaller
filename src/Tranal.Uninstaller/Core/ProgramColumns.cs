@@ -228,7 +228,12 @@ public static class ProgramColumns
     {
         switch (id)
         {
-            case ProgramColumn.Name: return program.DisplayName;
+            case ProgramColumn.Name:
+                // O nome que o usuario deu ao programa tem a preferencia; sem
+                // nome novo, vale o nome que o Windows registrou.
+                return !string.IsNullOrWhiteSpace(custom?.DisplayName)
+                    ? custom!.DisplayName
+                    : program.DisplayName;
             case ProgramColumn.Size: return program.SizeText;
             case ProgramColumn.Version: return program.VersionOrNoVersion;
             case ProgramColumn.Type: return program.Bits;

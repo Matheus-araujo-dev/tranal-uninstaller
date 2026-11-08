@@ -83,8 +83,47 @@
         <CheckBox x:Name="OnlyGroupsCheck" Content="{loc:Tr Sidebar.Filter.OnlyGroups}"
                   Margin="0,0,0,8" Click="OnlyGroupsCheck_Click" />
 
+        <!-- Exclusoes: termos que saem da lista mesmo que a busca ache.
+             A regra mora no ProgramFilterSet (o nucleo); a tela so edita. -->
+        <TextBlock Text="{loc:Tr Sidebar.Filter.Exclusions}" Margin="0,0,0,4"
+                   Foreground="{DynamicResource TextDimBrush}" />
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBox Grid.Row="0" Grid.Column="0" x:Name="ExclusionBox" Margin="0,0,6,0"
+                   AutomationProperties.AutomationId="OptExclusion" />
+          <Button Grid.Row="0" Grid.Column="1" x:Name="AddExclusionButton"
+                  Content="{loc:Tr Sidebar.Filter.AddExclusion}"
+                  Style="{StaticResource FlatButton}" Padding="8,3"
+                  AutomationProperties.AutomationId="OptAddExclusion"
+                  Click="AddExclusionButton_Click" />
+        </Grid>
+        <ItemsControl x:Name="ExclusionList" Margin="0,6,0,0">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                <TextBlock Text="{Binding}" Foreground="{DynamicResource TextDimBrush}" />
+                <Button Content="{loc:Tr Sidebar.Filter.RemoveExclusion}"
+                        Style="{StaticResource FlatButton}" Padding="4,0" Margin="6,0,0,0"
+                        Tag="{Binding}"
+                        AutomationProperties.AutomationId="OptRemoveExclusion"
+                        Click="RemoveExclusionButton_Click" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- O aviso da regex invalida: a lista continua funcionando, mas o
+             usuario precisa saber que o filtro dele nao esta valendo. -->
+        <TextBlock x:Name="FilterDiagnosticText" Margin="0,6,0,0" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextDimBrush}"
+                   AutomationProperties.AutomationId="OptFilterDiagnostic" />
+
         <Button x:Name="ClearFiltersButton" Content="{loc:Tr Sidebar.Filter.Clear}"
                 Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Padding="10,3"
+                Margin="0,8,0,0"
                 Click="ClearFiltersButton_Click" />
 
         <!-- ============================================================

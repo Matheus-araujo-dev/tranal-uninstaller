@@ -1,0 +1,824 @@
+{
+    "origem":  "Revo Uninstaller Pro 5.5.4 — docs\\REVO_SPEC.md secao 7.1",
+    "geradoPor":  "tools\\auditoria\\extrair-paridade-json.ps1",
+    "linhas":  [
+                   {
+                       "id":  1,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "All Programs: scan de instalados (registro + MSI)",
+                       "revo":  "PE imports.txt:14 → `ADVAPI32.dll` → `RegOpenKeyExW`, `RegEnumKeyExW`, `RegQueryValueExW`; PE imports.txt:12 → `msi.dll` (2 imports)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/ProgramScanner.cs::ProgramScanner",
+                                         "Core/Discovery/MsiProductCatalog.cs::MsiProductCatalog"
+                                     ],
+                       "nota":  "(o caminho real do scanner e src/Tranal.Uninstaller/Core/ProgramScanner.cs)"
+                   },
+                   {
+                       "id":  2,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Colunas: Programa, Tamanho, Versão, Data, Empresa, Página Inicial, Comentários, Desinstalador, Chave do Registro, Instalador",
+                       "revo":  "PE imports.txt:13-14 → `ADVAPI32.dll` (`RegQueryValueExW`, `RegQueryInfoKeyW`); PE imports.txt:20 → `KERNEL32.dll` → `GetFileTime`, `GetVolumeInformationW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Appearance/ProgramTextFormatter.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  3,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Desinstalador em 5 etapas (Analyze → Built-in → Scan → Removal → Summary)",
+                       "revo":  "`[Scan After Uninstall] 4216 = Scan After Uninstall`; `[Scan After Uninstall] 4244 = Found leftover Registry items`; strings.txt:26797 → `/Custom Uninstall of the selected traced program`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Ui/UninstallWizardWindow.xaml.cs::UninstallWizardWindow"
+                                     ],
+                       "nota":  "medido: as cinco etapas do assistente (Analisar, Nativo, Varredura, Remocao, Resumo) estao na tela do assistente"
+                   },
+                   {
+                       "id":  4,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Backup de registro antes da remoção + System Restore Point",
+                       "revo":  "PE imports.txt:14 → `ADVAPI32.dll` → `RegSaveKeyExW`, `RegRestoreKeyW`, `RegReplaceKeyW`, `RegLoadKeyW`, `AdjustTokenPrivileges`, `LookupPrivilegeValueW`; PE imports.txt:46 → `RstrtMgr.DLL` (2 imports — API de Restauração do Sistema)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/BackupManager.cs",
+                                         "Core/FullRegistryBackup.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  5,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Quick Uninstall (Moderate automático)",
+                       "revo":  "`[UninstallerPro] 15125 = Kill the Process and Continue`; `[Scan After Uninstall] 4234 = Built-in - run only the application\u0027s uninstaller without any additional scanning`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/QuietUninstall.cs",
+                                         "Core/UninstallerKind.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  6,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Forced Uninstall",
+                       "revo":  "PE imports.txt:14 → `ADVAPI32.dll` → `OpenProcessToken`, `DuplicateTokenEx`, `CreateProcessWithTokenW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Automation/ForcedRemovalOptions.cs",
+                                         "Core/Automation/ManualRemoval.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  7,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Forced MSI Uninstall",
+                       "revo":  "PE imports.txt:12 → `msi.dll` (2 imports)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Discovery/MsiProductCatalog.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  8,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Hunter Mode",
+                       "revo":  "`[Uninstaller Toolbar] 106 = Hunter Mode`; strings.txt:24989 `Hunter Mode`; strings.txt:25005 `/tn \"Revo Uninstaller Pro Hunter Mode\"` (tarefa agendada); `[Topmost Window] 4035 = Always on top`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Ui/Modules/HunterView.xaml",
+                                         "Ui/Tools/TopmostOverlayWindow.xaml"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  9,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Busca em tempo real (nome/editora/comentário) + filtros (tipo/tamanho/drive)",
+                       "revo":  "PE imports.txt:13-14 → `ADVAPI32.dll` → `RegQueryValueExW`; PE imports.txt:20 → `KERNEL32.dll` → `GetLogicalDriveStringsW`, `GetVolumeInformationW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Ui/Appearance/SettingsSidebar.xaml.cs::SettingsSidebar",
+                                         "Core/Appearance/ProgramFilters.cs::ProgramFilterSet"
+                                     ],
+                       "nota":  "medido: a busca e os filtros (tipo, tamanho, unidade, editora, regex e exclusoes) ficam em um lugar so, o ProgramFilterSet"
+                   },
+                   {
+                       "id":  10,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Visões Details / List / Icons",
+                       "revo":  "`[General App] 16061 = Show small icons in Details view`; `[UninstallerPro] 2004 = Change the view of the installed programs list`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "MainWindow.xaml.cs::ApplyViewMode"
+                                     ],
+                       "nota":  "medido: Details, List e Icons sao os modos de visao da lista"
+                   },
+                   {
+                       "id":  11,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Painel de comandos (acima) + módulos (abaixo) + Details Panel + Status Bar + Description Panel arrastável com auto-hide",
+                       "revo":  "`[General App] 16070 = Commands Toolbar`; `[Uninstaller StatusBar] 201 = Installations:`; `[UninstallerPro] 2002 = Adjust settings`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "MainWindow.xaml.cs::MainWindow"
+                                     ],
+                       "nota":  "medido: painel de comandos, modulos, painel de detalhes, barra de status e painel de descricao"
+                   },
+                   {
+                       "id":  12,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Exportação TXT/HTML/CSV/XML/XLS",
+                       "revo":  "PE imports.txt:29-30 → `SHELL32.dll` → `ShellExecuteW` (abrir o arquivo exportado)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Exporters.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  13,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Undo/Histórico de desinstalação",
+                       "revo":  "`[UninstallHistory] 32900 = Uninstall History`; `[UninstallHistory] 32940 = Skipped by user`; `[Uninstaller Options] 1208 = Disable Uninstall History feature`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Recovery/ProgramBackup.cs",
+                                         "Core/Recovery/RecoverOperation.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  14,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Traced Programs (instalar com rastreio + log)",
+                       "revo":  "`[UninstallerPro] 15160 = Install Programs`; `[AppBar] 16900 = Save the log of monitored system changes`; `[AppBar] 16910 = Are you sure you want to cancel the logging process?`; binário `RevoAppBar.exe` + driver `revoflt.sys`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/InstallMonitor.cs",
+                                         "Core/Modules/TracedPrograms.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  15,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Logs Database (importar/exportar logs)",
+                       "revo":  "`[UninstallerPro] 15273 = \"Logs Database\" module … These logs stored on our web site …`; `[UninstallerPro] 15187 = Windows Version`; strings.txt:26756 `Automatically update the Log Database`",
+                       "status":  "FORA",
+                       "evidencia":  [
+                                         "Core/Modules/TraceStore.cs::TraceStore"
+                                     ],
+                       "nota":  "decisao registrada: a base de logs online do Revo (servidor do fabricante) fica fora — o Tranal e offline"
+                   },
+                   {
+                       "id":  16,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Windows Apps (MSIX)",
+                       "revo":  "PE imports.txt:13-14 → `ADVAPI32.dll` → `RegEnumKeyExW` sob `Appx`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/WindowsApps.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  17,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Browser Extensions",
+                       "revo":  "strings.txt:26797 → `Add files to be irrecoverably deleted`; binário `WinAppsDll.dll` (app de navegador)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/BrowserExtensions.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  18,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Autorun Manager",
+                       "revo":  "`[Autorun List] 450 = Startup Name`; `[Autorun List] 458 = INVALID`; `[Autorun List] 470 = Are you sure that you want to close selected application?…`; `[Autorun List] 478 = Enable Auto Starting`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/AutorunManager.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  19,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Junk Files Cleaner",
+                       "revo":  "`[Junk Files Cleaner Options] 2202 = Drives to Scan:`; `[Junk Files Cleaner Options] 2227 = Ignore files accessed in the last 24 hours`; `[Junk Files Cleaner Tool] 2306 = Scan`; `[Junk Files Cleaner Tool] 2328 = No junk files were found`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/JunkCleaner.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  20,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Evidence Remover / History Cleaner / Unrecoverable Delete",
+                       "revo":  "`[Evidence Remover] 808 = Are you sure that you want to erase leftover traces and evidence on selected drive(s)?`; `[Unrecoverable Delete] 912 = List of files and folders which will be deleted and will be made impossible to recover`; `[Unrecoverable Delete] 922 = Are you sure that you want to forever delete selected files and folders?`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/EvidenceRemover.cs",
+                                         "Core/Tools/HistoryCleaner.cs",
+                                         "Core/Tools/UnrecoverableDelete.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  21,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Windows Tools (19 utilitários)",
+                       "revo":  "`[WindowsToolsPro] 17400 = System Restore`; `[WindowsToolsPro] 17422 = DirectX info and diagnostic`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/WindowsToolsCatalog.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  22,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Backup Manager",
+                       "revo":  "`[Backup Manager] 17801 = Restore`; `[Backup Manager] 17858 = You have selected a date newer than today.\\nThat will delete all backups! Continue?`; strings.txt:23796 `RU Restore Points`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/BackupManager.cs",
+                                         "Core/Recovery/ProgramBackup.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  23,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Grupos (Groups Manager), temas (dark), 48 idiomas",
+                       "revo":  "`[UninstallerPro] 15173 = Add new Group`; `[General App] 16038 = Visual theme:`; `[General App] 16150 = Dialogs background color`; PE imports.txt:20 → `KERNEL32.dll` → `GetPrivateProfileIntW` (leitor das tabelas de idioma)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Appearance/ThemePalette.cs::ThemeColorRole",
+                                         "Core/Localization/LanguageCatalog.cs::LanguageCatalog",
+                                         "Core/ProgramCustomization.cs::ProgramCustomizationStore"
+                                     ],
+                       "nota":  "medido: LanguageCatalog tem 48 idiomas — o mesmo numero do Revo Pro (48 .ini); cores por papel existem em ThemeColorRole"
+                   },
+                   {
+                       "id":  24,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "CLI completa (`/mu /path /mode /32 /64`, `/tu`, `/export`, `/wa`, `/be`, `/hunter`, `/update`)",
+                       "revo":  "binário `RevoCmd.exe` (sha256 `c187269068a7…`) e `RevoUninPro.exe`; PE imports.txt:20 → `KERNEL32.dll` → `GetCommandLineW`, `CommandLineToArgvW`; strings.txt:26797 → `/Custom Uninstall of the selected traced program`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "src/Tranal.Cli/Program.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  25,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Atalhos de teclado completos",
+                       "revo":  "`[UninstallerPro] 2002 = Adjust settings`; `[Topmost Window] 4002 = Options`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Shortcuts/ShortcutMap.cs::ShortcutMap",
+                                         "MainWindow.xaml.cs::Window_PreviewKeyDown",
+                                         "Ui/OptionsWindow.xaml.cs::ShortcutMap"
+                                     ],
+                       "nota":  "medido: atalhos de teclado implementados nesta rodada (a tabela afirmava que ja existiam e nao existiam)"
+                   },
+                   {
+                       "id":  26,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Quatro modos de desinstalação (Built-in / Safe / Moderate / Advanced)",
+                       "revo":  "`[Scan After Uninstall] 4234 = Built-in - run only the application\u0027s uninstaller without any additional scanning`; `[Scan After Uninstall] 4237 = Advanced - includes the Moderate mode …`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/UninstallMode.cs::UninstallModes"
+                                     ],
+                       "nota":  "medido: Built-in, Safe, Moderate e Advanced"
+                   },
+                   {
+                       "id":  27,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Sobras de registro e de arquivos em telas separadas, com detalhe por item",
+                       "revo":  "`[Scan After Uninstall] 4221 = Leftover Registry entries`; `[Scan After Uninstall] 4244 = Found leftover Registry items`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/UninstallSupport.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  28,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Arquivos restantes em uso → exclusão no próximo reinício",
+                       "revo":  "`[Scan After Uninstall] 4228 = Remaining files in the list will be deleted during the next system restart.`; PE imports.txt:13-14 → `ADVAPI32.dll` → `RegSetValueExW` (chave `PendingFileRenameOperations`)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/DeferredDelete.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  29,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Lixeira para sobras de arquivo",
+                       "revo":  "`[Scan After Uninstall] 4255 = Are you sure that you want to send selected files to the Recycle Bin?`; PE imports.txt:29-30 → `SHELL32.dll` → `SHFileOperationW`, `SHEmptyRecycleBinW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/RecycleBin.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  30,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Varredura de sobras em **todas as contas do Windows** e desinstalação de todas as contas",
+                       "revo":  "`[UninstallerPro] 15345 = Show the option to scan all Windows accounts for leftovers`; `[UninstallerPro] 15352 = Scan all Windows accounts for leftovers`; PE imports.txt:13-14 → `ADVAPI32.dll` → `GetUserNameW`, `LookupAccountNameW`, `DuplicateTokenEx`, `CreateProcessWithTokenW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/UninstallSupport.cs::UserProfiles",
+                                         "Core/UserProfiles.cs::UserProfiles",
+                                         "Core/LeftoverScanOptions.cs::ScanAllUserAccounts"
+                                     ],
+                       "nota":  "medido: as sobras ja varrem as outras contas (AppData de cada perfil + HKEY_USERS\\\\\u003csid\u003e) e a opcao \"remover em todas as contas\" existe em LeftoverScanOptions"
+                   },
+                   {
+                       "id":  31,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Encerrar forçadamente processos durante a desinstalação",
+                       "revo":  "`[UninstallerPro] 15125 = Kill the Process and Continue`; `[UninstallerPro] 15265 = Forcibly stop running executable files during their uninstall`; PE imports.txt:20 → `KERNEL32.dll` → `SuspendThread`, `WriteProcessMemory`, `ReadProcessMemory`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/ProcessTerminator.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  32,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Painel de **Custom Uninstall** a partir do log de instalação",
+                       "revo":  "`[UninstallerPro] 15178 = Export,Import or Edit log`; `[UninstallerPro] 15220 = Preparing log\u0027s data for uninstall...`; strings.txt:26274 `Custom Uninstall`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Automation/CustomUninstallReview.cs::CustomUninstallReviewBuilder",
+                                         "src/Tranal.Cli/LogCommands.cs::RunCustomUninstall"
+                                     ],
+                       "nota":  "medido: a revisao item a item do log foi implementada nesta rodada (nucleo + comando de linha de comando)"
+                   },
+                   {
+                       "id":  33,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "**Advanced Uninstall**: revisar e apagar o que não foi registrado na instalação",
+                       "revo":  "strings.txt:26066 `Advanced Uninstall`; strings.txt:26974 `There is some data that may be related to the uninstalled program, but was not deleted because it was not logged by Revo Uninstaller Pro during the installation of the program. If you want to review and eventually to delete it press the \"Advanced Uninstall\" button`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Automation/AdvancedUninstallReview.cs::AdvancedUninstallReviewBuilder",
+                                         "src/Tranal.Cli/LogCommands.cs::RunAdvancedUninstall"
+                                     ],
+                       "nota":  "medido: o que ficou fora do log foi implementado nesta rodada"
+                   },
+                   {
+                       "id":  34,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Editar o log de instalação entrada a entrada (chaves, valores, arquivos)",
+                       "revo":  "`[UninstallerPro] 15178 = Export,Import or Edit log`; `[UninstallerPro] 15257 = Add Key`; `[UninstallerPro] 15235 = Rename Log`; `[UninstallerPro] 15336 = Export Log\u0027s data`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/LogOperations.cs::EditEntry",
+                                         "Core/Modules/LogOperations.cs::IgnoreEntry",
+                                         "Core/Modules/LogOperations.cs::RemoveEntry",
+                                         "Core/Modules/LogOperations.cs::AddEntry",
+                                         "src/Tranal.Cli/LogCommands.cs::RunEntries"
+                                     ],
+                       "nota":  "medido: editar, ignorar e remover entrada a entrada foi implementado nesta rodada"
+                   },
+                   {
+                       "id":  35,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "**Logs Database online** (logs de programas monitorados publicados no site do Revo)",
+                       "revo":  "`[UninstallerPro] 15273 = \"Logs Database\" module of Revo Uninstaller Pro shows a list of logs of traced programs that is compatible with your Windows system. These logs stored on our web site …`; strings.txt:26165 `Logs database`; strings.txt:26854 `Logs Database`; strings.txt:26757 `Error opening Logs database`",
+                       "status":  "FORA",
+                       "evidencia":  [
+                                         "Core/Modules/TraceStore.cs::TraceStore",
+                                         "Core/Updates/AutoUpdateClient.cs::AutoUpdateClient"
+                                     ],
+                       "nota":  "decisao registrada: sem chamada de rede a base de logs do fabricante; o Tranal nao publica log de programa"
+                   },
+                   {
+                       "id":  36,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "**Mesclar logs** selecionados",
+                       "revo":  "`[UninstallerPro] 15312 = Merge selected Logs`; strings.txt:26218 `Merge selected Logs`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/LogOperations.cs::Merge",
+                                         "src/Tranal.Cli/LogCommands.cs::RunMerge"
+                                     ],
+                       "nota":  "medido: mesclar logs selecionados foi implementado nesta rodada"
+                   },
+                   {
+                       "id":  37,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "\"Change or Repair\" da instalação MSI",
+                       "revo":  "strings.txt:26799 `Change or Repair the installation of selected program`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Discovery/MsiProductCatalog.cs::TryBuildRepairCommand"
+                                     ],
+                       "nota":  "medido: msiexec /fa (reparo) foi implementado no lote 2"
+                   },
+                   {
+                       "id":  38,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Desinstaladores nativos encontrados (escolha do executável correto)",
+                       "revo":  "PE imports.txt:13-14 → `ADVAPI32.dll` → `RegQueryValueExW` (leitura de `UninstallString`); `[UninstallerPro] 15125 = Kill the Process and Continue`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/UninstallerKind.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  39,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Aviso de **aplicativos no mesmo diretório** (sobras cruzadas)",
+                       "revo":  "`[Uninstaller Toolbar] 128 = %s is installed in the same location as %s!\\nLeftovers will be found from both applications! Carefully check the ones you want to remove!`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Discovery/RelatedProgramFinder.cs::RelatedProgramFinder"
+                                     ],
+                       "nota":  "medido: o aviso de programas que compartilham a pasta foi implementado no lote 1 (B17)"
+                   },
+                   {
+                       "id":  40,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Aviso de pastas que podem conter dados do usuário",
+                       "revo":  "`[UninstallerPro] 15359 = Folders below may contain user data and documents:`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/UninstallSupport.cs::LeftoverWarnings",
+                                         "Core/UninstallAdvisories.cs::UserDataAdvisory"
+                                     ],
+                       "nota":  "medido: o aviso de pasta com dado do usuario ja existia e agora soma o aviso de baixa confianca"
+                   },
+                   {
+                       "id":  41,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Excluir o programa da lista sem desinstalar",
+                       "revo":  "`[Uninstaller Toolbar] 111 = Remove Entry`; `[Uninstaller Toolbar] 113 = Are you sure that you want to remove the selected entry?`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/ExcludeList.cs::AddPath",
+                                         "Core/ExcludeList.cs::RemovePath",
+                                         "Core/ExcludeList.cs::ApplyTo"
+                                     ],
+                       "nota":  "medido: a lista de exclusao remove entrada sem desinstalar"
+                   },
+                   {
+                       "id":  42,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Renomear o programa e trocar o ícone",
+                       "revo":  "`[UninstallerPro] 15216 = Add Comment`; PE imports.txt:29-30 → `SHELL32.dll` → `ExtractIconW`, `ExtractIconExW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/ProgramCustomization.cs::SetName",
+                                         "Core/ProgramCustomization.cs::SetIcon"
+                                     ],
+                       "nota":  "medido: renomear o programa na lista (implementado nesta rodada) e trocar o icone"
+                   },
+                   {
+                       "id":  43,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Customizar colunas (remover, alinhar, best fit)",
+                       "revo":  "PE imports.txt:20 → `KERNEL32.dll` → `GetPrivateProfileIntW` (preferências por coluna)",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Ui/Shared/ItemListPanel.xaml.cs::ColumnDef",
+                                         "MainWindow.xaml.cs::BestFit"
+                                     ],
+                       "nota":  "medido: remover, alinhar e ajustar as colunas"
+                   },
+                   {
+                       "id":  44,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Exportar a lista para **Microsoft Excel** (COM do Excel)",
+                       "revo":  "`[General App] 16027 = Microsoft Excel is not installed on this computer (error code is 0x%08X).`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Reporting/ExcelComExporter.cs::ExcelComExporter",
+                                         "MainWindow.xaml.cs::ExportList"
+                                     ],
+                       "nota":  "medido: exporta pelo Excel instalado (COM) e cai no SpreadsheetML quando o Excel nao existe"
+                   },
+                   {
+                       "id":  45,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Cache de programas + reconstrução do arquivo de cache",
+                       "revo":  "`[UninstallerPro] 15150 = There is not enough available disk space to write the cache data file`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Settings/ProgramCache.cs::ProgramCacheStore",
+                                         "MainWindow.xaml.cs::ReloadAsync"
+                                     ],
+                       "nota":  "medido: o cache e gravado no fim da varredura e pode ser reconstruido pelas Opcoes"
+                   },
+                   {
+                       "id":  46,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Filtro de \"novos programas instalados\" (últimos N dias)",
+                       "revo":  "`[General App] 16061 = Show small icons in Details view`; strings.txt:26843 `Open the Uninstall Wizard maximized`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Settings/AppSettings.cs::NewProgramsDays"
+                                     ],
+                       "nota":  "medido: o filtro de \"novos programas\" usa a preferencia de ultimos N dias"
+                   },
+                   {
+                       "id":  47,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Gerenciador de grupos completo (criar, renomear, mover, adicionar/remover programa)",
+                       "revo":  "`[UninstallerPro] 15173 = Add new Group`; strings.txt:25971 `Move Up`; strings.txt:25972 `Move Down`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Appearance/GroupingModel.cs::GroupingModel",
+                                         "Ui/GroupsManagerWindow.xaml.cs::GroupsManagerWindow"
+                                     ],
+                       "nota":  "medido: gerenciador de grupos completo"
+                   },
+                   {
+                       "id":  48,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "**Serviços** e **Tarefas agendadas** dentro do Autorun Manager",
+                       "revo":  "`[Auto Run Manager Pro] 15814 = Services`; `[Auto Run Manager Pro] 15816 = Scheduled Tasks`; strings.txt:26633 `Scheduled Tasks`; PE imports.txt:13-14 → `ADVAPI32.dll` → `OpenSCManagerW`, `OpenServiceW`, `DeleteService`, `ControlService`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Management/ServiceManager.cs::ServiceManager",
+                                         "Core/Management/ScheduledTaskManager.cs::ScheduledTaskManager"
+                                     ],
+                       "nota":  "medido: Services e Scheduled Tasks tem List/Disable/Enable/Stop/Delete — a alegacao anterior de que so abriam services.msc estava errada"
+                   },
+                   {
+                       "id":  49,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Autorun Manager: **criar** item de inicialização (Run/RunOnce/pasta Iniciar, usuário atual ou todos)",
+                       "revo":  "`[Auto Run Manager Pro] 15800 = Add`; `[Autorun List] 478 = Enable Auto Starting`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/AutorunManager.cs::Add"
+                                     ],
+                       "nota":  "medido: AutorunManager.Add cria item de inicializacao"
+                   },
+                   {
+                       "id":  50,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "**Ferramenta personalizada** no Windows Tools",
+                       "revo":  "`[WindowsToolsPro] 17480 = Tool`; `[WindowsToolsPro] 17484 = A custom tool with the same name already exists.\\nPlease enter a different name.`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/CustomToolRegistry.cs::CustomToolRegistry"
+                                     ],
+                       "nota":  "medido: registro de ferramenta personalizada (implementado nesta rodada)"
+                   },
+                   {
+                       "id":  51,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Windows Tools: conjunto nativo de utilitários",
+                       "revo":  "`[WindowsToolsPro] 17400 = System Restore`; `[WindowsToolsPro] 17422 = DirectX info and diagnostic`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/WindowsToolsCatalog.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  52,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Limpeza de rastros de **navegador** (histórico, cookies, index.dat, downloads)",
+                       "revo":  "`[Track Cleaner Browsers] 507 = Clear All`; `[Track Cleaner Browsers] 517 = Uninstaller`; `[Track Cleaner Browsers] 527 = Index.dat files will be deleted the next time the computer is rebooted.`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/TrackCleaner.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  53,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Limpeza de rastros do **Microsoft Office** (documentos recentes)",
+                       "revo":  "`[Office Track Cleaner] 601 = Clear`; `[Office Track Cleaner] 617 = Microsoft Office Cleaner allows you to remove the history of the most recently used files in Microsoft Word, Excel, Access, PowerPoint and FrontPage.`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/TrackCleaner.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  54,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Limpeza de rastros do **Windows** (fragmentos do Chkdsk, documentos recentes, histórico)",
+                       "revo":  "`[Windows Tracks Cleaner] 701 = Clear`; `[Windows Tracks Cleaner] 725 = Delete Chkdsk (Check Disk) recovered file fragments`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/ChkdskFragmentCleaner.cs::ChkdskFragmentCleaner",
+                                         "Core/Tools/TrackCleaner.cs::TrackModule"
+                                     ],
+                       "nota":  "medido: os fragmentos FILE*.CHK do Chkdsk entraram como modulo do limpador de rastros"
+                   },
+                   {
+                       "id":  55,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Removedor de evidências por **unidade** (sobrescrita do espaço livre)",
+                       "revo":  "`[Evidence Remover] 802 = Execute`; `[Evidence Remover] 808 = Are you sure that you want to erase leftover traces and evidence on selected drive(s)?`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/EvidenceRemover.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  56,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Exclusão irrecuperável com lista do que será destruído",
+                       "revo":  "`[Unrecoverable Delete] 912 = List of files and folders which will be deleted and will be made impossible to recover`; `[Unrecoverable Delete] 922 = Are you sure that you want to forever delete selected files and folders?`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Tools/UnrecoverableDelete.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  57,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Menu de contexto do Explorer sobre o programa",
+                       "revo":  "strings.txt:26843 `Or right mouse click over the Hunter Mode\u0027s icon and select \"Exit\" to quit`; binário `RUExt.dll` (sha256 `bda04b693bfd…`); PE imports.txt:29-30 → `SHELL32.dll` → `SHGetPathFromIDListW`, `DragAcceptFiles`, `DragQueryFileW`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Topmost/ExplorerContextMenu.cs::ExplorerContextMenu"
+                                     ],
+                       "nota":  "medido: menu de contexto do Explorer sobre o programa"
+                   },
+                   {
+                       "id":  58,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Menu de contexto \"Instalar com o Revo Uninstaller Pro\"",
+                       "revo":  "`[General App] 16020 = Install with Revo Uninstaller Pro`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/InstallMonitor.cs",
+                                         "Core/Modules/TracedPrograms.cs"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  59,
+                       "prioridade":  "🔴",
+                       "funcionalidade":  "Opções: exportar / importar todas as configurações",
+                       "revo":  "`[Options Tree] 1002 = Export All Settings`; `[Options Tree] 1003 = Import All Settings`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Settings/SettingsTransfer.cs::SettingsTransfer",
+                                         "Ui/OptionsWindow.xaml.cs::ExportSettingsButton_Click"
+                                     ],
+                       "nota":  "medido: exportar e importar todas as preferencias (implementado nesta rodada), com previa antes de aplicar"
+                   },
+                   {
+                       "id":  60,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Opções: modo avançado, verificar atualização ao iniciar, atualizar em segundo plano",
+                       "revo":  "`[General] 1102 = Advanced mode`; `[General] 1106 = Web search engines:`; `[Auto Update] 1907 = Update`; `[Auto Update] 1913 = What\u0027s new`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Settings/AppSettings.cs::AdvancedMode",
+                                         "Ui/OptionsWindow.xaml.cs::AdvancedModeCheck"
+                                     ],
+                       "nota":  "medido: modo avancado, verificar atualizacao ao iniciar e atualizacao automatica ja existem"
+                   },
+                   {
+                       "id":  61,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Opções do desinstalador (componentes do sistema, só o nativo, ponto de restauração, histórico)",
+                       "revo":  "`[Uninstaller Options] 1202 = Show system components`; `[Uninstaller Options] 1209 = Show web page shortcuts`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Settings/AppSettings.cs::OnlyRunBuiltInUninstaller",
+                                         "Core/Settings/AppSettings.cs::CreateRestorePointBeforeUninstall"
+                                     ],
+                       "nota":  "medido: as duas opcoes ja existem em AppSettings"
+                   },
+                   {
+                       "id":  62,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Motor de busca web configurável",
+                       "revo":  "`[General] 1106 = Web search engines:`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/WebSearchEngines.cs::WebSearchEngines",
+                                         "Core/WebSearch.cs::WebSearchEngine"
+                                     ],
+                       "nota":  "medido: a lista de motores e configuravel (implementado nesta rodada); o valor antigo continua valendo"
+                   },
+                   {
+                       "id":  63,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Atalhos de menu / barra de comandos e ícones pequenos",
+                       "revo":  "`[General App] 16061 = Show small icons in Details view`; `[General App] 16070 = Commands Toolbar`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "MainWindow.xaml.cs::MainWindow"
+                                     ],
+                       "nota":  "medido: atalhos de menu, barra de comandos e icones pequenos"
+                   },
+                   {
+                       "id":  64,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Tela inicial (splash) e animações de texto",
+                       "revo":  "`[General App] 16108 = Show startup splash screen`; `[General App] 16133 = Command button text color`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Appearance/ThemePalette.cs::ThemeColorRole",
+                                         "Core/Settings/AppSettings.cs::ShowSplashScreen",
+                                         "Core/Appearance/ColorBlindPalette.cs::ColorBlindPalette"
+                                     ],
+                       "nota":  "medido: tela inicial, animacoes de texto e cores por papel; o modo daltônico entrou nesta rodada"
+                   },
+                   {
+                       "id":  65,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Arrastar e soltar (modo \"Drag and Drop\") e troca de visualização",
+                       "revo":  "`[Topmost Window] 4004 = Drag and Drop Mode`; `[Topmost Window] 4005 = Hunter Mode`; `[UninstallerPro] 2003 = Switch to Hunter Mode`; `[UninstallerPro] 2004 = Change the view of the installed programs list`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Ui/Modules/HunterView.xaml",
+                                         "Ui/Tools/TopmostOverlayWindow.xaml"
+                                     ],
+                       "nota":  ""
+                   },
+                   {
+                       "id":  66,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Instalação com rastreio pelo **RevoAppBar** + driver de filtro",
+                       "revo":  "binário `RevoAppBar.exe` (sha256 `f609d3417858…`) + `revoflt.sys` (sha256 `d7a14ab729d0…`) + `revoflt.inf`; PE imports.txt:29-30 → `SHELL32.dll` → `SHAppBarMessage`",
+                       "status":  "FORA",
+                       "evidencia":  [
+                                         "Core/Tracing/WriteWatcher.cs::WriteWatcher",
+                                         "Core/Modules/InstallMonitor.cs::InstallMonitor"
+                                     ],
+                       "nota":  "decisao registrada: sem driver de filtro do kernel (revoflt.sys) — o rastreio e por observacao de escrita, sem driver"
+                   },
+                   {
+                       "id":  67,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Logs: renomear, exportar dados, operações no computador atual",
+                       "revo":  "`[UninstallerPro] 15235 = Rename Log`; `[UninstallerPro] 15336 = Export Log\u0027s data`; `[UninstallerPro] 15319 = All Logs operations on the current computer`; `[UninstallerPro] 15232 = Import Log`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Modules/LogOperations.cs::Rename",
+                                         "Core/Modules/TraceStore.cs::Export",
+                                         "src/Tranal.Cli/LogCommands.cs::RunRename"
+                                     ],
+                       "nota":  "medido: renomear log, exportar os dados do log e as operacoes no computador atual"
+                   },
+                   {
+                       "id":  68,
+                       "prioridade":  "🟡",
+                       "funcionalidade":  "Compatibilidade com Windows 11 (pasta problemática na atualização)",
+                       "revo":  "`[UninstallerPro] 15371 = If you have problems updating to Windows 11, we recommend that you delete this folder %s. Would you like to add it to the leftovers?`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Discovery/Windows11ProblemFolders.cs::Windows11ProblemFolders",
+                                         "Ui/UninstallWizardWindow.xaml.cs::Windows11ProblemFolders"
+                                     ],
+                       "nota":  "medido: a pasta problematica da atualizacao do Win 11 e detectada e o Tranal pergunta antes de incluir (implementado nesta rodada)"
+                   },
+                   {
+                       "id":  69,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Modo portátil (pasta de dados portátil)",
+                       "revo":  "`[Portable] 18505 = Portability`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/Settings/AppSettings.cs::PortableDataFolder"
+                                     ],
+                       "nota":  "medido: modo portavel (a pasta de dados fica ao lado do executavel)"
+                   },
+                   {
+                       "id":  70,
+                       "prioridade":  "🟢",
+                       "funcionalidade":  "Histórico de desinstalação com detalhe por operação",
+                       "revo":  "`[UninstallHistory] 32900 = Uninstall History`; `[UninstallHistory] 32940 = Skipped by user`; `[Uninstaller Options] 1208 = Disable Uninstall History feature`",
+                       "status":  "OK",
+                       "evidencia":  [
+                                         "Core/UninstallHistory.cs::UninstallHistoryEntry",
+                                         "Core/Settings/AppSettings.cs::DisableUninstallHistory"
+                                     ],
+                       "nota":  "medido: o historico guarda o detalhe por operacao (RemovedItems, Report, RecoveryId) e a opcao de desabilitar existe"
+                   }
+               ]
+}

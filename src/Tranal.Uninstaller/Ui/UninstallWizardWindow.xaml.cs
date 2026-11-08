@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Markup;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
@@ -95,6 +96,13 @@ public partial class UninstallWizardWindow : Window
     private int _survivors;
     private RemovalReport? _report;
     private string _summary = string.Empty;
+
+    /// <summary>
+    /// True quando o usuario mandou encerrar enquanto o desinstalador nativo
+    /// rodava. O desinstalador nativo nao foi morto: ele terminou sozinho, e
+    /// o que veio depois (varredura e remocao) nao aconteceu.
+    /// </summary>
+    private bool _abortedAfterNativeUninstaller;
 
     /// <summary>
     /// Caminho do log de remocao gravado nesta operacao. Vazio quando o log
@@ -489,18 +497,43 @@ public partial class UninstallWizardWindow : Window
     /// </summary>
     private void ShowLeftoverAdvisory()
     {
+        // Os avisos sao montados no nucleo (LeftoverWarnings) e nao aqui: a
+        // tela so mostra. O aviso de dado do usuario ja vem com um texto
+        // mais detalhado, entao o aviso do nucleo nao e repetido.
         var advisory = UninstallAdvisories.UserDataAdvisory(_leftovers);
-        if (advisory is null)
+        var avisos = LeftoverWarnings.Build(_leftovers);
+
+        var blocos = new List<string>();
+        if (advisory is not null) blocos.Add(advisory.Message);
+
+        foreach (var aviso in avisos)
+        {
+            if (advisory is not null && aviso.Kind == LeftoverWarningKind.UserData) continue;
+
+            var texto = Loc.Get(aviso.MessageKey);
+
+            if (aviso.Items.Count > 0)
+            {
+                texto += Environment.NewLine +
+                    string.Join(Environment.NewLine, aviso.Items.Take(8).Select(p => "• " + p));
+
+                if (aviso.Items.Count > 8)
+                    texto += Environment.NewLine + $"... (+{aviso.Items.Count - 8})";
+            }
+
+            blocos.Add(texto);
+        }
+
+        if (blocos.Count == 0)
         {
             AdvisoryPanel.Visibility = Visibility.Collapsed;
             return;
         }
 
-        AdvisoryTitleText.Text = advisory.Title;
-        AdvisoryText.Text = advisory.Message;
+        AdvisoryTitleText.Text = advisory?.Title ?? Loc.Get("Wizard.LeftoverWarningTitle");
+        AdvisoryText.Text = string.Join(Environment.NewLine + Environment.NewLine, blocos);
         AdvisoryPanel.Visibility = Visibility.Visible;
     }
-
     /// <summary>
     /// Etapa 2: cria o backup do Registro e o ponto de restauracao do sistema
     /// (quando a preferencia das Opcoes esta ligada) e executa o desinstalador
@@ -557,7 +590,20 @@ public partial class UninstallWizardWindow : Window
         StatusText.Text = Loc.Get("Wizard.RunningBuiltIn");
         var silent = SilentUninstallCheck.IsChecked == true;
         foreach (var program in _programs)
+        {
             _builtInResults.Add(await UninstallEngine.RunBuiltInUninstaller(program, silent));
+
+            // O usuario mandou encerrar enquanto o desinstalador nativo
+            // rodava. Ele NAO foi morto: matar o desinstalador no meio
+            // deixa o programa meio desinstalado, que e pior do que
+            // terminar a desinstalacao e parar depois. A operacao encerra
+            // aqui, com o desinstalador nativo ja terminado.
+            if (_progress?.StopRequested == true)
+            {
+                _abortedAfterNativeUninstaller = true;
+                break;
+            }
+        }
     }
 
     /// <summary>
@@ -572,6 +618,19 @@ public partial class UninstallWizardWindow : Window
         // fecha e nada mais e removido.
         if (_progress?.StopRequested == true)
         {
+            // O usuario mandou encerrar. Quando o desinstalador nativo estava
+            // rodando, ele NAO foi morto: ele terminou e o que veio depois
+            // nao aconteceu. O usuario precisa saber disso.
+            if (_abortedAfterNativeUninstaller)
+            {
+                MessageBox.Show(this,
+                    Loc.Get("Wizard.AbortedAfterNativeUninstaller"),
+                    Loc.Get("Wizard.Aborted"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+
+            StatusText.Text = Loc.Get("Wizard.Aborted");
             Close();
             return;
         }
@@ -599,6 +658,36 @@ public partial class UninstallWizardWindow : Window
                 .ToList())
             : new List<LeftoverItem>();
 
+        // A pasta da atualizacao do Windows 11 (paridade com o Revo Pro):
+        // ela nao e sobra do programa, e sobra do sistema. O Tranal pergunta
+        // antes de colocar na lista.
+        var pastasWin11 = Windows11ProblemFolders.KnownFolders();
+        if (pastasWin11.Count > 0)
+        {
+            var resposta = MessageBox.Show(this,
+                string.Format(
+                    Loc.Get("Windows11.ProblemFolder.Question"),
+                    string.Join(", ", pastasWin11.Select(p => p.Path))),
+                Loc.Get("Windows11.ProblemFolder.Title"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (resposta == MessageBoxResult.Yes)
+            {
+                foreach (var pasta in pastasWin11)
+                {
+                    items.Add(new LeftoverItem
+                    {
+                        Kind = "Pasta",
+                        Path = pasta.Path,
+                        Detail = pasta.Description,
+                        Confidence = LeftoverConfidence.High,
+                        Reason = LeftoverReason.WindowsUpdateFolder,
+                        Selected = true,
+                    });
+                }
+            }
+        }
         _leftovers.Clear();
         foreach (var item in items) _leftovers.Add(item);
 

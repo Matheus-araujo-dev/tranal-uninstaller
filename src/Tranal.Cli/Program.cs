@@ -1089,6 +1089,14 @@ public static class Program
         Console.WriteLine("/p - Pausa ao final da listagem");
         Console.WriteLine("/t - Mostra o resultado em tabela");
         Console.WriteLine("/winapps - Lista os aplicativos do Windows");
+        Console.WriteLine("/logs - Lista os logs de instalacao rastreada");
+        Console.WriteLine("/log-entries <id> - Mostra as entradas de um log");
+        Console.WriteLine("/log-rename <id> /nome \"nome\" - Renomeia o log");
+        Console.WriteLine("/log-merge \"id1;id2\" /nome \"nome\" - Mescla logs");
+        Console.WriteLine("/log-ignore <id> /entrada <id> - Ignora uma entrada do log");
+        Console.WriteLine("/log-remove <id> /entrada <id> - Remove uma entrada do log");
+        Console.WriteLine("/custom-uninstall <id> - Revisao item a item do log");
+        Console.WriteLine("/advanced-uninstall <id> - O que ficou fora do log");
         Console.WriteLine("/? | /help - Esta ajuda");
         Console.WriteLine();
         Console.WriteLine("Operações:");

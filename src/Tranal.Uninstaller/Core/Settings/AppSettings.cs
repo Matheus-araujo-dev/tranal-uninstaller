@@ -160,8 +160,33 @@ public sealed class AppSettings
     /// <summary>
     /// Mecanismo de busca usado quando o usuario pesquisa um programa que
     /// ainda nao esta instalado. Vazio significa busca na web padrao.
+    ///
+    /// Este e o valor **antigo** da preferencia: ele continua valendo e e
+    /// lido quando a lista nova (<see cref="WebSearchEngines"/>) esta vazia.
     /// </summary>
     public string WebSearchEngine { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Os motores de busca configurados, na ordem em que aparecem.
+    ///
+    /// Cada item e o identificador de um motor do catalogo ("Google",
+    /// "Bing", "DuckDuckGo", "Yandex", "Yahoo") ou a definicao de um motor
+    /// personalizado ("MeuBusca|https://...?q={0}").
+    ///
+    /// O **primeiro** da lista e o motor usado na busca. Lista vazia
+    /// significa "usa o valor antigo" (<see cref="WebSearchEngine"/>).
+    /// </summary>
+    public List<string> WebSearchEngines { get; set; } = new();
+
+    /// <summary>
+    /// Exporta a lista de programas pelo Excel instalado (automacao COM),
+    /// em vez do formato SpreadsheetML (XML).
+    ///
+    /// O SpreadsheetML funciona sem o Office instalado; o Excel instalado
+    /// grava um .xlsx de verdade. Padrao: <c>false</c> — a exportacao nao
+    /// pode depender de um programa que talvez nao esteja na maquina.
+    /// </summary>
+    public bool ExportToExcelInstalled { get; set; }
 
     /// <summary>
     /// Marca todos os itens de sobra por padrao, inclusive os de confianca
@@ -325,7 +350,16 @@ public static class AppSettingsStore
         Save(settings);
     }
 
-    private static AppSettings Normalize(AppSettings settings)
+    /// <summary>
+    /// Completa as preferencias com os valores padrao das chaves que
+    /// faltam ou chegaram vazias.
+    ///
+    /// E a **unica** regra de normalizacao: quem carrega do disco
+    /// (<see cref="Load"/>) e quem importa de um arquivo
+    /// (<see cref="SettingsTransfer.Import"/>) usam esta mesma funcao, para
+    /// que um arquivo importado e um arquivo gravado nunca divirjam.
+    /// </summary>
+    internal static AppSettings Normalize(AppSettings settings)
     {
         if (settings.NewProgramsDays <= 0) settings.NewProgramsDays = 7;
         if (string.IsNullOrWhiteSpace(settings.Theme)) settings.Theme = "Dark";
@@ -333,6 +367,7 @@ public static class AppSettingsStore
         settings.RecentPrograms ??= new List<string>();
         settings.PortableDataFolder ??= string.Empty;
         settings.WebSearchEngine ??= string.Empty;
+        settings.WebSearchEngines ??= new List<string>();
         return settings;
     }
 }
@@ -347,7 +382,8 @@ public static class SettingsFileFormat
         + "createRestorePointBeforeUninstall, onlyRunBuiltInUninstaller, disableUninstallHistory, "
         + "showWebPageShortcuts, advancedMode, checkForUpdateOnStartup, updateAutomatically, "
         + "sendFilesToRecycleBin, deferRemovalToNextRestart, backupBeforeRemoval, "
-        + "portableDataFolder, fastLoadingMode, webSearchEngine, "
+        + "portableDataFolder, fastLoadingMode, webSearchEngine, webSearchEngines[], "
+        + "exportToExcelInstalled, "
         + "checkAllLeftoversByDefault, skipInformationMessages, skipWarningMessages, "
         + "showMainToolbar, showDescriptionPanel, showStatusBar, showToolsToolbar, "
         + "showContextMenuCommands, deleteTracedLogAfterUninstall, "

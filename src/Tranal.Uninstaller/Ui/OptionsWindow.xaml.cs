@@ -1,5 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
+using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
@@ -23,6 +28,9 @@ public partial class OptionsWindow : Window
     /// <summary>Titulo do grupo de preferencias de layout.</summary>
     private static string LayoutSection => Loc.Get("Options.LayoutSection");
 
+    /// <summary>Titulo do grupo de preferencias, cache e exportacao.</summary>
+    private static string PreferencesSection => Loc.Get("Options.PreferencesSection");
+
     /// <summary>Cria a janela de opcoes e carrega os valores atuais.</summary>
     public OptionsWindow()
     {
@@ -35,6 +43,10 @@ public partial class OptionsWindow : Window
         UninstallSectionText.Text = UninstallSection;
         StorageSectionText.Text = StorageSection;
         LayoutSectionText.Text = LayoutSection;
+        PreferencesSectionText.Text = PreferencesSection;
+        ShortcutsSectionText.Text = Loc.Get("Shortcut.Title");
+        ShortcutsText.Text = string.Join(Environment.NewLine, ShortcutMap.All.Select(s =>
+            $"{s.Gesture,-16} {Loc.Get(s.DescriptionKey)}"));
 
         // A lista de temas vem do catalogo do nucleo: e a mesma que a linha de
         // comando e o painel de configuracao listam. Um tema que existe no
@@ -91,6 +103,25 @@ public partial class OptionsWindow : Window
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
+        WebSearchEnginesBox.Text = string.Join(Environment.NewLine, settings.WebSearchEngines ?? new List<string>());
+        ExcelInstalledCheck.IsChecked = settings.ExportToExcelInstalled;
+    }
+
+    /// <summary>
+    /// Recarrega os campos da janela com as preferencias atuais.
+    ///
+    /// Existe para o caso de importar preferencias: o arquivo trouxera
+    /// valores que a janela ainda nao conhece, e o usuario precisa ver o que
+    /// ficou.
+    /// </summary>
+    private void CarregarValores()
+    {
+        var settings = AppSettingsStore.Current;
+
+        PortableFolderBox.Text = settings.PortableDataFolder;
+        WebSearchBox.Text = settings.WebSearchEngine;
+        WebSearchEnginesBox.Text = string.Join(Environment.NewLine, settings.WebSearchEngines ?? new List<string>());
+        ExcelInstalledCheck.IsChecked = settings.ExportToExcelInstalled;
     }
 
     /// <summary>
@@ -275,6 +306,8 @@ public partial class OptionsWindow : Window
             s.ShowCheckBoxesInDetailsView = ShowCheckBoxesCheck.IsChecked == true;
             s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();
+            s.WebSearchEngines = ReadWebSearchEngines();
+            s.ExportToExcelInstalled = ExcelInstalledCheck.IsChecked == true;
         });
 
         ThemeManager.Apply(theme);
@@ -293,4 +326,127 @@ public partial class OptionsWindow : Window
         DialogResult = false;
         Close();
     }
+
+    /// <summary>
+    /// Os motores de busca que o usuario escolheu, um por linha.
+    ///
+    /// A lista e editada como texto porque o catalogo de motores aceita
+    /// entrada livre (um motor proprio, com o endereco de busca do
+    /// usuario). O nucleo e quem valida e escolhe: a tela so entrega a
+    /// lista.
+    /// </summary>
+    private List<string> ReadWebSearchEngines()
+    {
+        var lista = new List<string>();
+
+        foreach (var linha in WebSearchEnginesBox.Text.Split('\n'))
+        {
+            var texto = linha.Trim();
+            if (texto.Length == 0) continue;
+            lista.Add(texto);
+        }
+
+        return lista;
+    }
+
+    /// <summary>
+    /// Exporta todas as preferencias para um arquivo (paridade com o Revo Pro:
+    /// "Export All Settings").
+    /// </summary>
+    private void ExportSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog
+        {
+            Filter = $"{Loc.Get("Options.SettingsFile")} (*.json)|*.json",
+            FileName = "tranal-preferencias.json",
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        if (SettingsTransfer.Export(dialog.FileName))
+        {
+            MessageBox.Show(this,
+                $"{Loc.Get("Options.SettingsExported")}\n{dialog.FileName}",
+                Loc.Get("Options.ExportSettings"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        MessageBox.Show(this,
+            Loc.Get("Settings.Corrupted"),
+            Loc.Get("Options.ExportSettings"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
+
+    /// <summary>
+    /// Importa as preferencias de um arquivo. A importacao mostra o que vai
+    /// mudar antes de aplicar: o usuario ve a previa e decide.
+    /// </summary>
+    private void ImportSettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = $"{Loc.Get("Options.SettingsFile")} (*.json)|*.json",
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        var previa = SettingsTransfer.Import(dialog.FileName, preview: true);
+
+        if (previa.Status != SettingsImportStatus.Ok || previa.Settings is null)
+        {
+            MessageBox.Show(this,
+                previa.Message.Length > 0 ? previa.Message : Loc.Get("Settings.Corrupted"),
+                Loc.Get("Options.ImportSettings"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
+        var mudancas = previa.Changes.Count > 0
+            ? string.Join(Environment.NewLine, previa.Changes)
+            : Loc.Get("Options.SettingsNoChanges");
+
+        var resposta = MessageBox.Show(this,
+            $"{Loc.Get("Options.SettingsPreview")}\n\n{mudancas}\n\n{Loc.Get("Options.SettingsApply")}",
+            Loc.Get("Options.ImportSettings"),
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (resposta != MessageBoxResult.Yes) return;
+
+        var aplicado = SettingsTransfer.Import(dialog.FileName, preview: false);
+        MessageBox.Show(this,
+            aplicado.Message,
+            Loc.Get("Options.ImportSettings"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+
+        // As preferencias importadas valem a partir de agora: a janela
+        // recarrega os campos para o usuario ver o que ficou.
+        CarregarValores();
+    }
+
+    /// <summary>
+    /// Reconstroi o cache de programas: apaga o cache em disco e avisa a
+    /// janela principal para varrer de novo.
+    /// </summary>
+    private void RebuildCacheButton_Click(object sender, RoutedEventArgs e)
+    {
+        ProgramCacheStore.Invalidate();
+        CacheRebuildRequested?.Invoke(this, EventArgs.Empty);
+        MessageBox.Show(this,
+            Loc.Get("Cache.Rebuilded"),
+            Loc.Get("Cache.Rebuild"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
+
+    /// <summary>
+    /// Disparado quando o usuario manda reconstruir o cache de programas.
+    /// A janela principal escuta e refaz a varredura.
+    /// </summary>
+    public event EventHandler? CacheRebuildRequested;
 }

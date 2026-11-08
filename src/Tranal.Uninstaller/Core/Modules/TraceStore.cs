@@ -87,9 +87,31 @@ public static class TraceStore
     /// Diretorio da base de logs:
     /// %LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro\logs
     /// </summary>
-    public static string Directory => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Tranal Group", "Tranal Uninstaller Pro", "logs");
+    public static string Directory =>
+        DirectoryOverride ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Tranal Group", "Tranal Uninstaller Pro", "logs");
+
+    /// <summary>
+    /// Redireciona a pasta da base de logs. Existe para os testes: sem ele,
+    /// um teste que grava ou apaga um log mexeria no %LOCALAPPDATA% de quem
+    /// esta rodando a suite.
+    /// </summary>
+    internal static string? DirectoryOverride { get; set; }
+
+    /// <summary>
+    /// A base de logs passa a apontar para uma pasta temporaria e vazia.
+    ///
+    /// E o que a suite usa para nao mexer no %LOCALAPPDATA% de quem roda o
+    /// teste: com o override nulo, a base de logs seria a de verdade — e um
+    /// log criado ou apagado no teste entraria na lista do usuario.
+    /// </summary>
+    internal static void ResetForTests()
+    {
+        DirectoryOverride = Path.Combine(
+            Path.GetTempPath(),
+            "tranal-logs-" + Guid.NewGuid().ToString("N")[..8]);
+    }
 
     /// <summary>Lista todos os logs. Um log corrompido e ignorado, nunca derruba a listagem.</summary>
     public static IReadOnlyList<TracedInstall> List()
@@ -181,6 +203,41 @@ public static class TraceStore
         catch
         {
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Grava de volta um payload alterado, no mesmo arquivo do log.
+    ///
+    /// E o que as operacoes sobre o log (editar entrada, ignorar, remover,
+    /// renomear) usam: o arquivo e reescrito no lugar, com os metadados do
+    /// log (id, nome do programa, data) preservados.
+    /// </summary>
+    /// <param name="install">O log a reescrever.</param>
+    /// <param name="payload">O payload novo.</param>
+    /// <returns><c>true</c> quando o arquivo foi reescrito.</returns>
+    public static bool SavePayload(TracedInstall install, JsonElement payload)
+    {
+        try
+        {
+            if (install is null) return false;
+
+            var path = ResolvePath(install);
+            if (path.Length == 0) return false;
+
+            EnsureDirectory();
+
+            var id = string.IsNullOrWhiteSpace(install.Id)
+                ? Path.GetFileNameWithoutExtension(path)
+                : install.Id;
+
+            var counts = CountPayload(payload);
+            WriteLogFile(path, id, install, payload, counts);
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 

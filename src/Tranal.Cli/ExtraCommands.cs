@@ -50,6 +50,8 @@ public static class ExtraCommands
         if (flags.Contains("/plan")) return RunPlan(args);
         if (flags.Contains("/batch")) return RunBatch(args, flags);
         if (flags.Contains("/switches")) return RunSwitches();
+        if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
+        if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         return null;
     }
 

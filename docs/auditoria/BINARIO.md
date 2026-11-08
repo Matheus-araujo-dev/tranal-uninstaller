@@ -128,27 +128,30 @@ Criterio aplicado, nesta ordem:
 | Base de logs **online** do Revo | Decisao de produto: o Tranal e offline, sem cadastro e sem telemetria |
 | Driver de filtro (`revoflt.sys`) | Fora de escopo por decisao registrada (driver de kernel) |
 | Analisador de disco, gerenciador de conexoes, de fontes, papel de parede, destruidor de arquivos | Nao e dominio de desinstalacao |
-| Varredura de sobras em **todas as contas** do Windows | Requer elevar para outro perfil; fica para uma rodada propria |
-| Edicao do log de instalacao entrada a entrada ("Custom Uninstall" / "Advanced Uninstall") | Alto valor, alto custo: exige um formato de log de instalacao que o Tranal ainda nao grava |
-| Exportacao por COM do Microsoft Excel | O Tranal ja exporta SpreadsheetML sem depender do Office instalado |
+| Base de **reputacao** de extensoes de navegador (maliciosa/ad) | Exige consulta a um servico online; o Tranal e offline por decisao. A remocao da extensao existe. |
+| **Gerar** um desinstalador silencioso para programa orfao | Exige automacao de interface de desinstaladores de terceiros. O Tranal deriva o comando e oferece a remocao manual assistida. |
 
 ### 3.3 Fila (medida, priorizada)
 
 A ordem abaixo vem das listas de lacuna dos 11 concorrentes, cruzadas com o
 codigo. Cada linha tem a evidencia no binario de quem tem o recurso.
 
-| # | Funcionalidade | Quem tem | Evidencia |
-|---|---|---|---|
-| 1 | Varredura de sobras em **todas as contas** do Windows | Revo | `[UninstallerPro] 15352 = Scan all Windows accounts for leftovers` |
-| 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | `[UninstallerPro] 15178 = Export,Import or Edit log` |
-| 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | `strings.txt:26974` (texto do botao "Advanced Uninstall") |
-| 4 | Varredura de **fluxos alternativos** (ADS) de arquivo | Total Uninstall | `inv.md:176` |
-| 5 | Detectar que o programa foi **desinstalado por fora** | Soft Organizer | `recursos.txt:102` (formulario de deteccao de desinstalacao externa) |
-| 6 | Filtros por **tamanho** e por **uso raro** na lista | Soft Organizer | `inv.md` (filtro "Large Applications" / "Rarely used apps") |
-| 7 | Busca por **Regex** na lista (e no motor de regras) | Revo, Geek, BCU | Revo le o filtro por registro (`ADVAPI32.dll` → `RegQueryValueExW`) |
-| 8 | Arvore de **mudancas** entre dois snapshots, com perfis | Total Uninstall | `recursos.txt:134 TDLGCOMPARESNS` |
-| 9 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) |
+| # | Funcionalidade | Quem tem | Evidencia | Estado (08/11/2026) |
+|---|---|---|---|---|
+| 1 | Varredura de sobras em **todas as contas** do Windows | Revo | `[UninstallerPro] 15352 = Scan all Windows accounts for leftovers` | OK `Core/Discovery/AccountLeftoverScanner.cs` + `Core/UninstallSupport.cs` (a regra de "quais contas entram" mora em um lugar so) |
+| 2 | Registro de instalacao exportavel e editavel ("Custom Uninstall") | Revo, BCU | `[UninstallerPro] 15178 = Export,Import or Edit log` | OK `Core/Modules/LogOperations.cs` + `Core/Automation/CustomUninstallReview.cs` |
+| 3 | "Advanced Uninstall": sobra que o instalador nao registrou | Revo | `strings.txt:26974` (texto do botao "Advanced Uninstall") | OK `Core/Automation/AdvancedUninstallReview.cs` |
+| 4 | Varredura de **fluxos alternativos** (ADS) de arquivo | Total Uninstall | `inv.md:176` | OK `Core/Discovery/AlternateDataStreamScanner.cs` (comando `/ads`) |
+| 5 | Detectar que o programa foi **desinstalado por fora** | Soft Organizer | `recursos.txt:102` (formulario de deteccao de desinstalacao externa) | OK `Core/Discovery/ExternalUninstallWatcher.cs` (comando `/external`) |
+| 6 | Filtros por **tamanho** e por **uso raro** na lista | Soft Organizer | `inv.md` (filtro "Large Applications" / "Rarely used apps") | OK tamanho no filtro da lista; uso raro por `Core/Discovery/UsageSignals.cs` (UserAssist + Prefetch, comando `/usage`) |
+| 7 | Busca por **Regex** na lista (e no motor de regras) | Revo, Geek, BCU | Revo le o filtro por registro (`ADVAPI32.dll` → `RegQueryValueExW`) | OK `Core/Appearance/ProgramFilters.cs` (`regex:` na busca + termos de exclusao + aviso de regex invalida) |
+| 8 | Arvore de **mudancas** entre dois snapshots, com perfis | Total Uninstall | `recursos.txt:134 TDLGCOMPARESNS` | OK `Core/Tracing/SnapshotComparer.cs` + `Core/Tracing/SnapshotLibrary.cs` (comparacao de snapshots ja existia) |
+| 9 | Limpeza de rastros do Windows (historico, registro, cache) | Revo, BCU, IObit | — (parcial) | OK `Core/Tools/TrackCleaner.cs` (modulos), `Core/Tools/ChkdskFragmentCleaner.cs` (fragmentos do Chkdsk) e `Core/Tools/PrivacyTraceCleaner.cs` (firewall, UserAssist, WER, CLSID, audio, eventos) |
 
+A fila foi **fechada em 08/11/2026**: as 9 linhas passaram a ter estado medido
+no codigo (a coluna "Estado"), nao promessa. Cada uma ganhou implementacao
+(no nucleo) e **entrada de linha de comando**, para que a feature exista
+para o usuario e nao so para o teste.
 ### 3.4 Ja resolvido e reclassificado
 
 A conferencia no codigo, feita depois da curadoria, **corrigiu** uma alegacao de

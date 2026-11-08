@@ -28,6 +28,14 @@ jobs:
       - name: Build
         run: dotnet build Tranal.Uninstaller.slnx -c Release -nologo
 
+      # A tabela de paridade com o Revo Pro so vale se a evidencia citada
+      # continuar no codigo. O verificador falha o build quando uma linha
+      # aponta para arquivo ou simbolo que nao existe mais.
+      - name: Verificar a paridade (evidencia no codigo)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\auditoria\verificar-paridade.ps1
+
       - name: Testes
         run: dotnet test Tranal.Uninstaller.slnx -c Release -nologo
 

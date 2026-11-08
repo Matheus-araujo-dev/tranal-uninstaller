@@ -41,6 +41,12 @@ public static class Loc
     {
         if (string.IsNullOrEmpty(key)) return string.Empty;
 
+        // O catalogo de referencia e carregado sob demanda: quem pergunta o
+        // texto nao pode receber a propria chave so porque ninguem carregou o
+        // catalogo antes. (A interface carrega no arranque e a CLI tambem —
+        // mas qualquer outro consumidor chega antes.)
+        if (!Catalogs.ContainsKey(DefaultLanguage)) Load(DefaultLanguage);
+
         if (Catalogs.TryGetValue(_current, out var active) && active.TryGetValue(key, out var value))
             return value;
 

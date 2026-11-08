@@ -76,7 +76,7 @@
           <TextBlock Text="{loc:Tr Options.NewProgramsDays}" VerticalAlignment="Center" Margin="0,0,8,0" />
           <TextBox x:Name="NewDaysBox" Width="60" VerticalContentAlignment="Center"
                    AutomationProperties.AutomationId="OptNewProgramsDays" />
-        </StackPanel>
+      </StackPanel>
         <CheckBox x:Name="ShowWebShortcutsCheck" Margin="0,8,0,2"
                   Content="{loc:Tr Options.ShowWebShortcuts}"
                   AutomationProperties.AutomationId="OptShowWebShortcuts" />
@@ -158,6 +158,35 @@
         <TextBlock Text="{loc:Tr Options.WebSearch}" Margin="0,0,0,4" />
         <TextBox x:Name="WebSearchBox" Margin="0,0,0,8"
                  AutomationProperties.AutomationId="OptWebSearch" />
+
+        <!-- Preferencias, cache e exportacao das configuracoes -->
+        <TextBlock x:Name="PreferencesSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
+        <TextBlock Text="{loc:Tr Options.WebSearchEngines}" Margin="0,0,0,4" />
+        <TextBox x:Name="WebSearchEnginesBox" Height="72" Margin="0,0,0,4"
+                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                 AutomationProperties.AutomationId="OptWebSearchEngines" />
+        <TextBlock Text="{loc:Tr Options.WebSearchEnginesNote}" Margin="0,0,0,8"
+                   TextWrapping="Wrap" />
+        <CheckBox x:Name="ExcelInstalledCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ExportToExcelInstalled}"
+                  AutomationProperties.AutomationId="OptExportToExcelInstalled" />
+        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+            <Button x:Name="ExportSettingsButton" Margin="0,0,8,0"
+                    Content="{loc:Tr Options.ExportSettings}"
+                    AutomationProperties.AutomationId="OptExportSettings"
+                    Click="ExportSettingsButton_Click" />
+            <Button x:Name="ImportSettingsButton" Margin="0,0,8,0"
+                    Content="{loc:Tr Options.ImportSettings}"
+                    AutomationProperties.AutomationId="OptImportSettings"
+                    Click="ImportSettingsButton_Click" />
+            <Button x:Name="RebuildCacheButton"
+                    Content="{loc:Tr Cache.Rebuild}"
+                    AutomationProperties.AutomationId="OptRebuildCache"
+                    Click="RebuildCacheButton_Click" />
+      </StackPanel>
+  
+        <TextBlock x:Name="ShortcutsSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
+        <TextBlock x:Name="ShortcutsText" TextWrapping="Wrap" Margin="0,0,0,8" />
       </StackPanel>
     </ScrollViewer>
 

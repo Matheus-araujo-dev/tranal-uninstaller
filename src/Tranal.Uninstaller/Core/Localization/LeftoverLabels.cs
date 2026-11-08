@@ -43,6 +43,7 @@ public static class LeftoverLabels
         LeftoverReason.ProcessTermination => "Common.Reason.ProcessTermination",
         LeftoverReason.InstallerLog => "Common.Reason.InstallerLog",
         LeftoverReason.StartupEntry => "Common.Reason.StartupEntry",
+        LeftoverReason.WindowsUpdateFolder => "Common.Reason.WindowsUpdateFolder",
         LeftoverReason.Unknown => "Common.Reason.Unknown",
         _ => "Common.Reason.Unknown",
     });

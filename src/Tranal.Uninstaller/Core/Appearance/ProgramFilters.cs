@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using Tranal.Uninstaller.Core;
 
 namespace Tranal.Uninstaller.Core.Appearance;
@@ -170,6 +171,206 @@ public sealed class ProgramFilterSet
     /// <summary>True quando so entram programas que estao em algum grupo.</summary>
     public bool OnlyWithGroups { get; set; }
 
+    /// <summary>
+    /// O prefixo que marca o texto de busca como expressao regular.
+    ///
+    /// O texto "regex:^Steam" filtra por expressao regular; sem o prefixo,
+    /// o texto continua sendo a busca literal de sempre.
+    /// </summary>
+    public const string RegexPrefix = "regex:";
+
+    /// <summary>
+    /// Termos de exclusao (negacoes): um programa que casa com um deles
+    /// fica fora da lista, mesmo que case com a busca.
+    ///
+    /// O termo pode vir do proprio texto de busca ("jogo -demo") ou desta
+    /// lista, que a tela lateral usa.
+    /// </summary>
+    public IList<string> ExcludedTerms { get; } = new ObservableCollection<string>();
+
+    /// <summary>
+    /// Os diagnosticos do filtro atual.
+    ///
+    /// Uma expressao regular invalida NAO derruba a lista: ela e ignorada e
+    /// o problema fica registrado aqui, para a tela mostrar.
+    /// </summary>
+    public IList<string> Diagnostics { get; } = new ObservableCollection<string>();
+
+    /// <summary>
+    /// A expressao regular em uso, ou string vazia quando o filtro nao usa
+    /// regex.
+    /// </summary>
+    public string RegexExpression => Query().Pattern;
+
+    /// <summary>True quando a expressao regular do filtro e invalida.</summary>
+    public bool HasInvalidRegex => Query().InvalidRegex;
+
+    /// <summary>Os termos de exclusao em uso (busca e lista juntas).</summary>
+    public IReadOnlyList<string> ExclusionTerms => Query().Exclusions;
+
+    /// <summary>
+    /// Coloca a busca em modo de expressao regular.
+    /// </summary>
+    /// <param name="pattern">A expressao regular.</param>
+    public void SetRegex(string? pattern)
+    {
+        SearchText = string.IsNullOrWhiteSpace(pattern)
+            ? string.Empty
+            : RegexPrefix + pattern!.Trim();
+
+        InvalidateQuery();
+    }
+
+    /// <summary>
+    /// Acrescenta um termo de exclusao (negacao).
+    /// </summary>
+    /// <param name="term">O termo a excluir (o "-" inicial e dispensavel).</param>
+    public void AddExclusion(string? term)
+    {
+        var text = (term ?? string.Empty).Trim().TrimStart('-');
+        if (text.Length == 0) return;
+
+        foreach (var existing in ExcludedTerms)
+        {
+            if (string.Equals(existing, text, StringComparison.OrdinalIgnoreCase)) return;
+        }
+
+        ExcludedTerms.Add(text);
+        InvalidateQuery();
+    }
+
+    /// <summary>Remove todos os termos de exclusao.</summary>
+    public void ClearExclusions()
+    {
+        ExcludedTerms.Clear();
+        InvalidateQuery();
+    }
+
+    /// <summary>
+    /// Valida o filtro: devolve false quando a expressao regular e invalida.
+    /// O diagnostico fica em <see cref="Diagnostics"/>.
+    /// </summary>
+    public bool Validate() => !Query().InvalidRegex;
+
+    /// <summary>
+    /// A consulta montada a partir do texto de busca e dos termos de
+    /// exclusao.
+    ///
+    /// E o unico lugar onde a busca e interpretada: a tela e a janela
+    /// principal consomem este mesmo objeto.
+    /// </summary>
+    private sealed record FilterQuery(
+        Regex? Regex,
+        string Pattern,
+        bool InvalidRegex,
+        string[] Terms,
+        string[] Exclusions);
+
+    private FilterQuery? _query;
+    private string? _queryKey;
+
+    /// <summary>Descarta a consulta memorizada (o filtro mudou).</summary>
+    private void InvalidateQuery()
+    {
+        _query = null;
+        _queryKey = null;
+    }
+
+    /// <summary>
+    /// A consulta em uso. Ela e calculada uma vez e reaproveitada: a lista
+    /// filtra centenas de programas com a mesma busca.
+    /// </summary>
+    private FilterQuery Query()
+    {
+        var key = (SearchText ?? string.Empty) + "\u0001" + string.Join("\u0002", ExcludedTerms);
+        if (_query is not null && string.Equals(_queryKey, key, StringComparison.Ordinal)) return _query;
+
+        _queryKey = key;
+        _query = BuildQuery();
+        return _query;
+    }
+
+    /// <summary>
+    /// Interpreta o texto de busca e os termos de exclusao.
+    ///
+    /// Tres formatos convivem:
+    /// <list type="bullet">
+    /// <item>"regex:expressao" — a busca e uma expressao regular;</item>
+    /// <item>"palavra -termo" — "termo" e exclusao, e o resto e a busca;</item>
+    /// <item>"palavra" — a busca literal de sempre.</item>
+    /// </list>
+    /// </summary>
+    private FilterQuery BuildQuery()
+    {
+        Diagnostics.Clear();
+
+        var text = (SearchText ?? string.Empty).Trim();
+        var exclusions = new List<string>();
+
+        foreach (var term in ExcludedTerms)
+        {
+            var value = (term ?? string.Empty).Trim().TrimStart('-');
+            if (value.Length == 0) continue;
+            if (exclusions.Contains(value, StringComparer.OrdinalIgnoreCase)) continue;
+
+            exclusions.Add(value);
+        }
+
+        Regex? regex = null;
+        var pattern = string.Empty;
+        var invalid = false;
+        string[] terms;
+
+        if (text.StartsWith(RegexPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            pattern = text[RegexPrefix.Length..].Trim();
+            terms = Array.Empty<string>();
+
+            if (pattern.Length > 0)
+            {
+                try
+                {
+                    regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                }
+                catch (ArgumentException ex)
+                {
+                    // Uma regex invalida e IGNORADA: ela nunca pode derrubar a
+                    // lista inteira. O diagnostico fica para a tela mostrar.
+                    invalid = true;
+                    Diagnostics.Add($"Expressão regular ignorada (inválida): {ex.Message}");
+                }
+            }
+        }
+        else
+        {
+            var tokens = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            var positives = new List<string>();
+
+            foreach (var token in tokens)
+            {
+                if (token.Length > 1 && token[0] == '-')
+                {
+                    var value = token[1..].Trim();
+                    if (value.Length > 0 && !exclusions.Contains(value, StringComparer.OrdinalIgnoreCase))
+                        exclusions.Add(value);
+
+                    continue;
+                }
+
+                positives.Add(token);
+            }
+
+            // Sem exclusao, o texto inteiro continua sendo a busca: e o
+            // comportamento de sempre, e mudar aqui quebraria o filtro que o
+            // usuario ja conhece.
+            terms = exclusions.Count == 0
+                ? (text.Length > 0 ? new[] { text } : Array.Empty<string>())
+                : positives.ToArray();
+        }
+
+        return new FilterQuery(regex, pattern, invalid, terms, exclusions.ToArray());
+    }
+
     /// <summary>As regras de realce, na ordem em que foram criadas.</summary>
     public IList<HighlightRule> Highlights { get; } = new ObservableCollection<HighlightRule>();
 
@@ -190,6 +391,10 @@ public sealed class ProgramFilterSet
         if (!MatchesSize(program)) return false;
         if (!MatchesDrive(program)) return false;
         if (!MatchesPublisher(program)) return false;
+
+        // As negacoes vem depois da busca: um programa que casa com um termo
+        // de exclusao fica fora da lista mesmo tendo casado com a busca.
+        if (!MatchesExclusions(program, anotacao)) return false;
 
         if (OnlyWithComments && string.IsNullOrWhiteSpace(anotacao?.Comment)) return false;
         if (OnlyWithGroups && (anotacao is null || anotacao.Groups.Count == 0)) return false;
@@ -226,6 +431,7 @@ public sealed class ProgramFilterSet
         && string.IsNullOrWhiteSpace(PublisherFilter)
         && !OnlyWithComments
         && !OnlyWithGroups
+        && ExcludedTerms.Count == 0
         && Highlights.Count == 0;
 
     /// <summary>Volta ao estado inicial (filtros vazios e sem realces).</summary>
@@ -238,24 +444,71 @@ public sealed class ProgramFilterSet
         PublisherFilter = string.Empty;
         OnlyWithComments = false;
         OnlyWithGroups = false;
+        ExcludedTerms.Clear();
         Highlights.Clear();
+        InvalidateQuery();
     }
 
     /// <summary>
+    /// A busca: por expressao regular, por termo, ou pelos dois.
+    ///
     /// A busca casa com o nome, a editora, o comentario do registro e o
-    /// comentario do usuario. Vazio passa tudo.
+    /// comentario do usuario.
     /// </summary>
     private bool MatchesSearch(InstalledProgram program, ProgramCustomization? anotacao)
     {
-        if (string.IsNullOrWhiteSpace(SearchText)) return true;
+        var query = Query();
 
-        var termo = SearchText.Trim();
+        if (query.Regex is not null)
+        {
+            return MatchesRegex(query.Regex, program, anotacao);
+        }
 
+        // Regex invalida: e IGNORADA. Um texto mal digitado nao pode
+        // derrubar a lista inteira — o diagnostico ja ficou registrado.
+        if (query.InvalidRegex) return true;
+
+        foreach (var termo in query.Terms)
+        {
+            if (!MatchesTerm(termo, program, anotacao)) return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// As negacoes: um programa que casa com um termo de exclusao fica fora
+    /// da lista, mesmo que case com a busca.
+    /// </summary>
+    private bool MatchesExclusions(InstalledProgram program, ProgramCustomization? anotacao)
+    {
+        var query = Query();
+
+        foreach (var termo in query.Exclusions)
+        {
+            if (MatchesTerm(termo, program, anotacao)) return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>True quando o texto casa com algum dos campos do programa.</summary>
+    private static bool MatchesTerm(string termo, InstalledProgram program, ProgramCustomization? anotacao)
+    {
         if (Contains(program.DisplayName, termo)) return true;
         if (Contains(program.Publisher, termo)) return true;
         if (Contains(program.Comments, termo)) return true;
 
         return Contains(anotacao?.Comment, termo);
+    }
+
+    /// <summary>True quando a expressao regular casa com algum campo.</summary>
+    private static bool MatchesRegex(Regex regex, InstalledProgram program, ProgramCustomization? anotacao)
+    {
+        return regex.IsMatch(program.DisplayName ?? string.Empty)
+            || regex.IsMatch(program.Publisher ?? string.Empty)
+            || regex.IsMatch(program.Comments ?? string.Empty)
+            || regex.IsMatch(anotacao?.Comment ?? string.Empty);
     }
 
     /// <summary>O filtro de tipo: All passa tudo.</summary>

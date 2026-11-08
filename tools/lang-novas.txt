@@ -229,3 +229,67 @@ Desc.HistoryCleaner|A 'Limpeza de Histórico' do Tranal Uninstaller Pro limpa o 
 Desc.TracksBrowsers|A 'Limpeza de Navegadores' do Tranal Uninstaller Pro limpa o histórico dos navegadores: páginas visitadas, cookies, formulários, sessões e cache.|The 'Browsers Cleaner' of Tranal Uninstaller Pro clears browser history: visited pages, cookies, forms, sessions and cache.
 Desc.TracksOffice|A 'Limpeza do Microsoft Office' do Tranal Uninstaller Pro limpa os documentos recentes do Office.|The 'Microsoft Office Cleaner' of Tranal Uninstaller Pro clears recent Office documents.
 Desc.TracksWindows|A 'Limpeza do Windows' do Tranal Uninstaller Pro limpa os rastros do Windows: área de transferência, itens recentes, histórico de pesquisa, cache de miniaturas, arquivos temporários e a Lixeira.|The 'Windows Cleaner' of Tranal Uninstaller Pro clears Windows traces: clipboard, recent items, search history, thumbnail cache, temporary files and the Recycle Bin.
+Wizard.Aborted|Operação encerrada.|Operation stopped.
+Wizard.AbortedAfterNativeUninstaller|O desinstalador nativo terminou; o restante da operação foi encerrado.|The built-in uninstaller finished; the rest of the operation was stopped.
+Options.ExportSettings|Exportar todas as configurações|Export all settings
+Options.ImportSettings|Importar todas as configurações|Import all settings
+Options.WebSearchEngines|Motores de busca da web|Web search engines
+Options.CustomTool|Ferramenta personalizada|Custom tool
+Options.AddCustomTool|Adicionar ferramenta|Add tool
+Options.Rename|Renomear|Rename
+Options.RemoveTool|Excluir ferramenta|Delete tool
+Options.ExportToExcelInstalled|Exportar para o Excel instalado|Export to the installed Excel
+Cache.Rebuild|Reconstruir o cache|Rebuild the cache
+Cache.NoDiskSpace|Não há espaço em disco para gravar o cache de programas.|There is not enough available disk space to write the cache data file.
+Settings.Corrupted|O arquivo de preferências está corrompido ou é incompatível.|The settings file is corrupted or incompatible.
+Cmd.ExportExcel|Excel (Excel instalado)|Excel (installed Excel)
+Options.PreferencesSection|Preferências, cache e exportação|Preferences, cache and export
+Options.WebSearchEnginesNote|Um motor por linha. Use o nome de um motor do catalogo (google, bing, duckduckgo, yandex) ou escreva o nome e o endereco de busca, separados por dois pontos.|One engine per line. Use a catalog engine name (google, bing, duckduckgo, yandex) or write the name and the search address, separated by two colons.
+Options.SettingsFile|Arquivo de preferências|Settings file
+Options.SettingsExported|Preferências exportadas.|Settings exported.
+Options.SettingsPreview|Estas preferências serão aplicadas:|These settings will be applied:
+Options.SettingsNoChanges|Nenhuma diferença em relação às preferências atuais.|No difference from the current settings.
+Options.SettingsApply|Aplicar agora?|Apply now?
+Cache.Rebuilded|O cache de programas foi apagado. A lista será reconstruída na próxima varredura.|The program cache was deleted. The list will be rebuilt on the next scan.
+Leftovers.Warn.LowConfidence|Alguns itens têm confiança baixa e não vêm marcados. Confira antes de remover.|Some items have low confidence and are not checked. Review them before removing.
+Leftovers.Warn.UserData|Estas pastas podem conter documentos e dados do usuário.|These folders may contain documents and user data.
+Privacy.Firewall|Regras de firewall|Firewall rules
+Privacy.UserAssist|Histórico de execução (UserAssist)|Execution history (UserAssist)
+Privacy.ErrorReports|Relatórios de erro do Windows|Windows error reports
+Privacy.Clsid|Classe COM do usuário|User COM class
+Privacy.Audio|Mistura de áudio|Audio mixer
+Privacy.EventLogs|Registros de eventos do Windows|Windows event logs
+Privacy.Title|Limpeza de rastros de privacidade|Privacy trace cleanup
+Privacy.Scan|Verificar|Scan
+Privacy.Clean|Limpar|Clean
+Privacy.Done|Rastros de privacidade limpos.|Privacy traces cleaned.
+Privacy.Group|Grupo|Group
+Privacy.Item|Item|Item
+Sidebar.Filter.RegexInvalid|A expressão regular é inválida e foi ignorada. A lista continua funcionando.|The regular expression is invalid and was ignored. The list still works.
+Wizard.LeftoverWarningTitle|Atenção nas sobras|Attention to the leftovers
+Shortcut.FocusSearch|Ir para a busca|Go to the search
+Shortcut.Rescan|Varrer a lista de novo|Scan the list again
+Shortcut.SelectAll|Selecionar todos os programas|Select all programs
+Shortcut.Uninstall|Desinstalar os selecionados|Uninstall the selected ones
+Shortcut.QuickUninstall|Desinstalar sem perguntar|Uninstall without asking
+Shortcut.ExportList|Exportar a lista|Export the list
+Shortcut.Options|Abrir as opções|Open the options
+Shortcut.Discovery|Abrir o módulo de descoberta|Open the discovery module
+Shortcut.Support|Abrir a ajuda|Open the help
+Shortcut.ClearFilter|Limpar a busca e o filtro|Clear the search and the filter
+Shortcut.Title|Atalhos de teclado|Keyboard shortcuts
+Cmd.RenameProgram|Renomear|Rename
+Rename.AddTitle|Renomear programa|Rename program
+Rename.EditTitle|Editar o nome do programa|Edit the program name
+Rename.Prompt|Escreva o nome que a lista do Tranal vai mostrar para {0}. O nome do Windows continua valendo.|Type the name the Tranal list will show for {0}. The Windows name still applies.
+Common.Reason.WindowsUpdateFolder|Pasta da atualização do Windows 11|Windows 11 update folder
+Windows11.ProblemFolder.Title|Pasta da atualização do Windows 11|Windows 11 update folder
+Windows11.ProblemFolder.Question|A pasta {0} é onde o Windows 11 guarda a atualização, e ela costuma ocupar bastante espaço. Deseja adicioná-la às sobras?|The folder {0} is where Windows 11 keeps the update, and it usually takes a lot of space. Do you want to add it to the leftovers?
+Ads.Title|Fluxos alternativos do arquivo|Alternate data streams of the file
+Ads.StreamName|Nome do fluxo|Stream name
+Ads.Size|Tamanho|Size
+Ads.None|Nenhum fluxo alternativo encontrado.|No alternate data stream found.
+Ads.Type|Fluxo de zone de transferência (download da internet)|Zone transfer stream (downloaded from the internet)
+Sidebar.Filter.Exclusions|Excluir da lista|Excluded from the list
+Sidebar.Filter.AddExclusion|Excluir|Exclude
+Sidebar.Filter.RemoveExclusion|remover|remove

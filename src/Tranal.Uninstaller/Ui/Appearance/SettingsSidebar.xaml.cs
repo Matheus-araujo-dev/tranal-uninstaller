@@ -87,6 +87,14 @@ public partial class SettingsSidebar : UserControl
     /// mesmo texto: as duas escrevem no mesmo conjunto de filtros.
     /// </summary>
     /// <param name="text">O texto da busca.</param>
+    /// <summary>
+    /// Leva o foco para o campo de busca. E o que o atalho Ctrl+F faz.
+    /// </summary>
+    public void FocusSearch()
+    {
+        SearchBox.Focus();
+        SearchBox.SelectAll();
+    }
     public void SyncSearch(string? text)
     {
         _ready = false;
@@ -109,6 +117,8 @@ public partial class SettingsSidebar : UserControl
         try
         {
             SearchBox.Text = _filters.SearchText;
+        RefreshExclusions();
+        UpdateFilterDiagnostic();
             PublisherBox.Text = _filters.PublisherFilter;
 
             SelectByTag(TypeCombo, _filters.TypeFilter);
@@ -245,6 +255,70 @@ public partial class SettingsSidebar : UserControl
         RaiseChanged();
     }
 
+    /// <summary>
+    /// Acrescenta um termo de exclusao ao filtro.
+    ///
+    /// A regra mora no <see cref="ProgramFilterSet"/>: a tela so entrega o
+    /// termo que o usuario escreveu.
+    /// </summary>
+    private void AddExclusionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var termo = (ExclusionBox.Text ?? string.Empty).Trim();
+        if (termo.Length == 0) return;
+
+        _filters.AddExclusion(termo);
+        ExclusionBox.Text = string.Empty;
+
+        RefreshExclusions();
+        RaiseChanged();
+    }
+
+    /// <summary>
+    /// Tira um termo de exclusao do filtro.
+    /// </summary>
+    private void RemoveExclusionButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button botao) return;
+        var termo = botao.Tag as string;
+        if (string.IsNullOrEmpty(termo)) return;
+
+        _filters.ExcludedTerms.Remove(termo);
+
+        RefreshExclusions();
+        RaiseChanged();
+    }
+
+    /// <summary>
+    /// Atualiza a lista de exclusoes mostrada na tela.
+    /// </summary>
+    private void RefreshExclusions()
+    {
+        ExclusionList.Items.Clear();
+        foreach (var termo in _filters.ExclusionTerms)
+        {
+            ExclusionList.Items.Add(termo);
+        }
+    }
+
+    /// <summary>
+    /// Mostra o aviso quando a busca usa uma expressao regular invalida.
+    ///
+    /// A regex invalida e ignorada pelo filtro: a lista continua
+    /// funcionando, mas o usuario precisa saber que o filtro dele nao esta
+    /// valendo.
+    /// </summary>
+    private void UpdateFilterDiagnostic()
+    {
+        if (_filters.HasInvalidRegex)
+        {
+            FilterDiagnosticText.Text = Loc.Get("Sidebar.Filter.RegexInvalid");
+            FilterDiagnosticText.Visibility = Visibility.Visible;
+            return;
+        }
+
+        FilterDiagnosticText.Text = string.Empty;
+        FilterDiagnosticText.Visibility = Visibility.Collapsed;
+    }
     private void ClearFiltersButton_Click(object sender, RoutedEventArgs e)
     {
         ClearAll();
@@ -363,6 +437,11 @@ public partial class SettingsSidebar : UserControl
     private void SearchTimer_Tick(object? sender, EventArgs e)
     {
         _searchTimer.Stop();
+
+        // O aviso da regex invalida entra aqui: e quando a busca para de
+        // mudar que a expressao pode estar errada.
+        UpdateFilterDiagnostic();
+
         RaiseChanged();
     }
 

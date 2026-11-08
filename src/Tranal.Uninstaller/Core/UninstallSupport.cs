@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core.Automation;
+using Tranal.Uninstaller.Core.Discovery;
 
 namespace Tranal.Uninstaller.Core;
 
@@ -106,6 +107,13 @@ public enum LeftoverReason
     /// gravou.
     /// </summary>
     StartupEntry,
+
+    /// <summary>
+    /// Pasta da atualizacao do Windows 11 (a pasta que o Windows 11 usa para
+    /// a atualizacao e que costuma ficar grande). Nao e sobra do programa:
+    /// e sobra do sistema, e o Tranal pergunta antes de incluir.
+    /// </summary>
+    WindowsUpdateFolder,
 }
 
 public sealed class LeftoverItem
@@ -138,6 +146,120 @@ public sealed class LeftoverItem
     /// outra conta e uma acao que precisa ser pedida explicitamente.
     /// </summary>
     public bool OtherAccount { get; init; }
+
+    /// <summary>
+    /// Os criterios que produziram a confianca do item, em texto.
+    ///
+    /// Vem vazio quando o item nao e uma pasta: a confianca de um item de
+    /// registro vem do proprio registro, e nao de criterios de pasta.
+    /// </summary>
+    public IReadOnlyList<string> ConfidenceCriteria { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// True quando a pasta pode conter documentos ou dados do usuario.
+    ///
+    /// E o sinal do aviso "as pastas abaixo podem conter dados do usuario".
+    /// </summary>
+    public bool MayContainUserData { get; init; }
+}
+
+/// <summary>
+/// O tipo de aviso sobre as sobras.
+/// </summary>
+public enum LeftoverWarningKind
+{
+    /// <summary>
+    /// O item nao tem confianca alta: mexer nele pode errar o alvo.
+    /// </summary>
+    LowConfidence,
+
+    /// <summary>
+    /// A pasta pode conter documentos ou dados do usuario.
+    /// </summary>
+    UserData,
+}
+
+/// <summary>
+/// Um aviso sobre as sobras, pronto para a tela mostrar.
+/// </summary>
+/// <param name="Kind">O tipo do aviso.</param>
+/// <param name="MessageKey">A chave de idioma do texto do aviso.</param>
+/// <param name="Items">Os caminhos que o aviso abrange.</param>
+public sealed record LeftoverWarning(
+    LeftoverWarningKind Kind,
+    string MessageKey,
+    IReadOnlyList<string> Items);
+
+/// <summary>
+/// Os avisos sobre as sobras: baixa confianca e pasta com dado do usuario.
+///
+/// A regra mora aqui, em um lugar so: quem mostra o aviso consome esta
+/// lista e nunca monta a mensagem por conta propria.
+/// </summary>
+public static class LeftoverWarnings
+{
+    /// <summary>A chave de idioma do aviso de baixa confianca.</summary>
+    public const string LowConfidenceKey = "Leftovers.Warn.LowConfidence";
+
+    /// <summary>A chave de idioma do aviso de pasta com dado do usuario.</summary>
+    public const string UserDataKey = "Leftovers.Warn.UserData";
+
+    /// <summary>
+    /// Os avisos das sobras informadas.
+    /// </summary>
+    /// <param name="leftovers">As sobras varridas.</param>
+    public static IReadOnlyList<LeftoverWarning> Build(IEnumerable<LeftoverItem>? leftovers)
+    {
+        var lista = (leftovers ?? Enumerable.Empty<LeftoverItem>())
+            .Where(i => i is not null)
+            .ToList();
+
+        var avisos = new List<LeftoverWarning>();
+
+        var baixaConfianca = lista
+            .Where(i => !i.IsHighConfidence)
+            .Select(i => i.Path)
+            .Where(p => p.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (baixaConfianca.Count > 0)
+            avisos.Add(new LeftoverWarning(LeftoverWarningKind.LowConfidence, LowConfidenceKey, baixaConfianca));
+
+        var comDados = lista
+            .Where(i => i.Kind == "Pasta" && (i.MayContainUserData || UninstallAdvisories.IsUserDataFolder(i.Path)))
+            .Select(i => i.Path)
+            .Where(p => p.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (comDados.Count > 0)
+            avisos.Add(new LeftoverWarning(LeftoverWarningKind.UserData, UserDataKey, comDados));
+
+        return avisos;
+    }
+
+    /// <summary>
+    /// As sobras sem confianca alta: sao as que precisam de aviso antes de
+    /// mexer nelas.
+    /// </summary>
+    /// <param name="leftovers">As sobras varridas.</param>
+    public static IReadOnlyList<LeftoverItem> LowConfidenceItems(IEnumerable<LeftoverItem>? leftovers) =>
+        (leftovers ?? Enumerable.Empty<LeftoverItem>())
+            .Where(i => i is not null && !i.IsHighConfidence)
+            .ToList();
+
+    /// <summary>
+    /// As pastas que podem conter dado do usuario.
+    /// </summary>
+    /// <param name="leftovers">As sobras varridas.</param>
+    public static IReadOnlyList<string> UserDataFolders(IEnumerable<LeftoverItem>? leftovers) =>
+        (leftovers ?? Enumerable.Empty<LeftoverItem>())
+            .Where(i => i is not null && i.Kind == "Pasta"
+                && (i.MayContainUserData || UninstallAdvisories.IsUserDataFolder(i.Path)))
+            .Select(i => i.Path)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 }
 
 /// <summary>Normalizacao canonica de caminhos de sistema.</summary>
@@ -776,7 +898,10 @@ public static class LeftoverScanner
         // sao as unicas cujas chaves existem de fato no momento.
         if (options.ScanAllUserAccounts)
         {
-            foreach (var profile in UserProfiles.Others())
+            // A regra de "quais contas entram na varredura" mora em um lugar
+            // so (AccountLeftoverScanner, que consume UserProfiles). Aqui
+            // so se usa a lista.
+            foreach (var profile in AccountLeftoverScanner.Accounts(AccountLeftoverScanOptions.Default))
             {
                 if (!profile.IsLoaded) continue;
                 targets.Add(new RegistryTarget(
@@ -940,7 +1065,8 @@ public static class LeftoverScanner
         // As pastas das outras contas do Windows: o AppData de cada perfil.
         if (options.ScanAllUserAccounts)
         {
-            foreach (var profile in UserProfiles.Others())
+            // Mesma regra do registro: a lista de contas vem de um lugar so.
+            foreach (var profile in AccountLeftoverScanner.Accounts(AccountLeftoverScanOptions.Default))
             {
                 if (string.IsNullOrWhiteSpace(profile.LocalPath)) continue;
 
@@ -960,7 +1086,7 @@ public static class LeftoverScanner
                     var name = Path.GetFileName(dir);
                     if (NameMatch.StartsWithWord(name, variant))
                     {
-                        AddFolderItem(dir, items, Judge(name, variant), options, otherAccount);
+                        AddFolderItem(dir, items, Judge(name, variant), options, otherAccount, variant);
                         continue;
                     }
 
@@ -975,7 +1101,7 @@ public static class LeftoverScanner
                             if (NameMatch.StartsWithWord(Path.GetFileName(sub), variant))
                                 AddFolderItem(sub, items,
                                     new LeftoverJudgment(LeftoverConfidence.Low, LeftoverReason.SubfolderMatch),
-                                    options, otherAccount);
+                                    options, otherAccount, variant);
                         }
                     }
                     catch { }
@@ -986,20 +1112,43 @@ public static class LeftoverScanner
     }
 
     private static void AddFolderItem(string dir, List<LeftoverItem> items, LeftoverJudgment judgment,
-        LeftoverScanOptions options, bool otherAccount)
+        LeftoverScanOptions options, bool otherAccount, string? programName = null)
     {
         var full = PathUtil.Normalize(dir);
         if (SafetyRules.IsProtectedFolder(full)) return;
+
+        // A confianca da pasta vem dos criterios reais (vazia, executaveis,
+        // editor reconhecido, dado do usuario...), e nao so do nome.
+        var evaluation = FolderConfidenceEvaluator.Evaluate(full, programName);
+        var confidence = judgment.Confidence;
+
+        if (evaluation.Usable)
+        {
+            var byCriteria = evaluation.Level switch
+            {
+                FolderConfidenceLevel.High => LeftoverConfidence.High,
+                FolderConfidenceLevel.Medium => LeftoverConfidence.Medium,
+                _ => LeftoverConfidence.Low,
+            };
+
+            // Os criterios podem REBAIXAR a confianca (a pasta tem dado do
+            // usuario, nao tem executavel, nao tem relacao com o programa),
+            // mas nao podem inventar uma ligacao que o nome nao fez: a
+            // confianca nunca passa da do casamento de nome.
+            if (byCriteria > confidence) confidence = byCriteria;
+        }
 
         items.Add(new LeftoverItem
         {
             Kind = "Pasta",
             Path = full,
             Detail = $"{ProgramScanner.MeasureFolder(dir) / 1024 / 1024} MB",
-            Confidence = judgment.Confidence,
+            Confidence = confidence,
             Reason = judgment.Reason,
-            Selected = Selects(judgment.Confidence, options, otherAccount),
+            Selected = Selects(confidence, options, otherAccount),
             OtherAccount = otherAccount,
+            ConfidenceCriteria = evaluation.Descriptions,
+            MayContainUserData = evaluation.MayContainUserData,
         });
     }
 }

@@ -12,6 +12,7 @@ using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui;
@@ -84,6 +85,11 @@ public partial class MainWindow : Window
         SettingsSidebarPanel.Load(_filters);
         SettingsSidebarPanel.FiltersChanged += SettingsSidebar_FiltersChanged;
 
+        // Os atalhos de teclado entram pela tabela do nucleo
+        // (Core/Shortcuts/ShortcutMap.cs): a janela so traduz a tecla
+        // pressionada e pergunta o que fazer.
+        PreviewKeyDown += Window_PreviewKeyDown;
+
         _checkBoxesInDetails = AppSettingsStore.Current.ShowCheckBoxesInDetailsView;
 
         // Telas de modulos e ferramentas registradas uma unica vez.
@@ -134,6 +140,11 @@ public partial class MainWindow : Window
         };
 
         var programs = await Task.Run(() => ProgramScanner.Scan(options));
+
+        // O cache de programas (paridade com o Revo Pro, que mantem um cache
+        // em disco) e gravado no fim da varredura. Ele e um resumo: a proxima
+        // abertura parte dele em vez de varrer o Registro inteiro de novo.
+        ProgramCacheStore.Save(programs);
 
         _all.Clear();
         foreach (var program in programs)
@@ -1091,6 +1102,11 @@ public partial class MainWindow : Window
     private void ShowOptions()
     {
         var dialog = new OptionsWindow { Owner = this };
+
+        // Reconstruir o cache de programas e uma acao da janela de opcoes:
+        // quem refaz a varredura e a janela principal.
+        dialog.CacheRebuildRequested += async (_, _) => await ReloadAsync();
+
         if (dialog.ShowDialog() == true)
             _ = ReloadAsync();
     }
@@ -1154,6 +1170,9 @@ public partial class MainWindow : Window
         var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
         var temComentario = custom is not null && custom.Comment.Length > 0;
 
+        // Renomear o programa na lista (paridade com o "Rename" do Revo Pro).
+        var rename = CommandItem(Loc.Get("Cmd.RenameProgram"), "CmdRenameProgram", () => RenameProgram(row));
+        menu.Items.Add(rename);
         var comment = CommandItem(
             Loc.Get(temComentario ? "Cmd.EditComment" : "Cmd.AddComment"),
             "CmdAddComment",
@@ -1235,6 +1254,32 @@ public partial class MainWindow : Window
     }
 
     /// <summary>Escreve (ou apaga) o comentario do usuario sobre o programa.</summary>
+    /// <summary>
+    /// Renomeia o programa na lista do Tranal.
+    ///
+    /// O nome que o Windows registra nao muda: o que muda e o nome que a
+    /// lista do Tranal mostra.
+    /// </summary>
+    /// <param name="row">O programa do menu de contexto.</param>
+    private void RenameProgram(ProgramRow row)
+    {
+        var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
+
+        var dialog = new RenameWindow(custom?.DisplayName ?? string.Empty, row.Program.DisplayName)
+        {
+            Owner = this,
+        };
+
+        if (dialog.ShowDialog() != true) return;
+
+        if (!ProgramCustomizationStore.SetName(row.Program, dialog.DisplayName))
+        {
+            ShowSaveError();
+            return;
+        }
+
+        ReloadProgramRows();
+    }
     private void EditComment(ProgramRow row)
     {
         var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
@@ -1446,6 +1491,7 @@ public partial class MainWindow : Window
         ("CSV", "csv", "Cmd.ExportCsv"),
         ("HTML", "html", "Cmd.ExportHtml"),
         ("XML", "xml", "Cmd.ExportXml"),
+        ("XLS", "xls", "Cmd.ExportExcel"),
     };
 
     private void ExportList(string format)
@@ -1468,6 +1514,23 @@ public partial class MainWindow : Window
 
         var rows = _view.Cast<ProgramRow>().ToList();
         var selecionadas = columns.SelectedColumns;
+
+        // O Excel e o unico formato que nao e um texto: quem grava o arquivo
+        // e o proprio exportador, porque ele pode acionar o Excel instalado
+        // (paridade com o Revo Pro) e, quando o Excel nao existe, cair no
+        // formato que o Excel abre nativamente.
+        if (format == "XLS")
+        {
+            var resultado = ExcelComExporter.ExportWithFallback(
+                rows.Select(r => r.Program),
+                save.FileName,
+                selecionadas,
+                AppSettingsStore.Current.ExportToExcelInstalled);
+
+            StatusText.Text = resultado.Message;
+            return;
+        }
+
         var content = format switch
         {
             "CSV" => Exporters.ToCsv(rows.Select(r => r.Program), selecionadas),
@@ -1510,6 +1573,79 @@ public partial class MainWindow : Window
     private List<ProgramRow> selectedRows =>
         ProgramsList.SelectedItems.Cast<ProgramRow>().ToList();
 
+    /// <summary>
+    /// Trata os atalhos de teclado.
+    ///
+    /// A combinacao pressionada vira o nome usado pela tabela de atalhos
+    /// (<see cref="ShortcutMap"/>). Quando a combinacao nao esta na tabela,
+    /// o evento continua: e o Windows e os controles que tratam o resto
+    /// (copiar, colar, navegar pela lista).
+    /// </summary>
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        var gesture = ShortcutMap.GestureOf(
+            e.Key.ToString(),
+            (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control,
+            (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift,
+            (Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt);
+
+        var atalho = ShortcutMap.Find(gesture);
+        if (atalho is null) return;
+
+        switch (atalho.Action)
+        {
+            case ShortcutAction.FocusSearch:
+                SettingsSidebarPanel.FocusSearch();
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.Rescan:
+                _ = ReloadAsync();
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.SelectAll:
+                ProgramsList.SelectedItems.Clear();
+                foreach (var row in _view.Cast<ProgramRow>()) ProgramsList.SelectedItems.Add(row);
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.Uninstall:
+                StartUninstall(quick: false);
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.QuickUninstall:
+                StartUninstall(quick: true);
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.ExportList:
+                ExportList("TXT");
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.Options:
+                ShowOptions();
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.Discovery:
+                ShowDiscovery();
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.Support:
+                ShowSupport();
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.ClearFilter:
+                SettingsSidebarPanel.ClearAll();
+                e.Handled = true;
+                break;
+        }
+    }
     private void StartUninstall(bool quick)
     {
         var targets = selectedRows;

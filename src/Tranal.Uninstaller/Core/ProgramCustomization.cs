@@ -32,6 +32,12 @@ public sealed class ProgramCustomization
     public string Comment { get; set; } = string.Empty;
 
     /// <summary>
+    /// Nome que o usuario deu ao programa na lista (paridade com o "Rename"
+    /// do Revo Pro). Vazio quando o nome original continua valendo.
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
     /// Indice do icone escolhido na galeria (15240: "Icon index").
     /// -1 significa "nenhum icone escolhido" — o icone do proprio programa
     /// continua valendo.
@@ -229,6 +235,31 @@ public static class ProgramCustomizationStore
     /// Guarda (ou apaga) o comentario do usuario. Comentario vazio remove a
     /// anotacao: sem comentario nao ha anotacao.
     /// </summary>
+    /// <summary>
+    /// Renomeia o programa na lista do Tranal.
+    ///
+    /// O nome original do Windows continua guardado: o rename e so o que a
+    /// lista mostra, e some quando o usuario apaga o nome novo.
+    /// </summary>
+    /// <param name="program">O programa.</param>
+    /// <param name="displayName">O nome novo. Vazio volta ao nome original.</param>
+    public static bool SetName(InstalledProgram program, string displayName)
+    {
+        var text = (displayName ?? string.Empty).Trim();
+        var item = FindOrCreate(program);
+
+        if (text.Length == 0)
+        {
+            item.DisplayName = string.Empty;
+            Prune(item);
+        }
+        else
+        {
+            item.DisplayName = text;
+        }
+
+        return Save();
+    }
     public static bool SetComment(InstalledProgram program, string comment)
     {
         var text = (comment ?? string.Empty).Trim();

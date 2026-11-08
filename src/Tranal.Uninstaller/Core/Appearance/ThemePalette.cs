@@ -44,6 +44,18 @@ public enum ThemeColorRole
 
     /// <summary>Cor do botao.</summary>
     Button,
+
+    /// <summary>
+    /// Cor do texto dos botaos de comando (16133 do Revo: "Command button
+    /// text color").
+    /// </summary>
+    CommandButtonText,
+
+    /// <summary>
+    /// Cor de fundo dos dialogos (16150 do Revo: "Dialogs background
+    /// color").
+    /// </summary>
+    DialogBackground,
 }
 
 /// <summary>
@@ -289,6 +301,8 @@ public static class ThemePalettes
             [ThemeColorRole.Accent] = "#FF3399FF",
             [ThemeColorRole.Border] = "#FF2E2E2E",
             [ThemeColorRole.Button] = "#FF4A4A4A",
+            [ThemeColorRole.CommandButtonText] = "#FFE6E6E6",
+            [ThemeColorRole.DialogBackground] = "#FF525252",
         },
     };
 
@@ -307,6 +321,8 @@ public static class ThemePalettes
             [ThemeColorRole.Accent] = "#FF0B5CAB",
             [ThemeColorRole.Border] = "#FFC8C8C8",
             [ThemeColorRole.Button] = "#FFE8E8E8",
+            [ThemeColorRole.CommandButtonText] = "#FF1A1A1A",
+            [ThemeColorRole.DialogBackground] = "#FFFFFFFF",
         },
     };
 
@@ -325,6 +341,8 @@ public static class ThemePalettes
             [ThemeColorRole.Accent] = "#FF5AA9E6",
             [ThemeColorRole.Border] = "#FF16202C",
             [ThemeColorRole.Button] = "#FF31465E",
+            [ThemeColorRole.CommandButtonText] = "#FFE8EEF5",
+            [ThemeColorRole.DialogBackground] = "#FF27384C",
         },
     };
 
@@ -343,6 +361,8 @@ public static class ThemePalettes
             [ThemeColorRole.Accent] = "#FFFFFF00",
             [ThemeColorRole.Border] = "#FFFFFFFF",
             [ThemeColorRole.Button] = "#FF202020",
+            [ThemeColorRole.CommandButtonText] = "#FFFFFFFF",
+            [ThemeColorRole.DialogBackground] = "#FF000000",
         },
     };
 
@@ -381,6 +401,8 @@ public static class ThemePalettes
         ThemeColorRole.Accent => "Destaque",
         ThemeColorRole.Border => "Borda",
         ThemeColorRole.Button => "Botão",
+        ThemeColorRole.CommandButtonText => "Texto dos botões de comando",
+        ThemeColorRole.DialogBackground => "Fundo dos diálogos",
         _ => role.ToString(),
     };
 
