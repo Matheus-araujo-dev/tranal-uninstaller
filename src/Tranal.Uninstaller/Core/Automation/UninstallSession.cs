@@ -42,6 +42,15 @@ public sealed class UninstallSession
     public int LastCompletedStep { get; init; } = -1;
 
     /// <summary>
+    /// A carga da sessão: o que ela carrega além do plano.
+    ///
+    /// Para uma desinstalação, a carga é a lista de itens que ainda precisam
+    /// sair do computador (ver <see cref="RemovalPayload"/>). Para uma sessão
+    /// de plano puro, a carga é vazia.
+    /// </summary>
+    public string Payload { get; init; } = string.Empty;
+
+    /// <summary>
     /// Onde esta sessão está gravada. Existe para o usuário (e para a linha
     /// de comando) saber onde procurar a desinstalação interrompida.
     /// </summary>
@@ -95,6 +104,21 @@ public sealed class UninstallSession
         ProgramName = ProgramName,
         Plan = Plan,
         LastCompletedStep = index,
+        Payload = Payload,
+    };
+
+    /// <summary>
+    /// Uma cópia desta sessão com a carga trocada.
+    ///
+    /// </summary>
+    /// <param name="payload">A carga, em JSON.</param>
+    public UninstallSession WithPayload(string payload) => new()
+    {
+        Id = Id,
+        ProgramName = ProgramName,
+        Plan = Plan,
+        LastCompletedStep = LastCompletedStep,
+        Payload = payload,
     };
 
     /// <summary>
@@ -234,6 +258,7 @@ public sealed class UninstallSession
                 ProgramName = session.ProgramName,
                 Plan = session.Plan,
                 LastCompletedStep = session.LastCompletedStep,
+                Payload = session.Payload,
             };
 
             return session;

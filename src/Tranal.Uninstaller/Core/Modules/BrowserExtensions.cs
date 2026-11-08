@@ -72,11 +72,32 @@ public static class BrowserExtensions
     /// <summary>Navegadores baseados em Chromium e suas pastas de perfil.</summary>
     private sealed record ChromiumBrowser(string Id, string Name, string RelativePath);
 
+    /// <summary>
+    /// Navegadores baseados em Chromium e suas pastas de perfil.
+    ///
+    /// A lista cobre os onze navegadores que o gerenciador de extensoes do
+    /// Wise lista, com os baseados em Chromium que usam a mesma estrutura de
+    /// pasta ("User Data" e "Extensions"). Os que usam estrutura propria —
+    /// Firefox, que usa arquivos .xpi — tem caminho proprio.
+    /// </summary>
     private static readonly ChromiumBrowser[] ChromiumBrowsers =
     {
         new("chrome", "Google Chrome", @"Google\Chrome\User Data"),
         new("edge", "Microsoft Edge", @"Microsoft\Edge\User Data"),
+        new("edgebeta", "Microsoft Edge Beta", @"Microsoft\Edge Beta\User Data"),
+        new("edgedev", "Microsoft Edge Dev", @"Microsoft\Edge Dev\User Data"),
+        new("brave", "Brave", @"BraveSoftware\Brave-Browser\User Data"),
+        new("vivaldi", "Vivaldi", @"Vivaldi\User Data"),
+        new("yandex", "Yandex Browser", @"Yandex\YandexBrowser\User Data"),
+        new("chromium", "Chromium", @"Chromium\User Data"),
         new("opera", "Opera", @"Opera Software\Opera Stable\User Data"),
+        new("operagx", "Opera GX", @"Opera Software\Opera GX Stable\User Data"),
+        new("comodo", "Comodo Dragon", @"Comodo\Dragon\User Data"),
+        new("torch", "Torch Browser", @"TorchSoftware\Torch\User Data"),
+        new("coccoc", "CocCoc", @"CocCoc\Browser\User Data"),
+        new("cent", "Cent Browser", @"CentBrowser\User Data"),
+        new("chedot", "Chedot Browser", @"Chedot\User Data"),
+        new("iridium", "Iridium", @"Iridium\User Data"),
     };
 
     /// <summary>

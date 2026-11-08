@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Tranal.Uninstaller.Core;
 
@@ -155,6 +156,78 @@ public static class ScheduledTaskManager
 
         return ManagementResult.Fail(
             $"Nao foi possivel remover a tarefa '{task.Name}' (codigo {code}). {output}".Trim());
+    }
+
+    /// <summary>
+    /// Cria uma tarefa agendada.
+    ///
+    /// A criacao usa o <c>schtasks.exe</c> do proprio Windows, pela mesma
+    /// raza de listar: o Agendador de Tarefas real e quem decide se a tarefa
+    /// existe, e nao um XML escrito a mao.
+    ///
+    /// O gatilho aceito e o diario, na hora escolhida — que e o que o
+    /// HiBit oferece ("criar tarefa diaria") e o que serve para o
+    /// atualizador de um programa.
+    ///
+    /// </summary>
+    /// <param name="name">O nome da tarefa (sem a pasta inicial).</param>
+    /// <param name="executable">O executavel que a tarefa roda.</param>
+    /// <param name="arguments">Os argumentos do executavel.</param>
+    /// <param name="time">A hora do disparo, no formato "HH:mm".</param>
+    /// <param name="folder">A pasta da tarefa (ex.: "\\Tranal").</param>
+    /// <param name="description">A descricao da tarefa.</param>
+    public static ManagementResult Create(
+        string? name,
+        string? executable,
+        string? arguments = null,
+        string? time = null,
+        string? folder = null,
+        string? description = null)
+    {
+        var nome = (name ?? string.Empty).Trim();
+        if (nome.Length == 0) return ManagementResult.Fail("Informe o nome da tarefa.");
+
+        var programa = (executable ?? string.Empty).Trim().Trim('"');
+        if (programa.Length == 0) return ManagementResult.Fail("Informe o executavel da tarefa.");
+
+        if (!File.Exists(programa))
+            return ManagementResult.Fail($"O executavel '{programa}' nao existe.");
+
+        var hora = (time ?? "00:00").Trim();
+        if (!Regex.IsMatch(hora, @"^\d{1,2}:\d{2}$"))
+            return ManagementResult.Fail($"A hora '{hora}' nao esta no formato HH:mm.");
+
+        var partes = hora.Split(':');
+        var h = int.Parse(partes[0]);
+        var m = int.Parse(partes[1]);
+        if (h > 23 || m > 59)
+            return ManagementResult.Fail($"A hora '{hora}' nao e uma hora valida.");
+
+        var linha = new StringBuilder();
+        linha.Append($"/create /tn \"{nome}\" /tr \"{programa}");
+        if (!string.IsNullOrWhiteSpace(arguments)) linha.Append(' ').Append(arguments.Trim());
+
+        if (!string.IsNullOrWhiteSpace(folder))
+        {
+            var pasta = folder.Trim();
+            if (!pasta.StartsWith("\\", StringComparison.Ordinal)) pasta = "\\" + pasta;
+            nome = pasta + "\\" + nome;
+            linha.Clear();
+            linha.Append($"/create /tn \"{nome}\" /tr \"{programa}");
+            if (!string.IsNullOrWhiteSpace(arguments)) linha.Append(' ').Append(arguments.Trim());
+            linha.Append(" /f");
+        }
+
+        linha.Append($" /sc daily /st {h:00}:{m:00}");
+
+        if (!string.IsNullOrWhiteSpace(description))
+            linha.Append($" /desc \"{description.Trim()}\"");
+
+        var (code, output) = RunSchtasks(linha.ToString());
+        if (code == 0) return ManagementResult.Ok($"A tarefa '{nome}' foi criada.");
+
+        return ManagementResult.Fail(
+            $"Nao foi possivel criar a tarefa '{nome}' (codigo {code}). {output}".Trim());
     }
 
     /// <summary>

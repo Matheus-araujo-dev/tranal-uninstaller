@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Tools;
 using Tranal.Uninstaller.Ui.Shared;
 
@@ -38,6 +39,7 @@ public static class ToolViews
         ToolCatalog.PrivacyTraces => CreatePrivacyTraces(),
         ToolCatalog.AlternateDataStreams => CreateAlternateDataStreams(),
         ToolCatalog.CustomTools => CreateCustomTools(),
+        ToolCatalog.Processes => CreateProcessPanel(),
         ToolCatalog.SystemManagement => new Management.ManagementView(),
         ToolCatalog.Appearance => new Appearance.AppearanceView(),
         _ => CreateUnknown(toolId),
@@ -557,6 +559,60 @@ public static class ToolViews
                 + Loc.Get("Common.Error") + $": {report.FailedCount + report.ProtectedCount}";
 
             await ScanAsync(panel, rows, items);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Painel de processos
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateProcessPanel()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.Processes"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Module.ProcessOwner"), Width = 220, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 420, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Common.Size"), Width = 110, BindingPath = "Kind" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "ProcessesRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => LoadAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => LoadAsync(panel, rows));
+        return panel;
+
+        static async Task LoadAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+            {
+                IncludeSystemComponents = false,
+                IncludeMsiProducts = false,
+            });
+
+            var processos = await Task.Run(() => ProcessInspector.List(programas));
+
+            rows.Clear();
+            foreach (var processo in processos)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = $"{processo.Name} ({processo.Id})",
+                    Path = processo.InstalledProgram,
+                    Size = processo.Path,
+                    Kind = processo.WorkingSetText,
+                    Source = processo,
+                });
+            }
+
+            panel.PanelStatus = string.Format(
+                CultureInfo.CurrentCulture, Loc.Get("Processes.Found"), processos.Count);
         }
     }
 

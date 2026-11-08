@@ -885,5 +885,8 @@
     "RegistryCleaner.Found":  "{0} sobra(s) de registro encontrada(s).",
     "RegistryCleaner.RemoveSelected":  "Remover os selecionados",
     "RegistryCleaner.Scan":  "Verificar sobras",
-    "Common.Reason.OrphanedRegistryEntry":  "Registro obsoleto"
+    "Common.Reason.OrphanedRegistryEntry":  "Registro obsoleto",
+    "Module.Processes":  "Painel de processos",
+    "Module.ProcessOwner":  "Programa dono",
+    "Processes.Found":  "{0} processo(s) em execução."
 }

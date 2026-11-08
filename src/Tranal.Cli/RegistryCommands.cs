@@ -5,6 +5,7 @@ using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Management;
+using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Cli;
@@ -38,7 +39,32 @@ public static class RegistryCommands
         if (flags.Contains("/com-unregister")) return RunComUnregister(args, flags);
         if (flags.Contains("/shared")) return RunShared(args);
         if (flags.Contains("/noremove")) return RunNoRemove(args, flags);
+        if (flags.Contains("/create-service")) return RunCreateService(args);
+        if (flags.Contains("/create-task")) return RunCreateTask(args);
+        if (flags.Contains("/processes")) return RunProcesses();
         return null;
+    }
+
+    private static int RunProcesses()
+    {
+        var instalados = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = false,
+            IncludeMsiProducts = false,
+        });
+
+        var processos = ProcessInspector.List(instalados);
+
+        Console.WriteLine($"Processos em execução: {processos.Count}");
+        Console.WriteLine();
+
+        foreach (var processo in processos)
+        {
+            var dono = processo.InstalledProgram.Length > 0 ? processo.InstalledProgram : "-";
+            Console.WriteLine($"    {processo.Id,6}  {processo.Name,-28} {processo.WorkingSetText,10}  {dono}");
+        }
+
+        return 0;
     }
 
     private static string? ValueAfter(string[] args, string name)
@@ -162,13 +188,13 @@ public static class RegistryCommands
             return 1;
         }
 
-        var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        var instalados = ProgramScanner.Scan(new ProgramScanner.ScanOptions
         {
             IncludeSystemComponents = false,
             IncludeMsiProducts = false,
         });
 
-        var analise = SharedReferenceCounter.Analyze(caminho, programas);
+        var analise = SharedReferenceCounter.Analyze(caminho, instalados);
 
         Console.WriteLine($"Caminho: {analise.Path}");
         Console.WriteLine($"Referencias: {analise.ReferenceCount}");
@@ -183,6 +209,52 @@ public static class RegistryCommands
         return 0;
     }
 
+    private static int RunCreateService(string[] args)
+    {
+        var nome = ValueAfter(args, "/create-service");
+        var executavel = ValueAfter(args, "/exe");
+        if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(executavel))
+        {
+            Console.Error.WriteLine("Uso: tranal /create-service \"nome\" /exe \"C:\\Programa.exe\" "
+                + "[/display \"Nome visivel\"] [/args \"argumentos\"] [/start Automatic|Manual|Disabled]");
+            return 1;
+        }
+
+        var resultado = ServiceManager.Create(
+            nome.Trim(),
+            ValueAfter(args, "/display")?.Trim() ?? nome.Trim(),
+            executavel.Trim(),
+            ValueAfter(args, "/args")?.Trim() ?? string.Empty,
+            ValueAfter(args, "/desc")?.Trim() ?? string.Empty,
+            ValueAfter(args, "/start")?.Trim() ?? "Manual");
+
+        Console.WriteLine(resultado.Message);
+        return resultado.Success ? 0 : 1;
+    }
+
+    private static int RunCreateTask(string[] args)
+    {
+        var nome = ValueAfter(args, "/create-task");
+        var executavel = ValueAfter(args, "/exe");
+        if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(executavel))
+        {
+            Console.Error.WriteLine("Uso: tranal /create-task \"nome\" /exe \"C:\\Programa.exe\" "
+                + "[/args \"argumentos\"] [/time HH:mm] [/folder \"\\Pasta\"] [/desc \"descricao\"]");
+            return 1;
+        }
+
+        var resultado = ScheduledTaskManager.Create(
+            nome.Trim(),
+            executavel.Trim(),
+            ValueAfter(args, "/args")?.Trim(),
+            ValueAfter(args, "/time")?.Trim() ?? "00:00",
+            ValueAfter(args, "/folder")?.Trim(),
+            ValueAfter(args, "/desc")?.Trim());
+
+        Console.WriteLine(resultado.Message);
+        return resultado.Success ? 0 : 1;
+    }
+
     private static int RunNoRemove(string[] args, HashSet<string> flags)
     {
         var nome = ValueAfter(args, "/noremove");
@@ -192,13 +264,13 @@ public static class RegistryCommands
             return 1;
         }
 
-        var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        var instalados = ProgramScanner.Scan(new ProgramScanner.ScanOptions
         {
             IncludeSystemComponents = true,
             IncludeMsiProducts = false,
         });
 
-        var alvo = programas.FirstOrDefault(p =>
+        var alvo = instalados.FirstOrDefault(p =>
             p.DisplayName.Equals(nome.Trim(), StringComparison.OrdinalIgnoreCase));
 
         if (alvo is null)

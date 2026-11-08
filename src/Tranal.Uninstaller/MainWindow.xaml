@@ -292,6 +292,14 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="Processes" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolProcesses">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F9F0;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Processes}" />
+            </StackPanel>
+          </Button>
+
           <!-- Privacidade: rastros do uso da maquina, fluxos escondidos e ferramentas proprias. -->
           <TextBlock Text="{loc:Tr Sidebar.GroupPrivacy}" Margin="10,10,0,2"
                      FontSize="11" FontWeight="Bold"

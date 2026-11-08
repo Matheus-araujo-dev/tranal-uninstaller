@@ -885,5 +885,8 @@
     "RegistryCleaner.Found":  "{0} registry leftover(s) found.",
     "RegistryCleaner.RemoveSelected":  "Remove the selected ones",
     "RegistryCleaner.Scan":  "Scan leftovers",
-    "Common.Reason.OrphanedRegistryEntry":  "Orphaned registry entry"
+    "Common.Reason.OrphanedRegistryEntry":  "Orphaned registry entry",
+    "Module.Processes":  "Process panel",
+    "Module.ProcessOwner":  "Owning program",
+    "Processes.Found":  "{0} process(es) running."
 }

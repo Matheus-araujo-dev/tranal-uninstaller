@@ -53,6 +53,11 @@ public static class ToolCatalog
     public const string CustomTools = "CustomTools";
 
     /// <summary>
+    /// Painel de processos: o que esta rodando agora, e de qual programa e.
+    /// </summary>
+    public const string Processes = "Processes";
+
+    /// <summary>
     /// Painel de gestao do sistema: permissoes do programa, servicos, tarefas
     /// agendadas, drivers e saude do software.
     /// </summary>
@@ -95,6 +100,7 @@ public static class ToolCatalog
         PrivacyTraces,
         AlternateDataStreams,
         CustomTools,
+        Processes,
         SystemManagement,
         Appearance,
     };

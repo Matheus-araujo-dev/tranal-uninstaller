@@ -90,4 +90,7 @@ RegistryCleaner.RemoveSelected|Remover os selecionados|Remove the selected ones
 RegistryCleaner.Empty|Nenhuma sobra de registro encontrada.|No registry leftovers found.
 RegistryCleaner.Found|{0} sobra(s) de registro encontrada(s).|{0} registry leftover(s) found.
 Common.Reason.OrphanedRegistryEntry|Registro obsoleto|Orphaned registry entry
+Module.Processes|Painel de processos|Process panel
+Module.ProcessOwner|Programa dono|Owning program
+Processes.Found|{0} processo(s) em execução.|{0} process(es) running.
 Sidebar.GroupPrivacy|Privacidade|Privacy

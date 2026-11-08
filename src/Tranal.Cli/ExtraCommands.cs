@@ -31,6 +31,11 @@ namespace Tranal.Cli;
 ///   tranal /com-unregister "C:\Pasta"    - lista e desregistra os componentes COM
 ///   tranal /shared "C:\Pasta"            - mostra quem usa o caminho
 ///   tranal /noremove "programa"          - mostra e desliga a protecao do desinstalador
+///   tranal /create-service "nome" /exe "C:\Programa.exe"   - cria um servico do Windows
+///   tranal /create-task "nome" /exe "C:\Programa.exe"      - cria uma tarefa agendada
+///   tranal /sessions                 - lista as desinstalacoes interrompidas
+///   tranal /resume "id"              - retoma uma desinstalacao interrompida
+///   tranal /processes                - lista os processos em execucao e o programa dono
 /// </summary>
 public static class ExtraCommands
 {
@@ -58,6 +63,7 @@ public static class ExtraCommands
         if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
+        if (ResumeCommands.TryRun(args, flags) is int resumeResult) return resumeResult;
         return null;
     }
 

@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
+using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Topmost;
@@ -544,9 +545,27 @@ public static class Program
                 // permite devolver o conteudo apagado ("Recuperar").
                 leftoverBackup = UninstallEngine.BackupLeftovers(items, target.DisplayName, options);
 
+                // A sessao e gravada ANTES da remocao: e a remocao que pode
+                // ser interrompida pelo reinicio do Windows, e sem a sessao
+                // gravada antes nao haveria o que retomar depois.
+                var sessao = UninstallResume.SaveRemoval(target.DisplayName, mode, items);
+
                 report = UninstallEngine.RemoveLeftovers(items, options, fullBackup);
                 PrintRemovalSummary(report, options);
                 SaveRemovalLog(report, target.DisplayName);
+
+                // A sessao so sai quando nao sobrou nada. Com itens adiados
+                // para o proximo reinicio, o trabalho ainda esta pela metade
+                // e a retomada continua valendo.
+                if (report.FailedCount == 0 && report.DeferredCount == 0 && report.ProtectedCount == 0)
+                {
+                    UninstallResume.Discard(sessao.Id);
+                }
+                else
+                {
+                    Console.WriteLine($"A desinstalação ficou pela metade. Para retomar: tranal /resume \"{sessao.Id}\"");
+                    Console.WriteLine();
+                }
 
                 if (leftoverBackup.Ok)
                 {
