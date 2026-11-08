@@ -1243,8 +1243,8 @@
                                                          "numero":  2,
                                                          "funcionalidade":  "Total agregado no rodapé (\"%d programs of %s size in total\")",
                                                          "evidencia":  "literal `\u003cstatusTotalInfo\u003e%d programs of %s size in total\u003c/statusTotalInfo\u003e` (`geek.strings.txt:4639`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Appearance/ProgramTextFormatter.cs` formata o total, mas a barra de status do Tranal não mostra o agregado como rodapé fixo"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - O rodape mostra a **contagem** (`MainWindow.xaml.cs`), nao o tamanho total. O total so aparece no resumo do treemap (`Ui/Appearance/AppearanceView.xaml.cs`)"
                                                      },
                                                      {
                                                          "numero":  3,
@@ -1265,7 +1265,7 @@
                                                          "funcionalidade":  "Aviso \"No matching items, press ESC to reset\"",
                                                          "evidencia":  "literal `\u003cstaticNoItemsMatchingFilterTip\u003eNo matching items, press ESC to reset\u003c/staticNoItemsMatchingFilterTip\u003e` (`geek.strings.txt:4584`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal filtra a lista mas não avisa quando nada casa"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha estado/aviso de lista vazia por filtro (grep \"NoResults\"/\"Sem resultados\" sem resultado). O filtro tem validacao de regex (`Core/Appearance/ProgramFilters.cs`) e exclusoes (`ProgramFilters.AddExclusion`), mas nenhum aviso de \"nada corresponde\""
                                                      },
                                                      {
                                                          "numero":  6,
@@ -1278,8 +1278,8 @@
                                                          "numero":  7,
                                                          "funcionalidade":  "**Modificar/reparar** a instalação",
                                                          "evidencia":  "`MainMenu/mnuActionModify` (`geek.strings.txt:1169`), literal `\u003cmnuActionModify\u003e\u0026amp;Modify...\u003c/mnuActionModify\u003e` (`:4553`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — nenhum comando de modify/repair no Tranal"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), (`Repair`); produtos MSI expostos em `Ui/Discovery/DiscoveryWindow.xaml.cs`"
                                                      },
                                                      {
                                                          "numero":  8,
@@ -1292,15 +1292,15 @@
                                                          "numero":  9,
                                                          "funcionalidade":  "**Batch Force Removal**",
                                                          "evidencia":  "literal `\u003cmnuActionDeleteBatch\u003eBatch \u0026amp;Force Removal\u003c/mnuActionDeleteBatch\u003e` (`geek.strings.txt:4555`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Automation/BatchList.cs` faz lote pela lista, mas não combina lote com remoção forçada"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Lote na interface: `MainWindow.xaml` (`SelectionMode=\"Extended\"`) + `MainWindow.xaml.cs` (`Cmd.UninstallManyConfirm`) + `Core/Automation/UninstallQueue.cs`; forcado por alvo/palavra-chave: `Core/Automation/ForcedRemovalOptions.cs:41/50`, `Ui/ForcedUninstallWindow.xaml.cs`; CLI: `Tranal.Cli/ExtraCommands.cs` (`/batch`)"
                                                      },
                                                      {
                                                          "numero":  10,
                                                          "funcionalidade":  "**Remove Entry** + **Batch Remove Entries**",
                                                          "evidencia":  "`MainMenu/mnuActionRemoveEntry` (`geek.strings.txt:1171`), literal `\u003cmnuActionRemoveEntryBatch\u003eBatch Remove \u0026amp;Entries\u003c/mnuActionRemoveEntryBatch\u003e` (`:4557`), `\u003cmsgRemoveEntryQuestion\u003e` (`:4612`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs` remove a entrada; não há o modo \"batch remove entries\""
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - O editor de registro e unitario: `Core/RegistryEditing/RegistryEditor.cs:125/174`. Nao ha acao em lote so de chaves"
                                                      },
                                                      {
                                                          "numero":  11,
@@ -1313,8 +1313,8 @@
                                                          "numero":  12,
                                                          "funcionalidade":  "Mensagens do assistente, **medidas em execução**: \"Alguns itens órfãos encontrados!\" → \"Gerando lista de traços…\" → \"Todos os traços removidos\"",
                                                          "evidencia":  "literais `\u003cstatusScanning\u003eScanning for leftover files, folders and registry items...\u003c/statusScanning\u003e`, `\u003cstatusLeftOverTracesFound\u003eSome leftover traces found!\u003c/statusLeftOverTracesFound\u003e`, `\u003cstatusAllTracesRemoved\u003eAll Traces Removed\u003c/statusAllTracesRemoved\u003e`, `\u003cstatusDeletingProgramTraces\u003eDeleting program traces...\u003c/statusDeletingProgramTraces\u003e` (`geek.strings.txt:4592-4597`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs` tem progresso e resumo, mas não o ciclo de \"traços\" nem o diálogo de órfãos"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/DriveScanner.cs:82` (`OrphanUninstaller`) e (`DriveScanResult`), categoria em `Ui/Discovery/DiscoveryWindow.xaml.cs:44`; remocao assistida em `Core/Automation/ForcedRemovalOptions.cs`"
                                                      },
                                                      {
                                                          "numero":  13,
@@ -1327,22 +1327,22 @@
                                                          "numero":  14,
                                                          "funcionalidade":  "Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos**",
                                                          "evidencia":  "literal `\u003cmsgUninstallFailed\u003eUninstallation process failed. \\nWould you like to clean this program entry from registry and clean up its files?\u003c/msgUninstallFailed\u003e` (`geek.strings.txt:4610`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Automation/ManualRemoval.cs` faz a limpeza manual, mas não há o diálogo de falha com esse offered"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Ha o relatorio de remocao com codigo de erro (`Core/RemovalLog.cs`, `Core/Removal.cs`) e a desinstalacao forcada como caminho separado (`Ui/ForcedUninstallWindow.xaml.cs`), mas nao o dialogo \"a desinstalacao falhou, quer limpar a entrada e os arquivos?\""
                                                      },
                                                      {
                                                          "numero":  15,
                                                          "funcionalidade":  "\"Browse...\" dentro das sobras encontradas",
                                                          "evidencia":  "`UninstallWizard/treeItemPopopMenuBrowse` (`geek.strings.txt:1333`), literal `\u003ctreeItemPopopMenuBrowse\u003eBrowse...\u003c/treeItemPopopMenuBrowse\u003e` (`:4601`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — a lista de sobras do Tranal não tem \"Browse...\" por item"
+                                                         "estadoTexto":  "**AUSENTE** - A lista de sobras e `LeftoverItem` (`Core/UninstallSupport.cs`) em lista simples, sem acao de navegar para o item"
                                                      },
                                                      {
                                                          "numero":  16,
                                                          "funcionalidade":  "Aba de **Microsoft Store Apps** (`Ctrl+Tab`)",
                                                          "evidencia":  "`MainMenu/mnuViewWinStoreApps` (`geek.strings.txt:1098`), literal `\u003cmnuViewWinStoreApps\u003eMicrosoft Store Apps\u003c/mnuViewWinStoreApps\u003e` (`:4567`)",
-                                                         "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs` (122 pacotes MSIX)"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"ms-windows-store\" sem resultado. Ha o modulo de apps Store (`Core/Modules/WindowsApps.cs`) para listar/remover, mas nao o comando \"abrir na Store\""
                                                      },
                                                      {
                                                          "numero":  17,
@@ -1383,8 +1383,8 @@
                                                          "numero":  22,
                                                          "funcionalidade":  "**Browse Location…** e **Browse Source…**",
                                                          "evidencia":  "literais `\u003cmnuActionBrowseLocation\u003eBrowse Location...\u003c/mnuActionBrowseLocation\u003e` e `\u003cmnuActionBrowseSource\u003eBrowse Source...\u003c/mnuActionBrowseSource\u003e` (`geek.strings.txt:4562-4563`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — o Tranal escolhe a pasta de instalação, mas **não tem \"Browse Source\"** (localizar o instalador-fonte)"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - A **origem** do item existe (`Core/ProgramColumns.cs:112` (`ProgramSource`) e `Core/ProgramColumns.cs:304` (`SourceOf`), mas nao ha localizacao do instalador-fonte nem acao de browse"
                                                      },
                                                      {
                                                          "numero":  23,
@@ -1404,78 +1404,78 @@
                                                          "numero":  25,
                                                          "funcionalidade":  "Categoria **Windows Updates**",
                                                          "evidencia":  "literal `\u003cWindowsUpdatesText\u003eWindows Updates\u003c/WindowsUpdatesText\u003e` (`geek.strings.txt:4641`), `Windows Updates` (`:4962`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Discovery/WindowsFeatures.cs` enumera via COM; o Tranal não expõe a categoria como filtro de lista"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Ui/Discovery/DiscoveryWindow.xaml.cs:143` e (`WindowsUpdateCatalog.ListInstalled`)"
                                                      },
                                                      {
                                                          "numero":  26,
                                                          "funcionalidade":  "Aviso quando a remoção da entrada falha por falta de permissão",
                                                          "evidencia":  "literal `\u003cmsgRemoveEntryFailed\u003eFailed to delete the registry entry of this item. \\nYou probably have no access to do it.\u003c/msgRemoveEntryFailed\u003e` (`geek.strings.txt:4614`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs` retorna `RegistryEditResult` com erro, mas não há diálogo dedicado"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Removal.cs` (`ErrorCodeOf`, 5 = acesso negado) + `Core/RemovalLog.cs`; o relatorio mostra a falha com codigo"
                                                      },
                                                      {
                                                          "numero":  27,
                                                          "funcionalidade":  "**Varredura de sobras de MSI** pelo registro do Installer",
                                                          "evidencia":  "`CScannerMSI::ScanMSITraces` (`geek.strings.txt:1307`), `SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\%s\\Products\\` (`:12659`), `Installer\\Folders` (`:12762`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/MsiInstallLog.cs` + `src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs`"
+                                                         "estadoTexto":  "**OK** - `Core/MsiInstallLog.cs:110` (`Capture`) e (`FindLeftovers`); `Core/Discovery/MsiProductCatalog.cs:177/205`"
                                                      },
                                                      {
                                                          "numero":  28,
                                                          "funcionalidade":  "**Chave de produto MSI** detectada por programa",
                                                          "evidencia":  "literal \"Found MSI product key {} for {}\" (`geek.strings.txt:12759`), `HKEY_LOCAL_MACHINE\\SOFTWARE\\...\\Installer\\UserData\\%s\\Products\\%s` (`:12758`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs`"
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/MsiProductCatalog.cs:248` (`Uninstall`), (`TryNormalizeProductCode`)"
                                                      },
                                                      {
                                                          "numero":  29,
                                                          "funcionalidade":  "**Desregistro de COM** (`regsvr32 /u`) antes de remover",
                                                          "evidencia":  "literal `regsvr32.exe /s /u \"%s\"` (`geek.strings.txt:12725`), \"\u003e Unregister COM Object: failed to create regsvr32 process\" (`:12726`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não desregistra COM"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Automation/ComUnregister.cs` (`Unregister`, `UnregisterAll`, `RegisteredDlls`) — a lista vem do REGISTRO (a DLL so entra quando o registro aponta para ela) e o desregistro e `regsvr32 /u`; linha de comando `tranal /com-unregister`"
                                                      },
                                                      {
                                                          "numero":  30,
                                                          "funcionalidade":  "**Remoção adiada para o próximo reinício** quando o arquivo está em uso",
                                                          "evidencia":  "literais \"\u003e ERROR_ACCESS_DENIED, the file will be deleted on the next system restart\" (`geek.strings.txt:12728`), \"\u003e ERROR_SHARING_VIOLATION, the folder will be deleted on the next system restart\" (`:12731`), `MoveFileExW` importada (`:2817`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/DeferredDelete.cs` (`MoveFileEx` com `MOVEFILE_DELAY_UNTIL_REBOOT`)"
+                                                         "estadoTexto":  "**OK** - `Core/DeferredDelete.cs:27` (`Schedule`) e (`MoveFileEx` + `MOVEFILE_DELAY_UNTIL_REBOOT`); `Core/UninstallRemovalOptions.cs` (`DeferToNextRestart`); `Core/Removal.cs:8` (`RemovalStatus.Deferred`); `Core/RemovalLog.cs:69` (`DeferredToReboot`)"
                                                      },
                                                      {
                                                          "numero":  31,
                                                          "funcionalidade":  "**Detecção de instalação em `Local AppData\\Programs`**",
                                                          "evidencia":  "literal \"Found install location in Local AppData Programs: {}\" (`geek.strings.txt:12639`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/ProgramScanner.cs` lê `InstallLocation` do registro, mas não varre `LocalAppData\\Programs`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/UserInstallFolders.cs:87` (`IsUserInstallPath`) e (`Scan`); `Core/MsiInstallLog.cs` resolve \"LocalAppDataProgramFilesFolder\""
                                                      },
                                                      {
                                                          "numero":  32,
                                                          "funcionalidade":  "**Guarda contra falso positivo** de `InstallLocation`",
                                                          "evidencia":  "literais \"False positive InstallLocation found {}\" e \"Cannot set location for item (false positive risk) {}\" (`geek.strings.txt:12664-12665`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal aceita o `InstallLocation` do registro sem essa validação"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/FolderConfidenceEvaluator.cs:165` (`Evaluate`, 7 criterios); avisos de baixa confianca em `Core/UninstallSupport.cs:199` (`LeftoverWarnings`) e (`LowConfidenceItems`)"
                                                      },
                                                      {
                                                          "numero":  33,
                                                          "funcionalidade":  "**Correspondência aproximada (Levenshtein)** de caminho de instalação",
                                                          "evidencia":  "literal `GetInstallLocationFromPathLevinshtein ({})` (`geek.strings.txt:12640`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem casamento aproximado de caminho"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"Levensh\" sem resultado. O que existe: variantes por palavra inteira (`Core/UninstallSupport.cs:552` (`NameVariants`), `Core/UninstallSupport.cs:292` (`ContainsWord`) e `LeftoverReason.SimilarNameMatch`"
                                                      },
                                                      {
                                                          "numero":  34,
                                                          "funcionalidade":  "**Varredura de atalhos do Menu Iniciar e da Área de Trabalho** para achar ícone e localização",
                                                          "evidencia":  "`CFindIconJob::FindStartMenuShortCut` (`geek.strings.txt:1194`), `CScannerNormal::LoadStartMenuShortCuts` (`:1317`), `CScannerNormal::LoadDeskTopShortcuts` (`:1320`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/ProgramScanner.cs` varre o Menu Iniciar, mas não a Área de Trabalho nem usa o atalho para achar o instalador"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - O Menu Iniciar so aparece como entrada obsoleta (`Core/Tools/RegistryOptimizer.cs`, `ScanStartMenu`) e atalho so como sobra (`Core/UninstallSupport.cs`). Nao ha varredura de atalhos para descobrir icone/local do programa"
                                                      },
                                                      {
                                                          "numero":  35,
                                                          "funcionalidade":  "**Limpeza do cache MRU do Windows**",
                                                          "evidencia":  "literal `Software\\Classes\\Local Settings\\MrtCache` (`geek.strings.txt:12749`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — nenhuma limpeza de `MrtCache` no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"MrtCache\" sem resultado em `src/`. O MRU existente e o de Office (`Core/Tools/TrackCleaner.cs:55-58`), nao essa chave"
                                                      },
                                                      {
                                                          "numero":  36,
@@ -1488,22 +1488,22 @@
                                                          "numero":  37,
                                                          "funcionalidade":  "**Cache de uninstall** com XML versionado",
                                                          "evidencia":  "literais `CUninstallCache::Save` / `::Load` / `::clear` (`geek.strings.txt:1134-1147`), `UninstallCache` versionado em XML (`geek.strings.txt:1136`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não persiste cache de varredura"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Settings/ProgramCache.cs:85` (`ProgramCache`), (`ProgramCacheStore`: Save/TryLoad/Invalidate) + `Core/Modules/TraceStore.cs`. **Nota**: e JSON, nao XML"
                                                      },
                                                      {
                                                          "numero":  38,
                                                          "funcionalidade":  "**Cálculo do tamanho** de cada programa",
                                                          "evidencia":  "literais \"Calculate size of {}\" (`geek.strings.txt:14583`), \"CCalculate size of {}\" (`:12626`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/ProgramScanner.cs` calcula o tamanho, mas não por `CCalculate`-style (varredura recursiva medida)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/ProgramScanner.cs:405` (`MeasureFolder`) + `ScanOptions.ComputeFolderSize`"
                                                      },
                                                      {
                                                          "numero":  39,
                                                          "funcionalidade":  "**Painel \"Active Files\"** de arquivos em uso",
                                                          "evidencia":  "literal \"Active Files\" (`geek.strings.txt:14689`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem painel de arquivos em uso"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha painel dedicado. A **deteccao** existe (o item em uso vira \"adiado para o proximo reinicio\": `Core/Removal.cs`, `Core/RemovalLog.cs`), mas nao a tela listando arquivos em uso"
                                                      },
                                                      {
                                                          "numero":  40,
@@ -1517,14 +1517,14 @@
                                                          "funcionalidade":  "**Log da desinstalação** gravado em arquivo por programa",
                                                          "evidencia":  "literal `%s_UninstallLog.log` (`geek.strings.txt:12739`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/RemovalLog.cs`"
+                                                         "estadoTexto":  "**OK** - `Core/RemovalLog.cs` (`RemovalLog`, CSV/JSON por operacao) com codigo de erro do Windows (`Core/Removal.cs`)"
                                                      },
                                                      {
                                                          "numero":  42,
                                                          "funcionalidade":  "**Enumeração por SID do usuário** dos pacotes MSIX",
                                                          "evidencia":  "literal `FindPackagesByUserSecurityId failed` (`geek.strings.txt:1907`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs` enumera por usuário via `PackageManager`, mas o Geek varre também por SID"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Modules/WindowsApps.cs` usa `Get-AppxPackage` (usuario atual), sem `-AllUsers` e sem SID"
                                                      },
                                                      {
                                                          "numero":  43,
@@ -1537,8 +1537,8 @@
                                                          "numero":  44,
                                                          "funcionalidade":  "**\"Nenhum programa nesta categoria\"**",
                                                          "evidencia":  "literal `\u003cstaticNoProgramsInCategory\u003eSeems like no Microsoft Store apps installed\u003c/staticNoProgramsInCategory\u003e` (`geek.strings.txt:4585`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não tem o conceito de categoria por aba"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - A listagem de Store/MSIX existe (`Core/Modules/WindowsApps.cs`, `Ui/Modules/ModuleViews.cs`); a categoria vazia simplesmente nao mostra linhas. **Nota**: e um texto de estado, nao uma feature"
                                                      }
                                                  ]
                          },
@@ -1552,7 +1552,7 @@
                                                          "funcionalidade":  "Lista com colunas: Nome, Versão, Editor, Data, Tamanho, Tipo, Comentários, String de desinstalação, Pasta de instalação, Site, Entrada de registro",
                                                          "evidencia":  "`hibit.recursos.txt:191` -\u003e `TUNINSTALLER/0` (formulário principal); `hibit.recursos.txt:192` -\u003e `TUNINSTALLFORM/0`; `hibit.recursos.txt:159` -\u003e `TEDITINFOFORM/0`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — o Tranal tem colunas configuráveis (`Core/ProgramColumns.cs`) e comentários (`Ui/CommentWindow.xaml.cs`); **falta a coluna de Tipo (32bit/64bit)** e a de local de instalação"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/ProgramColumns.cs:21` (`ProgramColumn.Type`, \"32 ou 64 bits\"); local em `Core/Appearance/ProgramTextFormatter.cs` e `Core/Appearance/ProgramFilters.cs` (`HighlightScope.InstallLocation`). **Nota**: o local de instalacao nao e coluna da grade, aparece em detalhes/copia/filtro"
                                                      },
                                                      {
                                                          "numero":  2,
@@ -1573,21 +1573,21 @@
                                                          "funcionalidade":  "**Desinstalação forçada** (\"Remoção Forçada\") — reagendada para o próximo logon via `RunOnce`",
                                                          "evidencia":  "`hibit.recursos.txt:171` -\u003e `TFORCEUNINSTALLFORM/0`; `hibit.inventario.md:13448` -\u003e `Schedule` - Agenda execucao",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Automation/ForcedRemovalOptions.cs` + `Core/DeferredDelete.cs`; a reagendação via `RunOnce` não foi conferida"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Automation/UninstallResume.cs` (`SaveRemoval`, `Pending`, `ReadItems`, `Discard`) + `Core/Automation/UninstallSession.cs` (`Payload`). A sessao da remocao e gravada ANTES da remocao comecar, com a lista de itens que faltam; `tranal /sessions` lista o que ficou pela metade e `tranal /resume` continua do ponto em que parou. **Nota**: a retomada e por sessao, nao por `RunOnce`"
                                                      },
                                                      {
                                                          "numero":  5,
                                                          "funcionalidade":  "**Varredura de sobras** em **árvore** (TreeView), com AutoClean e RegBackup",
                                                          "evidencia":  "`hibit.recursos.txt:181` -\u003e `TREGISTRYCLEANERFORM/0`; `hibit.inventario.md:13463` -\u003e `Restore` - Restaura backups",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/UninstallSupport.cs` varre e mostra **por motivo** (`Core/Localization/LeftoverLabels.cs`); falta a árvore por categoria"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/UninstallSupport.cs:523` (`LeftoverScanner`) + 15 motivos em `LeftoverReason` (`Core/UninstallSupport.cs:49-117`), incluindo atalho obsoleto (`LeftoverReason.ObsoleteShortcut`), Menu Iniciar obsoleto (`LeftoverReason.ObsoleteStartMenu`) e entrada de inicializacao (`LeftoverReason.StartupEntry`). **Nota**: servico e tarefa tem gerenciador proprio (`Core/Management/ServiceManager.cs:113`, `Core/Management/ScheduledTaskManager.cs:79`) e nao entram na arvore de sobras"
                                                      },
                                                      {
                                                          "numero":  6,
                                                          "funcionalidade":  "**Backup próprio `.dbh`** (Hibit Backup File): `BackupFiles.zip` + `FileList.txt` + `Registry.ini`",
                                                          "evidencia":  "`hibit.recursos.txt:149` -\u003e `TBACKUPFORM/0`; `:148` -\u003e `TBACKUPDETAILSFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/BackupManager.cs` e `Core/Recovery/ProgramBackup.cs` existem, mas em outro formato"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/BackupManager.cs:165/193/225/282/601`, `Core/FullRegistryBackup.cs`, `Core/Recovery/ProgramBackup.cs`, `Core/Recovery/LeftoverBackup.cs`, `Ui/BackupManagerWindow.xaml.cs`. Formato e JSON + arquivos, nao `.dbh`"
                                                      },
                                                      {
                                                          "numero":  7,
@@ -1621,8 +1621,8 @@
                                                          "numero":  11,
                                                          "funcionalidade":  "**Editar informações** do programa",
                                                          "evidencia":  "`hibit.recursos.txt:159` -\u003e `TEDITINFOFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/ProgramCustomization.cs` + `Ui/CommentWindow.xaml.cs`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/ProgramCustomization.cs:246/263/306/317/460` (nome, comentario, icone, grupo, estrelas) + `Ui/RenameWindow.xaml.cs`, `Ui/CommentWindow.xaml.cs`, `Ui/IconPickerWindow.xaml.cs`"
                                                      },
                                                      {
                                                          "numero":  12,
@@ -1635,8 +1635,8 @@
                                                          "numero":  13,
                                                          "funcionalidade":  "Copiar dados do programa para a área de transferência",
                                                          "evidencia":  "`hibit.recursos.txt:166` -\u003e `TFILEINFOFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Ui/Appearance/ProgramClipboard.cs`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Appearance/ProgramTextFormatter.cs:47` (`Format`, `ClipboardFormat`) + `Ui/Appearance/ProgramClipboard.cs`"
                                                      },
                                                      {
                                                          "numero":  14,
@@ -1649,8 +1649,8 @@
                                                          "numero":  15,
                                                          "funcionalidade":  "**Modificar/reparar** instalação MSI (`ModifyPath`, `MsiExec.exe /I`)",
                                                          "evidencia":  "`hibit.inventario.md:13448` -\u003e `msiexec` - Desinstalacao via msiexec; `hibit.recursos.txt:180` -\u003e `TPROGRAMCOMPONENTSFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal **lê** o MSI (`Core/MsiInstallLog.cs`, `Core/Discovery/MsiProductCatalog.cs`) mas não repara nem modifica"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`) e (`Repair`)"
                                                      },
                                                      {
                                                          "numero":  16,
@@ -1664,14 +1664,14 @@
                                                          "funcionalidade":  "**Menu de contexto do Monitor de Instalação**: `Msi.Package\\shell\\HiBitMonitor` e `exefile\\shell\\HiBitMonitor`",
                                                          "evidencia":  "`hibit.recursos.txt:172` -\u003e `TINSTALLMONITORFORM/0`; `:173` -\u003e `TINSTALLMONITORIGNOREFORM/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal registra um menu só (`Core/Topmost/ExplorerContextMenu.cs`), sem entrada separada para o monitor"
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Topmost/ExplorerContextMenu.cs` registra apenas o menu de desinstalacao do Tranal; nao ha entrada do monitor"
                                                      },
                                                      {
                                                          "numero":  18,
                                                          "funcionalidade":  "**Gerenciador do Menu de Contexto** — lista, cria e remove menus do shell, com \"Restaurar\" e \"Excluir tudo\"",
                                                          "evidencia":  "`hibit.recursos.txt:152` -\u003e `TCONTEXTMENUFORM/0`; `:153` -\u003e `TCREATECONTEXTMFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Management/ContextMenuManager.cs` lista e gerencia handlers; **falta criar e restaurar menus de terceiros**"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Management/ContextMenuManager.cs:70/137/148` faz List/ListFor/Remove de handlers; `Core/Topmost/ExplorerContextMenu.cs:189/156` instala/remove o menu **do proprio Tranal**. Nao ha criacao de menu arbitrario, nem \"Restaurar\"/\"Excluir tudo\""
                                                      },
                                                      {
                                                          "numero":  19,
@@ -1684,15 +1684,15 @@
                                                          "numero":  20,
                                                          "funcionalidade":  "**Monitoramento de instalação** com eventos `ApplicationInstalled`, `ApplicationUninstalled`, `ApplicationDeleteRestore`, `DeviceInstalled`",
                                                          "evidencia":  "`hibit.recursos.txt:172` -\u003e `TINSTALLMONITORFORM/0`; `hibit.inventario.md:13471` -\u003e `Monitor` - Monitora em segundo plano",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Modules/InstallMonitor.cs` + `Core/Tracing/SnapshotComparer.cs` registram a mudança; falta o evento por tipo (`ApplicationUninstalled`, `DeviceInstalled`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Modules/InstallMonitor.cs:103` (`Start`) e (`StopAndSave`); `Core/Tracing/WriteWatcher.cs` (observacao de escrita, sem driver); `Core/Tracing/TraceEntry.cs` (`TraceChangeKind`)"
                                                      },
                                                      {
                                                          "numero":  21,
                                                          "funcionalidade":  "Desinstalar **atualizações do Windows**: `cmd.exe /c wusa.exe /uninstall /` + `KBID=`",
                                                          "evidencia":  "`hibit.inventario.md:13446` -\u003e `Windows Update` - Interage com Windows Update",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não desinstala atualizações do Windows"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Management/WindowsUpdateManager.cs` (`Remove`, `RemoveMany`, `NumeroDoArtigo`, `ListInstalled`) — remove o KB por `wusa.exe /uninstall`; linha de comando `tranal /updates`"
                                                      },
                                                      {
                                                          "numero":  22,
@@ -1705,8 +1705,8 @@
                                                          "numero":  59,
                                                          "funcionalidade":  "**Arrastar e soltar** para desinstalar um programa (anunciado na barra de estado)",
                                                          "evidencia":  "`hibit.recursos.txt:12` -\u003e `12/CAT_DRAG_COPY/1033` (cursor de arrastar)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Ui/Tools/TopmostOverlayWindow.xaml.cs` + `Core/Topmost/TopmostTargetResolver.cs` resolvem o alvo arrastado, com outro desenho"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Ui/Modules/HunterView.xaml` (`AllowDrop`) + `Core/Modules/HunterMode.cs:41` (`Resolve`)"
                                                      },
                                                      {
                                                          "numero":  60,
@@ -1720,7 +1720,7 @@
                                                          "funcionalidade":  "Seletor de tema com amostras de cor na barra superior (7 amostras + botão \"…\")",
                                                          "evidencia":  "`hibit.recursos.txt:6-12` -\u003e `VCLSTYLE/CARBON`, `COBALTXEMEDIA`, `ICEBERGCLASSICO`, `LUNA`, `TABLETDARK`, `WINDOWSMODERNDARK`, `WINDOWSSLATEGRAY` (7 temas VCL no PE)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Theming/ThemeManager.cs` (4 temas); faltam os 7 temas VCL com amostra"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Appearance/ThemePalette.cs:94-124` (`ThemeSkinCatalog.All`), seletor em `Theming/ThemeManager.cs` e `Ui/Appearance/AppearanceView.xaml.cs`. **Nota**: 4 temas (Dark/Slate/Contrast/Light), nao 7"
                                                      },
                                                      {
                                                          "numero":  62,
@@ -1747,15 +1747,15 @@
                                                          "numero":  65,
                                                          "funcionalidade":  "Contadores na barra de status: total de programas **e tamanho total ocupado** (\"Total: 79 Unidade\", \"Tamanho: 610 GB\")",
                                                          "evidencia":  "`hibit.inventario.md:13485` -\u003e `Size` - Mede tamanho em disco",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — o Tranal conta os programas e soma o tamanho no treemap (`Core/Appearance/TreemapModel.cs`), mas não mostra o total na barra de status"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - A barra de status existe (`MainWindow.xaml:409-411`) mas mostra **contagem**, nao tamanho: `MainWindow.xaml.cs`"
                                                      },
                                                      {
                                                          "numero":  66,
                                                          "funcionalidade":  "Painel de detalhes do programa selecionado: **Local de Instalação**, **Entrada de Registro** e **Website**",
                                                          "evidencia":  "`hibit.recursos.txt:166` -\u003e `TFILEINFOFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — os dados existem como colunas (`Core/ProgramColumns.cs`), mas não há painel que os reúna"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Ui/Tools/TopmostOverlayWindow.xaml.cs:485-486` (editora, local), `Core/ProgramColumns.cs` (`HomePage`) e (`RegistryKey`), `Core/Appearance/ProgramTextFormatter.cs`"
                                                      },
                                                      {
                                                          "numero":  67,
@@ -1775,15 +1775,15 @@
                                                          "numero":  69,
                                                          "funcionalidade":  "Gerenciador de **Processos** (painel)",
                                                          "evidencia":  "`hibit.recursos.txt:178` -\u003e `TPROCESSESMANAGERFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — há encerramento no fluxo (`Core/ProcessTerminator.cs`), não painel"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Modules/ProcessInspector.cs` (`List`, `RunningProcess`) — lista o que roda, com memoria, caminho do executavel e o programa instalado que e o dono; tela em `Ui/Tools/ToolViews.cs` (`CreateProcessPanel`); linha de comando `tranal /processes`"
                                                      },
                                                      {
                                                          "numero":  70,
                                                          "funcionalidade":  "Gerenciador de **Tarefas Agendadas**",
                                                          "evidencia":  "`hibit.recursos.txt:184` -\u003e `TSCHEDULETASKFROM/0`; `hibit.inventario.md:13438` -\u003e `TaskScheduler` - Agenda tarefas",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Management/ScheduledTaskManager.cs`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Management/ScheduledTaskManager.cs:79/114/125/137/149` + `Ui/Management/ManagementView.xaml.cs`"
                                                      },
                                                      {
                                                          "numero":  71,
@@ -1797,49 +1797,49 @@
                                                          "funcionalidade":  "Gerenciador de **Componentes de Programas** (DLLs compartilhadas)",
                                                          "evidencia":  "`hibit.recursos.txt:180` -\u003e `TPROGRAMCOMPONENTSFORM/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estadoTexto":  "**AUSENTE** - `Core/ProgramScanner.cs:64` so le chave de desinstalacao, catalogo MSI e Store (`Core/ProgramColumns.cs`); nao ha enumerador de DLL compartilhada entre programas"
                                                      },
                                                      {
                                                          "numero":  73,
                                                          "funcionalidade":  "Gerenciador de **Extensões de Navegador**",
                                                          "evidencia":  "`hibit.recursos.txt:150` -\u003e `TBROWSEREXTFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Modules/BrowserExtensions.cs` cobre Chrome/Edge/Firefox/Opera"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Modules/BrowserExtensions.cs:76-80` cobre apenas chrome, edge, opera (+ firefox em ); nao ha Brave, Vivaldi, Yandex"
                                                      },
                                                      {
                                                          "numero":  74,
                                                          "funcionalidade":  "Gerenciador de **Conexões** (rede)",
                                                          "evidencia":  "`hibit.recursos.txt:151` -\u003e `TCONNECTIONMANAGERFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - `docs/auditoria/BINARIO.md` 3.2: \"Analisador de disco, gerenciador de conexoes, de fontes, papel de parede, destruidor de arquivos - Nao e dominio de desinstalacao\""
                                                      },
                                                      {
                                                          "numero":  75,
                                                          "funcionalidade":  "**Backups \u0026 Reports**",
                                                          "evidencia":  "`hibit.recursos.txt:149` -\u003e `TBACKUPFORM/0`; `:148` -\u003e `TBACKUPDETAILSFORM/0`; `:164` -\u003e `TEXPORTFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/BackupManager.cs` + `Core/Reporting/*`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Ui/BackupManagerWindow.xaml.cs` e `Ui/Reporting/ReportingWindow.xaml.cs`"
                                                      },
                                                      {
                                                          "numero":  76,
                                                          "funcionalidade":  "**Restaurador do Sistema** (criar/excluir pontos com um clique)",
                                                          "evidencia":  "`hibit.recursos.txt:189` -\u003e `TSYSRESTOREFORM/0`; `:146` -\u003e `TADDSYSRESTOREFORM/0`; `hibit.inventario.md:13441` -\u003e `SRSetRestorePoint`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/UninstallSupport.cs:1210` cria ponto antes de desinstalar; falta o painel de gerir pontos"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/BackupManager.cs` (`Create`) e `Core/UninstallSupport.cs:1391` (`TryCreateRestorePoint`); painel em `Ui/BackupManagerWindow.xaml.cs`. **Nota**: cria ponto; nao exclui pontos de restauracao do Windows"
                                                      },
                                                      {
                                                          "numero":  77,
                                                          "funcionalidade":  "**Limpador de Registro** (15+ categorias: ActiveX, FileTypes, SharedDLLs, IFEO, FirewallRules, MUICache)",
                                                          "evidencia":  "`hibit.recursos.txt:181` -\u003e `TREGISTRYCLEANERFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Tools/RegistryOptimizer.cs` existe; o número de categorias não foi conferido"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Tools/RegistryCleaner.cs` — 16 categorias: ActiveX, App Paths, classes COM, tipos de arquivo, regras de firewall, fontes, Image File Execution Options, produtos do Windows Installer, MuiCache, Abrir com, ProgID, itens de inicializacao, DLLs compartilhadas, extensoes do shell, TypeLib e entradas de desinstalacao. A regra e uma so: registro e sobra quando o caminho apontado nao existe mais no disco. Tela em `Ui/Tools/ToolViews.cs` (`CreateRegistryCleaner`); linha de comando `tranal /regclean`"
                                                      },
                                                      {
                                                          "numero":  78,
                                                          "funcionalidade":  "**Limpador de Arquivos de Lixo** (17 categorias)",
                                                          "evidencia":  "`hibit.recursos.txt:174` -\u003e `TJFCLEANERFORM/0`; `:175` -\u003e `TJFSETTINGFORM/0`; `hibit.identificadores.txt:169` -\u003e `TList\u003cJunkFilesCleaner.TCleanFile.CleanS.TFileInfo\u003e`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Tools/JunkCleaner.cs` existe; as 17 categorias não foram conferidas"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Tools/JunkCleaner.cs:60-81` - 8 varreduras/categorias: temp do usuario, temp do Windows, cache do Windows Update, caches dos navegadores, logs antigos, prefetch, miniaturas, lixeira. **Nota**: 8, nao 17"
                                                      },
                                                      {
                                                          "numero":  79,
@@ -1853,35 +1853,35 @@
                                                          "funcionalidade":  "**Fixador de Atalhos** (atalhos corrompidos)",
                                                          "evidencia":  "`hibit.recursos.txt:187` -\u003e `TSHORTCUTFIXERFORM/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estadoTexto":  "**AUSENTE** - `LeftoverReason.ObsoleteShortcut` (`Core/UninstallSupport.cs`) so **apaga** atalho obsoleto; nao ha verificacao nem reparo do alvo do atalho"
                                                      },
                                                      {
                                                          "numero":  81,
                                                          "funcionalidade":  "**Destruidor de Arquivos** (MD5 / SHA-1 / SHA-256 / SHA-512 / CRC32)",
                                                          "evidencia":  "`hibit.recursos.txt:168` -\u003e `TFILESHREDDERFORM/0`; `hibit.inventario.md:13486` -\u003e `Shred` - Apaga de forma segura",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Tools/UnrecoverableDelete.cs` apaga; os 5 algoritmos e o relatório de hash não foram conferidos"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Tools/UnrecoverableDelete.cs:118` (`Delete(paths, passes)`, `DefaultPasses`) + `Ui/Tools/ToolViews.cs:477-568`. **Nota**: sobrescreve e apaga; nao tem MD5/SHA-1/SHA-256/SHA-512/CRC32 nem relatorio de hash"
                                                      },
                                                      {
                                                          "numero":  82,
                                                          "funcionalidade":  "**Localizador de Arquivos e Registros**",
                                                          "evidencia":  "`hibit.recursos.txt:167` -\u003e `TFILEREGFINDERFORM/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Tools/EvidenceRemover.cs` so apaga rastros; nao ha busca por nome de arquivo ou de chave"
                                                      },
                                                      {
                                                          "numero":  83,
                                                          "funcionalidade":  "**Localizador de Arquivos Duplicados**",
                                                          "evidencia":  "`hibit.recursos.txt:158` -\u003e `TDUPLICATEFILEFINDERFORM/0`; `hibit.inventario.md:13484` -\u003e `Duplicate` - Detecta duplicados",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Management/SoftwareHealth.cs:184` (`DuplicateFindings`) + `HealthCategory.RedundantFiles`, opt-in via `SoftwareHealth.scanDuplicates`. **Nota**: nao e localizador autonomo, e uma categoria do painel Software Health"
                                                      },
                                                      {
                                                          "numero":  84,
                                                          "funcionalidade":  "**Analisador de disco**",
                                                          "evidencia":  "`hibit.recursos.txt:157` -\u003e `TDISKANALYZERFORM/0`; `hibit.inventario.md:13485` -\u003e `Size` - Mede tamanho em disco",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Appearance/TreemapModel.cs` faz treemap **por programa**, não por arquivo"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - `docs/auditoria/BINARIO.md` 3.2 (analisador de disco nao e dominio de desinstalacao)"
                                                      },
                                                      {
                                                          "numero":  85,
@@ -1902,105 +1902,105 @@
                                                          "funcionalidade":  "**Propriedades de processo** (painel dedicado)",
                                                          "evidencia":  "`hibit.recursos.txt:179` -\u003e `TPROCPROPERTIFORM/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estadoTexto":  "**AUSENTE** - Nao existe nem listagem de processos do sistema (ver linha 69)"
                                                      },
                                                      {
                                                          "numero":  88,
                                                          "funcionalidade":  "**Afinidade de processador** do programa",
                                                          "evidencia":  "`hibit.recursos.txt:147` -\u003e `TAFFINITYFORM/0`; `hibit.strings.txt:25783` -\u003e `GetProcessAffinityMask`; `:25791` -\u003e `SetProcessAffinityMask`; `:70074` -\u003e `Affinity1.Caption=Affinity`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estadoTexto":  "**AUSENTE** - Nenhum uso de `GetProcessAffinityMask`/`SetProcessAffinityMask` no codigo"
                                                      },
                                                      {
                                                          "numero":  89,
                                                          "funcionalidade":  "**Scanner VirusTotal** (verificação de arquivo na nuvem)",
                                                          "evidencia":  "`hibit.recursos.txt:194` -\u003e `TVIRUSTOTALAPIFORM/0`; `:195` -\u003e `TVIRUSTOTALSCANFORM/0`; `hibit.strings.txt:18270` -\u003e `VirusTotal_API`; `:22823` -\u003e `AddVirusTotalScannertoContextMenu1`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não verifica arquivo na nuvem"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - `docs/auditoria/BINARIO.md` 3.2: \"Base de logs **online** do Revo - Decisao de produto: o Tranal e offline, sem cadastro e sem telemetria\". **Ver Limites**: a decisao nao nomeia o VirusTotal"
                                                      },
                                                      {
                                                          "numero":  90,
                                                          "funcionalidade":  "Integração com o **Windows Defender** (cache, limpeza, varredura agendada)",
                                                          "evidencia":  "`hibit.strings.txt:65936` -\u003e `Defender`; `:67985` -\u003e `Windows Defender Cache Maintenance`; `:67987` -\u003e `Windows Defender Scheduled Scan`; `hibit.inventario.md:13456` -\u003e `Defender` - Integra-se ao Defender",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - Mesma decisao offline (BINARIO.md 3.2); o Tranal apenas protege o Defender da desinstalacao (`Core/Rules/BuiltinRules.cs`). **Ver Limites**"
                                                      },
                                                      {
                                                          "numero":  91,
                                                          "funcionalidade":  "**Criar item de inicialização** do zero",
                                                          "evidencia":  "`hibit.recursos.txt:145` -\u003e `TADDSTARTUPFORM/0`; `:160` -\u003e `TEDITSTARTUPFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — `Core/Tools/AutorunManager.cs` só lista/desexclui"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Tools/AutorunManager.cs` (`Add`). **Nota**: o painel da ferramenta nao expoe o botao \"criar\" (`Ui/Tools/ToolViews.cs:112-115`)"
                                                      },
                                                      {
                                                          "numero":  92,
                                                          "funcionalidade":  "**Criar serviço** do Windows",
                                                          "evidencia":  "`hibit.recursos.txt:144` -\u003e `TADDSERVICESFORM/0`; `hibit.inventario.md:13435` -\u003e `CreateService` - Gerencia servicos do Windows",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — `Core/Management/ServiceManager.cs` gerencia os existentes, não cria"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Management/ServiceManager.cs` (`Create`) — cria o servico pelo SCM do proprio Windows, com o modo de inicializacao escolhido; linha de comando `tranal /create-service`"
                                                      },
                                                      {
                                                          "numero":  93,
                                                          "funcionalidade":  "**Criar tarefa agendada**",
                                                          "evidencia":  "`hibit.recursos.txt:154` -\u003e `TCREATETASKFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — `Core/Management/ScheduledTaskManager.cs` lista/gerencia, não cria"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Management/ScheduledTaskManager.cs` (`Create`) — cria pelo `schtasks.exe` do proprio Windows, com disparo diario na hora escolhida; linha de comando `tranal /create-task`"
                                                      },
                                                      {
                                                          "numero":  94,
                                                          "funcionalidade":  "**Criar menu de contexto** no Explorer",
                                                          "evidencia":  "`hibit.recursos.txt:153` -\u003e `TCREATECONTEXTMFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — o Tranal registra o **próprio** menu (`Core/Topmost/ExplorerContextMenu.cs`); falta criar menu novo"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Topmost/ExplorerContextMenu.cs:189` (`Apply`), (`BuildRegistryScript`), (`RemoveRegistryScript`)"
                                                      },
                                                      {
                                                          "numero":  95,
                                                          "funcionalidade":  "**Limpeza personalizada** (regras próprias por ferramenta)",
                                                          "evidencia":  "`hibit.recursos.txt:142` -\u003e `TADDCUSTOMCLEANFORM/0`; `:155` -\u003e `TCUSTOMCLEANFORM/0`; `hibit.strings.txt:57758` -\u003e `UCustomClean`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — existe motor (`Core/Rules/RuleEngine.cs`), mas `Core/Rules/BuiltinRules.cs` traz só 4 regras de proteção"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Rules/RuleEngine.cs:207/222/178`, `Core/Rules/RemovalRule.cs`, `Core/Tools/CustomToolRegistry.cs`"
                                                      },
                                                      {
                                                          "numero":  96,
                                                          "funcionalidade":  "**Listas de exclusão / ignorar** por ferramenta (monitor, registro, junk, atalhos)",
                                                          "evidencia":  "`hibit.recursos.txt:143` -\u003e `TADDIGNOREMONITORFORM/0`; `:163` -\u003e `TEXCLUSIONLISTFORM/0`; `:169` -\u003e `TFJIGNOREFORM/0`; `:186` -\u003e `TSHORTCATIGNORELISTFORM/0`; `hibit.strings.txt:19967` -\u003e `RegIgnoreList`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/ExcludeList.cs` é global, não por ferramenta"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/ExcludeList.cs:128/141/154/166/249` + `Ui/ExcludeListWindow.xaml.cs` + `Core/Rules/RuleEngine.cs:274` (`IsPathProtected`). **Nota**: lista global, nao uma por ferramenta"
                                                      },
                                                      {
                                                          "numero":  97,
                                                          "funcionalidade":  "**Restaurar o registro** a partir do backup",
                                                          "evidencia":  "`hibit.recursos.txt:182` -\u003e `TREGRESTOREFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Recovery/RecoverOperation.cs` + `Core/FullRegistryBackup.cs`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/BackupManager.cs` (`Restore`), `Core/Recovery/ProgramBackup.cs`, `Core/Recovery/RecoverOperation.cs`"
                                                      },
                                                      {
                                                          "numero":  98,
                                                          "funcionalidade":  "**Verificação de integridade de arquivo** e limpeza pontual de arquivo",
                                                          "evidencia":  "`hibit.recursos.txt:165` -\u003e `TFILECHECKSFORM/0`; `:166` -\u003e `TFILEINFOFORM/0`; `:156` -\u003e `TDELETEFILEFORM/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha verificacao de integridade por hash. A limpeza pontual existe (`Core/Tools/JunkCleaner.cs`, `Core/Tools/EvidenceRemover.cs`, `Core/Tools/UnrecoverableDelete.cs`)"
                                                      },
                                                      {
                                                          "numero":  99,
                                                          "funcionalidade":  "**Sete temas VCL** embutidos no binário",
                                                          "evidencia":  "`hibit.recursos.txt:6-12` -\u003e `VCLSTYLE/CARBON` / `COBALTXEMEDIA` / `ICEBERGCLASSICO` / `LUNA` / `TABLETDARK` / `WINDOWSMODERNDARK` / `WINDOWSSLATEGRAY`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Theming/ThemeManager.cs` tem 4 temas próprios"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Appearance/ThemePalette.cs:94-124` - 4 temas no catalogo. **Nota**: 4, nao 7"
                                                      },
                                                      {
                                                          "numero":  100,
                                                          "funcionalidade":  "**Banco local embutido** (`LOCALDB`)",
                                                          "evidencia":  "`hibit.recursos.txt:127` -\u003e `LOCALDB/1033`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não embarca banco"
+                                                         "estadoTexto":  "**AUSENTE** - O estado e JSON: `Core/Settings/ProgramCache.cs` (`ProgramCacheStore`), `Core/Modules/TraceStore.cs`, manifesto em `Core/BackupManager.cs`. Nao ha banco local"
                                                      },
                                                      {
                                                          "numero":  101,
                                                          "funcionalidade":  "**Salvar log** de ferramenta em arquivo",
                                                          "evidencia":  "`hibit.recursos.txt:176` -\u003e `TLOGSAVEFORM/0`; `hibit.inventario.md:13466` -\u003e `Log` - Mantem registro/log",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Reporting/TraceLogExporter.cs`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Modules/LogOperations.cs:165`, `Core/RemovalLog.cs`, `Core/Reporting/TraceLogExporter.cs:203` (`Write`), `Core/Tools/WindowsToolsCatalog.cs:289` (`ToolLog`)"
                                                      },
                                                      {
                                                          "numero":  102,
@@ -2027,22 +2027,22 @@
                                                          "numero":  2,
                                                          "funcionalidade":  "Classificação da extensão em **Malicious / Ad / Trusted**",
                                                          "evidencia":  "`iobit.strings.txt:40554` → `Malicious Extension`; `:40556` → `Ad Extension`; `iobit.inventario.md:9` → `TADPluginDBHelper`, `TADPluginData`; `iobit.strings.txt:34156` → `Ad-based Browser Extensions`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal classifica *sobras* por confiança, não classifica *extensões*; não há veredito de malicioso/ad"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - Mesma decisao (BINARIO.md 3.2; MATRIZ.md E.1, A17)"
                                                      },
                                                      {
                                                          "numero":  3,
                                                          "funcionalidade":  "**Limpeza de navegador / reset de padrões** (página inicial e motor de busca)",
                                                          "evidencia":  "`iobit.recursos.txt:147` → `TFRABROWSERCLEANER/0`; `iobit.inventario.md:9` → `TAllBrowserCleaner`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — existe `Core/Tools/TrackCleaner.cs` (limpa rastros de navegação); falta **reset de página inicial e de motor de busca**"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - O modulo so lista e remove extensoes (`Core/Modules/BrowserExtensions.cs:86` (`List`), `Core/Modules/BrowserExtensions.cs:113` (`Remove`)); a limpeza de rastros (`Core/Tools/TrackCleaner.cs`) nao mexe em pagina inicial nem motor de busca"
                                                      },
                                                      {
                                                          "numero":  4,
                                                          "funcionalidade":  "Remoção de **plugins** do navegador",
                                                          "evidencia":  "`iobit.recursos.txt:110` → `PLUGIN_DEFAULT/0`; `iobit.inventario.md:9` → `TADPluginData`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal trata extensões, não plugins de navegador (NPAPI/ActiveX)"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha catalogo nem remocao de plugins NPAPI/ActiveX; so extensoes Chromium/Firefox (`Core/Modules/BrowserExtensions.cs`)"
                                                      },
                                                      {
                                                          "numero":  5,
@@ -2056,21 +2056,21 @@
                                                          "funcionalidade":  "**Bundleware**: detectar o que veio junto com o programa e desinstalar em conjunto",
                                                          "evidencia":  "`iobit.strings.txt:34695` → `~Bundleware is software that includes other programs that may be installed without your notice when you install a main program.`; `:9872` → `Tfrm_UninstallBundle`; `:9874` → `TUninstallBundleHelper`; `iobit.recursos.txt:154` → `TFRAME_BUNDLE/0`; `:181` → `TFRM_UNINSTALLBUNDLE/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — nenhum mecanismo de agrupamento por origem no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"bundle\" sem resultado em `src/`"
                                                      },
                                                      {
                                                          "numero":  7,
                                                          "funcionalidade":  "**Stubborn Program Remover** com base de **4.000+ programas** travados",
                                                          "evidencia":  "`iobit.strings.txt:11326` → `TStubbornData`; `:11327` → `StubbornHelper`; `:11330` → `TStubbronUninstallManager`; `:11332` → `TStubbornCheckThread`; `iobit.recursos.txt:121` → `TFORM_CHECKSTUBBRON/0`; `:127` → `TFORM_FORCESTUBBRON/0`; `:142` → `TFORM_STUBBORNTOOL/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — o Tranal encerra o processo e adia a remoção para o reinício (`Core/ProcessTerminator.cs`, `Core/DeferredDelete.cs`), mas **não tem base de programas travados** com passos de remoção conhecidos"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"Stubborn\" sem resultado. O Tranal tem desinstalacao forcada por alvo/palavra-chave (`Core/Automation/ForcedRemovalOptions.cs:41/50`) e remocao manual assistida (`Core/Automation/ManualRemoval.cs`) - nao e base de conhecimento"
                                                      },
                                                      {
                                                          "numero":  8,
                                                          "funcionalidade":  "**Force Uninstall+**: desinstalar programa **sem entrada de registro** ou com desinstalador quebrado",
                                                          "evidencia":  "`iobit.recursos.txt:162` → `TFRMFORCEDUNINSTALL/0`; `iobit.inventario.md:9` → `TAppsRemoval`, `TAnalysisThread`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — existem `Ui/ForcedUninstallWindow.xaml.cs` e `Core/Automation/ForcedRemovalOptions.cs`; falta o caso específico **\"programa sem entrada de registro\"**"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Automation/ForcedRemovalOptions.cs` (`ForTarget`), (`ForKeyword`), (`Resolve`); `Ui/ForcedUninstallWindow.xaml.cs`; entradas sem desinstalador em `Core/ProgramScanner.cs:61` (`IncludeEntriesWithoutUninstaller`); executaveis que parecem desinstalador em `Core/Discovery/DriveScanner.cs`"
                                                      },
                                                      {
                                                          "numero":  9,
@@ -2098,7 +2098,7 @@
                                                          "funcionalidade":  "**Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL",
                                                          "evidencia":  "`iobit.identificadores.txt:113` → `ScanItem.FilePath.Count:`; `:114` → `ScanItem.RegRoot.Count:`; `iobit.strings.txt:34695` (base de regras por tipo)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — o Tranal varre registro e disco (`Core/UninstallSupport.cs`) e classifica por **confiança + motivo** (`Core/Localization/LeftoverLabels.cs`); **não** varre tarefas, serviços e DLLs de sobras"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/UninstallSupport.cs:49` (`LeftoverReason`, 15 membros) e (`LeftoverScanner`); servico e tarefa tem gerenciador proprio (`Core/Management/ServiceManager.cs:113`, `Core/Management/ScheduledTaskManager.cs:79`). **Nota**: DLL nao e um motivo de sobra no Tranal"
                                                      },
                                                      {
                                                          "numero":  13,
@@ -2132,29 +2132,29 @@
                                                          "numero":  17,
                                                          "funcionalidade":  "**Easy Uninstall**: arrastar o ícone do programa para a janela",
                                                          "evidencia":  "`iobit.inventario.md:83` → `AllowMeesageForVistaAbove WM_ExplorerShredder Failed`; `:82` → `WM_DROPFILES Failed`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — o Tranal resolve alvo arrastado (`Core/Topmost/TopmostTargetResolver.cs`, `Ui/Tools/TopmostOverlayWindow.xaml.cs`), mas com outro desenho (overlay), não a janela flutuante do IObit"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Ui/Modules/HunterView.xaml` (`AllowDrop`, `Drop`, `DragOver`) + `Core/Modules/HunterMode.cs:41` (`Resolve`)"
                                                      },
                                                      {
                                                          "numero":  18,
                                                          "funcionalidade":  "**Install Monitor** com log por categoria: registro, arquivo, tarefa, serviço, DLL, inicialização",
                                                          "evidencia":  "`iobit.recursos.txt:163` → `TFRMINSTALLMONITOR/0`; `:166` → `TFRMMONITORLOG/0`; `:184` → `TIUINSTALLMONITORFRM/0`; `iobit.strings.txt:34634` → `Install Monitor`; `:35860` → `Install Monitor detects and logs system changes in installation, which ensures all changes can be restored in future thorough uninstall.`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Modules/InstallMonitor.cs` + `Core/Tracing/SnapshotComparer.cs` (comparação de snapshots) registram a mudança; falta o **log por categoria** com restauração do que o instalador gravou"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Modules/InstallMonitor.cs:103/119`; `Core/Tracing/TraceLogV2.cs:89` (`Create`), (`Save`); `Core/Modules/TraceStore.cs:165` (`Save`); restauracao pela desinstalacao a partir do log (`Core/Modules/TracedPrograms.cs:119` (`Uninstall`), `Core/Modules/TracedPrograms.cs:143` (`UninstallByLogPath`)"
                                                      },
                                                      {
                                                          "numero":  19,
                                                          "funcionalidade":  "Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas)",
                                                          "evidencia":  "`iobit.inventario.md:92` → `An internal logic error in SQLite`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não embarca banco; o log é arquivo próprio (`Core/Modules/TraceStore.cs`)"
+                                                         "estadoTexto":  "**AUSENTE** - O log e JSON (`Core/Tracing/TraceLogV2.cs` `Save`); nao ha SQLite no codigo"
                                                      },
                                                      {
                                                          "numero":  20,
                                                          "funcionalidade":  "**Desinstalar pelo log de instalação** (usar o log para desinstalar)",
                                                          "evidencia":  "`iobit.strings.txt:44602` → `Programs logged by Install Monitor can be uninstalled thoroughly in future uninstallation.`; `:44974` → `UninstallMonitor.exe`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Modules/TracedPrograms.cs` registra a instalação, mas a desinstalação **não parte do log**: falta o caminho \"remover o que este programa gravou\""
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Modules/TracedPrograms.cs:119` (`Uninstall`), (`UninstallByLogPath`), (`Install`)"
                                                      },
                                                      {
                                                          "numero":  21,
@@ -2174,8 +2174,8 @@
                                                          "numero":  22,
                                                          "funcionalidade":  "**File Shredder** com **3 modos de sobrescrita**",
                                                          "evidencia":  "`iobit.recursos.txt:126` → `TFORM_FILESHARDDER/0`; `iobit.strings.txt:44161` → `FileShredder`; `:28741` → `fUnit_FileShredder`; `:46986` → `ToolPopFileShredder`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — existe `Core/Tools/UnrecoverableDelete.cs`; os 3 modos de sobrescrita do IObit não foram conferidos no código do Tranal"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Tools/UnrecoverableDelete.cs` (`Delete(paths, passes)`, `DefaultPasses`, `BytesOverwritten`) + `Ui/Tools/ToolViews.cs:477-568`"
                                                      },
                                                      {
                                                          "numero":  23,
@@ -2189,7 +2189,7 @@
                                                          "funcionalidade":  "**Software Relocator**: mover software instalado entre discos",
                                                          "evidencia":  "`iobit.strings.txt:13482` → `Frame_SoftRelocator`; `:13525` → `btn_StartSoftMove`; `:13500` → `TSoftMoveThread`; `:12902` → `TSoftMoveLan`; `iobit.recursos.txt:136` → `TFORM_MAINSOFTMOVE/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não move software instalado entre discos"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"Relocat\" sem resultado. O Tranal varre drives atras de apps nao registrados (`Core/Discovery/DriveScanner.cs`), nao os move"
                                                      },
                                                      {
                                                          "numero":  25,
@@ -2203,21 +2203,21 @@
                                                          "funcionalidade":  "**Software Updater** integrado (atualizar todos)",
                                                          "evidencia":  "`iobit.recursos.txt:141` → `TFORM_SOFTWAREUPDATER/0`; `iobit.strings.txt:11558` → `SoftwareUpdaterForm`; `:11601` → `TForm_SoftwareUpdater`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal atualiza **a si mesmo** (`Core/Updates/AutoUpdateClient.cs`), não os programas instalados"
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Updates/AutoUpdateClient.cs:74` (`CheckAsync(feedUrl)`) e o atualizador **do proprio Tranal**, alimentado por um feed; nao ha atualizador de programas de terceiros"
                                                      },
                                                      {
                                                          "numero":  28,
                                                          "funcionalidade":  "Remoção de item fixado na barra de tarefas",
                                                          "evidencia":  "`iobit.strings.txt:28639` → `TaskbarPin`; `:45597` → `taskbarunpin`; `:45602` → `TaskbarPin:FilePath=`; `:45961` → `TaskbarJumpLists`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado no código do Tranal"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - Jump Lists: `Core/Tools/EvidenceRemover.cs` e (`ScanJumpLists`). **Nota**: item fixado na barra de tarefas nao e tratado (grep \"Taskbar\" sem resultado)"
                                                      },
                                                      {
                                                          "numero":  29,
                                                          "funcionalidade":  "**Desinstalar Windows Updates**",
                                                          "evidencia":  "`iobit.inventario.md:3023` → `Windows Update` - Interage com Windows Update (token de API ativo)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não desinstala atualizações do Windows"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Management/WindowsUpdateManager.cs` (`Remove`, `RemoveMany`) — remocao de KB por `wusa.exe /uninstall`, com o codigo de saida traduzido (0 ok, 3010 reiniciar, 2359302 nao instalado); linha de comando `tranal /updates`"
                                                      },
                                                      {
                                                          "numero":  30,
@@ -2237,64 +2237,64 @@
                                                          "numero":  32,
                                                          "funcionalidade":  "**Verificação de programas relacionados** (checar dependências antes de desinstalar)",
                                                          "evidencia":  "`iobit.recursos.txt:174` → `TFRM_CHECKRELATEDFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado no código do Tranal"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/RelatedProgramFinder.cs:46` (`Find`), `Core/UninstallAdvisories.cs` (`RelatedProgramsAdvisory`), aviso no assistente"
                                                      },
                                                      {
                                                          "numero":  33,
                                                          "funcionalidade":  "Aviso de **sincronização do Chrome** ao remover extensão",
                                                          "evidencia":  "`iobit.recursos.txt:175` → `TFRM_CHROMESYNCNOTICE/0`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado no código do Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Modules/BrowserExtensions.cs` (`Remove`) remove direto, sem aviso de sincronizacao"
                                                      },
                                                      {
                                                          "numero":  34,
                                                          "funcionalidade":  "Integração com a **Central de Ações do Windows** (Action Center)",
                                                          "evidencia":  "`iobit.recursos.txt:148` → `TFRAMEACTIONCENTER8/0`; `iobit.identificadores.txt:115` → `TActionCenterAppList.FAppList.Add`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — sem equivalente identificado no código do Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha integracao; o mais perto e `Core/Management/SoftwareHealth.cs` (`HealthCategory.Notifications`), que e aviso interno"
                                                      },
                                                      {
                                                          "numero":  35,
                                                          "funcionalidade":  "Gerência de **tarefas agendadas** via COM Task Scheduler",
                                                          "evidencia":  "`iobit.identificadores.txt:118` → `TTaskSchedulerInterfaces1.IniTaskScheduler.CoCreateInstance`; `iobit.inventario.md:3012` → `schtasks`; `:3013` → `TaskScheduler`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — `Core/Management/ScheduledTaskManager.cs` lista e desabilita; falta gerenciar (criar/editar/remover)"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Management/ScheduledTaskManager.cs:79` (`List`), (`ListFor`), (`Delete`), (Disable/Enable). **Nota**: via `schtasks`, nao via COM Task Scheduler 1.0"
                                                      },
                                                      {
                                                          "numero":  36,
                                                          "funcionalidade":  "**Voto / avaliação** de programas e plugins pela comunidade",
                                                          "evidencia":  "`iobit.recursos.txt:135` → `TFORM_NEWAPPVOTE/0`; `:167` → `TFRMPLUGINVOTE/0`; `:168` → `TFRMPROMOTEVOTE/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — existe `Core/Appearance/ProgramRating.cs` (nota interna); não há fluxo de voto/comunidade"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha coleta de votos; ha avaliacao local por estrelas (`Core/Appearance/ProgramRating.cs`, `Core/ProgramCustomization.cs`)"
                                                      },
                                                      {
                                                          "numero":  37,
                                                          "funcionalidade":  "**Captura de tela** do sistema no fluxo de suporte",
                                                          "evidencia":  "`iobit.recursos.txt:188` → `TMESCRSHOTFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** — existe `Core/Appearance/SupportRequest.cs`; falta a captura de tela anexada"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Appearance/SupportRequest.cs:44/91` monta texto e URL com os dados do programa; grep \"screenshot\"/\"captura\"/\"Image\" sem resultado - nao ha captura de tela"
                                                      },
                                                      {
                                                          "numero":  38,
                                                          "funcionalidade":  "**Catálogo embutido de Appx pré-instalados** (a lista do que o Windows traz de fábrica)",
                                                          "evidencia":  "`iobit.identificadores.txt:103` → `Microsoft.Windows.Ai.Copilot.Provider`; `:107` → `Microsoft.Windows.DevHome`; `:98` → `Microsoft.WebView2Runtime.Stable_8wekyb3d8bbwe`; `:110` → `Microsoft.Xbox.TCUI`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não embarca catálogo de bloatware do Windows"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"Bloat\" sem resultado; nao ha lista de Appx pre-instalados. O que existe e catalogo de pacotes gerenciados (`Core/Discovery/PackageManagerCatalog.cs`)"
                                                      },
                                                      {
                                                          "numero":  39,
                                                          "funcionalidade":  "**Gerenciador de licença** do próprio produto (ativar PRO)",
                                                          "evidencia":  "`iobit.recursos.txt:133` → `TFORM_LICENSEMANAGER/0`; `:134` → `TFORM_LICENSEMESSAGE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — o Tranal não comercializa; sem equivalente, por decisão de produto"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - `docs/auditoria/BINARIO.md` 3.2 (produto offline, sem cadastro) e o proprio `docs/auditoria/BINARIO-IOBIT.md` (Observacoes): \"a linha 39 (licenca) e a linha 40 (telemetria) nao sao backlog - o Tranal nao comercializa e nao tem telemetria por decisao\""
                                                      },
                                                      {
                                                          "numero":  40,
                                                          "funcionalidade":  "Tela de **dados de uso** do programa (telemetria)",
                                                          "evidencia":  "`iobit.recursos.txt:123` → `TFORM_DISPLAYDATA/0`; `:122` → `TFORM_EXPRIED/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** — **diferença intencional**: o Tranal é explicitamente sem telemetria"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - Mesma base (BINARIO.md 3.2: \"o Tranal e offline, sem cadastro e sem telemetria\")"
                                                      }
                                                  ]
                          },
@@ -4246,15 +4246,15 @@
                                                          "numero":  10,
                                                          "funcionalidade":  "**Exclusão** de arquivos/pastas/unidades, configurável",
                                                          "evidencia":  "`Uninstaller.options-ignore-paths`, `Uninstaller.options-ignore-paths-tip`, `-ignore-paths-format` (`strings-uninstalr-own.txt:9767-9771`)",
-                                                         "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/ExcludeList.cs`"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"ModelId\"/\"ModelID\" sem resultado. `Core/Modules/WindowsApps.cs` gerencia pacotes MSIX (listar/remover), mas nao varre sobras por ModelID"
                                                      },
                                                      {
                                                          "numero":  11,
                                                          "funcionalidade":  "**Detecção automática de caminhos a ignorar** (`$Recycle.Bin`, `System Volume Information`, `Windows.~BT`, `Windows.~WS`, `Recovery`, pastas de backup do sistema)",
                                                          "evidencia":  "`GLOB_SystemFiles` (`strings-uninstalr-own.txt:4010`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal só aplica a lista de exclusão configurada pelo usuário"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/UninstallSupport.cs:397` (`SafetyRules.IsProtectedFolder`); `Core/Discovery/DriveScanner.cs` (`ExcludedFolderNames`, `$Recycle.Bin` em ); `Core/ExcludeList.cs:40/67`"
                                                      },
                                                      {
                                                          "numero":  12,
@@ -4267,36 +4267,36 @@
                                                          "numero":  13,
                                                          "funcionalidade":  "**Corrigir o tamanho errado** que o Windows mostra na lista de instalados",
                                                          "evidencia":  "`Uninstaller.options-skip-sizes` (`strings-uninstalr-own.txt:9837`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal mostra o tamanho do Windows"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/ProgramScanner.cs:42` (`ComputeFolderSize`) + (`MeasureFolder`) - mede a pasta de verdade em vez de confiar no registro"
                                                      },
                                                      {
                                                          "numero":  14,
                                                          "funcionalidade":  "**16 tipos de app** com detecção dedicada: normal, MS Store, portable, sobras, Chocolatey, Ninite, PortableApps.com, Steam, EA App, Epic, Riot, GOG Galaxy, Wargaming.net, Battle.net, itch.io, Big Fish",
                                                          "evidencia":  "`Uninstaller.apptype-normal`, `-portable`, `-builtin`, `-component`, `-winupdate`, `-platform-chocolatey`, `-choco`, `-platform-steam`, `-steam`, `-platform-ex`, `-game-ex`, `-platform-nuget`, `-nuget`, `-platform-bigfish`, `-bigfish` (`strings-uninstalr-own.txt:10532-10559`); `FindApps_Special_Chocolatey/Steam/Epic/PortableApps/BigFish/Nuget_Platform` (`:4426-4446`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/UninstallerKind.cs` tem 12 tipos e `Core/Discovery/PackageManagerCatalog.cs` cobre Steam/Chocolatey/Scoop; faltam Epic, GOG, Battle.net, Riot, Wargaming, EA, itch.io, Big Fish, Ninite, PortableApps"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Sem lastro no codigo"
                                                      },
                                                      {
                                                          "numero":  15,
                                                          "funcionalidade":  "Detecção de sobras via **MuiCache / TypeLib / AppX ModelID**",
                                                          "evidencia":  "`GLOB_MuiCacheData1..3` (`strings-uninstalr-own.txt:3904-3906`), `GLOB_TypeLib_System` / `GLOB_TypeLib_ToApp` (`:3907-3908`), `GLOB_AppData_via_ModelID_RegEntries/RegKeys/Files/Dirs` (`:3917-3920`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — nenhuma das três fontes é lida pelo Tranal"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Discovery/MuiCacheLeftovers.cs` (`Leftovers`, `ExtrairCaminho`) e `Core/Discovery/TypeLibLeftovers.cs` (`List`, `Leftovers`), medidos nesta maquina: o caminho do MuiCache esta no NOME do valor (e nao no dado) e o arquivo da TypeLib esta em \"0\\win32\", com a versao da biblioteca no fim do caminho. **Nota**: a deteccao por AppX ModelID nao foi implementada"
                                                      },
                                                      {
                                                          "numero":  16,
                                                          "funcionalidade":  "**País de origem** do app, com bandeira",
                                                          "evidencia":  "`uninstaller.country-of-origin` (`strings-uninstalr-own.txt:10300`), `uninstaller.country-of-origin-short` (`:10298`), `FCountryCodeToCountryName` (`:10056`), `uninstaller.menu-select-by-country` (`:10219`), `uninstaller.menu-unselect-by-country` (`:10221`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — nenhum dado de país no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"country\"/\"Country\" sem resultado em `src/`"
                                                      },
                                                      {
                                                          "numero":  17,
                                                          "funcionalidade":  "**Backup da lista de instalados** do Windows antes de alterar (chave `Applistbackup`)",
                                                          "evidencia":  "`FindApps_Registry_Applistbackup` (`strings-uninstalr-own.txt:4343`), `FindApps_Registry_Applistbackup-1` / `-2` (`:4932-4934`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não faz backup da `Applistbackup`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/FullRegistryBackup.cs`, `Core/UninstallRemovalOptions.cs` (`FullRegistryBackup`), `Core/Settings/ProgramCache.cs` (`ProgramCacheStore`)"
                                                      },
                                                      {
                                                          "numero":  18,
@@ -4323,8 +4323,8 @@
                                                          "numero":  21,
                                                          "funcionalidade":  "**Reiniciar automaticamente** para finalizar (avisa que pode reiniciar 1 ou 2 vezes)",
                                                          "evidencia":  "`RestartComputer KillAllRunningProcesses Start` (`strings-uninstalr-own.txt:9290`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — o Tranal adia a remoção para o próximo reinício (`Core/DeferredDelete.cs`), mas não reinicia sozinho"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Automation/ShutdownGuard.cs:18` faz o **contrario** (impede desligamento durante a tarefa); nao ha reinicio automatico"
                                                      },
                                                      {
                                                          "numero":  22,
@@ -4337,15 +4337,15 @@
                                                          "numero":  23,
                                                          "funcionalidade":  "**Gerar `.bat`** para desinstalação em lote + `PreStartupDelete.bat` para o próximo arranque",
                                                          "evidencia":  "`PreStartupDelete.bat` (`strings-uninstalr-own.txt:4658`), `Uninstalr_CMD_` (`:4259`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Reporting/BatchScriptWriter.cs` gera `.bat`, mas não o `PreStartupDelete` para o próximo arranque"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/Reporting/BatchScriptWriter.cs:35` gera script de **desinstalacao em lote** sob demanda; nao ha script de limpeza agendado para o proximo arranque"
                                                      },
                                                      {
                                                          "numero":  24,
                                                          "funcionalidade":  "**Retomar a desinstalação após reinício** via `RunOnce` (`Uninstalr_Unsetup_`, `Uninstalr_Rerun_`)",
                                                          "evidencia":  "`Uninstalr_Unsetup_` / `Uninstalr_Rerun_` (`strings-uninstalr-own.txt:4179-4180`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não retoma tarefa após reinício"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/Automation/UninstallResume.cs` (`SaveRemoval`, `Pending`, `ReadItems`) + `Core/Automation/UninstallSession.cs` (`Payload`, `Pending`) + `Core/Automation/UninstallPlan.cs` (`UninstallPlanExecutor.RunAsync`) — a sessao e gravada antes da remocao e guarda a lista de itens; `tranal /sessions` e `tranal /resume`"
                                                      },
                                                      {
                                                          "numero":  25,
@@ -4359,14 +4359,14 @@
                                                          "funcionalidade":  "**Deep Analysis** sob demanda, com aviso de que pode levar minutos",
                                                          "evidencia":  "`Uninstaller.options-always-deep` (`strings-uninstalr-own.txt:9825`), `AlwaysDeep` (`:9743`), `uninstaller.button-deep-anal` (`:10199`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal varre em segundos; não há modo profundo"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha \"deep analysis\". O que existe e outro: revisao de sobras do instalador (`Core/Automation/AdvancedUninstallReview.cs:56`) e modo forcado (`Core/Automation/ForcedRemovalOptions.cs`)"
                                                      },
                                                      {
                                                          "numero":  27,
                                                          "funcionalidade":  "Tooltip por app com Publisher, Tipo, Versão, Data, **País**, \"Automatically starts with Windows\", pasta, chave de registro, uninstall key, comando completo, executável principal, atalho principal",
                                                          "evidencia":  "`Uninstaller.options-show-more-info`, `-show-apptype`, `-show-apppaths`, `-show-scanpath` (`strings-uninstalr-own.txt:9813-9819`), `GLOB_DetectDataFromManifest1/2`, `GLOB_DetectPubFromFile` (`:3900-3902`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Appearance/ProgramTextFormatter.cs` monta o tooltip, mas **sem país** e sem caminho de scan"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"manifest\"/\"Manifest\" sem resultado em `src/`. A editora vem do registro (`Core/ProgramColumns.cs` `Company`) e dos pacotes (`Core/Modules/WindowsApps.cs`)"
                                                      },
                                                      {
                                                          "numero":  28,
@@ -4387,28 +4387,28 @@
                                                          "funcionalidade":  "Opções de **acessibilidade** (leitor de tela, moldura padrão, botões padrão)",
                                                          "evidencia":  "`Uninstaller.options-ui-mode`, `-ui-system`, `-ui-always`, `-ui-never` (`strings-uninstalr-own.txt:9795-9801`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem opções de acessibilidade no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha essas opcoes. WPF ja entrega acessibilidade de sistema; nao ha registro de decisao sobre isso nos docs de decisao"
                                                      },
                                                      {
                                                          "numero":  31,
                                                          "funcionalidade":  "**Telemetria opt-in** — pergunta explicitamente antes de enviar nomes e caminhos",
                                                          "evidencia":  "`Uninstaller.options-default-settings` / `-default-settings-one` / `-default-settings-many` (`strings-uninstalr-own.txt:9761-9765`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não tem telemetria (decisão de privacidade; não é uma lacuna funcional)"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - `docs/auditoria/BINARIO.md` 3.2: \"Base de logs **online** do Revo - Decisao de produto: o Tranal e offline, sem cadastro e sem telemetria\""
                                                      },
                                                      {
                                                          "numero":  32,
                                                          "funcionalidade":  "**Licença Pro embutida** — converte a cópia free em Pro sem reinstalar",
                                                          "evidencia":  "`com.embarcadero.Uninstalr` (`instalr.strings.txt:51403`), `TSUPPORTFORM` (recurso Delphi `10/TSUPPORTFORM/0` em `instalr.recursos.txt`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não tem gate de versão"
+                                                         "estado":  "FORA",
+                                                         "estadoTexto":  "**FORA POR DECISAO** - Mesma decisao de produto (BINARIO.md 3.2) e o registro em `docs/auditoria/BINARIO-IOBIT.md` (Observacoes): o Tranal nao comercializa"
                                                      },
                                                      {
                                                          "numero":  33,
                                                          "funcionalidade":  "Formulário de **adicionar app manualmente** e de **corrigir dados de entrada**",
                                                          "evidencia":  "`TNewAppForm_Uninstalr` / `TFixInfoForm_Uninstalr` (recursos Delphi `10/TNEWAPPFORM/0` e `10/TFIXINFOFORM/0` em `instalr.recursos.txt`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/ProgramCustomization.cs` edita comentário/grupo/ícone, mas não há \"adicionar app manualmente\" nem \"corrigir dados de entrada\""
+                                                         "estadoTexto":  "**PARCIAL** - Edicao: `Core/ProgramCustomization.cs:246/263/306/317`, `Ui/CommentWindow.xaml.cs`, `Ui/RenameWindow.xaml.cs`, `Ui/IconPickerWindow.xaml.cs`. **Nota**: nao ha \"adicionar app manualmente\" ao catalogo; o caminho equivalente e a desinstalacao forcada por alvo (`Core/Automation/ForcedRemovalOptions.cs`, `Ui/ForcedUninstallWindow.xaml.cs`)"
                                                      },
                                                      {
                                                          "numero":  34,
@@ -4422,7 +4422,7 @@
                                                          "funcionalidade":  "**Correspondência difusa (fuzzy)** de elementos e de termos de busca",
                                                          "evidencia":  "`GLOB_FuzzyElemsList` / `GLOB_FuzzyElemsBad` (`strings-uninstalr-own.txt:3932-3933`), `ExpandData_Files_Fuzzy` (`:6211`), `TApp.FFuzzyTermsAll` (`:6488`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem correspondência difusa no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Grep \"Fuzzy\"/\"Levensh\" sem resultado. O filtro e regex exato + termos de exclusao (`Core/Appearance/ProgramFilters.cs:215/228`)"
                                                      },
                                                      {
                                                          "numero":  36,
@@ -4436,56 +4436,56 @@
                                                          "funcionalidade":  "**Seleção em massa por país** (selecionar/desmarcar por país)",
                                                          "evidencia":  "`uninstaller.menu-select-by-country` (`strings-uninstalr-own.txt:10219`), `uninstaller.menu-unselect-by-country` (`:10221`), literal \"Select by country of origin ...\" (`:10294`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — depende do dado de país, que o Tranal não tem"
+                                                         "estadoTexto":  "**AUSENTE** - Depende da linha 6: nao ha pais de origem no codigo"
                                                      },
                                                      {
                                                          "numero":  38,
                                                          "funcionalidade":  "**Detecção de Chocolatey como plataforma** (não só como app)",
                                                          "evidencia":  "`FindApps_Special_Chocolatey_Platform` / `_Apps` (`strings-uninstalr-own.txt:4426-4427`), `Uninstaller.apptype-platform-chocolatey` (`:10541`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/Discovery/PackageManagerCatalog.cs`"
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/PackageManagerCatalog.cs:248` (`DiscoverChocolatey`), (`Detect`), (`PackageManagerRoots`)"
                                                      },
                                                      {
                                                          "numero":  39,
                                                          "funcionalidade":  "**Detecção de Steam como plataforma** com varredura em 2 modos",
                                                          "evidencia":  "`FindApps_Special_Steam_Platform` / `_Games` (`strings-uninstalr-own.txt:4428-4429`), `FindApps_Special_Steam_Games_m1` / `_m2` (`:5425-5426`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/Discovery/PackageManagerCatalog.cs`"
+                                                         "estadoTexto":  "**OK** - `Core/Discovery/PackageManagerCatalog.cs:196` (`DiscoverSteam`), (`ReadSteamLibraryPaths`)"
                                                      },
                                                      {
                                                          "numero":  40,
                                                          "funcionalidade":  "**Detecção de Epic Games** e **Big Fish** como plataforma",
                                                          "evidencia":  "`FindApps_Special_Epic_Platform` / `_Games` (`strings-uninstalr-own.txt:4430-4431`), `FindApps_Special_BigFish_Platform` / `_Games` (`:4434-4435`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — o Tranal não tem esses catálogos"
+                                                         "estadoTexto":  "**AUSENTE** - \"Epic Games\" so aparece como nome de pasta conhecido em `Core/Discovery/FolderConfidenceEvaluator.cs` - isso e heuristica de confianca, nao deteccao de plataforma"
                                                      },
                                                      {
                                                          "numero":  41,
                                                          "funcionalidade":  "**Detecção de NuGet** como plataforma",
                                                          "evidencia":  "`FindApps_Special_Nuget_Platform` / `_Apps` (`strings-uninstalr-own.txt:4445-4446`), `Uninstaller.apptype-platform-nuget` (`:10553`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem detecção de NuGet no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Sem lastro no codigo"
                                                      },
                                                      {
                                                          "numero":  42,
                                                          "funcionalidade":  "**PortableApps.com** como plataforma detectada",
                                                          "evidencia":  "`FindApps_Special_PortableApps_Platform` / `_Apps` (`strings-uninstalr-own.txt:4432-4433`), `GLOB_PortableApps_AD` (`:3789`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem detecção de PortableApps"
+                                                         "estadoTexto":  "**AUSENTE** - Sem lastro no codigo"
                                                      },
                                                      {
                                                          "numero":  43,
                                                          "funcionalidade":  "**Atalhos** como fonte de descoberta de apps",
                                                          "evidencia":  "`GLOB_AllMainShortcuts` (`strings-uninstalr-own.txt:3894`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/ProgramScanner.cs` varre o Menu Iniciar, mas não usa atalhos como fonte primária de localização"
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - `Core/ProgramScanner.cs` varre so chave de desinstalacao, catalogo MSI e Store (`Core/ProgramColumns.cs` `ProgramSource`). Atalhos so entram como sobra (`Core/UninstallSupport.cs`)"
                                                      },
                                                      {
                                                          "numero":  44,
                                                          "funcionalidade":  "**Ignorar programas de usuário** e **ignorar componentes embutidos**",
                                                          "evidencia":  "`Uninstaller.options-ignore-user`, `Uninstaller.options-ignore-builtin` (`strings-uninstalr-own.txt:9773-9775`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/ExcludeList.cs` cobre caminhos e padrões, não os eixos \"por usuário\" e \"embutido\""
+                                                         "estadoTexto":  "**PARCIAL** - `Core/ProgramScanner.cs:32` (`IncludeSystemComponents`), `Core/ExcludeList.cs:40/67`, `Core/Appearance/ProgramFilters.cs` (`AddExclusion`). **Nota**: nao ha eixo dedicado \"ignorar programas de usuario\" (o caminho oposto existe: `Core/Discovery/UserInstallFolders.cs`)"
                                                      },
                                                      {
                                                          "numero":  45,
@@ -4499,42 +4499,42 @@
                                                          "funcionalidade":  "**Salvar posição da janela** e **filtros** entre sessões",
                                                          "evidencia":  "`Uninstaller.options-save-winpos`, `Uninstaller.options-save-filters` (`strings-uninstalr-own.txt:9805-9807`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs` persiste preferências, mas não posição de janela nem filtros"
+                                                         "estadoTexto":  "**PARCIAL** - Filtros e preferencias: `Core/Settings/AppSettings.cs:287` (`AppSettingsStore`, `hiddenColumns`, `recentPrograms`), `Core/Settings/ProgramCache.cs`, `Core/Appearance/PreferenceRetention.cs`. **Nota**: **posicao da janela nao e salva** - `AppSettings` nao tem campo de posicao/tamanho"
                                                      },
                                                      {
                                                          "numero":  47,
                                                          "funcionalidade":  "**Opções \"speedhacks\"** (desativar verificações lentas)",
                                                          "evidencia":  "`Uninstaller.options-speedhacks` (`strings-uninstalr-own.txt:9827`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem opções de desempenho"
+                                                         "estadoTexto":  "**AUSENTE** - Sem lastro no codigo (nao ha flag equivalente a \"desligar verificacoes lentas\")"
                                                      },
                                                      {
                                                          "numero":  48,
                                                          "funcionalidade":  "**Varredura apenas do disco do sistema**",
                                                          "evidencia":  "`Uninstaller.options-sysdrive-only` (`strings-uninstalr-own.txt:9821`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Discovery/DriveScanner.cs` varre todas as unidades, sem a opção de restringir"
+                                                         "estadoTexto":  "**PARCIAL** - `Core/Discovery/DriveScanner.cs:16` (`Roots`), (`Default`, as unidades fixas prontas) - quem escolhe as raizes escolhe o disco. **Nota**: e opt-in, nao e a opcao padrao"
                                                      },
                                                      {
                                                          "numero":  49,
                                                          "funcionalidade":  "**Fechar o próprio aplicativo** ao terminar",
                                                          "evidencia":  "`Uninstaller.options-close-oneself` (`strings-uninstalr-own.txt:9386`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs` encerra a sessão de uninstall, mas não há a opção explícita \"close oneself\""
+                                                         "estado":  "AUSENTE",
+                                                         "estadoTexto":  "**AUSENTE** - Sem opcao de auto-fechar no codigo"
                                                      },
                                                      {
                                                          "numero":  50,
                                                          "funcionalidade":  "**Execução de comandos registrados** (arquivo `.cmd` gerado)",
                                                          "evidencia":  "`Uninstalr_CMD_` (`strings-uninstalr-own.txt:4259`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "PARCIAL — `src/Tranal.Uninstaller/Core/Reporting/BatchScriptWriter.cs` gera o script, mas não um \"comando registrado\" reaproveitável"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `Core/ProgramCustomization.cs:291` (`SetCommands`), `Core/Automation/UninstallPlan.cs` (`UninstallPlanOptions.PreCommand`/`PostCommand`), tela `Ui/UninstallCommandsWindow.xaml.cs`"
                                                      },
                                                      {
                                                          "numero":  51,
                                                          "funcionalidade":  "**Modo de exibição do sistema** (system/always/never)",
                                                          "evidencia":  "`Uninstaller.options-ui-mode`, `-ui-system`, `-ui-always`, `-ui-never` (`strings-uninstalr-own.txt:9795-9801`)",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "AUSENTE — sem política de exibição de UI no Tranal"
+                                                         "estadoTexto":  "**AUSENTE** - Nao ha preferencia nesses 3 estados. O mais perto e incluir/excluir componentes do sistema (`Core/ProgramScanner.cs`, `IncludeSystemComponents`)"
                                                      }
                                                  ]
                          },

@@ -57,23 +57,43 @@ $mapear = @{
 $apuracoes = 0
 foreach ($arquivo in (Get-ChildItem $docs -Filter 'RECON-*.md' -ErrorAction SilentlyContinue)) {
     $competentes = @()
+    $secaoAtual = $null
 
     foreach ($linha in (Get-Content -LiteralPath $arquivo.FullName -Encoding UTF8)) {
+        # A secao do relatorio diz de qual concorrente a tabela e
+        # ("## 1. HiBit Uninstaller"). E de onde vem o nome quando a
+        # tabela nao tem a coluna do concorrente.
+        if ($linha -match '^##\s*\d+\.\s*(.+?)\s*$') { $secaoAtual = $Matches[1].Trim(); continue }
+
         if ($linha -notmatch '^\|') { continue }
         if ($linha -match '^\|\s*-') { continue }
         if ($linha -match '^\|\s*#') { continue }
 
         $celulas = $linha.Trim('|').Split('|')
         if ($celulas.Count -lt 4) { continue }
-        if ($celulas[0].Trim() -notmatch '^\d+$') { continue }
 
-        $numero = [int]$celulas[0].Trim()
-        $estadoTexto = $celulas[2].Trim()
-        $evidencia = $celulas[3].Trim()
+        # A coluna do competidor existe quando o SEGUNDO campo e o numero.
+        # O primeiro campo e o nome do competidor; sem ele, o primeiro e o
+        # numero da funcionalidade.
+        $temColunaConcorrente = ($celulas.Count -ge 5) -and ($celulas[1].Trim() -match '^\d+$')
 
-        # Descobre o competidor pelo titulo da tabela ("| Concorrente |").
-        $nome = $null
-        if ($linha -match '^\|\s*([^|]+?)\s*\|\s*\d+\s*\|') { $nome = $Matches[1].Trim() }
+        if ($temColunaConcorrente) {
+            if ($celulas.Count -lt 5) { continue }
+            $numero = [int]$celulas[1].Trim()
+            $estadoTexto = $celulas[3].Trim()
+            $evidencia = $celulas[4].Trim()
+            $nome = $celulas[0].Trim()
+        }
+        else {
+            # Sem coluna do competidor: o primeiro campo e o numero. Uma
+            # linha que nao comeca com numero e cabecalho (ou outra tabela).
+            if ($celulas[0].Trim() -notmatch '^\d+$') { continue }
+            $numero = [int]$celulas[0].Trim()
+            $estadoTexto = $celulas[2].Trim()
+            $evidencia = $celulas[3].Trim()
+            $nome = $secaoAtual
+        }
+
         if (-not $nome) { continue }
         if ($nome -match '^(Funcionalidade|Estado|Evidencia|Evidência)') { continue }
 
@@ -84,14 +104,25 @@ foreach ($arquivo in (Get-ChildItem $docs -Filter 'RECON-*.md' -ErrorAction Sile
         if (-not $chave) { continue }
 
         $alvo = $null
+        # O titulo da secao e o nome do produto ("HiBit Uninstaller"), e o
+        # catalogo usa a chave ("HIBIT"). A comparacao ignora espacos e
+        # caixa: e a mesma chave dos dois lados.
+        $chaveNormalizada = ($nome -replace '\s', '').ToUpperInvariant()
+
         foreach ($c in $catalogo.concorrentes) {
-            if ($c.concorrente -like "*$nome*") { $alvo = $c; break }
+            $chaveCatalogo = ($c.concorrente -replace '\s', '').ToUpperInvariant()
+            if ($chaveCatalogo.Contains($chaveNormalizada) -or $chaveNormalizada.Contains($chaveCatalogo)) {
+                $alvo = $c
+                break
+            }
         }
         if (-not $alvo) { continue }
 
         foreach ($f in $alvo.funcionalidades) {
             if ([int]$f.numero -eq $numero) {
-                $f.verificado = $mapear[$chave]
+                # O estado reconciliado passa a ser o estado do catalogo: e
+                # dele que sai a contagem de cobertura.
+                $f.estado = $mapear[$chave]
                 $f.evidenciaCodigo = $evidencia
                 $apuracoes++
                 break

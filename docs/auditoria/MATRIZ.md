@@ -34,7 +34,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | A2 | **Classificação do desinstalador** (MsiExec, Inno, NSIS, InstallShield, SDBInst, Steam, Store, WinFeature, WinUpdate, Chocolatey, Oculus, PowerShell, Simple Delete) | 🟡 | ✅ (14 tipos) | ✅ (12 tipos) | — |
 | A3 | Detecção de **Windows Store Apps** | ✅ | ✅ | ✅ (122 MSIX) | — |
 | A4 | Detecção de **Windows Features** (WMI) | ⬜ | ✅ | ✅ (WMI) | 🟡 |
-| A5 | Detecção de **Windows Updates** (WUA) | ⬜ | ✅ | ✅ (COM) | 🟡 |
+| A5 | Detecção de **Windows Updates** (WUA) e desinstalação do KB | ⬜ | ✅ | ✅ (COM; `Core/Management/WindowsUpdateManager.cs` desinstala o KB por `wusa`) | 🟡 |
 | A17 | **Remoção de extensões de navegador** com base maliciosa/ad | ⬜ | ⬜ | 🟡 fora por decisão (remove a extensão; a base maliciosa exige consulta online e o Tranal é offline) | 🟡 |
 | A6 | Detecção de **aplicativos Steam** | ⬜ | ✅ | ✅ | 🟡 |
 | A7 | Detecção de **Chocolatey / Scoop** | ⬜ | ✅ | ✅ | 🟢 |
@@ -73,6 +73,8 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | B19 | **Impedir desligamento/reinício** durante a tarefa | ⬜ | ✅ | ✅ (`Core/Automation/ShutdownGuard.cs`; ligado no `UninstallEngine`) | — |
 | B20 | **Ponto de restauração** antes de desinstalar | ✅ | ✅ | ✅ | — |
 | B21 | **Backup completo do registro** antes de desinstalar, com script de restauração | ✅ | 🟡 (só .reg) | ✅ | — 🟢 Tranal melhor |
+| B22 | **Retomar a desinstalação interrompida** pelo reinício | ⬜ | ✅ | ✅ (`Core/Automation/UninstallResume.cs`; `tranal /sessions` e `tranal /resume`) | — |
+| B23 | **Desregistro de componentes COM** (`regsvr32 /u`) antes de apagar | ⬜ | ✅ | ✅ (`Core/Automation/ComUnregister.cs`) | — |
 
 ## C. Sobras e confiança
 
@@ -81,7 +83,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | C1 | Varredura de sobras após a desinstalação | ✅ | ✅ | ✅ | — |
 | C2 | **4 modos** (builtin / seguro / moderado / avançado) | ✅ | 🟡 (varredura de lixo por nível) | ✅ | — |
 | C3 | **Níveis de confiança** | 🟡 (negrito = alta) | ✅ (5 níveis) | ✅ (3 níveis) | — |
-| C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") | ⬜ | ✅ | ✅ (11 motivos, coluna "Porquê") | — |
+| C4 | **Justificativa textual por item** ("o diretório é usado por outros aplicativos") e **contador de referência** de itens compartilhados | ⬜ | ✅ | ✅ (16 motivos, coluna "Porquê"; `Core/Discovery/SharedReferenceCounter.cs` conta quantos programas usam cada caminho) | — |
 | C5 | **Atribuição pela cadeia de desinstalação** (item citado explicitamente) | 🟡 | ✅ | ✅ | 🔴 |
 | C6 | Confiança de **pasta** (vazia, executáveis presentes, editor reconhecido…) | ⬜ | ✅ (7 critérios) | ✅ (7+ critérios de pasta — `Core/Discovery/FolderConfidenceEvaluator.cs`) | 🟡 |
 | C7 | Confiança de **inicialização** (RunOnce, compatível com o app) | ⬜ | ✅ | ✅ (`Core/Discovery/StartupEntries.cs`; motivo `LeftoverReason.StartupEntry`) | — |
@@ -93,6 +95,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | C13 | **Gerenciador de inicialização** integrado | ✅ | ✅ | ✅ | 🟡 |
 | C14 | Limpeza de **regras de firewall**, UserAssist, relatórios de erro, CLSID, áudio, eventos | ⬜ | ✅ (17 grupos) | ✅ (6 grupos de rastros — `Core/Tools/PrivacyTraceCleaner.cs`) | 🟢 |
 | C15 | Desinstalador **simples gerado** para app órfão | ⬜ | ✅ | ⬜ (decisão do §8 do PARIDADE) | 🟢 |
+| C16 | **Limpeza de registro por categoria** (ActiveX, App Paths, classes COM, tipos de arquivo, firewall, fontes, IFEO, Windows Installer, MuiCache, Abrir com, ProgID, inicialização, DLLs compartilhadas, extensões do shell, TypeLib, desinstalação) | ⬜ | ✅ | ✅ (`Core/Tools/RegistryCleaner.cs`, 16 categorias) | — |
 
 ## D. Interface, filtro e automação
 
@@ -121,6 +124,7 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | D21 | **Grupos e anotações** do usuário | ✅ | ⬜ | ✅ | — |
 | D22 | **Galeria de ícones** | ✅ | ⬜ | ✅ | — |
 | D23 | **Atualização automática** | ✅ | ✅ | ✅ | — |
+| D24 | **Criar serviço do Windows** e **criar tarefa agendada** | ✅ | ✅ | ✅ (`Core/Management/ServiceManager.cs` e `Core/Management/ScheduledTaskManager.cs`; `tranal /create-service` e `tranal /create-task`) | — |
 
 ## E. Ferramentas do painel (fora do núcleo do desinstalador)
 
@@ -130,12 +134,13 @@ Legenda: ✅ tem · 🟡 parcial · ⬜ não tem · ❓ auditoria pendente
 | E2 | **Limpeza de rastros** (navegador, Windows, Office) | ✅ | ⬜ | ✅ | — |
 | E3 | **Exclusão irrecuperável** | ✅ | ⬜ | ✅ | — |
 | E4 | **Limpeza de arquivos temporários** | ✅ | ⬜ | ✅ | — |
-| E5 | **Otimizador de registro** | ✅ | ⬜ | ✅ | — |
+| E5 | **Otimizador de registro** e **limpador de registro por categoria** | ✅ | ⬜ | ✅ (`Core/Tools/RegistryOptimizer.cs` + `Core/Tools/RegistryCleaner.cs`, 16 categorias) | — |
 | E6 | **Monitor de instalação** (AppBar / log de mudanças) | ✅ | ✅ (tweaks) | ✅ | — |
 | E7 | **Janela flutuante sobre o app** (kill, desinstalar, propriedades) | ✅ | ⬜ | ✅ | — |
 | E8 | **Menu de contexto do Explorer** | ✅ | ⬜ | ✅ | — |
 | E9 | **Gerenciador de backups** (restaurar tudo, item a item, por tempo) | ✅ | ⬜ | ✅ | — |
 | E10 | Remoção definitiva de **drivers** | ✅ | 🟡 | ✅ | 🟡 |
+| E11 | **Painel de processos** (o que está rodando e de qual programa é) | ✅ | ⬜ | ✅ (`Core/Modules/ProcessInspector.cs`; `tranal /processes`) | — |
 
 ### E.1 A coluna "Tranal" reconciliada com o código (08/11/2026)
 
@@ -175,11 +180,30 @@ e um teste):
 | D12 | script PowerShell para Store Apps | `Core/Reporting/StoreAppScriptWriter.cs` |
 | D20 | paleta para daltônicos | `Core/Appearance/ColorBlindPalette.cs` |
 
+**O que a rodada de 08/11/2026 trouxe** (cada item com a evidência no código
+e um teste):
+
+| # | O que entrou | Onde |
+|---|---|---|
+| A5 | desinstalação do KB do Windows Update | `Core/Management/WindowsUpdateManager.cs` |
+| B22 | retomada da desinstalação interrompida | `Core/Automation/UninstallResume.cs` |
+| B23 | desregistro de componentes COM (`regsvr32 /u`) | `Core/Automation/ComUnregister.cs` |
+| C4 | contador de referência de itens compartilhados | `Core/Discovery/SharedReferenceCounter.cs` |
+| C16 | limpador de registro por categoria (16 categorias) | `Core/Tools/RegistryCleaner.cs` |
+| D24 | criar serviço e criar tarefa agendada | `Core/Management/ServiceManager.cs` · `Core/Management/ScheduledTaskManager.cs` |
+| E5 | limpador de registro por categoria (tela) | `Ui/Tools/ToolViews.cs` · `Core/ToolCatalog.cs` |
+| E11 | painel de processos | `Core/Modules/ProcessInspector.cs` |
+| — | marca de desinstalador protegido (`NoRemove`) | `Core/Management/ProtectedUninstallTag.cs` |
+| — | onde o Windows procura um executável (regra única) | `Core/Management/ExecutableLocator.cs` |
+| — | sobras de MuiCache e de TypeLib | `Core/Discovery/MuiCacheLeftovers.cs` · `Core/Discovery/TypeLibLeftovers.cs` |
+
 Cada feature nova do núcleo ganhou **entrada de linha de comando** (o
 `/logs`, `/log-merge`, `/custom-uninstall`, `/advanced-uninstall`, `/oculus`,
 `/updates`, `/userapps`, `/ads`, `/storeapp-script`, `/privacy`,
-`/tools-custom`, `/external`, `/usage`, `/colorblind`): feature que só existe
-para o teste não é feature.
+`/tools-custom`, `/external`, `/usage`, `/colorblind`, `/regclean`,
+`/regclean-categories`, `/com-unregister`, `/shared`, `/noremove`,
+`/create-service`, `/create-task`, `/sessions`, `/resume`, `/processes`):
+feature que só existe para o teste não é feature.
 
 ---
 

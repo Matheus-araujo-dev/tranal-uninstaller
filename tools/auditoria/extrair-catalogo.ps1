@@ -18,8 +18,13 @@ $docs = Join-Path $repo 'docs\auditoria'
 $saida = Join-Path $docs 'catalogo-concorrentes.json'
 
 # O nome do arquivo (sem extensao) e o nome do concorrente.
+#
+# Fora do catalogo ficam os documentos que NAO sao o catalogo de um
+# concorrente: as listas de lacunas binarias (BINARIO-*), a matriz, os
+# relatorios de reconciliacao (RECON-*) e a prova de paridade — esta ultima
+# e GERADA a partir do catalogo, e entra-la como fonte seria circular.
 $concorrentes = Get-ChildItem $docs -Filter '*.md' |
-    Where-Object { $_.Name -notmatch '^(BINARIO|README|MATRIZ)' } |
+    Where-Object { $_.Name -notmatch '^(BINARIO|README|MATRIZ|RECON|PARIDADE)' } |
     ForEach-Object { $_.BaseName }
 
 function Dividir-Celulas {
