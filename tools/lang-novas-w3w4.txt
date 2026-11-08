@@ -1,0 +1,93 @@
+Mod.Logs.WindowTitle|Entradas do log de instalação|Log entries
+Mod.Logs.EntriesTitle|{0} — entradas do log|{0} — log entries
+Mod.Logs.EntriesCount|{0} entrada(s) no log|{0} entry(ies) in the log
+Mod.Logs.Open|Abrir log|Open log
+Mod.Logs.Edit|Editar entrada|Edit entry
+Mod.Logs.Ignore|Ignorar entrada|Ignore entry
+Mod.Logs.Unignore|Voltar a remover|Remove again
+Mod.Logs.RemoveEntry|Remover entrada do log|Remove log entry
+Mod.Logs.AddEntry|Acrescentar entrada|Add entry
+Mod.Logs.Rename|Renomear log|Rename log
+Mod.Logs.ExportData|Exportar dados do log|Export log data
+Mod.Logs.Merge|Mesclar logs|Merge logs
+Mod.Logs.Custom|Custom Uninstall|Custom Uninstall
+Mod.Logs.Advanced|Advanced Uninstall|Advanced Uninstall
+Mod.Logs.EditPanel|Edição da entrada|Entry edition
+Mod.Logs.ValueName|Nome do valor|Value name
+Mod.Logs.Value|Valor|Value
+Mod.Logs.Ignored|Ignorada|Ignored
+Mod.Logs.Kind.File|Arquivo|File
+Mod.Logs.Kind.Folder|Pasta|Folder
+Mod.Logs.Kind.RegistryKey|Chave de registro|Registry key
+Mod.Logs.Kind.RegistryValue|Valor de registro|Registry value
+Mod.Logs.Operation.Created|Criado|Created
+Mod.Logs.Operation.Modified|Modificado|Modified
+Mod.Logs.Operation.Deleted|Removido|Deleted
+Mod.Logs.Operation.Unknown|Desconhecido|Unknown
+Mod.Logs.MergePanel|Logs para mesclar|Logs to merge
+Mod.Logs.MergeHint|Marque os logs que você quer mesclar.|Check the logs you want to merge.
+Mod.Logs.MergeName|Nome do log mesclado|Merged log name
+Mod.Logs.Merged|Logs mesclados em: {0}|Logs merged into: {0}
+Mod.Logs.Renamed|Log renomeado para: {0}|Log renamed to: {0}
+Mod.Logs.Exported|Dados do log exportados: {0}|Log data exported: {0}
+Mod.Logs.ExportFilter|CSV (*.csv); Texto (*.txt); HTML (*.html)|CSV (*.csv); Text (*.txt); HTML (*.html)
+Mod.Logs.NameRequired|Escreva o nome do log.|Type the log name.
+Mod.Logs.PathRequired|Informe o caminho da entrada.|Type the entry path.
+Mod.Logs.Fail|Não foi possível gravar o log.|Could not save the log.
+Mod.Logs.Saved|Log gravado.|Log saved.
+Mod.Logs.EntryAdded|Entrada acrescentada ao log.|Entry added to the log.
+Mod.Logs.EntryIgnored|Entrada ignorada: ela fica no sistema.|Entry ignored: it stays on the system.
+Mod.Logs.EntryRestored|A entrada voltou a entrar no plano de remoção.|The entry is back in the removal plan.
+Mod.Logs.EntryRemoved|Entrada removida do log.|Entry removed from the log.
+Mod.Logs.RemoveConfirm|Remover a entrada do log? {0}|Remove the log entry? {0}
+Mod.Review.CustomTitle|Custom Uninstall|Custom Uninstall
+Mod.Review.AdvancedTitle|Advanced Uninstall|Advanced Uninstall
+Mod.Review.Keep|Manter|Keep
+Mod.Review.Outside|Fora do log|Not logged
+Mod.Review.SelectAllRemove|Marcar tudo para remover|Mark all to remove
+Mod.Review.KeepAll|Manter tudo|Keep all
+Mod.Review.RemoveSelected|Remover os itens marcados|Remove the checked items
+Mod.Review.Summary|Remover: {0}  Manter: {1}|Remove: {0}  Keep: {1}
+Mod.Review.AdvancedSummary|{0} item(ns) ficaram fora do log; {1} item(ns) do log também foram encontrados.|{0} item(s) were not logged; {1} logged item(s) were also found.
+Mod.Review.Confirm|Remover {0} item(ns) do sistema?|Remove {0} item(s) from the system?
+Mod.Review.Removed|Removidos: {0}  Falhas: {1}|Removed: {0}  Failed: {1}
+Mod.Apps.ExportScript|Exportar script PowerShell|Export PowerShell script
+Mod.Apps.ScriptExported|Script gravado: {0}|Script written: {0}
+Options.ColorVision|Modo de visão de cores|Color vision mode
+Options.ColorVision.Standard|Padrão|Standard
+Options.ColorVision.Protanopia|Protanopia|Protanopia
+Options.ColorVision.Deuteranopia|Deuteranopia|Deuteranopia
+Options.ColorVision.Tritanopia|Tritanopia|Tritanopia
+Sidebar.Filter.OnlyRarelyUsed|Somente raramente usados|Only rarely used
+Options.ManageCustomTools|Gerenciar ferramentas personalizadas|Manage custom tools
+Module.PrivacyTraces|Rastros de Privacidade|Privacy Traces
+Tool.Privacy.Scan|Verificar rastros|Scan traces
+Tool.Privacy.Clean|Limpar selecionados|Clean selected
+Module.AlternateDataStreams|Fluxos Alternativos (ADS)|Alternate Data Streams (ADS)
+Tool.Ads.Stream|Fluxo|Stream
+Tool.Ads.ScanFolder|Verificar pasta|Scan folder
+Tool.Ads.ScanFolderRecursive|Verificar pasta com subpastas|Scan folder with subfolders
+Tool.Ads.ChooseFolder|Escolha a pasta que será verificada.|Choose the folder to scan.
+Tool.Ads.Empty|Nenhum fluxo alternativo encontrado.|No alternate data streams found.
+Module.CustomTools|Ferramentas Personalizadas|Custom Tools
+Tool.CustomTools.Arguments|Argumentos|Arguments
+Tool.CustomTools.Added|Ferramenta adicionada.|Tool added.
+Tool.CustomTools.Renamed|Ferramenta renomeada.|Tool renamed.
+Tool.CustomTools.Removed|Ferramenta removida.|Tool removed.
+Tool.CustomTools.NotFound|Ferramenta não encontrada.|Tool not found.
+Tool.CustomTools.InvalidName|Nome de ferramenta inválido.|Invalid tool name.
+Tool.CustomTools.InvalidCommand|Comando da ferramenta inválido.|Invalid tool command.
+Privacy.Firewall|Regras do firewall|Firewall rules
+Privacy.UserAssist|Histórico do UserAssist|UserAssist history
+Privacy.ErrorReports|Relatórios de erro|Error reports
+Privacy.Clsid|Classes COM (CLSID)|COM classes (CLSID)
+Privacy.Audio|Reprodução de mídia|Media playback
+Privacy.EventLogs|Log de Aplicação|Application log
+Module.RegistryCleaner|Limpador de Registro|Registry Cleaner
+RegistryCleaner.Scan|Verificar sobras|Scan leftovers
+RegistryCleaner.Categories|Categorias do limpador|Cleaner categories
+RegistryCleaner.RemoveSelected|Remover os selecionados|Remove the selected ones
+RegistryCleaner.Empty|Nenhuma sobra de registro encontrada.|No registry leftovers found.
+RegistryCleaner.Found|{0} sobra(s) de registro encontrada(s).|{0} registry leftover(s) found.
+Common.Reason.OrphanedRegistryEntry|Registro obsoleto|Orphaned registry entry
+Sidebar.GroupPrivacy|Privacidade|Privacy

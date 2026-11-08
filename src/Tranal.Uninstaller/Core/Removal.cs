@@ -114,7 +114,7 @@ public sealed class RemovalReport
     /// relatorio diria "3 itens removidos" quando so um foi removido — e um
     /// numero que nao corresponde a nada que o usuario possa conferir.
     /// </summary>
-    private static readonly string[] RemovalKinds = { "Arquivo", "Pasta", "Registro" };
+    private static readonly string[] RemovalKinds = { "Arquivo", "Pasta", "Registro", "Valor de Registro" };
 
     /// <summary>True quando o resultado corresponde a um item removido da maquina.</summary>
     private static bool IsRemovalItem(RemovalOutcome outcome) =>

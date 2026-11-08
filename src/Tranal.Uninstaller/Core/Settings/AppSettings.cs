@@ -23,6 +23,16 @@ public sealed class AppSettings
     public Dictionary<string, string> CustomThemeColors { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
+    /// O modo de visao de cores escolhido pelo usuario: "Standard",
+    /// "Protanopia", "Deuteranopia" ou "Tritanopia".
+    ///
+    /// A paleta adaptada mora no nucleo
+    /// (<c>Core/Appearance/ColorBlindPalette.cs</c>); aqui mora somente o
+    /// nome do modo, para que o arquivo de preferencias continue legivel.
+    /// </summary>
+    public string ColorVisionMode { get; set; } = "Standard";
+
+    /// <summary>
     /// Desativa as animacoes de texto da interface.
     ///
     /// Corresponde a opcao de desactivar as animacoes do Revo Uninstaller Pro.
@@ -364,6 +374,7 @@ public static class AppSettingsStore
         if (settings.NewProgramsDays <= 0) settings.NewProgramsDays = 7;
         if (string.IsNullOrWhiteSpace(settings.Theme)) settings.Theme = "Dark";
         if (string.IsNullOrWhiteSpace(settings.Language)) settings.Language = "pt-BR";
+        if (string.IsNullOrWhiteSpace(settings.ColorVisionMode)) settings.ColorVisionMode = "Standard";
         settings.RecentPrograms ??= new List<string>();
         settings.PortableDataFolder ??= string.Empty;
         settings.WebSearchEngine ??= string.Empty;
@@ -377,6 +388,7 @@ public static class SettingsFileFormat
 {
     public static string Describe() =>
         "settings.json (JSON UTF-8): theme, language, showSystemComponents, "
+        + "colorVisionMode, "
         + "showWindowsApps, newProgramsDays, hiddenColumns[], recentPrograms[], "
         + "firstRunCompleted, "
         + "createRestorePointBeforeUninstall, onlyRunBuiltInUninstaller, disableUninstallHistory, "

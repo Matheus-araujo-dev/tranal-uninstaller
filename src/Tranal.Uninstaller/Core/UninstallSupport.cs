@@ -78,6 +78,12 @@ public enum LeftoverReason
     /// <summary>E uma entrada obsoleta do Menu Iniciar.</summary>
     ObsoleteStartMenu,
 
+    /// <summary>
+    /// E uma entrada de registro que sobrou: o registro aponta para um
+    /// caminho que nao existe mais no disco.
+    /// </summary>
+    OrphanedRegistryEntry,
+
     /// <summary>E um atalho obsoleto do Menu Iniciar.</summary>
     ObsoleteShortcut,
 

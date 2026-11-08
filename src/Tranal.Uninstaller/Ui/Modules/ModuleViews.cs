@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
+using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Ui.Shared;
 
 namespace Tranal.Uninstaller.Ui.Modules;
@@ -127,6 +128,7 @@ public static class ModuleViews
             {
                 new CommandDef { AutomationId = "WindowsAppsRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => ReloadAsync(panel, rows)) },
                 new CommandDef { AutomationId = "WindowsAppsUninstall", Text = Loc.Get("Cmd.Uninstall"), Action = () => panel.RunAsync(() => UninstallAsync(panel, rows)) },
+                new CommandDef { AutomationId = "WindowsAppsExportScript", Text = Loc.Get("Mod.Apps.ExportScript"), Action = () => ExportScript(panel, rows) },
             });
 
         panel.SetItems(rows);
@@ -158,6 +160,34 @@ public static class ModuleViews
             panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
 
             await ReloadAsync(panel, rows);
+        }
+
+        static void ExportScript(ItemListPanel panel, ObservableCollection<AppRow> rows)
+        {
+            var apps = new List<WindowsApp>();
+            foreach (var item in panel.SelectedItems)
+                if (item is AppRow row) apps.Add(row.Source);
+
+            if (apps.Count == 0)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Title = Loc.Get("Mod.Apps.ExportScript"),
+                Filter = "PowerShell (*.ps1)|*.ps1",
+                FileName = "desinstalar-store-apps.ps1",
+                DefaultExt = ".ps1",
+                AddExtension = true,
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            var path = StoreAppScriptWriter.Write(dialog.FileName, apps);
+            panel.PanelStatus = string.IsNullOrEmpty(path)
+                ? Loc.Get("Status.Error")
+                : Loc.Get("Mod.Apps.ScriptExported", path);
         }
     }
 
@@ -242,6 +272,9 @@ public static class ModuleViews
                 new CommandDef { AutomationId = "LogsImport", Text = Loc.Get("Mod.Logs.Import"), Action = () => Import(panel, rows) },
                 new CommandDef { AutomationId = "LogsExport", Text = Loc.Get("Mod.Logs.Export"), Action = () => Export(rows, panel) },
                 new CommandDef { AutomationId = "LogsDelete", Text = Loc.Get("Mod.Logs.Delete"), Action = () => panel.RunAsync(() => DeleteAsync(panel, rows)) },
+                new CommandDef { AutomationId = "LogsOpen", Text = Loc.Get("Mod.Logs.Open"), Action = () => OpenLog(panel, rows) },
+                new CommandDef { AutomationId = "LogsCustom", Text = Loc.Get("Mod.Logs.Custom"), Action = () => OpenCustom(panel, rows) },
+                new CommandDef { AutomationId = "LogsAdvanced", Text = Loc.Get("Mod.Logs.Advanced"), Action = () => OpenAdvanced(panel, rows) },
             });
 
         panel.SetItems(rows);
@@ -314,6 +347,62 @@ public static class ModuleViews
             panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
 
             await ReloadAsync(panel, rows);
+        }
+
+        static void OpenLog(ItemListPanel panel, ObservableCollection<TraceRow> rows)
+        {
+            var target = Selected(rows, panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var dialog = new TracedLogWindow(target.Source);
+            var owner = Window.GetWindow(panel);
+            if (owner is not null) dialog.Owner = owner;
+            dialog.ShowDialog();
+
+            panel.RunAsync(() => ReloadAsync(panel, rows));
+        }
+
+        static void OpenCustom(ItemListPanel panel, ObservableCollection<TraceRow> rows)
+        {
+            var target = Selected(rows, panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var dialog = new TracedReviewWindow(target.Source);
+            var owner = Window.GetWindow(panel);
+            if (owner is not null) dialog.Owner = owner;
+            dialog.ShowDialog();
+
+            panel.RunAsync(() => ReloadAsync(panel, rows));
+        }
+
+        static void OpenAdvanced(ItemListPanel panel, ObservableCollection<TraceRow> rows)
+        {
+            var target = Selected(rows, panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            panel.RunAsync(async () =>
+            {
+                var candidates = await Task.Run(() => TracedLogCandidates.Scan(target.Source));
+
+                var dialog = new TracedReviewWindow(target.Source, candidates);
+                var owner = Window.GetWindow(panel);
+                if (owner is not null) dialog.Owner = owner;
+                dialog.ShowDialog();
+
+                await ReloadAsync(panel, rows);
+            });
         }
     }
 

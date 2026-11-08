@@ -284,6 +284,42 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="RegistryCleaner" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolRegistryCleaner">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5D3;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.RegistryCleaner}" />
+            </StackPanel>
+          </Button>
+
+          <!-- Privacidade: rastros do uso da maquina, fluxos escondidos e ferramentas proprias. -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupPrivacy}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="PrivacyTraces" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolPrivacyTraces">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F576;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.PrivacyTraces}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="AlternateDataStreams" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolAlternateDataStreams">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4E6;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.AlternateDataStreams}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="CustomTools" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolCustomTools">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F6E0;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.CustomTools}" />
+            </StackPanel>
+          </Button>
+
           <!-- Gestao do sistema: permissoes, servicos, tarefas, drivers, saude. -->
           <TextBlock Text="{loc:Tr Sidebar.GroupSystem}" Margin="10,10,0,2"
                      FontSize="11" FontWeight="Bold"

@@ -26,6 +26,11 @@ namespace Tranal.Cli;
 ///   tranal /plan "programa"              - mostra o plano de desinstalacao, sem executar
 ///   tranal /batch "arquivo" [/remove]    - desinstalacao em lote a partir de um arquivo de lista
 ///   tranal /switches                     - lista os switches de linha de comando de cada ferramenta
+///   tranal /regclean                     - lista as sobras de registro por categoria
+///   tranal /regclean "ActiveX" /remove   - remove as sobras de uma categoria
+///   tranal /com-unregister "C:\Pasta"    - lista e desregistra os componentes COM
+///   tranal /shared "C:\Pasta"            - mostra quem usa o caminho
+///   tranal /noremove "programa"          - mostra e desliga a protecao do desinstalador
 /// </summary>
 public static class ExtraCommands
 {
@@ -52,6 +57,7 @@ public static class ExtraCommands
         if (flags.Contains("/switches")) return RunSwitches();
         if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
+        if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
         return null;
     }
 

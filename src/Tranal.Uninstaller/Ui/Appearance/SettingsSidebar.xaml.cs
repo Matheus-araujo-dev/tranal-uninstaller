@@ -8,7 +8,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Tranal.Uninstaller.Core.Appearance;
+using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Ui.Tools;
 
 namespace Tranal.Uninstaller.Ui.Appearance;
 
@@ -128,6 +130,12 @@ public partial class SettingsSidebar : UserControl
 
             OnlyCommentsCheck.IsChecked = _filters.OnlyWithComments;
             OnlyGroupsCheck.IsChecked = _filters.OnlyWithGroups;
+            OnlyRarelyUsedCheck.IsChecked = _filters.OnlyRarelyUsed;
+
+            // Os rotulos com chave nova no catalogo vem do codigo, para que
+            // a troca de idioma tambem os atualize.
+            OnlyRarelyUsedCheck.Content = Loc.Get("Sidebar.Filter.OnlyRarelyUsed");
+            CustomToolsButton.Content = Loc.Get("Options.ManageCustomTools");
 
             _swatches.Clear();
             HighlightList.ItemsSource = _filters.Highlights;
@@ -253,6 +261,34 @@ public partial class SettingsSidebar : UserControl
 
         _filters.OnlyWithGroups = OnlyGroupsCheck.IsChecked == true;
         RaiseChanged();
+    }
+
+    /// <summary>
+    /// Filtra a lista pelos programas usados raramente.
+    ///
+    /// A regra do que conta como "raro" mora no nucleo
+    /// (<see cref="UsageSignals"/>); o painel so entrega o pedido.
+    /// </summary>
+    private void OnlyRarelyUsedCheck_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+
+        _filters.OnlyRarelyUsed = OnlyRarelyUsedCheck.IsChecked == true;
+        RaiseChanged();
+    }
+
+    /// <summary>
+    /// Abre o gerenciador das ferramentas personalizadas.
+    ///
+    /// A tela mora em <see cref="ToolViews"/>; o painel e so a porta de
+    /// entrada.
+    /// </summary>
+    private void CustomToolsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToolViews.ShowTool(Window.GetWindow(this),
+            ToolViews.CreateCustomTools(),
+            Loc.Get("Module.CustomTools"),
+            "ToolCustomToolsWindow");
     }
 
     /// <summary>

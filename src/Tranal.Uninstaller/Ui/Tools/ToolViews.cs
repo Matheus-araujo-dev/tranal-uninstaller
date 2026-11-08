@@ -2,9 +2,12 @@ using System.Globalization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Tools;
 using Tranal.Uninstaller.Ui.Shared;
@@ -31,6 +34,10 @@ public static class ToolViews
         ToolCatalog.EvidenceRemover => CreateEvidence(),
         ToolCatalog.UnrecoverableDelete => CreateUnrecoverable(),
         ToolCatalog.RegistryOptimizer => CreateRegistryOptimizer(),
+        ToolCatalog.RegistryCleaner => CreateRegistryCleaner(),
+        ToolCatalog.PrivacyTraces => CreatePrivacyTraces(),
+        ToolCatalog.AlternateDataStreams => CreateAlternateDataStreams(),
+        ToolCatalog.CustomTools => CreateCustomTools(),
         ToolCatalog.SystemManagement => new Management.ManagementView(),
         ToolCatalog.Appearance => new Appearance.AppearanceView(),
         _ => CreateUnknown(toolId),
@@ -472,6 +479,88 @@ public static class ToolViews
     }
 
     // ------------------------------------------------------------------
+    // Limpador de Registro por categoria
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateRegistryCleaner()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+        var items = new List<RegistryCleanerEntry>();
+
+        panel.Configure(
+            Loc.Get("Module.RegistryCleaner"),
+            new[]
+            {
+                new ColumnDef { Header = "", Width = 34, IsCheckable = true },
+                new ColumnDef { Header = Loc.Get("Common.Type"), Width = 240, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 560, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Detail"), Width = 340, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "RegistryCleanerScan", Text = Loc.Get("RegistryCleaner.Scan"), Action = () => panel.RunAsync(() => ScanAsync(panel, rows, items)) },
+                new CommandDef { AutomationId = "RegistryCleanerCategories", Text = Loc.Get("RegistryCleaner.Categories"), Action = () => ShowCategories() },
+                new CommandDef { AutomationId = "RegistryCleanerRemove", Text = Loc.Get("RegistryCleaner.RemoveSelected"), Action = () => panel.RunAsync(() => RemoveAsync(panel, rows, items)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ScanAsync(panel, rows, items));
+        return panel;
+
+        static void ShowCategories()
+        {
+            var linhas = RegistryCleaner.Categories
+                .Select(c => $"{c.Id} — {c.Name}");
+
+            UserMessages.Information(
+                Application.Current?.MainWindow,
+                string.Join(Environment.NewLine, linhas),
+                Loc.Get("RegistryCleaner.Categories"));
+        }
+
+        static async Task ScanAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<RegistryCleanerEntry> items)
+        {
+            var found = await Task.Run(() => RegistryCleaner.Scan());
+
+            items.Clear();
+            items.AddRange(found);
+
+            rows.Clear();
+            foreach (var item in found)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = item.CategoryName,
+                    Path = item.IsValue ? $"{item.Path} \\ {item.ValueName}" : item.Path,
+                    Size = item.Detail,
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = found.Count == 0
+                ? Loc.Get("RegistryCleaner.Empty")
+                : string.Format(CultureInfo.CurrentCulture, Loc.Get("RegistryCleaner.Found"), found.Count);
+        }
+
+        static async Task RemoveAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<RegistryCleanerEntry> items)
+        {
+            var selected = rows.Where(r => r.Selected).Select(r => r.Source).OfType<RegistryCleanerEntry>().ToList();
+
+            if (selected.Count == 0)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var report = await Task.Run(() => RegistryCleaner.Remove(selected));
+            panel.PanelStatus = Loc.Get("Status.Removed") + $": {report.RemovedCount} | "
+                + Loc.Get("Common.Error") + $": {report.FailedCount + report.ProtectedCount}";
+
+            await ScanAsync(panel, rows, items);
+        }
+    }
+
+    // ------------------------------------------------------------------
     // Exclusao irrecuperavel
     // ------------------------------------------------------------------
     private static FrameworkElement CreateUnrecoverable()
@@ -626,5 +715,461 @@ public static class ToolViews
 
             panel.PanelStatus = Loc.Get("Status.NoSelection");
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Rastros de privacidade
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Tela dos rastros de privacidade: as regras do firewall, o historico
+    /// UserAssist, os relatorios de erro, as classes COM do perfil do
+    /// usuario, a reproducao de midia e o log de Aplicacao.
+    ///
+    /// A lista e a limpeza sao as do nucleo
+    /// (<c>Core/Tools/PrivacyTraceCleaner.cs</c>): a tela mostra o que o
+    /// nucleo achou e devolve os itens marcados. Um grupo nunca invade o
+    /// outro — essa regra e do nucleo.
+    /// </summary>
+    public static FrameworkElement CreatePrivacyTraces()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+        var items = new List<PrivacyTraceItem>();
+
+        panel.Configure(
+            Loc.Get("Module.PrivacyTraces"),
+            new[]
+            {
+                new ColumnDef { Header = "", Width = 34, IsCheckable = true },
+                new ColumnDef { Header = Loc.Get("Common.Group"), Width = 170, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Type"), Width = 140, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 470, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Detail"), Width = 300, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "PrivacyTracesScan", Text = Loc.Get("Tool.Privacy.Scan"), Action = () => panel.RunAsync(() => ScanAsync(panel, rows, items)) },
+                new CommandDef { AutomationId = "PrivacyTracesClean", Text = Loc.Get("Tool.Privacy.Clean"), Action = () => panel.RunAsync(() => CleanAsync(panel, rows, items)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ScanAsync(panel, rows, items));
+        return panel;
+
+        static async Task ScanAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<PrivacyTraceItem> items)
+        {
+            var found = await Task.Run(() => PrivacyTraceCleaner.Scan());
+
+            items.Clear();
+            items.AddRange(found);
+
+            rows.Clear();
+            foreach (var item in found)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = PrivacyGroupLabel(item.Group),
+                    Kind = item.Kind,
+                    Path = item.Path,
+                    Size = item.Detail,
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Status.Done") + $" — {rows.Count} item(ns)";
+        }
+
+        static async Task CleanAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<PrivacyTraceItem> items)
+        {
+            var selected = rows.Where(r => r.Selected).Select(r => r.Source).OfType<PrivacyTraceItem>().ToList();
+            if (selected.Count == 0)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var report = await Task.Run(() => PrivacyTraceCleaner.Clean(selected));
+            panel.PanelStatus = Loc.Get("Status.Removed") + $": {report.RemovedCount} | "
+                + Loc.Get("Common.Error") + $": {report.FailedCount + report.ProtectedCount}";
+
+            await ScanAsync(panel, rows, items);
+        }
+    }
+
+    /// <summary>
+    /// O rotulo do grupo de rastro, tirado do catalogo do nucleo.
+    /// </summary>
+    /// <param name="group">O grupo do rastro.</param>
+    private static string PrivacyGroupLabel(PrivacyTraceGroup group)
+    {
+        var info = PrivacyTraceCleaner.Groups.FirstOrDefault(g => g.Group == group);
+        return info is null ? group.ToString() : Loc.Get(info.LabelKey);
+    }
+
+    // ------------------------------------------------------------------
+    // Fluxos alternativos (ADS)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Tela dos fluxos alternativos do NTFS (os "streams" ocultos que um
+    /// arquivo pode ter).
+    ///
+    /// A varredura e a do nucleo
+    /// (<c>Core/Discovery/AlternateDataStreamScanner.cs</c>): a tela escolhe
+    /// a pasta e mostra o que o nucleo achou.
+    /// </summary>
+    public static FrameworkElement CreateAlternateDataStreams()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.AlternateDataStreams"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.Ads.Stream"), Width = 200, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Type"), Width = 110, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 560, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Size"), Width = 110, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "AdsScanFolder", Text = Loc.Get("Tool.Ads.ScanFolder"), Action = () => Escanear(false) },
+                new CommandDef { AutomationId = "AdsScanFolderRecursive", Text = Loc.Get("Tool.Ads.ScanFolderRecursive"), Action = () => Escanear(true) },
+            });
+
+        panel.SetItems(rows);
+        panel.PanelStatus = Loc.Get("Tool.Ads.ChooseFolder");
+        return panel;
+
+        void Escanear(bool recursivo)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = Loc.Get("Tool.Ads.ScanFolder"),
+                CheckFileExists = false,
+                ValidateNames = false,
+                FileName = "Selecionar pasta",
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            var pasta = System.IO.Path.GetDirectoryName(dialog.FileName);
+            if (string.IsNullOrWhiteSpace(pasta)) return;
+
+            panel.RunAsync(() => ScanAsync(pasta, recursivo));
+        }
+
+        async Task ScanAsync(string pasta, bool recursivo)
+        {
+            var streams = await Task.Run(() => AlternateDataStreamScanner.ScanFolder(pasta, recursivo));
+
+            rows.Clear();
+            foreach (var stream in streams)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = stream.Name,
+                    Kind = stream.Type,
+                    Path = stream.StreamPath,
+                    Size = ByteFormatter.Format(stream.Size),
+                    Source = stream,
+                });
+            }
+
+            panel.PanelStatus = rows.Count == 0
+                ? Loc.Get("Tool.Ads.Empty")
+                : Loc.Get("Status.Done") + $" — {rows.Count} item(ns)";
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Ferramentas personalizadas
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Tela das ferramentas personalizadas: as que o usuario cria com um
+    /// nome e um comando, ao lado das ferramentas do catalogo do Windows.
+    ///
+    /// O registro e a fonte unica (<c>Core/Tools/CustomToolRegistry.cs</c>):
+    /// a tela lista, acrescenta, renomeia, remove e executa o que o nucleo
+    /// guarda em disco.
+    /// </summary>
+    public static FrameworkElement CreateCustomTools()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.CustomTools"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.Autorun.Command"), Width = 260, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.CustomTools.Arguments"), Width = 180, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Common.Description"), Width = 240, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "CustomToolsAdd", Text = Loc.Get("Options.AddCustomTool"), Action = () => Adicionar(panel, rows) },
+                new CommandDef { AutomationId = "CustomToolsRename", Text = Loc.Get("Options.Rename"), Action = () => Renomear(panel, rows) },
+                new CommandDef { AutomationId = "CustomToolsRemove", Text = Loc.Get("Options.RemoveTool"), Action = () => Remover(panel, rows) },
+                new CommandDef { AutomationId = "CustomToolsRun", Text = Loc.Get("Common.Run"), Action = () => Executar(panel) },
+            });
+
+        panel.SetItems(rows);
+        Atualizar(panel, rows);
+        return panel;
+
+        static void Atualizar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            rows.Clear();
+            foreach (var tool in CustomToolRegistry.List())
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = tool.Name,
+                    Path = tool.Command,
+                    Kind = tool.Arguments,
+                    Size = tool.Description,
+                    Source = tool,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Status.Done") + $" — {rows.Count} ferramenta(s)";
+        }
+
+        static void Adicionar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var campos = AskForFields(panel, Loc.Get("Options.AddCustomTool"),
+                ("name", Loc.Get("Common.Name"), string.Empty),
+                ("command", Loc.Get("Tool.Autorun.Command"), string.Empty),
+                ("arguments", Loc.Get("Tool.CustomTools.Arguments"), string.Empty));
+
+            if (campos is null) return;
+
+            var status = CustomToolRegistry.Add(new CustomTool
+            {
+                Name = campos["name"],
+                Command = campos["command"],
+                Arguments = campos["arguments"],
+            });
+
+            panel.PanelStatus = status == CustomToolStatus.Ok
+                ? Loc.Get("Tool.CustomTools.Added")
+                : CustomToolStatusMessage(status);
+
+            Atualizar(panel, rows);
+        }
+
+        static void Renomear(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var atual = SelectedTool(panel);
+            if (atual is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var campos = AskForFields(panel, Loc.Get("Options.Rename"),
+                ("name", Loc.Get("Common.Name"), atual.Name));
+
+            if (campos is null) return;
+
+            var status = CustomToolRegistry.Rename(atual.Name, campos["name"]);
+            panel.PanelStatus = status == CustomToolStatus.Ok
+                ? Loc.Get("Tool.CustomTools.Renamed")
+                : CustomToolStatusMessage(status);
+
+            Atualizar(panel, rows);
+        }
+
+        static void Remover(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var atual = SelectedTool(panel);
+            if (atual is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var dono = Window.GetWindow(panel);
+            var resposta = MessageBox.Show(dono,
+                $"{Loc.Get("Options.RemoveTool")}: {atual.Name}?",
+                Loc.Get("Options.RemoveTool"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (resposta != MessageBoxResult.Yes) return;
+
+            var status = CustomToolRegistry.Remove(atual.Name);
+            panel.PanelStatus = status == CustomToolStatus.Ok
+                ? Loc.Get("Tool.CustomTools.Removed")
+                : CustomToolStatusMessage(status);
+
+            Atualizar(panel, rows);
+        }
+
+        static void Executar(ItemListPanel panel)
+        {
+            var atual = SelectedTool(panel);
+            if (atual is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var ok = CustomToolRegistry.Run(atual);
+            panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
+        }
+    }
+
+    /// <summary>
+    /// A ferramenta personalizada selecionada na lista (null quando nada
+    /// foi selecionado).
+    /// </summary>
+    /// <param name="panel">O painel da tela.</param>
+    private static CustomTool? SelectedTool(ItemListPanel panel)
+    {
+        foreach (var item in panel.SelectedItems)
+        {
+            if (item is ToolRow row && row.Source is CustomTool tool) return tool;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// A mensagem de um recusa do registro de ferramentas personalizadas.
+    /// </summary>
+    /// <param name="status">O resultado da operacao.</param>
+    private static string CustomToolStatusMessage(CustomToolStatus status) => status switch
+    {
+        CustomToolStatus.AlreadyExists => CustomToolRegistry.DuplicateNameMessage,
+        CustomToolStatus.NotFound => Loc.Get("Tool.CustomTools.NotFound"),
+        CustomToolStatus.InvalidName => Loc.Get("Tool.CustomTools.InvalidName"),
+        CustomToolStatus.InvalidCommand => Loc.Get("Tool.CustomTools.InvalidCommand"),
+        _ => Loc.Get("Common.Error"),
+    };
+
+    /// <summary>
+    /// Abre uma janela pequena com os campos pedidos e devolve o que o
+    /// usuario digitou (null quando cancelou).
+    /// </summary>
+    /// <param name="ownerElement">O controle que indica a janela dona.</param>
+    /// <param name="title">O titulo da janela.</param>
+    /// <param name="fields">Os campos: chave, rotulo e valor inicial.</param>
+    private static Dictionary<string, string>? AskForFields(
+        DependencyObject ownerElement,
+        string title,
+        params (string Key, string Label, string Value)[] fields)
+    {
+        var caixas = new Dictionary<string, TextBox>(StringComparer.OrdinalIgnoreCase);
+        var painel = new StackPanel { Margin = new Thickness(16) };
+
+        foreach (var field in fields)
+        {
+            painel.Children.Add(new TextBlock
+            {
+                Text = field.Label,
+                Margin = new Thickness(0, 6, 0, 2),
+            });
+
+            var box = new TextBox { Text = field.Value, Margin = new Thickness(0, 0, 0, 4) };
+            AutomationProperties.SetAutomationId(box, "CustomToolField" + field.Key);
+
+            caixas[field.Key] = box;
+            painel.Children.Add(box);
+        }
+
+        var ok = new Button
+        {
+            Content = Loc.Get("Common.Ok"),
+            Width = 90,
+            IsDefault = true,
+            Margin = new Thickness(0, 12, 8, 0),
+        };
+
+        var cancelar = new Button
+        {
+            Content = Loc.Get("Common.Cancel"),
+            Width = 90,
+            IsCancel = true,
+        };
+
+        AutomationProperties.SetAutomationId(ok, "CustomToolOk");
+        AutomationProperties.SetAutomationId(cancelar, "CustomToolCancel");
+
+        var botoes = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+        };
+
+        botoes.Children.Add(ok);
+        botoes.Children.Add(cancelar);
+        painel.Children.Add(botoes);
+
+        var window = new Window
+        {
+            Title = title,
+            Width = 460,
+            SizeToContent = SizeToContent.Height,
+            ResizeMode = ResizeMode.NoResize,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ShowInTaskbar = false,
+            Content = painel,
+            Owner = Window.GetWindow(ownerElement),
+            Background = Application.Current?.TryFindResource("PanelBrush") as Brush ?? Brushes.White,
+            FontFamily = Application.Current?.TryFindResource("UiFont") as FontFamily ?? new FontFamily("Segoe UI"),
+        };
+
+        AutomationProperties.SetAutomationId(window, "CustomToolDialog");
+
+        ok.Click += (_, _) => window.DialogResult = true;
+
+        if (window.ShowDialog() != true) return null;
+
+        var resultado = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var field in fields)
+        {
+            resultado[field.Key] = (caixas[field.Key].Text ?? string.Empty).Trim();
+        }
+
+        return resultado;
+    }
+
+    /// <summary>
+    /// Abre uma tela de ferramenta em uma janela propria.
+    ///
+    /// As ferramentas que ainda nao tem botao na barra lateral sao abertas
+    /// por aqui: a janela e a moldura, a tela e o painel.
+    /// </summary>
+    /// <param name="owner">A janela dona (pode ser nula).</param>
+    /// <param name="content">A tela da ferramenta.</param>
+    /// <param name="title">O titulo da janela.</param>
+    /// <param name="automationId">O identificador da janela para a automacao.</param>
+    public static Window? ShowTool(Window? owner, FrameworkElement content, string title, string automationId)
+    {
+        var window = new Window
+        {
+            Title = title,
+            Width = 920,
+            Height = 580,
+            WindowStartupLocation = owner is null
+                ? WindowStartupLocation.CenterScreen
+                : WindowStartupLocation.CenterOwner,
+            ShowInTaskbar = false,
+            Content = content,
+            Owner = owner,
+            Background = Application.Current?.TryFindResource("PanelBrush") as Brush ?? Brushes.White,
+            FontFamily = Application.Current?.TryFindResource("UiFont") as FontFamily ?? new FontFamily("Segoe UI"),
+        };
+
+        AutomationProperties.SetAutomationId(window, automationId);
+        window.ShowDialog();
+
+        return window;
     }
 }

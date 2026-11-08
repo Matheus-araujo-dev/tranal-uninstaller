@@ -25,11 +25,15 @@ public static class UserMessages
     /// Mostra uma mensagem de informacao. Devolve <c>true</c> quando a
     /// mensagem foi exibida e <c>false</c> quando foi omitida.
     /// </summary>
-    public static bool Information(Window owner, string message, string caption = "Tranal Uninstaller")
+    public static bool Information(Window? owner, string message, string caption = "Tranal Uninstaller")
     {
         if (SkipInformation) return false;
 
-        MessageBox.Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
+        if (owner is null)
+            MessageBox.Show(message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
+        else
+            MessageBox.Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
+
         return true;
     }
 
@@ -37,11 +41,15 @@ public static class UserMessages
     /// Mostra uma mensagem de aviso. Devolve <c>true</c> quando a mensagem foi
     /// exibida e <c>false</c> quando foi omitida.
     /// </summary>
-    public static bool Warning(Window owner, string message, string caption = "Tranal Uninstaller")
+    public static bool Warning(Window? owner, string message, string caption = "Tranal Uninstaller")
     {
         if (SkipWarning) return false;
 
-        MessageBox.Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        if (owner is null)
+            MessageBox.Show(message, caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+        else
+            MessageBox.Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Warning);
+
         return true;
     }
 

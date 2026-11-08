@@ -9,6 +9,7 @@ using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
+using Tranal.Uninstaller.Ui.Tools;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -45,6 +46,14 @@ public partial class OptionsWindow : Window
         LayoutSectionText.Text = LayoutSection;
         PreferencesSectionText.Text = PreferencesSection;
         ShortcutsSectionText.Text = Loc.Get("Shortcut.Title");
+
+        // O modo de visao de cores e as ferramentas novas tambem tem texto
+        // novo no catalogo: por isso o rotulo vem do codigo.
+        ColorVisionLabelText.Text = Loc.Get("Options.ColorVision");
+        ToolsSectionText.Text = Loc.Get("Sidebar.Tools");
+        PrivacyTracesButton.Content = Loc.Get("Module.PrivacyTraces");
+        AlternateDataStreamsButton.Content = Loc.Get("Module.AlternateDataStreams");
+        CustomToolsButton.Content = Loc.Get("Module.CustomTools");
         ShortcutsText.Text = string.Join(Environment.NewLine, ShortcutMap.All.Select(s =>
             $"{s.Gesture,-16} {Loc.Get(s.DescriptionKey)}"));
 
@@ -53,6 +62,7 @@ public partial class OptionsWindow : Window
         // XAML e nao esta no catalogo nao aparece para o usuario.
         BuildThemeCombo();
         BuildColorRows();
+        BuildColorVisionCombo();
 
         foreach (var language in LanguageCatalog.All)
         {
@@ -66,6 +76,7 @@ public partial class OptionsWindow : Window
         var settings = AppSettingsStore.Current;
         SelectByTag(ThemeCombo, ThemeManager.Normalize(settings.Theme));
         SelectByTag(LanguageCombo, settings.Language);
+        SelectByTag(ColorVisionCombo, settings.ColorVisionMode);
 
         SystemComponentsCheck.IsChecked = settings.ShowSystemComponents;
         WindowsAppsCheck.IsChecked = settings.ShowWindowsApps;
@@ -175,6 +186,25 @@ public partial class OptionsWindow : Window
     }
 
     /// <summary>
+    /// Monta a lista de modos de visao de cores (daltônicos).
+    ///
+    /// A lista vem do enum do nucleo (<c>ColorVisionMode</c>): um modo novo
+    /// entra no nucleo e aparece aqui sem precisar tocar nesta tela. O
+    /// rotulo de cada modo vem do catalogo de idiomas.
+    /// </summary>
+    private void BuildColorVisionCombo()
+    {
+        foreach (var mode in Enum.GetValues<ColorVisionMode>())
+        {
+            ColorVisionCombo.Items.Add(new ComboBoxItem
+            {
+                Content = Loc.Get("Options.ColorVision." + mode),
+                Tag = mode.ToString(),
+            });
+        }
+    }
+
+    /// <summary>
     /// As cores personalizadas escolhidas, com as invalidas descartadas.
     ///
     /// Uma cor invalida nao e gravada: e melhor a tela ficar com a cor do
@@ -269,6 +299,7 @@ public partial class OptionsWindow : Window
         {
             s.Theme = theme;
             s.Language = language;
+            s.ColorVisionMode = (ColorVisionCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "Standard";
             s.ShowSystemComponents = SystemComponentsCheck.IsChecked == true;
             s.ShowWindowsApps = WindowsAppsCheck.IsChecked == true;
             s.NewProgramsDays = days;
@@ -318,6 +349,42 @@ public partial class OptionsWindow : Window
 
         DialogResult = true;
         Close();
+    }
+
+    /// <summary>
+    /// Abre a tela dos rastros de privacidade.
+    ///
+    /// A tela mora em <see cref="ToolViews"/>; a janela de opcoes e so a
+    /// porta de entrada.
+    /// </summary>
+    private void PrivacyTracesButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToolViews.ShowTool(this,
+            ToolViews.CreatePrivacyTraces(),
+            Loc.Get("Module.PrivacyTraces"),
+            "ToolPrivacyTracesWindow");
+    }
+
+    /// <summary>
+    /// Abre a tela dos fluxos alternativos do NTFS.
+    /// </summary>
+    private void AlternateDataStreamsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToolViews.ShowTool(this,
+            ToolViews.CreateAlternateDataStreams(),
+            Loc.Get("Module.AlternateDataStreams"),
+            "ToolAlternateDataStreamsWindow");
+    }
+
+    /// <summary>
+    /// Abre a tela das ferramentas personalizadas.
+    /// </summary>
+    private void CustomToolsButton_Click(object sender, RoutedEventArgs e)
+    {
+        ToolViews.ShowTool(this,
+            ToolViews.CreateCustomTools(),
+            Loc.Get("Module.CustomTools"),
+            "ToolCustomToolsWindow");
     }
 
     /// <summary>Fecha a janela sem gravar as preferencias.</summary>

@@ -46,6 +46,12 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <!-- Modo de visao de cores (daltônicos). O texto vem do codigo:
+             a chave de idioma e nova no catalogo. -->
+        <TextBlock x:Name="ColorVisionLabelText" FontWeight="SemiBold" Margin="0,0,0,4" />
+        <ComboBox x:Name="ColorVisionCombo" Margin="0,0,0,12"
+                  AutomationProperties.AutomationId="OptColorVisionCombo" />
+
         <TextBlock Text="{loc:Tr Options.Language}" FontWeight="SemiBold" Margin="0,0,0,4" />
         <ComboBox x:Name="LanguageCombo" Margin="0,0,0,12"
                   AutomationProperties.AutomationId="OptLanguageCombo" />
@@ -185,6 +191,21 @@
                     Click="RebuildCacheButton_Click" />
       </StackPanel>
   
+        <!-- Ferramentas que ainda nao tem botao na barra lateral. -->
+        <TextBlock x:Name="ToolsSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
+        <Button x:Name="PrivacyTracesButton" Content="" Margin="0,0,0,6"
+                HorizontalAlignment="Left" Padding="10,4"
+                AutomationProperties.AutomationId="OptOpenPrivacyTraces"
+                Click="PrivacyTracesButton_Click" />
+        <Button x:Name="AlternateDataStreamsButton" Content="" Margin="0,0,0,6"
+                HorizontalAlignment="Left" Padding="10,4"
+                AutomationProperties.AutomationId="OptOpenAlternateDataStreams"
+                Click="AlternateDataStreamsButton_Click" />
+        <Button x:Name="CustomToolsButton" Content="" Margin="0,0,0,6"
+                HorizontalAlignment="Left" Padding="10,4"
+                AutomationProperties.AutomationId="OptOpenCustomTools"
+                Click="CustomToolsButton_Click" />
+
         <TextBlock x:Name="ShortcutsSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
         <TextBlock x:Name="ShortcutsText" TextWrapping="Wrap" Margin="0,0,0,8" />
       </StackPanel>

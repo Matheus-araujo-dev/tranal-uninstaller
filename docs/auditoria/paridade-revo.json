@@ -169,11 +169,14 @@
                        "prioridade":  "🟢",
                        "funcionalidade":  "Logs Database (importar/exportar logs)",
                        "revo":  "`[UninstallerPro] 15273 = \"Logs Database\" module … These logs stored on our web site …`; `[UninstallerPro] 15187 = Windows Version`; strings.txt:26756 `Automatically update the Log Database`",
-                       "status":  "FORA",
+                       "status":  "OK",
                        "evidencia":  [
-                                         "Core/Modules/TraceStore.cs::TraceStore"
+                                         "Core/Modules/TraceStore.cs::Import",
+                                         "Core/Modules/TraceStore.cs::Export",
+                                         "Core/Modules/LogOperations.cs::Merge",
+                                         "src/Tranal.Cli/LogCommands.cs::RunList"
                                      ],
-                       "nota":  "decisao registrada: a base de logs online do Revo (servidor do fabricante) fica fora — o Tranal e offline"
+                       "nota":  "medido: o Tranal importa e exporta logs (TraceStore.Import/Export) e mescla logs (LogOperations.Merge). O que nao existe e a BASE ONLINE do Revo — essa e a linha 35, fora por decisao (o Tranal e offline)."
                    },
                    {
                        "id":  16,

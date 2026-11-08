@@ -82,6 +82,9 @@
                   Margin="0,4,0,2" Click="OnlyCommentsCheck_Click" />
         <CheckBox x:Name="OnlyGroupsCheck" Content="{loc:Tr Sidebar.Filter.OnlyGroups}"
                   Margin="0,0,0,8" Click="OnlyGroupsCheck_Click" />
+        <CheckBox x:Name="OnlyRarelyUsedCheck" Content="" Margin="0,0,0,8"
+                  AutomationProperties.AutomationId="OptOnlyRarelyUsed"
+                  Click="OnlyRarelyUsedCheck_Click" />
 
         <!-- Exclusoes: termos que saem da lista mesmo que a busca ache.
              A regra mora no ProgramFilterSet (o nucleo); a tela so edita. -->
@@ -125,6 +128,13 @@
                 Style="{StaticResource FlatButton}" HorizontalAlignment="Left" Padding="10,3"
                 Margin="0,8,0,0"
                 Click="ClearFiltersButton_Click" />
+
+        <!-- O gerenciador das ferramentas personalizadas: o texto vem do
+             codigo, porque a chave e nova no catalogo de idiomas. -->
+        <Button x:Name="CustomToolsButton" Content="" Style="{StaticResource FlatButton}"
+                HorizontalAlignment="Left" Padding="10,3" Margin="0,8,0,0"
+                AutomationProperties.AutomationId="OptManageCustomTools"
+                Click="CustomToolsButton_Click" />
 
         <!-- ============================================================
              SECAO: REALCES

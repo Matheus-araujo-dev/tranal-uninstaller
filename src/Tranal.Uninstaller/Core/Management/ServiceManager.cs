@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Globalization;
 using System.Management;
+using System.Runtime.InteropServices;
 using Tranal.Uninstaller.Core;
 
 namespace Tranal.Uninstaller.Core.Management;
@@ -195,6 +196,117 @@ public static class ServiceManager
         return false;
     }
 
+    /// <summary>
+    /// Cria um servico do Windows.
+    ///
+    /// Item de alto impacto na auditoria binaria (HiBit: "Gerenciador de
+    /// Servicos que cria servico"): os concorrentes nao apenas gerenciam o
+    /// que existe, eles criam.
+    ///
+    /// Criar servico e uma operacao de administrador: o Windows recusa sem
+    /// permissao, e a recusa volta com o codigo de erro do sistema.
+    /// </summary>
+    /// <param name="serviceName">O nome interno do servico (o que o sc.exe exige).</param>
+    /// <param name="displayName">O nome que aparece no painel de servicos.</param>
+    /// <param name="executablePath">O executavel do servico.</param>
+    /// <param name="arguments">Os argumentos do executavel.</param>
+    /// <param name="description">A descricao do servico.</param>
+    /// <param name="startMode">"Automatic", "Manual" ou "Disabled".</param>
+    public static ManagementResult Create(
+        string serviceName,
+        string displayName,
+        string executablePath,
+        string arguments = "",
+        string description = "",
+        string startMode = "Manual")
+    {
+        if (string.IsNullOrWhiteSpace(serviceName))
+            return ManagementResult.Fail("Informe o nome do servico.");
+
+        if (string.IsNullOrWhiteSpace(executablePath))
+            return ManagementResult.Fail("Informe o executavel do servico.");
+
+        var tipo = ServiceStartMode(startMode);
+
+        if (tipo == uint.MaxValue)
+            return ManagementResult.Fail("Modo de inicializacao invalido (use Automatic, Manual ou Disabled).");
+
+        var linha = arguments.Trim().Length > 0
+            ? $"{executablePath.Trim()} {arguments.Trim()}"
+            : executablePath.Trim();
+
+        IntPtr gerenciador = IntPtr.Zero;
+        IntPtr servico = IntPtr.Zero;
+
+        try
+        {
+            gerenciador = ServiceControlNative.OpenSCManager(null, null, ServiceControlNative.SC_MANAGER_CREATE_SERVICE);
+            if (gerenciador == IntPtr.Zero)
+                return ManagementResult.Fail("Sem permissao para abrir o gerenciador de servicos (administrador).", Marshal.GetLastWin32Error());
+
+            servico = ServiceControlNative.CreateService(
+                gerenciador,
+                serviceName.Trim(),
+                string.IsNullOrWhiteSpace(displayName) ? serviceName.Trim() : displayName.Trim(),
+                ServiceControlNative.SERVICE_ALL_ACCESS,
+                ServiceControlNative.SERVICE_WIN32_OWN_PROCESS,
+                tipo,
+                linha,
+                ServiceControlNative.SERVICE_ERROR_NORMAL,
+                IntPtr.Zero,
+                null!,
+                null!,
+                null!,
+                null!,
+                0,
+                IntPtr.Zero);
+
+            if (servico == IntPtr.Zero)
+                return ManagementResult.Fail("O Windows recusou criar o servico.", Marshal.GetLastWin32Error());
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                ServiceControlNative.ChangeServiceConfig2(servico, ServiceControlNative.SERVICE_CONFIG_DESCRIPTION, IntPtr.Zero, description);
+            }
+
+            return ManagementResult.Ok($"Servico criado: {serviceName.Trim()}");
+        }
+        catch (DllNotFoundException)
+        {
+            return ManagementResult.Fail("Este Windows nao expoe o gerenciador de servicos.");
+        }
+        catch (EntryPointNotFoundException)
+        {
+            return ManagementResult.Fail("Este Windows nao expoe o gerenciador de servicos.");
+        }
+        finally
+        {
+            if (servico != IntPtr.Zero) ServiceControlNative.CloseServiceHandle(servico);
+            if (gerenciador != IntPtr.Zero) ServiceControlNative.CloseServiceHandle(gerenciador);
+        }
+    }
+
+    /// <summary>
+    /// O codigo do modo de inicializacao, ou <c>uint.MaxValue</c> quando o
+    /// texto nao corresponde a nenhum modo valido.
+    /// </summary>
+    /// <param name="startMode">"Automatic", "Manual" ou "Disabled".</param>
+    public static uint ServiceStartMode(string? startMode)
+    {
+        var texto = (startMode ?? string.Empty).Trim();
+
+        if (texto.Equals("Automatic", StringComparison.OrdinalIgnoreCase) ||
+            texto.Equals("Auto", StringComparison.OrdinalIgnoreCase))
+            return ServiceControlNative.SERVICE_AUTO_START;
+
+        if (texto.Equals("Manual", StringComparison.OrdinalIgnoreCase))
+            return ServiceControlNative.SERVICE_DEMAND_START;
+
+        if (texto.Equals("Disabled", StringComparison.OrdinalIgnoreCase))
+            return ServiceControlNative.SERVICE_DISABLED;
+
+        return uint.MaxValue;
+    }
     /// <summary>Desativa a inicializacao automatica do servico.</summary>
     public static ManagementResult Disable(WindowsService service)
     {

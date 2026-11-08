@@ -39,6 +39,7 @@ public static class LeftoverLabels
         LeftoverReason.RegistrySecondLevel => "Common.Reason.RegistrySecondLevel",
         LeftoverReason.ObsoleteStartMenu => "Common.Reason.ObsoleteStartMenu",
         LeftoverReason.ObsoleteShortcut => "Common.Reason.ObsoleteShortcut",
+        LeftoverReason.OrphanedRegistryEntry => "Common.Reason.OrphanedRegistryEntry",
         LeftoverReason.History => "Common.Reason.History",
         LeftoverReason.ProcessTermination => "Common.Reason.ProcessTermination",
         LeftoverReason.InstallerLog => "Common.Reason.InstallerLog",

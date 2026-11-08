@@ -100,9 +100,78 @@ public static class ThemeManager
 
         Swap(normalized);
         ApplyCustomColors();
+        ApplyColorVisionPalette();
 
         AppSettingsStore.Update(s => s.Theme = normalized);
         ThemeChanged?.Invoke(null, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// O modo de visao de cores gravado nas preferencias ("Standard",
+    /// "Protanopia", "Deuteranopia" ou "Tritanopia").
+    /// </summary>
+    public static ColorVisionMode ColorVision =>
+        ColorVisionModeOf(AppSettingsStore.Current.ColorVisionMode);
+
+    /// <summary>
+    /// Converte o nome gravado nas preferencias no modo do nucleo.
+    ///
+    /// Um nome desconhecido (ou uma preferencia corrompida) vira o modo
+    /// padrao: a tela nunca fica sem cor por causa de um texto invalido.
+    /// </summary>
+    /// <param name="name">O nome gravado nas preferencias.</param>
+    public static ColorVisionMode ColorVisionModeOf(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return ColorVisionMode.Standard;
+
+        return Enum.TryParse(name.Trim(), ignoreCase: true, out ColorVisionMode mode)
+            ? mode
+            : ColorVisionMode.Standard;
+    }
+
+    /// <summary>
+    /// Reaplica o tema com a paleta adaptada ao modo de visao de cores.
+    ///
+    /// O tema e as cores do usuario sao recolocados antes da adaptacao:
+    /// sem isso, voltar para o modo padrao deixaria na tela a cor de
+    /// destaque adaptada.
+    /// </summary>
+    public static void ApplyColorVisionMode()
+    {
+        Swap(_current);
+        ApplyCustomColors();
+        ApplyColorVisionPalette();
+    }
+
+    /// <summary>
+    /// Aplica por cima do tema a paleta adaptada ao modo de visao de cores.
+    ///
+    /// A regra da adaptacao mora no nucleo
+    /// (<c>Core/Appearance/ColorBlindPalette.cs</c>): aqui so se escreve a
+    /// cor adaptada nas brushes que o tema usa.
+    /// </summary>
+    private static void ApplyColorVisionPalette()
+    {
+        var app = Application.Current;
+        if (app is null) return;
+
+        var mode = ColorVision;
+        if (!ColorBlindPalette.IsAdjusted(mode)) return;
+
+        var palette = ColorBlindPalette.Adapt(ThemePalettes.Of(_current), mode);
+
+        // So as cores que carregam sinal mudam: fundo, texto e borda
+        // continuam iguais, para que o tema nao mude de forma abrupta.
+        foreach (var role in new[] { ThemeColorRole.Accent, ThemeColorRole.Selection })
+        {
+            if (!RoleBrushes.TryGetValue(role, out var brushKey)) continue;
+            if (!ThemePalettes.TryParseColor(palette.ColorOf(role), out var argb)) continue;
+
+            app.Resources[brushKey] = new SolidColorBrush(Color.FromRgb(
+                (byte)((argb >> 16) & 0xFF),
+                (byte)((argb >> 8) & 0xFF),
+                (byte)(argb & 0xFF)));
+        }
     }
 
     /// <summary>Alterna entre os dois temas.</summary>
@@ -119,6 +188,7 @@ public static class ThemeManager
 
         Swap(stored);
         ApplyCustomColors();
+        ApplyColorVisionPalette();
     }
 
     /// <summary>

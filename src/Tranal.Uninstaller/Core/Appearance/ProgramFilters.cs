@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Discovery;
 
 namespace Tranal.Uninstaller.Core.Appearance;
 
@@ -148,6 +150,19 @@ public sealed class ProgramFilterSet
     private const long Gigabyte = 1024L * Megabyte;
 
     /// <summary>
+    /// Os sinais de uso lidos do Windows, guardados para nao reler o
+    /// registro e a pasta Prefetch a cada programa da lista.
+    /// </summary>
+    private IReadOnlyList<UsageSignal>? _signals;
+
+    /// <summary>
+    /// Os sinais de uso ja lidos. A leitura acontece uma unica vez: o
+    /// filtro de uso raro precisa do dado de todos os programas, e reler o
+    /// registro a cada linha da lista travaria a janela.
+    /// </summary>
+    private IReadOnlyList<UsageSignal> Signals => _signals ??= UsageSignals.Collect();
+
+    /// <summary>
     /// O texto da busca. Casa com o nome, a editora, o comentario do registro
     /// e o comentario que o usuario escreveu. Vazio passa tudo.
     /// </summary>
@@ -170,6 +185,15 @@ public sealed class ProgramFilterSet
 
     /// <summary>True quando so entram programas que estao em algum grupo.</summary>
     public bool OnlyWithGroups { get; set; }
+
+    /// <summary>
+    /// True quando so entram programas usados raramente.
+    ///
+    /// A regra do que conta como "uso raro" mora no nucleo
+    /// (<see cref="UsageSignals"/>): o filtro so consome o veredito, sem
+    /// repetir a janela de tempo nem a leitura dos sinais do Windows.
+    /// </summary>
+    public bool OnlyRarelyUsed { get; set; }
 
     /// <summary>
     /// O prefixo que marca o texto de busca como expressao regular.
@@ -399,7 +423,34 @@ public sealed class ProgramFilterSet
         if (OnlyWithComments && string.IsNullOrWhiteSpace(anotacao?.Comment)) return false;
         if (OnlyWithGroups && (anotacao is null || anotacao.Groups.Count == 0)) return false;
 
+        if (!MatchesRareUsage(program)) return false;
+
         return true;
+    }
+
+    /// <summary>
+    /// True quando o programa passa pelo filtro de uso raro.
+    ///
+    /// A regra do que conta como "raro" mora no nucleo: o veredito e do
+    /// <see cref="UsageSignal"/>, e aqui so se procura o sinal do
+    /// executavel do programa.
+    /// </summary>
+    /// <param name="program">O programa inspecionado.</param>
+    private bool MatchesRareUsage(InstalledProgram program)
+    {
+        if (!OnlyRarelyUsed) return true;
+
+        var executavel = UsageSignals.ExecutableOf(program);
+        if (executavel.Length == 0) return false;
+
+        var sinal = Signals.FirstOrDefault(s =>
+            string.Equals(s.ExecutablePath, executavel, StringComparison.OrdinalIgnoreCase));
+
+        // Sem dado do Windows nao ha prova de uso raro: o programa fica de
+        // fora do filtro, como o veredito do nucleo faz.
+        if (sinal is null || !sinal.LastUsed.HasValue) return false;
+
+        return sinal.IsRarelyUsed(UsageSignals.DefaultRarelyUsedWindow);
     }
 
     /// <summary>
@@ -431,6 +482,7 @@ public sealed class ProgramFilterSet
         && string.IsNullOrWhiteSpace(PublisherFilter)
         && !OnlyWithComments
         && !OnlyWithGroups
+        && !OnlyRarelyUsed
         && ExcludedTerms.Count == 0
         && Highlights.Count == 0;
 
@@ -444,6 +496,7 @@ public sealed class ProgramFilterSet
         PublisherFilter = string.Empty;
         OnlyWithComments = false;
         OnlyWithGroups = false;
+        OnlyRarelyUsed = false;
         ExcludedTerms.Clear();
         Highlights.Clear();
         InvalidateQuery();

@@ -31,6 +31,28 @@ public static class ToolCatalog
     public const string RegistryOptimizer = "RegistryOptimizer";
 
     /// <summary>
+    /// Limpador de registro: as sobras do registro, agrupadas por categoria.
+    /// </summary>
+    public const string RegistryCleaner = "RegistryCleaner";
+
+    /// <summary>
+    /// Rastros de privacidade: o que a maquina guarda do uso do computador.
+    /// </summary>
+    public const string PrivacyTraces = "PrivacyTraces";
+
+    /// <summary>
+    /// Fluxos alternativos de dados (ADS): o conteudo escondido ao lado de
+    /// um arquivo.
+    /// </summary>
+    public const string AlternateDataStreams = "AlternateDataStreams";
+
+    /// <summary>
+    /// Ferramentas personalizadas: comandos proprios do usuario, dentro do
+    /// Tranal.
+    /// </summary>
+    public const string CustomTools = "CustomTools";
+
+    /// <summary>
     /// Painel de gestao do sistema: permissoes do programa, servicos, tarefas
     /// agendadas, drivers e saude do software.
     /// </summary>
@@ -69,6 +91,10 @@ public static class ToolCatalog
         TracksOffice,
         TracksWindows,
         RegistryOptimizer,
+        RegistryCleaner,
+        PrivacyTraces,
+        AlternateDataStreams,
+        CustomTools,
         SystemManagement,
         Appearance,
     };
