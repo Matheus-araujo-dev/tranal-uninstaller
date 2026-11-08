@@ -41,6 +41,9 @@ $mapaEstado = @{
     'NAO EXISTE'              = 'AUSENTE'
     'FORA POR DECISAO'        = 'FORA POR DECISAO'
     'PARCIAL'                 = 'PARCIAL'
+    'OK'                      = 'OK'
+    'AUSENTE'                 = 'AUSENTE'
+    'FORA'                    = 'FORA POR DECISAO'
 }
 
 # ------------------------------------------------------------------
@@ -73,9 +76,19 @@ foreach ($linha in $linhasRelatorio) {
     $celulas = $linha -split '\|'
     if ($celulas.Count -lt 5) { continue }
 
+    # O estado e reconhecido pelo TEXTO, e nao pela posicao: os relatorios
+    # tem dois formatos — "| # | Funcionalidade | Estado | Evidencia |" e
+    # "| # | Funcionalidade | O que existe | Estado | Evidencia |". O que
+    # decide e a celula cujo texto e um estado conhecido.
+    $indiceEstado = -1
+    foreach ($i in 2..($celulas.Count - 2)) {
+        if ($mapaEstado.ContainsKey($celulas[$i].Trim())) { $indiceEstado = $i; break }
+    }
+    if ($indiceEstado -lt 0) { continue }
+
     $funcionalidade = $celulas[2].Trim()
-    $estado = $celulas[3].Trim()
-    $evidencia = $celulas[4].Trim()
+    $estado = $celulas[$indiceEstado].Trim()
+    $evidencia = $celulas[$indiceEstado + 1].Trim()
 
     if (-not $mapaEstado.ContainsKey($estado)) { continue }
 

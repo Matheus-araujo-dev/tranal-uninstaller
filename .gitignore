@@ -6,6 +6,7 @@ dist/
 dist-*/
 bin-verif/
 bin-check/
+bin-check*/
 *.exe
 *.dll
 *.pdb

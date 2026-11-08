@@ -89,6 +89,25 @@ public static class RegistryPath
     }
 
     /// <summary>
+    /// Devolve o nome do hive como o Windows mostra
+    /// ("HKEY_LOCAL_MACHINE").
+    ///
+    /// E a traducao inversa de <see cref="Parse"/>, e mora aqui para que
+    /// ninguem monte o caminho na mao: e o mesmo par, nas duas direcoes.
+    /// </summary>
+    /// <param name="hive">O hive.</param>
+    public static string HiveName(RegistryHive hive) => hive switch
+    {
+        RegistryHive.CurrentUser => "HKEY_CURRENT_USER",
+        RegistryHive.LocalMachine => "HKEY_LOCAL_MACHINE",
+        RegistryHive.ClassesRoot => "HKEY_CLASSES_ROOT",
+        RegistryHive.Users => "HKEY_USERS",
+        RegistryHive.CurrentConfig => "HKEY_CURRENT_CONFIG",
+        RegistryHive.PerformanceData => "HKEY_PERFORMANCE_DATA",
+        _ => "HKEY_LOCAL_MACHINE",
+    };
+
+    /// <summary>
     /// Abre a chave do registro e devolve o nome de um valor, ou null quando
     /// a chave ou o valor nao existem.
     /// </summary>

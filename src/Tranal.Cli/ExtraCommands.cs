@@ -36,6 +36,8 @@ namespace Tranal.Cli;
 ///   tranal /sessions                 - lista as desinstalacoes interrompidas
 ///   tranal /resume "id"              - retoma uma desinstalacao interrompida
 ///   tranal /processes                - lista os processos em execucao e o programa dono
+///   tranal /registry-remove "chave"   - apaga uma entrada de registro
+///   tranal /report-html "arquivo"     - grava o relatorio HTML da limpeza de registro
 /// </summary>
 public static class ExtraCommands
 {

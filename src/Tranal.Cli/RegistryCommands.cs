@@ -6,6 +6,8 @@ using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
+using Tranal.Uninstaller.Core.RegistryEditing;
+using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Cli;
@@ -42,7 +44,73 @@ public static class RegistryCommands
         if (flags.Contains("/create-service")) return RunCreateService(args);
         if (flags.Contains("/create-task")) return RunCreateTask(args);
         if (flags.Contains("/processes")) return RunProcesses();
+        if (flags.Contains("/registry-remove")) return RunRegistryRemove(args);
+        if (flags.Contains("/report-html")) return RunReportHtml(args);
         return null;
+    }
+
+    private static int RunRegistryRemove(string[] args)
+    {
+        var caminho = ValueAfter(args, "/registry-remove");
+        if (string.IsNullOrWhiteSpace(caminho))
+        {
+            Console.Error.WriteLine("Informe a chave do registro.");
+            return 1;
+        }
+
+        var alvo = RegistryTarget.FromPath(caminho, ValueAfter(args, "/value"));
+        if (alvo is null)
+        {
+            Console.Error.WriteLine($"Caminho de registro invalido: {caminho}");
+            return 1;
+        }
+
+        var relatorio = RegistryBatchRemover.Remove(new[] { alvo });
+
+        Console.WriteLine($"Alvo: {alvo.DisplayPath}");
+        Console.WriteLine($"Removidos: {relatorio.RemovedCount}  "
+            + $"Ja inexistentes: {relatorio.AbsentCount}  "
+            + $"Falhas: {relatorio.FailedCount}  "
+            + $"Protegidos: {relatorio.ProtectedCount}");
+
+        foreach (var resultado in relatorio.Outcomes.Where(o => o.Status != RemovalStatus.Removed))
+            Console.WriteLine($"    {resultado.Status}: {resultado.Message}");
+
+        return relatorio.FailedCount > 0 || relatorio.ProtectedCount > 0 ? 1 : 0;
+    }
+
+    private static int RunReportHtml(string[] args)
+    {
+        var destino = ValueAfter(args, "/report-html");
+        if (string.IsNullOrWhiteSpace(destino))
+        {
+            Console.Error.WriteLine("Informe o caminho do arquivo HTML.");
+            return 1;
+        }
+
+        var entradas = RegistryCleaner.Scan();
+
+        var colunas = new List<ToolReportColumn>
+        {
+            new() { Header = "Categoria", Width = 200 },
+            new() { Header = "Caminho", Width = 420 },
+            new() { Header = "Detalhe", Width = 320 },
+        };
+
+        var linhas = entradas.Select(e => new ToolReportRow
+        {
+            Cells = new[] { e.CategoryName, e.Path, e.Detail },
+        }).ToList();
+
+        var escrito = ToolReportWriter.Write(
+            destino,
+            "Tranal Uninstaller Pro — Limpador de Registro",
+            $"{entradas.Count} sobra(s) de registro encontrada(s)",
+            colunas,
+            linhas);
+
+        Console.WriteLine($"Relatorio gravado: {escrito}");
+        return 0;
     }
 
     private static int RunProcesses()
