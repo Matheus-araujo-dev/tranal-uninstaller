@@ -38,6 +38,13 @@ namespace Tranal.Cli;
 ///   tranal /processes                - lista os processos em execucao e o programa dono
 ///   tranal /registry-remove "chave"   - apaga uma entrada de registro
 ///   tranal /report-html "arquivo"     - grava o relatorio HTML da limpeza de registro
+///   tranal /unlock "arquivo"          - mostra quem segura o arquivo
+///   tranal /unlock "arquivo" /force   - destrava o arquivo
+///   tranal /internet /clean           - limpa os dados dos navegadores
+///   tranal /drive /clean              - limpa os arquivos desnecessarios
+///   tranal /shortcuts /repair         - repara os atalhos quebrados
+///   tranal /mru /clean                - limpa o cache de uso recente
+///   tranal /shared-dlls               - lista os componentes compartilhados
 /// </summary>
 public static class ExtraCommands
 {
@@ -66,14 +73,7 @@ public static class ExtraCommands
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
         if (ResumeCommands.TryRun(args, flags) is int resumeResult) return resumeResult;
-        return null;
-    }
-
-    private static string? ValueAfter(string[] args, string name)
-    {
-        for (var i = 0; i < args.Length - 1; i++)
-            if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
-                return args[i + 1];
+        if (CleanupCommands.TryRun(args, flags) is int cleanupResult) return cleanupResult;
         return null;
     }
 
@@ -99,7 +99,7 @@ public static class ExtraCommands
             return 0;
         }
 
-        var raw = ValueAfter(args, "/wa");
+        var raw = CliArgs.ValueAfter(args, "/wa");
         if (string.IsNullOrWhiteSpace(raw))
         {
             Console.Error.WriteLine("Uso: tranal /wa \"App1;App2\"");
@@ -139,7 +139,7 @@ public static class ExtraCommands
     {
         var extensions = BrowserExtensions.List();
 
-        var raw = ValueAfter(args, "/be");
+        var raw = CliArgs.ValueAfter(args, "/be");
         var remove = flags.Contains("/remove") || flags.Contains("/rm");
 
         if (string.IsNullOrWhiteSpace(raw) || !remove)
@@ -216,14 +216,14 @@ public static class ExtraCommands
     // ------------------------------------------------------------------
     private static int RunExport(string[] args, HashSet<string> flags)
     {
-        var destination = ValueAfter(args, "/export");
+        var destination = CliArgs.ValueAfter(args, "/export");
         if (string.IsNullOrWhiteSpace(destination))
         {
             Console.Error.WriteLine("Uso: tranal /export \"caminho\" [/txt|/html|/csv|/xml] [/columns \"Program,Version\"]");
             return 1;
         }
 
-        if (!TryResolveColumns(ValueAfter(args, "/columns"), out var columns, out var erro))
+        if (!TryResolveColumns(CliArgs.ValueAfter(args, "/columns"), out var columns, out var erro))
         {
             Console.Error.WriteLine(erro);
             return 1;
@@ -298,7 +298,7 @@ public static class ExtraCommands
     // ------------------------------------------------------------------
     private static int RunHunter(string[] args)
     {
-        var path = ValueAfter(args, "/hunter");
+        var path = CliArgs.ValueAfter(args, "/hunter");
         if (string.IsNullOrWhiteSpace(path))
         {
             Console.Error.WriteLine("Uso: tranal /hunter \"caminho\"");
@@ -361,7 +361,7 @@ public static class ExtraCommands
     // ------------------------------------------------------------------
     private static int RunLanguage(string[] args)
     {
-        var code = ValueAfter(args, "/lang");
+        var code = CliArgs.ValueAfter(args, "/lang");
         if (string.IsNullOrWhiteSpace(code))
         {
             Console.WriteLine($"Idioma atual: {Loc.Current}");
@@ -384,7 +384,7 @@ public static class ExtraCommands
 
     private static int RunTheme(string[] args)
     {
-        var theme = ValueAfter(args, "/theme");
+        var theme = CliArgs.ValueAfter(args, "/theme");
         if (string.IsNullOrWhiteSpace(theme))
         {
             Console.WriteLine($"Tema atual: {AppSettingsStore.Current.Theme}");
@@ -894,7 +894,7 @@ public static class ExtraCommands
     /// </summary>
     private static int RunPlan(string[] args)
     {
-        var name = ValueAfter(args, "/plan");
+        var name = CliArgs.ValueAfter(args, "/plan");
         if (string.IsNullOrWhiteSpace(name))
         {
             Console.Error.WriteLine("Uso: tranal /plan \"nome do programa\" [/mode builtin|safe|moderate|advanced]");
@@ -965,7 +965,7 @@ public static class ExtraCommands
     /// </summary>
     private static int RunBatch(string[] args, HashSet<string> flags)
     {
-        var path = ValueAfter(args, "/batch");
+        var path = CliArgs.ValueAfter(args, "/batch");
         if (string.IsNullOrWhiteSpace(path))
         {
             Console.Error.WriteLine("Uso: tranal /batch \"arquivo\" [/remove] [/mode builtin|safe|moderate|advanced]");

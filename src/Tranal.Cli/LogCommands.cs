@@ -35,13 +35,6 @@ public static class LogCommands
         return null;
     }
 
-    private static string? ValueAfter(string[] args, string name)
-    {
-        for (var i = 0; i < args.Length - 1; i++)
-            if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
-                return args[i + 1];
-        return null;
-    }
 
     private static TracedInstall? Find(string id)
     {
@@ -70,7 +63,7 @@ public static class LogCommands
 
     private static int RunEntries(string[] args)
     {
-        var id = ValueAfter(args, "/log-entries");
+        var id = CliArgs.ValueAfter(args, "/log-entries");
         var log = Find(id ?? string.Empty);
 
         if (log is null)
@@ -97,8 +90,8 @@ public static class LogCommands
 
     private static int RunRename(string[] args)
     {
-        var id = ValueAfter(args, "/log-rename");
-        var novoNome = ValueAfter(args, "/name");
+        var id = CliArgs.ValueAfter(args, "/log-rename");
+        var novoNome = CliArgs.ValueAfter(args, "/name");
 
         var log = Find(id ?? string.Empty);
         if (log is null)
@@ -125,8 +118,8 @@ public static class LogCommands
 
     private static int RunMerge(string[] args)
     {
-        var ids = ValueAfter(args, "/log-merge");
-        var novoNome = ValueAfter(args, "/name");
+        var ids = CliArgs.ValueAfter(args, "/log-merge");
+        var novoNome = CliArgs.ValueAfter(args, "/name");
 
         if (string.IsNullOrWhiteSpace(ids) || string.IsNullOrWhiteSpace(novoNome))
         {
@@ -160,8 +153,8 @@ public static class LogCommands
 
     private static int RunEntryAction(string[] args, bool ignore)
     {
-        var id = ValueAfter(args, ignore ? "/log-ignore" : "/log-remove");
-        var entryId = ValueAfter(args, "/entrada");
+        var id = CliArgs.ValueAfter(args, ignore ? "/log-ignore" : "/log-remove");
+        var entryId = CliArgs.ValueAfter(args, "/entrada");
 
         var log = Find(id ?? string.Empty);
         if (log is null)
@@ -201,7 +194,7 @@ public static class LogCommands
 
     private static int RunCustomUninstall(string[] args)
     {
-        var id = ValueAfter(args, "/custom-uninstall");
+        var id = CliArgs.ValueAfter(args, "/custom-uninstall");
         var log = Find(id ?? string.Empty);
 
         if (log is null)
@@ -228,7 +221,7 @@ public static class LogCommands
 
     private static int RunAdvancedUninstall(string[] args)
     {
-        var id = ValueAfter(args, "/advanced-uninstall");
+        var id = CliArgs.ValueAfter(args, "/advanced-uninstall");
         var log = Find(id ?? string.Empty);
 
         if (log is null)

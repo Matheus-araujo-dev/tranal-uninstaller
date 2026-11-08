@@ -39,13 +39,6 @@ public static class ParityCommands
         return null;
     }
 
-    private static string? ValueAfter(string[] args, string name)
-    {
-        for (var i = 0; i < args.Length - 1; i++)
-            if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
-                return args[i + 1];
-        return null;
-    }
 
     private static IReadOnlyList<InstalledProgram> Scan() =>
         ProgramScanner.Scan(new ProgramScanner.ScanOptions { RequireUninstallString = false });
@@ -120,7 +113,7 @@ public static class ParityCommands
     /// <summary>Lista os fluxos alternativos (NTFS) de uma pasta.</summary>
     private static int RunAds(string[] args)
     {
-        var pasta = ValueAfter(args, "/ads");
+        var pasta = CliArgs.ValueAfter(args, "/ads");
 
         if (string.IsNullOrWhiteSpace(pasta))
         {
@@ -146,8 +139,8 @@ public static class ParityCommands
     /// <summary>Gera o script PowerShell que remove os Store Apps escolhidos.</summary>
     private static int RunStoreAppScript(string[] args)
     {
-        var nomes = ValueAfter(args, "/storeapp-script");
-        var arquivo = ValueAfter(args, "/arquivo");
+        var nomes = CliArgs.ValueAfter(args, "/storeapp-script");
+        var arquivo = CliArgs.ValueAfter(args, "/arquivo");
 
         if (string.IsNullOrWhiteSpace(nomes))
         {
@@ -188,7 +181,7 @@ public static class ParityCommands
     /// <summary>Lista (ou limpa) os rastros de privacidade.</summary>
     private static int RunPrivacy(string[] args)
     {
-        var grupo = ValueAfter(args, "/grupo");
+        var grupo = CliArgs.ValueAfter(args, "/grupo");
         var limpar = args.Any(a => a.Equals("/limpar", StringComparison.OrdinalIgnoreCase));
 
         PrivacyTraceGroup? selecionado = null;
@@ -228,10 +221,10 @@ public static class ParityCommands
     /// <summary>Lista (ou gerencia) as ferramentas personalizadas.</summary>
     private static int RunCustomTools(string[] args)
     {
-        var nome = ValueAfter(args, "/nome");
-        var comando = ValueAfter(args, "/comando");
-        var excluir = ValueAfter(args, "/excluir");
-        var renomear = ValueAfter(args, "/renomear");
+        var nome = CliArgs.ValueAfter(args, "/nome");
+        var comando = CliArgs.ValueAfter(args, "/comando");
+        var excluir = CliArgs.ValueAfter(args, "/excluir");
+        var renomear = CliArgs.ValueAfter(args, "/renomear");
 
         if (!string.IsNullOrWhiteSpace(excluir))
         {

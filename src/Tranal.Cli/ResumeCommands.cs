@@ -30,13 +30,6 @@ public static class ResumeCommands
         return null;
     }
 
-    private static string? ValueAfter(string[] args, string name)
-    {
-        for (var i = 0; i < args.Length - 1; i++)
-            if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
-                return args[i + 1];
-        return null;
-    }
 
     private static int RunList()
     {
@@ -69,7 +62,7 @@ public static class ResumeCommands
 
     private static int RunResume(string[] args, HashSet<string> flags)
     {
-        var id = ValueAfter(args, "/resume");
+        var id = CliArgs.ValueAfter(args, "/resume");
         if (string.IsNullOrWhiteSpace(id))
         {
             Console.Error.WriteLine("Informe a identidade da sessao (veja /sessions).");

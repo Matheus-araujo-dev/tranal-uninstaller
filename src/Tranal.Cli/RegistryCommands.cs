@@ -51,14 +51,14 @@ public static class RegistryCommands
 
     private static int RunRegistryRemove(string[] args)
     {
-        var caminho = ValueAfter(args, "/registry-remove");
+        var caminho = CliArgs.ValueAfter(args, "/registry-remove");
         if (string.IsNullOrWhiteSpace(caminho))
         {
             Console.Error.WriteLine("Informe a chave do registro.");
             return 1;
         }
 
-        var alvo = RegistryTarget.FromPath(caminho, ValueAfter(args, "/value"));
+        var alvo = RegistryTarget.FromPath(caminho, CliArgs.ValueAfter(args, "/value"));
         if (alvo is null)
         {
             Console.Error.WriteLine($"Caminho de registro invalido: {caminho}");
@@ -81,7 +81,7 @@ public static class RegistryCommands
 
     private static int RunReportHtml(string[] args)
     {
-        var destino = ValueAfter(args, "/report-html");
+        var destino = CliArgs.ValueAfter(args, "/report-html");
         if (string.IsNullOrWhiteSpace(destino))
         {
             Console.Error.WriteLine("Informe o caminho do arquivo HTML.");
@@ -135,13 +135,6 @@ public static class RegistryCommands
         return 0;
     }
 
-    private static string? ValueAfter(string[] args, string name)
-    {
-        for (var i = 0; i < args.Length - 1; i++)
-            if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
-                return args[i + 1];
-        return null;
-    }
 
     private static int RunCategories()
     {
@@ -162,7 +155,7 @@ public static class RegistryCommands
 
     private static int RunRegistryCleaner(string[] args, HashSet<string> flags)
     {
-        var bruto = ValueAfter(args, "/regclean");
+        var bruto = CliArgs.ValueAfter(args, "/regclean");
         var categorias = (bruto ?? string.Empty)
             .Split(';', StringSplitOptions.RemoveEmptyEntries)
             .Select(c => c.Trim())
@@ -217,7 +210,7 @@ public static class RegistryCommands
 
     private static int RunComUnregister(string[] args, HashSet<string> flags)
     {
-        var pasta = ValueAfter(args, "/com-unregister");
+        var pasta = CliArgs.ValueAfter(args, "/com-unregister");
         if (string.IsNullOrWhiteSpace(pasta))
         {
             Console.Error.WriteLine("Informe a pasta do programa.");
@@ -249,7 +242,7 @@ public static class RegistryCommands
 
     private static int RunShared(string[] args)
     {
-        var caminho = ValueAfter(args, "/shared");
+        var caminho = CliArgs.ValueAfter(args, "/shared");
         if (string.IsNullOrWhiteSpace(caminho))
         {
             Console.Error.WriteLine("Informe o caminho.");
@@ -279,8 +272,8 @@ public static class RegistryCommands
 
     private static int RunCreateService(string[] args)
     {
-        var nome = ValueAfter(args, "/create-service");
-        var executavel = ValueAfter(args, "/exe");
+        var nome = CliArgs.ValueAfter(args, "/create-service");
+        var executavel = CliArgs.ValueAfter(args, "/exe");
         if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(executavel))
         {
             Console.Error.WriteLine("Uso: tranal /create-service \"nome\" /exe \"C:\\Programa.exe\" "
@@ -290,11 +283,11 @@ public static class RegistryCommands
 
         var resultado = ServiceManager.Create(
             nome.Trim(),
-            ValueAfter(args, "/display")?.Trim() ?? nome.Trim(),
+            CliArgs.ValueAfter(args, "/display")?.Trim() ?? nome.Trim(),
             executavel.Trim(),
-            ValueAfter(args, "/args")?.Trim() ?? string.Empty,
-            ValueAfter(args, "/desc")?.Trim() ?? string.Empty,
-            ValueAfter(args, "/start")?.Trim() ?? "Manual");
+            CliArgs.ValueAfter(args, "/args")?.Trim() ?? string.Empty,
+            CliArgs.ValueAfter(args, "/desc")?.Trim() ?? string.Empty,
+            CliArgs.ValueAfter(args, "/start")?.Trim() ?? "Manual");
 
         Console.WriteLine(resultado.Message);
         return resultado.Success ? 0 : 1;
@@ -302,8 +295,8 @@ public static class RegistryCommands
 
     private static int RunCreateTask(string[] args)
     {
-        var nome = ValueAfter(args, "/create-task");
-        var executavel = ValueAfter(args, "/exe");
+        var nome = CliArgs.ValueAfter(args, "/create-task");
+        var executavel = CliArgs.ValueAfter(args, "/exe");
         if (string.IsNullOrWhiteSpace(nome) || string.IsNullOrWhiteSpace(executavel))
         {
             Console.Error.WriteLine("Uso: tranal /create-task \"nome\" /exe \"C:\\Programa.exe\" "
@@ -314,10 +307,10 @@ public static class RegistryCommands
         var resultado = ScheduledTaskManager.Create(
             nome.Trim(),
             executavel.Trim(),
-            ValueAfter(args, "/args")?.Trim(),
-            ValueAfter(args, "/time")?.Trim() ?? "00:00",
-            ValueAfter(args, "/folder")?.Trim(),
-            ValueAfter(args, "/desc")?.Trim());
+            CliArgs.ValueAfter(args, "/args")?.Trim(),
+            CliArgs.ValueAfter(args, "/time")?.Trim() ?? "00:00",
+            CliArgs.ValueAfter(args, "/folder")?.Trim(),
+            CliArgs.ValueAfter(args, "/desc")?.Trim());
 
         Console.WriteLine(resultado.Message);
         return resultado.Success ? 0 : 1;
@@ -325,7 +318,7 @@ public static class RegistryCommands
 
     private static int RunNoRemove(string[] args, HashSet<string> flags)
     {
-        var nome = ValueAfter(args, "/noremove");
+        var nome = CliArgs.ValueAfter(args, "/noremove");
         if (string.IsNullOrWhiteSpace(nome))
         {
             Console.Error.WriteLine("Informe o programa.");
