@@ -136,6 +136,10 @@ public static class Program
         var shell = ShellCommands.TryRun(effective, flags);
         if (shell.HasValue) return shell.Value;
 
+        // O Explorer, as notificacoes, os perfis e o sistema.
+        var explorer = ExplorerCommands.TryRun(effective, flags);
+        if (explorer.HasValue) return explorer.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

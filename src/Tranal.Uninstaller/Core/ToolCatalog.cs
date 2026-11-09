@@ -41,6 +41,12 @@ public static class ToolCatalog
     /// <summary>A integracao com o Windows (painel de controle e ferramentas).</summary>
     public const string WindowsIntegration = "WindowsIntegration";
 
+    /// <summary>As notificacoes internas (o sino e as dicas).</summary>
+    public const string Notifications = "Notifications";
+
+    /// <summary>Os perfis por operacao e as visoes de mudanca.</summary>
+    public const string OperationProfiles = "OperationProfiles";
+
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
 
@@ -247,6 +253,8 @@ public static class ToolCatalog
         NewInstalls,
         ProgramCategories,
         WindowsIntegration,
+        Notifications,
+        OperationProfiles,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

@@ -11,6 +11,7 @@ using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Management;
+using Tranal.Uninstaller.Core.Notifications;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Recovery;
 using Tranal.Uninstaller.Core.Settings;
@@ -49,6 +50,8 @@ public static class ToolViews
         ToolCatalog.NewInstalls => CreateNewInstalls(),
         ToolCatalog.ProgramCategories => CreateProgramCategories(),
         ToolCatalog.WindowsIntegration => CreateWindowsIntegration(),
+        ToolCatalog.Notifications => CreateNotifications(),
+        ToolCatalog.OperationProfiles => CreateOperationProfiles(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -1534,6 +1537,142 @@ public static class ToolViews
             }
 
             panel.PanelStatus = ControlPanelIcon.Describe();
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // O sino: as notificacoes internas e as dicas
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateNotifications()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.Notifications"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.Notifications.Title"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.Notifications.Kind"), Width = 140, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.Notifications.Message"), Width = 460, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "NotificationsRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "NotificationsClear", Text = Loc.Get("Tool.Notifications.Clear"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, limpar: true)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool limpar = false)
+        {
+            if (limpar) await Task.Run(() => InternalNotifications.ClearRead());
+
+            var notificacoes = await Task.Run(() => InternalNotifications.Due());
+
+            rows.Clear();
+            foreach (var notificacao in notificacoes)
+            {
+                var (titulo, mensagem) = InternalNotifications.TextOf(notificacao);
+
+                rows.Add(new ToolRow
+                {
+                    Category = titulo,
+                    Size = notificacao.Kind switch
+                    {
+                        NotificationKind.Tip => Loc.Get("Tool.Notifications.Tip"),
+                        NotificationKind.Warning => Loc.Get("Tool.Notifications.Warning"),
+                        _ => Loc.Get("Tool.Notifications.Info"),
+                    },
+                    Path = mensagem,
+                    Source = notificacao,
+                });
+            }
+
+            var naoLidas = InternalNotifications.UnreadCount();
+            panel.PanelStatus = Loc.Get("Tool.Notifications.Status", notificacoes.Count, naoLidas);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Os perfis por operacao e as visoes de mudanca
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateOperationProfiles()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.OperationProfiles"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.OperationProfiles.Operation"), Width = 200, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.OperationProfiles.Option"), Width = 300, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.OperationProfiles.Value"), Width = 160, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "OperationProfilesRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "OperationProfilesViews", Text = Loc.Get("Tool.OperationProfiles.Views"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, visoes: true)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool visoes = false)
+        {
+            var operacoes = Enum.GetValues<OperationKind>();
+
+            rows.Clear();
+            foreach (var operacao in operacoes)
+            {
+                var perfil = OperationProfiles.ProfileOf(operacao);
+
+                if (visoes)
+                {
+                    var lista = perfil.ChangeViews.Count > 0
+                        ? string.Join(", ", perfil.ChangeViews.Select(v => Loc.Get("Tool.OperationProfiles.View." + v)))
+                        : Loc.Get("Tool.OperationProfiles.NoViews");
+
+                    rows.Add(new ToolRow
+                    {
+                        Category = Loc.Get("Tool.OperationProfiles.Operation." + operacao),
+                        Detail = Loc.Get("Tool.OperationProfiles.ChangeViews"),
+                        Size = perfil.ChangeViews.Count.ToString(),
+                        Path = lista,
+                        Source = perfil,
+                    });
+
+                    continue;
+                }
+
+                foreach (var (opcao, valor) in OptionsOf(perfil))
+                {
+                    rows.Add(new ToolRow
+                    {
+                        Category = Loc.Get("Tool.OperationProfiles.Operation." + operacao),
+                        Detail = Loc.Get("Tool.OperationProfiles.Option." + opcao),
+                        Size = valor ? Loc.Get("Common.Yes") : Loc.Get("Common.No"),
+                        Source = perfil,
+                    });
+                }
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.OperationProfiles.Status", operacoes.Length);
+        }
+
+        static IEnumerable<(string Option, bool Value)> OptionsOf(OperationProfile perfil)
+        {
+            yield return ("IncludeSystemComponents", perfil.IncludeSystemComponents);
+            yield return ("IncludeWindowsApps", perfil.IncludeWindowsApps);
+            yield return ("CheckAllLeftovers", perfil.CheckAllLeftovers);
+            yield return ("CreateRestorePoint", perfil.CreateRestorePoint);
+            yield return ("KeepChangesLog", perfil.KeepChangesLog);
+            yield return ("CloseWhenFinished", perfil.CloseWhenFinished);
         }
     }
 

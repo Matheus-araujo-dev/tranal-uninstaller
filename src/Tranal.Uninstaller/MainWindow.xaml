@@ -588,6 +588,22 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="Notifications" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolNotifications">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F514;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Notifications}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="OperationProfiles" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolOperationProfiles">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F39B;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.OperationProfiles}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="RecycleBin" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolRecycleBin">
             <StackPanel Orientation="Horizontal">

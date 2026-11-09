@@ -24,6 +24,11 @@ namespace Tranal.Uninstaller.Core.Topmost;
 ///
 /// Somente HKCU e usado: o nucleo do Tranal roda elevado e nao deve escrever
 /// no registro do sistema.
+///
+/// <para>As **outras** entradas do Tranal no Explorer (rastrear a instalacao,
+/// shredar um arquivo, abrir o monitor de instalacao) estao na classe
+/// <see cref="ExplorerShellMenu"/>, no mesmo arquivo: e o mesmo registro, com
+/// a mesma regra de escrita.</para>
 /// </summary>
 public static class ExplorerContextMenu
 {
@@ -271,7 +276,7 @@ public static class ExplorerContextMenu
     }
 
     /// <summary>Command line completa do item de menu (sem as aspas externas).</summary>
-    private static string BuildCommandLine(string executable, string[] arguments)
+    internal static string BuildCommandLine(string executable, string[] arguments)
     {
         var sb = new System.Text.StringBuilder();
         sb.Append('"').Append(executable).Append('"');
@@ -285,10 +290,193 @@ public static class ExplorerContextMenu
     }
 
     /// <summary>Coloca o valor entre aspas (formato de linha de comando).</summary>
-    private static string Quote(string value) =>
+    internal static string Quote(string value) =>
         "\"" + (value ?? string.Empty).Replace("\"", string.Empty) + "\"";
 
     /// <summary>Escapa um valor para o formato de arquivo .reg.</summary>
-    private static string EscapeRegValue(string value) =>
+    internal static string EscapeRegValue(string value) =>
         (value ?? string.Empty).Replace("\\", "\\\\").Replace("\"", "\\\"");
+}
+
+/// <summary>
+/// Uma entrada de menu do Tranal no Explorer, alem da de desinstalar.
+/// </summary>
+/// <param name="Id">O identificador fixo da entrada.</param>
+/// <param name="DisplayName">O texto que aparece no menu.</param>
+/// <param name="ShellKeyRelative">A chave (dentro de HKCU) onde a entrada mora.</param>
+/// <param name="Arguments">Os argumentos passados ao executavel do Tranal.</param>
+public sealed record ShellMenuEntry(
+    string Id,
+    string DisplayName,
+    string ShellKeyRelative,
+    string[] Arguments);
+
+/// <summary>
+/// As entradas do Tranal no menu de contexto do Explorer.
+///
+/// Ha tres delas, e todas nascem da mesma coisa: o botao direito do
+/// Explorer. "Rastrear a instalacao" (o "Install and Trace" do Uninstall
+/// Tool) aparece sobre executaveis e instaladores; "Shred" (o do IObit)
+/// aparece sobre qualquer arquivo; e o "Monitor de Instalacao" (o do HiBit)
+/// aparece sobre os dois tipos de pacote.
+///
+/// A regra de escrita esta em **um** lugar so: e a mesma que a entrada de
+/// desinstalar usa (a chave <c>shell</c> com <c>MUIVerb</c>, <c>Icon</c> e a
+/// subchave <c>command</c>). E o mesmo arquivo.
+/// </summary>
+public static class ExplorerShellMenu
+{
+    /// <summary>A entrada que rastreia a instalacao de um executavel.</summary>
+    public const string InstallAndTraceId = "TranalInstallAndTrace";
+
+    /// <summary>A entrada que shreda um arquivo.</summary>
+    public const string ShredId = "TranalShred";
+
+    /// <summary>A entrada que abre o monitor de instalacao.</summary>
+    public const string MonitorId = "TranalMonitor";
+
+    /// <summary>O argumento que rastreia a instalacao.</summary>
+    public const string TraceArgument = "--trace-install";
+
+    /// <summary>O argumento que shreda um arquivo.</summary>
+    public const string ShredArgument = "--shred";
+
+    /// <summary>O argumento que abre o monitor de instalacao.</summary>
+    public const string MonitorArgument = "--monitor";
+
+    /// <summary>
+    /// As entradas do Tranal no Explorer, com as chaves onde cada uma mora.
+    /// </summary>
+    public static IReadOnlyList<ShellMenuEntry> Entries { get; } = new[]
+    {
+        new ShellMenuEntry(
+            InstallAndTraceId,
+            "Rastrear a instalacao com o Tranal",
+            @"Software\Classes\SystemFileAssociations\.exe\shell\TranalInstallAndTrace",
+            new[] { TraceArgument, "\"%1\"" }),
+
+        new ShellMenuEntry(
+            InstallAndTraceId + "Msi",
+            "Rastrear a instalacao com o Tranal",
+            @"Software\Classes\SystemFileAssociations\.msi\shell\TranalInstallAndTrace",
+            new[] { TraceArgument, "\"%1\"" }),
+
+        new ShellMenuEntry(
+            ShredId,
+            "Shred com o Tranal",
+            @"Software\Classes\*\shell\TranalShred",
+            new[] { ShredArgument, "\"%1\"" }),
+
+        new ShellMenuEntry(
+            MonitorId,
+            "Monitor de instalacao do Tranal",
+            @"Software\Classes\Msi.Package\shell\TranalMonitor",
+            new[] { MonitorArgument, "\"%1\"" }),
+
+        new ShellMenuEntry(
+            MonitorId + "Exe",
+            "Monitor de instalacao do Tranal",
+            @"Software\Classes\exefile\shell\TranalMonitor",
+            new[] { MonitorArgument, "\"%1\"" }),
+    };
+
+    /// <summary>
+    /// As entradas por identificador: a mesma entrada pode morar em mais de
+    /// um lugar (o "Install and Trace" vale para <c>.exe</c> e para
+    /// <c>.msi</c>).
+    /// </summary>
+    /// <param name="id">O identificador da entrada.</param>
+    public static IReadOnlyList<ShellMenuEntry> EntriesOf(string id) =>
+        Entries
+            .Where(e => string.Equals(e.Id, id, StringComparison.OrdinalIgnoreCase)
+                     || e.Id.StartsWith(id, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    /// <summary>
+    /// A entrada esta registrada? Basta uma das chaves dela existir.
+    /// </summary>
+    /// <param name="id">O identificador da entrada.</param>
+    public static bool IsRegistered(string id) =>
+        EntriesOf(id).Any(e => KeyExists(e.ShellKeyRelative));
+
+    /// <summary>
+    /// Registra ou remove as entradas do Tranal no Explorer.
+    /// </summary>
+    /// <param name="enabled">Verdadeiro para registrar.</param>
+    /// <returns>Quantas entradas ficaram no estado pedido.</returns>
+    public static int Apply(bool enabled)
+    {
+        var executable = ExplorerContextMenu.GetTranalExecutablePath();
+        var aplicadas = 0;
+
+        foreach (var entry in Entries)
+        {
+            var ok = enabled ? Write(entry, executable) : Remove(entry);
+            if (ok) aplicadas++;
+        }
+
+        return aplicadas;
+    }
+
+    private static bool Write(ShellMenuEntry entry, string executable)
+    {
+        if (string.IsNullOrWhiteSpace(executable)) return false;
+
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
+
+            using (var shell = baseKey.CreateSubKey(entry.ShellKeyRelative))
+            {
+                if (shell is null) return false;
+
+                shell.SetValue(string.Empty, entry.DisplayName);
+                shell.SetValue("MUIVerb", entry.DisplayName);
+                shell.SetValue("Icon", executable);
+            }
+
+            using (var command = baseKey.CreateSubKey(entry.ShellKeyRelative + "\\command"))
+            {
+                if (command is null) return false;
+
+                command.SetValue(string.Empty, ExplorerContextMenu.BuildCommandLine(executable, entry.Arguments));
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao registrar a entrada '{entry.Id}': {ex.Message}");
+            return false;
+        }
+    }
+
+    private static bool Remove(ShellMenuEntry entry)
+    {
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
+            baseKey.DeleteSubKeyTree(entry.ShellKeyRelative, throwOnMissingSubKey: false);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao remover a entrada '{entry.Id}': {ex.Message}");
+            return false;
+        }
+    }
+
+    private static bool KeyExists(string relative)
+    {
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
+            using var key = baseKey.OpenSubKey(relative);
+            return key is not null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
