@@ -124,8 +124,8 @@
                                                          "id":  "T1#63",
                                                          "funcionalidade":  "Categoria automática expandida + reset para \"Unsorted\"",
                                                          "evidencia":  "nao confirmado no binario — doc.: `site-produto-uninstaller.html:5413`, `5425`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Categoria automática expandida + reset para \"Unsorted\"/grep \"Unsorted\" em src/ -\u003e 0 hits o agrupamento por coluna existe (`Core/ProgramColumns.cs`), mas nao ha a categoria \"Unsorted\" nem o reset para ela"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Categoria automática expandida + reset para \"Unsorted\"/a arvore de categorias `Core/Discovery/ProgramCategoryTree.cs:69`; o reset para sem categoria `Core/Discovery/ProgramCategoryTree.cs:203`; o estado de expansao do no `Core/Discovery/ProgramCategoryTree.cs:43`"
                                                      },
                                                      {
                                                          "numero":  64,
@@ -164,8 +164,8 @@
                                                          "id":  "T2#3",
                                                          "funcionalidade":  "Ícone na bandeja do sistema para o monitor de instalação, com acionamento manual",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-pro27.txt:13-14`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Ícone na bandeja do sistema para o monitor de instalação, com acionamento manual/grep \"NotifyIcon\" em src/ -\u003e 0 hits o monitor de instalacao existe (`Core/Modules/InstallMonitor.cs`), mas a bandeja nao"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Ícone na bandeja do sistema para o monitor de instalação, com acionamento manual/as regras da bandeja `Core/Management/SystemTray.cs:27`; a regra do icone `Core/Management/SystemTray.cs:30`; o icone na bandeja `Ui/Tools/TrayIconManager.cs:76`"
                                                      },
                                                      {
                                                          "numero":  4,
@@ -1267,8 +1267,8 @@
                                                          "id":  "T5#81",
                                                          "funcionalidade":  "**Hotkeys globais** do sistema, registrados pelo processo",
                                                          "evidencia":  "`GlobalHotkeys` (`bcu.strings.txt:6715`), `SetupHotkeys` (`:131`), `GetHotkeyList` (`:6918`), `HotkeyEntry` (`:7134`), `QKlocman.Subsystems.GlobalHotkeys, KlocTools` (`:8049`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"RegisterHotKey/Hotkey/GlobalHotkey\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:6715` (`GlobalHotkeys`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o modulo dos atalhos globais `Core/Tools/GlobalHotkeys.cs:56`; o registro do atalho no Windows `Core/Tools/GlobalHotkeys.cs:95`"
                                                      },
                                                      {
                                                          "numero":  82,
@@ -1897,8 +1897,8 @@
                                                          "id":  "T2#17",
                                                          "funcionalidade":  "**Menu de contexto do Monitor de Instalação**: `Msi.Package\\shell\\HiBitMonitor` e `exefile\\shell\\HiBitMonitor`",
                                                          "evidencia":  "`hibit.recursos.txt:172` -\u003e `TINSTALLMONITORFORM/0`; `:173` -\u003e `TINSTALLMONITORIGNOREFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"HiBitMonitor/Msi.Package\" em src/` -\u003e **0 hits**. `src/Tranal.Uninstaller/Core/Topmost/ExplorerContextMenu.cs:37` registra **apenas** a entrada do Tranal (`Software\\Classes\\*\\shell\\TranalUninstaller`, `:40` o comando); nao ha segunda entrada para o monitor de instalacao. Binario do concorrente: `hibit.recursos.txt:172` (`TINSTALLMONITORFORM/0`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - a entrada do monitor de instalacao `Core/Topmost/ExplorerContextMenu.cs:336`"
                                                      },
                                                      {
                                                          "numero":  18,
@@ -2488,8 +2488,8 @@
                                                          "id":  "T6#23",
                                                          "funcionalidade":  "Botão **Shred no Explorer**",
                                                          "evidencia":  "`iobit.inventario.md:83` → `AllowMeesageForVistaAbove WM_ExplorerShredder Failed`; `iobit.recursos.txt:84` → `WM_MenuRightStart`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Botão de destruição irreversível no Explorer/menu de contexto do Explorer `Core/Management/ContextMenuManager.cs:46`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Botão de destruição irreversível no Explorer/a entrada de apagar em definitivo `Core/Topmost/ExplorerContextMenu.cs:333`"
                                                      },
                                                      {
                                                          "numero":  24,
@@ -2504,8 +2504,8 @@
                                                          "id":  "T6#25",
                                                          "funcionalidade":  "**Bloqueio de popups** de notificação",
                                                          "evidencia":  "**não confirmado no binario**",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Bloqueio de popups** de notificação/grep \"ActionCenter\" em src/ -\u003e 0 hits o Software Health tem a categoria de notificacoes (`Core/Management/SoftwareHealth.cs`) como estado do programa, nao como bloqueio"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Bloqueio de popups** de notificação/a leitura do estado do bloqueio `Core/Tools/NotificationBlocker.cs:62`"
                                                      },
                                                      {
                                                          "numero":  27,
@@ -2743,8 +2743,8 @@
                                                          "id":  "T1#15",
                                                          "funcionalidade":  "Notificações internas (sino) e dicas",
                                                          "evidencia":  "`recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Notificações internas (sino) e dicas/grep \"BellIcon\" em src/ -\u003e 0 hits a categoria \"Notificacoes\" do Software Health (`Core/Management/SoftwareHealth.cs`) trata do estado dos programas, nao de avisos internos do aplicativo"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Notificações internas (sino) e dicas/o modulo das notificacoes internas `Core/Notifications/InternalNotifications.cs:61`; a listagem do sino `Core/Notifications/InternalNotifications.cs:91`"
                                                      },
                                                      {
                                                          "numero":  16,
@@ -3055,8 +3055,8 @@
                                                          "id":  "T5#54",
                                                          "funcionalidade":  "**Centro de dicas \"Did You Know\"** com dicas contextuais (arrastar para desinstalar, desinstalação externa, atualização, multilíngue)",
                                                          "evidencia":  "`recursos.txt:112` → `TDIDYOUKNOWCENTERFORM/0`; `:101` → `TAPPLICATIONSDIDYOUKNOWTIPSDATA/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Centro de dicas \"Did You Know\"** com dicas contextuais/grep \"DidYouKnow\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Centro de dicas \"Did You Know\"** com dicas contextuais/o centro de dicas `Core/Notifications/InternalNotifications.cs:79`"
                                                      },
                                                      {
                                                          "numero":  55,
@@ -3239,8 +3239,8 @@
                                                          "id":  "T5#77",
                                                          "funcionalidade":  "**Notificações internas agendadas** (avisos de dica)",
                                                          "evidencia":  "`recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Notificações internas agendadas** (avisos de dica)/grep \"ScheduledNotification\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Notificações internas agendadas** (avisos de dica)/o agendamento das notificacoes `Core/Notifications/InternalNotifications.cs:171`"
                                                      }
                                                  ]
                          },
@@ -3454,8 +3454,8 @@
                                                          "id":  "T2#18",
                                                          "funcionalidade":  "**Perfis** separados: Scanning, Analysis, Uninstall, Comparing, Restore/Redo, Cleaner, Auto-run view",
                                                          "evidencia":  "`inventario.md:9` → `tabAnalysisProfile`, `tabCompareProfile`, `tabScanProfile`, `tabUninstPrf`, `tabRedoProfiles`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Perfis** separados: Scanning, Analysis, Uninstall, Comparing, Restore/Redo, Cleaner, Auto-run view/grep \"ScanProfile\" em src/ -\u003e 0 hits existe o filtro de lista (`ProgramFilterSet`), mas nao ha perfis de operacao."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Perfis** separados: Scanning, Analysis, Uninstall, Comparing, Restore/Redo, Cleaner, Auto-run view/o modulo dos perfis `Core/Settings/OperationProfiles.cs:112`; o perfil de cada operacao `Core/Settings/OperationProfiles.cs:131`"
                                                      },
                                                      {
                                                          "numero":  19,
@@ -3478,8 +3478,8 @@
                                                          "id":  "T2#21",
                                                          "funcionalidade":  "**Visões de mudança** configuráveis (\"Change views\")",
                                                          "evidencia":  "`inventario.md:81` → `Change views`; `inventario.md:9` → `tabChangeView`, `tabChangeViews`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Visões de mudança** configuráveis (\"Change views\")/grep \"ChangeView\" em src/ -\u003e 0 hits o que existe e o modo de exibicao da lista (Details/List/Icons), nao a visao de mudancas."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Visões de mudança** configuráveis (\"Change views\")/as visoes de mudanca do perfil `Core/Settings/OperationProfiles.cs:185`"
                                                      },
                                                      {
                                                          "numero":  22,
@@ -4357,8 +4357,8 @@
                                                          "id":  "T3#44",
                                                          "funcionalidade":  "Menu de contexto do Explorer: **\"Install and Trace\"** para `.exe`/`.msi`",
                                                          "evidencia":  "`strings.txt:14213` → `\u003ccheckShellExtension\u003eAdd \u0027Install and Trace\u0027 command for setup files (exe/msi) to the Windows Explorer context menu\u003c/checkShellExtension\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Menu de contexto do Explorer: **\"Install and Trace\"** para `.exe`/`.msi`/gerenciador do menu de contexto do Tranal `Core/Management/AppPermissionManager.cs:120`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Menu de contexto do Explorer: **\"Install and Trace\"** para `.exe`/`.msi`/o modulo das entradas do Explorer `Core/Topmost/ExplorerContextMenu.cs:327`; a entrada Install and Trace `Core/Topmost/ExplorerContextMenu.cs:350`"
                                                      },
                                                      {
                                                          "numero":  45,
@@ -4557,32 +4557,32 @@
                                                          "id":  "T6#69",
                                                          "funcionalidade":  "**Ícone do Uninstall Tool no Painel de Controle**",
                                                          "evidencia":  "`strings.txt:14212` → `\u003ccheckControlPanelIcon\u003eShow Uninstall Tool icon in Control Panel\u003c/checkControlPanelIcon\u003e`; `:17818` → `Control Panel icon`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Ícone do Uninstall Tool no Painel de Controle**/o instalador cria grupo e atalho na area de trabalho; nao ha entrada no Painel de Controle."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Ícone do Uninstall Tool no Painel de Controle**/o modulo do icone no painel de controle `Core/Management/ControlPanelIcon.cs:17`; a criacao da entrada `Core/Management/ControlPanelIcon.cs:50`"
                                                      },
                                                      {
                                                          "numero":  70,
                                                          "id":  "T6#70",
                                                          "funcionalidade":  "**Popup de aplicações recém-instaladas**",
                                                          "evidencia":  "`strings.txt:14233` → `\u003ccheckDisplayPopup\u003eDisplay pop-up window with recently installed applications\u003c/checkDisplayPopup\u003e`; `:17828` → `Display popup window with recently installed applications`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Popup de aplicações recém-instaladas**/grep \"RecentAppsPopup\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Popup de aplicações recém-instaladas**/o rastreio dos programas novos `Core/Discovery/NewInstallsTracker.cs:47`; a deteccao do que apareceu `Core/Discovery/NewInstallsTracker.cs:129`"
                                                      },
                                                      {
                                                          "numero":  71,
                                                          "id":  "T6#71",
                                                          "funcionalidade":  "**Realce dos programas recém-instalados**",
                                                          "evidencia":  "`strings.txt:14234` → `\u003ccheckHighlighRecent\u003eHighlight recently installed programs\u003c/checkHighlighRecent\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Realce dos programas recém-instalados**/`src/Tranal.Uninstaller/MainWindow.xaml.cs:221` (`Status.Installations`) o realce existente e por filtro e cor, nao por data de instalacao."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Realce dos programas recém-instalados**/a marca de programa novo `Core/Discovery/NewInstallsTracker.cs:161`"
                                                      },
                                                      {
                                                          "numero":  72,
                                                          "id":  "T6#72",
                                                          "funcionalidade":  "**Programas recentes na barra secundária**",
                                                          "evidencia":  "`strings.txt:14235` → `\u003ccheckRecentOnSecondaryToolbar\u003eDisplay recent programs in the secondary toolbar\u003c/checkRecentOnSecondaryToolbar\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Programas recentes na barra secundária**/`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:315` (`public static class AppSettings`) `AppSettings.RecentPrograms` e a lista do menu de acesso rapido, nao a barra secundaria."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Programas recentes na barra secundária**/a listagem dos programas recentes `Core/Discovery/NewInstallsTracker.cs:47`"
                                                      },
                                                      {
                                                          "numero":  73,
@@ -4613,32 +4613,32 @@
                                                          "id":  "T6#76",
                                                          "funcionalidade":  "**Minimizar na bandeja durante a instalação**",
                                                          "evidencia":  "`strings.txt:14295` → `\u003ccheckMinimize\u003eMinimize Uninstall Tool to system tray during installation\u003c/checkMinimize\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Minimizar na bandeja durante a instalação**/grep \"NotifyIcon\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Minimizar na bandeja durante a instalação**/a regra de minimizar durante a desinstalacao `Core/Management/SystemTray.cs:43`; a minimizacao na janela principal `MainWindow.xaml.cs:166`"
                                                      },
                                                      {
                                                          "numero":  77,
                                                          "id":  "T6#77",
                                                          "funcionalidade":  "**Exibir o ícone na bandeja do sistema**",
                                                          "evidencia":  "`inventario.md:271` → `Display Uninstall Tool system tray icon`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Exibir o ícone na bandeja do sistema**/grep \"NotifyIcon\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Exibir o ícone na bandeja do sistema**/o icone na bandeja `Ui/Tools/TrayIconManager.cs:76`; o registro do icone `Ui/Tools/TrayIconManager.cs:87`"
                                                      },
                                                      {
                                                          "numero":  78,
                                                          "id":  "T6#78",
                                                          "funcionalidade":  "**Iniciar automaticamente minimizado na bandeja**",
                                                          "evidencia":  "`inventario.md:56` → `Automatically start Uninstall Tool minimized in system tray on Windows startup`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Iniciar automaticamente minimizado na bandeja**/grep \"NotifyIcon\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Iniciar automaticamente minimizado na bandeja**/a regra de iniciar minimizado `Core/Management/SystemTray.cs:36`; a montagem da bandeja no arranque `MainWindow.xaml.cs:112`"
                                                      },
                                                      {
                                                          "numero":  79,
                                                          "id":  "T6#79",
                                                          "funcionalidade":  "**Navegar até a pasta do programa com o Total Commander**",
                                                          "evidencia":  "`strings.txt:14214` → `\u003ccheckTotalCommander\u003eNavigate to program directory using Total Commander (if installed)\u003c/checkTotalCommander\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Navegar até a pasta do programa com o Total Commander**/grep \"TotalCommander\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Navegar até a pasta do programa com o Total Commander**/o modulo das ferramentas externas `Core/Tools/ExternalLaunchers.cs:33`; a abertura no Total Commander `Core/Tools/ExternalLaunchers.cs:91`"
                                                      },
                                                      {
                                                          "numero":  80,
@@ -4661,8 +4661,8 @@
                                                          "id":  "T6#82",
                                                          "funcionalidade":  "**Lista compacta de aplicativos**",
                                                          "evidencia":  "`strings.txt:14219` → `\u003ccheckSmallIcons\u003eCompact list with apps\u003c/checkSmallIcons\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Lista compacta de aplicativos**/grep \"SmallIcons\" em src/ -\u003e 0 hits a lista usa sempre o mesmo conjunto de colunas."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Lista compacta de aplicativos**/o modulo do formato da lista `Core/Appearance/ProgramListLayout.cs:15`; as colunas da lista compacta `Core/Appearance/ProgramListLayout.cs:21`"
                                                      },
                                                      {
                                                          "numero":  83,
@@ -5579,8 +5579,8 @@
                                                          "id":  "T4#50",
                                                          "funcionalidade":  "Bloqueio de notificações pop-up (regra `PopNotify`)",
                                                          "evidencia":  "`wise.strings.txt:62861` -\u003e `\"tranname\": \"PopNotify\",`; `:62885` -\u003e `\"type\": \"PopNotify\",`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Bloqueio de notificações pop-up (regra `PopNotify`)/grep \"PopNotify\" em src/ -\u003e 0 hits os tipos de regra existentes sao as categorias Include, Exclude, Protect e Cleanup (`Core/Rules/RemovalRule.cs`)."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Bloqueio de notificações pop-up (regra `PopNotify`)/o modulo do bloqueio dos avisos `Core/Tools/NotificationBlocker.cs:31`; o bloqueio dos avisos na tela `Core/Tools/NotificationBlocker.cs:77`"
                                                      },
                                                      {
                                                          "numero":  51,
@@ -5619,8 +5619,8 @@
                                                          "id":  "T5#55",
                                                          "funcionalidade":  "Tabela de caminhos de registro por app, com marcação `(Reg)`: **48 entradas, 14 com `(Reg)`**",
                                                          "evidencia":  "`wise.strings.txt:62854` -\u003e `\"key\": \"SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall\\\\Vivaldi\"`; `:62858` -\u003e `...Uninstall\\\\SogouExplorer\"`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Tabela de caminhos de registro por app, com marcação `(Reg)`/grep \"TabelaDeRegistros\" em src/ -\u003e 0 hits nao ha tabela de chaves de registro por aplicativo."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Tabela de caminhos de registro por app, com marcação `(Reg)`/a tabela de caminhos de registro `Core/Discovery/RegistryPathTable.cs:37`; a montagem da tabela `Core/Discovery/RegistryPathTable.cs:43`"
                                                      },
                                                      {
                                                          "numero":  56,
@@ -5835,16 +5835,16 @@
                                                          "id":  "T7#82",
                                                          "funcionalidade":  "Acesso ao **gerenciador de credenciais** do Windows",
                                                          "evidencia":  "`wise.identificadores.txt:228` -\u003e `Winapi.Security.Credentials`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Acesso ao **gerenciador de credenciais** do Windows/grep \"CredentialManager\" em src/ -\u003e 0 hits a busca por \"CredRead\" e \"CredEnumerate\" em `src/` nao retorna hits."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Acesso ao **gerenciador de credenciais** do Windows/a abertura do Gerenciador de Credenciais `Core/Tools/ExternalLaunchers.cs:126`"
                                                      },
                                                      {
                                                          "numero":  83,
                                                          "id":  "T7#83",
                                                          "funcionalidade":  "Detecção de **geolocalização**",
                                                          "evidencia":  "`wise.identifiers.txt:227` -\u003e `Winapi.Devices.Geolocation`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Detecção de **geolocalização**/grep \"Geolocation\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Detecção de **geolocalização**/o modulo da geolocalizacao `Core/Discovery/GeolocationProbe.cs:36`; a leitura do estado `Core/Discovery/GeolocationProbe.cs:54`"
                                                      },
                                                      {
                                                          "numero":  84,

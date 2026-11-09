@@ -128,7 +128,7 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | 12 | Atualização automática do próprio Soft Organizer | `recursos.txt:131` → `TSILENTUPDATESCHECKDATAMODULE/0` | OK — `Core/Updates/AutoUpdateClient.cs` |
 | 13 | Avaliação/rating dos programas | nao confirmado no binario | OK — `Core/Appearance/ProgramRating.cs` |
 | 14 | Relatório final da desinstalação | nao confirmado no binario | OK — `Core/RemovalLog.cs` |
-| 15 | Notificações internas (sino) e dicas | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | **AUSENTE** - Notificações internas (sino) e dicas/grep "BellIcon" em src/ -> 0 hits a categoria "Notificacoes" do Software Health (`Core/Management/SoftwareHealth.cs`) trata do estado dos programas, nao de avisos internos do aplicativo |
+| 15 | Notificações internas (sino) e dicas | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | **OK** - Notificações internas (sino) e dicas/o modulo das notificacoes internas `Core/Notifications/InternalNotifications.cs:61`; a listagem do sino `Core/Notifications/InternalNotifications.cs:91` |
 | 16 | Painel de configurações em árvore | `recursos.txt:129` → `TSETTINGSFORM/0` | OK — `Ui/OptionsWindow.xaml.cs` |
 
 ### 2.2 Scanning e removal (17–31)
@@ -187,7 +187,7 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 
 | # | Funcionalidade | Evidência no binário | Tranal |
 |---|---|---|---|
-| 54 | **Centro de dicas "Did You Know"** com dicas contextuais (arrastar para desinstalar, desinstalação externa, atualização, multilíngue) | `recursos.txt:112` → `TDIDYOUKNOWCENTERFORM/0`; `:101` → `TAPPLICATIONSDIDYOUKNOWTIPSDATA/0` | **AUSENTE** - **Centro de dicas "Did You Know"** com dicas contextuais/grep "DidYouKnow" em src/ -> 0 hits |
+| 54 | **Centro de dicas "Did You Know"** com dicas contextuais (arrastar para desinstalar, desinstalação externa, atualização, multilíngue) | `recursos.txt:112` → `TDIDYOUKNOWCENTERFORM/0`; `:101` → `TAPPLICATIONSDIDYOUKNOWTIPSDATA/0` | **OK** - **Centro de dicas "Did You Know"** com dicas contextuais/o centro de dicas `Core/Notifications/InternalNotifications.cs:79` |
 | 55 | Aviso de **atualização do próprio app** ("Update This App") | `recursos.txt:136` → `TUPDATETHISAPPFORM/0` | **OK** - Aviso de **atualização do próprio app** ("Update This App")/`src/Tranal.Uninstaller/Ui/Tools/UpdateViews.cs:33` (`ToolCatalog.AppUpdate`) `src/Tranal.Uninstaller/Core/Updates/UpdateService.cs:101` (`VerificarTranalAsync`) a verificacao tambem roda ao iniciar e pode atualizar em segundo plano (`MainWindow.xaml.cs`). |
 | 56 | **Backup e restauração de chaves de registro inteiras** | `imports.txt:8` → `ADVAPI32.dll / RegSaveKeyExW`, `RegRestoreKeyW` | **PARCIAL** - **Backup e restauração de chaves de registro inteiras**/`src/Tranal.Uninstaller/Core/FullRegistryBackup.cs:42` (`public static class FullRegistryBackup`) **Nota**: o backup exporta os hives inteiros com `reg.exe` e gera o script de restauracao; nao ha backup de chave arbitraria — a busca por "RegSaveKey" em `src/` nao retorna hits. |
 | 57 | **Carga e descarregamento de chaves** e substituição de chave | `imports.txt:8` → `ADVAPI32.dll / RegLoadKeyW`, `RegUnLoadKeyW`, `RegReplaceKeyW` | **AUSENTE** - **Carga e descarregamento de chaves** e substituição de chave/grep "RegLoadKey" em src/ -> 0 hits |
@@ -210,7 +210,7 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | 74 | Telas de **licenciamento** (chave, assinatura, expiração da assinatura) | `recursos.txt:118` → `TLICENSINGKEYENTERINGFORM/0`; `:121` → `TLICENSINGSUBSCRIPTIONEXPIREDFORM/0` | **FORA POR DECISAO** - Fora de escopo por decisao: o Tranal e reimplementacao independente, sem licenca, sem cadastro e sem telemetria. |
 | 75 | Tema **escuro "Charcoal Dark Slate"** embarcado | `recursos.txt:6` → `VCLSTYLE/CHARCOALDARKSLATE` | OK — `Theming/ThemeManager.cs` |
 | 76 | **Impersonação de token** e verificação de privilégios | `imports.txt:8` → `ADVAPI32.dll / ImpersonateLoggedOnUser`, `SetThreadToken`, `PrivilegeCheck`, `RevertToSelf`, `AdjustTokenPrivileges` | **AUSENTE** - **Impersonação de token** e verificação de privilégios/grep "ImpersonateLoggedOnUser" em src/ -> 0 hits |
-| 77 | **Notificações internas agendadas** (avisos de dica) | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | **AUSENTE** - **Notificações internas agendadas** (avisos de dica)/grep "ScheduledNotification" em src/ -> 0 hits |
+| 77 | **Notificações internas agendadas** (avisos de dica) | `recursos.txt:127` → `TNOTIFICATIONSDATAMODULE/0` | **OK** - **Notificações internas agendadas** (avisos de dica)/o agendamento das notificacoes `Core/Notifications/InternalNotifications.cs:171` |
 
 ### 2.6 Lacunas confirmadas no binário
 
