@@ -150,10 +150,10 @@ public static class ProcessInspector
         {
             try
             {
-                var info = FileVersionInfo.GetVersionInfo(caminho);
-                descricao = info.FileDescription ?? string.Empty;
-                empresa = info.CompanyName ?? string.Empty;
-                versao = info.FileVersion ?? string.Empty;
+                var info = Discovery.ExecutableMetadataReader.Read(caminho);
+                descricao = info?.FileDescription ?? string.Empty;
+                empresa = info?.CompanyName ?? string.Empty;
+                versao = info?.FileVersion ?? string.Empty;
             }
             catch
             {

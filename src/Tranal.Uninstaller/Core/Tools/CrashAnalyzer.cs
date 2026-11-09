@@ -207,8 +207,8 @@ public static class CrashAnalyzer
         {
             if (System.IO.File.Exists(executavel))
             {
-                var info = System.Diagnostics.FileVersionInfo.GetVersionInfo(executavel);
-                if (!string.IsNullOrWhiteSpace(info.ProductName)) return info.ProductName.Trim();
+                var produto = Discovery.ExecutableMetadataReader.ProductOf(executavel);
+                if (!string.IsNullOrWhiteSpace(produto)) return produto;
             }
 
             return System.IO.Path.GetFileNameWithoutExtension(executavel);

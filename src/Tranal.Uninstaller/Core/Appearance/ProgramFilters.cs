@@ -168,6 +168,14 @@ public sealed class ProgramFilterSet
     /// </summary>
     public string SearchText { get; set; } = string.Empty;
 
+    /// <summary>
+    /// True quando a busca tambem casa por aproximacao (o termo "acrobat"
+    /// acha "Adobe Acrobat Reader").
+    ///
+    /// Vale so para a busca; as exclusoes continuam casando pelo texto exato.
+    /// </summary>
+    public bool FuzzySearch { get; set; } = true;
+
     /// <summary>All | 32 | 64 | msi.</summary>
     public string TypeFilter { get; set; } = "All";
 
@@ -523,10 +531,31 @@ public sealed class ProgramFilterSet
 
         foreach (var termo in query.Terms)
         {
-            if (!MatchesTerm(termo, program, anotacao)) return false;
+            if (!MatchesTerm(termo, program, anotacao) && !MatchesFuzzyTerm(termo, program, anotacao)) return false;
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// A busca difusa: o termo casa com o campo por aproximacao.
+    ///
+    /// Ela so vale para a busca, nunca para as exclusoes: um termo de
+    /// exclusao que casasse por aproximacao tiraria da lista programas que
+    /// o usuario pediu para manter.
+    /// </summary>
+    /// <param name="termo">O termo digitado.</param>
+    /// <param name="program">O programa inspecionado.</param>
+    /// <param name="anotacao">A anotacao do usuario sobre o programa.</param>
+    private bool MatchesFuzzyTerm(string termo, InstalledProgram program, ProgramCustomization? anotacao)
+    {
+        if (!FuzzySearch) return false;
+        if (termo.Length < Search.FuzzyMatch.MinimumTermLength) return false;
+
+        return Search.FuzzyMatch.IsMatch(program.DisplayName, termo)
+            || Search.FuzzyMatch.IsMatch(program.Publisher, termo)
+            || Search.FuzzyMatch.IsMatch(program.Comments, termo)
+            || Search.FuzzyMatch.IsMatch(anotacao?.Comment, termo);
     }
 
     /// <summary>

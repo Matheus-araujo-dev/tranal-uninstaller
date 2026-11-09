@@ -44,6 +44,16 @@ public enum UninstallAdvisoryKind
     /// Ha programas que costumam ser instalados junto com este.
     /// </summary>
     RelatedPrograms,
+
+    /// <summary>
+    /// A desinstalacao forcada foi pedida sem a segura ter sido tentada.
+    /// </summary>
+    ForcedWithoutSafe,
+
+    /// <summary>
+    /// Ja existe uma desinstalacao em andamento.
+    /// </summary>
+    UninstallInProgress,
 }
 
 /// <summary>
@@ -108,9 +118,21 @@ public static class UninstallAdvisories
     public static IReadOnlyList<UninstallAdvisory> Build(
         InstalledProgram program,
         IEnumerable<InstalledProgram>? allPrograms = null,
-        IEnumerable<LeftoverItem>? leftovers = null)
+        IEnumerable<LeftoverItem>? leftovers = null,
+        UninstallMode? mode = null)
     {
         var advisories = new List<UninstallAdvisory>();
+
+        // A desinstalacao forcada apaga o que a segura deixaria. O aviso e
+        // do proprio nucleo: a tela e a CLI mostram o mesmo texto.
+        if (mode == UninstallMode.Advanced)
+        {
+            advisories.Add(new UninstallAdvisory(
+                UninstallAdvisoryKind.ForcedWithoutSafe,
+                AdvisoryLabels.Title(UninstallAdvisoryKind.ForcedWithoutSafe),
+                AdvisoryLabels.ForcedWithoutSafe(),
+                Array.Empty<string>()));
+        }
 
         var shared = SharedInstallLocationAdvisory(program, allPrograms);
         if (shared is not null) advisories.Add(shared);

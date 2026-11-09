@@ -965,5 +965,11 @@
     "Tool.Shared.Remove":  "Remove",
     "Tool.Shared.Start":  "Scan the shared components.",
     "Tool.Shared.Empty":  "No shared component found.",
+    "Common.Platform":  "Platform",
+    "Advisory.Title.ForcedWithoutSafe":  "Forced uninstall",
+    "Advisory.ForcedWithoutSafe":  "You asked for the forced uninstall. It removes what the safe uninstall would leave behind. Use it when the program refuses the normal uninstall.",
+    "Advisory.Title.UninstallInProgress":  "Uninstall in progress",
+    "Advisory.UninstallInProgress":  "An uninstall is already running. Wait for it to finish before starting another one.",
+    "Wizard.GuardTitle":  "Uninstall blocked",
     "Tool.Shared.NothingSelected":  "No item selected."
 }

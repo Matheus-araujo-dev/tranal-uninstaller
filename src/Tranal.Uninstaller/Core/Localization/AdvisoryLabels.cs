@@ -21,6 +21,8 @@ public static class AdvisoryLabels
         UninstallAdvisoryKind.UninstallerMissing => "Advisory.Title.UninstallerMissing",
         UninstallAdvisoryKind.UninstallerBroken => "Advisory.Title.UninstallerBroken",
         UninstallAdvisoryKind.RelatedPrograms => "Advisory.Title.RelatedPrograms",
+        UninstallAdvisoryKind.ForcedWithoutSafe => "Advisory.Title.ForcedWithoutSafe",
+        UninstallAdvisoryKind.UninstallInProgress => "Advisory.Title.UninstallInProgress",
         _ => "Advisory.Title.UserData",
     });
 
@@ -64,4 +66,14 @@ public static class AdvisoryLabels
     /// <param name="programs">Os nomes dos programas relacionados.</param>
     public static string RelatedPrograms(IReadOnlyList<string> programs) =>
         Loc.Get("Advisory.RelatedPrograms", string.Join(", ", programs));
+
+    /// <summary>
+    /// O aviso de desinstalacao forcada sem tentar a segura antes.
+    /// </summary>
+    public static string ForcedWithoutSafe() => Loc.Get("Advisory.ForcedWithoutSafe");
+
+    /// <summary>
+    /// O aviso de desinstalacao em andamento.
+    /// </summary>
+    public static string UninstallInProgress() => Loc.Get("Advisory.UninstallInProgress");
 }

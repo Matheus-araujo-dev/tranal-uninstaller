@@ -161,18 +161,18 @@ public static class CountryDetector
         {
             if (!System.IO.File.Exists(caminho)) return null;
 
-            var info = System.Diagnostics.FileVersionInfo.GetVersionInfo(caminho);
+            var info = Discovery.ExecutableMetadataReader.Read(caminho);
 
             // A Resource do arquivo traz o pais em formato numerico (a
             // regiao do Windows). O "ProductName" costuma trazer o pais por
             // extenso ("Brasil"), que e a pista mais direta.
-            var produto = info.ProductName ?? string.Empty;
+            var produto = info?.ProductName ?? string.Empty;
             var paisTexto = ExtrairPaisDoTexto(produto);
             if (paisTexto is not null) return paisTexto;
 
             // O "Language" do recurso e o codigo de idioma em hexadecimal
             // ("0419" = ingles dos EUA, "0416" = portugues do Brasil).
-            var idioma = info.Language;
+            var idioma = info?.Language ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(idioma))
             {
                 var codigo = ExtrairRegiaoDoIdioma(idioma);

@@ -82,6 +82,12 @@ public sealed class ProgramRow : INotifyPropertyChanged
     public string RelativeDateText => ProgramColumns.Value(ProgramColumn.RelativeDate, Program, Custom);
 
     /// <summary>
+    /// A plataforma de origem do programa (Steam, Epic, Chocolatey...). Vazio
+    /// quando o programa nao veio de nenhuma loja ou gerenciador conhecido.
+    /// </summary>
+    public string PlatformText => ProgramColumns.Value(ProgramColumn.Platform, Program, Custom);
+
+    /// <summary>
     /// Janela de "programas novos". O Revo usa o par "New programs type" / "New Days"
     /// em HKCU\Software\VS Revo Group\Revo Uninstaller\Uninstaller, com o padrao de 7 dias.
     /// O corte conta o dia inteiro: a partir da meia-noite de (hoje - 7 dias).

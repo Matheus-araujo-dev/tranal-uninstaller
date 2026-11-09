@@ -992,8 +992,7 @@ public static class AutorunManager
             if (string.IsNullOrWhiteSpace(executablePath)) return string.Empty;
             if (!File.Exists(executablePath)) return string.Empty;
 
-            var info = FileVersionInfo.GetVersionInfo(executablePath);
-            return (info.CompanyName ?? string.Empty).Trim();
+            return Discovery.ExecutableMetadataReader.CompanyOf(executablePath);
         }
         catch (Exception ex)
         {

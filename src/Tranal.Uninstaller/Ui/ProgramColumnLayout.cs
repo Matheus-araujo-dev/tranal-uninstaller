@@ -44,6 +44,7 @@ public static class ProgramColumnLayout
         ProgramColumn.Rating => 90,
         ProgramColumn.Country => 140,
         ProgramColumn.RelativeDate => 130,
+        ProgramColumn.Platform => 130,
         _ => 120,
     };
 
@@ -75,6 +76,7 @@ public static class ProgramColumnLayout
         ProgramColumn.Rating => nameof(ProgramRow.RatingText),
         ProgramColumn.Country => nameof(ProgramRow.CountryText),
         ProgramColumn.RelativeDate => nameof(ProgramRow.RelativeDateText),
+        ProgramColumn.Platform => nameof(ProgramRow.PlatformText),
         _ => null,
     };
 

@@ -110,6 +110,13 @@ public enum ProgramColumn
     /// so a forma de falar.
     /// </summary>
     RelativeDate,
+
+    /// <summary>
+    /// A plataforma de origem do programa (Steam, Epic, Chocolatey, porta-
+    /// til...). Vazio quando o programa nao veio de nenhuma loja ou gerenciador
+    /// conhecido.
+    /// </summary>
+    Platform,
 }
 
 /// <summary>
@@ -207,6 +214,7 @@ public static class ProgramColumns
         new(ProgramColumn.RegistryKey, "Common.RegistryKey", "Chave do registro", "RegistryKey"),
         new(ProgramColumn.Country, "Common.Country", "País", "Country", "Common.Country"),
         new(ProgramColumn.RelativeDate, "Common.Date", "Data (relativa)", "RelativeDate", "Common.RelativeDate"),
+        new(ProgramColumn.Platform, "Common.Platform", "Plataforma", "Platform", "Common.Platform"),
     };
 
     /// <summary>Todas as colunas, na ordem em que aparecem na lista.</summary>
@@ -274,8 +282,25 @@ public static class ProgramColumns
             case ProgramColumn.RegistryKey: return program.RegistryKey;
             case ProgramColumn.Country: return CountryOf(program);
             case ProgramColumn.RelativeDate: return Modules.RelativeDate.Format(program.InstallDateValue);
+            case ProgramColumn.Platform: return PlatformOf(program);
             default: return string.Empty;
         }
+    }
+
+    /// <summary>
+    /// A plataforma de origem do programa (Steam, Epic, Chocolatey...).
+    ///
+    /// A deteccao e feita pelos marcadores do caminho de instalacao e do
+    /// comando de desinstalacao — a unica pista que existe sem depender de
+    /// rede.
+    /// </summary>
+    /// <param name="program">O programa instalado.</param>
+    public static string PlatformOf(InstalledProgram program)
+    {
+        if (program is null) return string.Empty;
+
+        var plataforma = Discovery.AppPlatformDetector.Detect(program);
+        return plataforma?.Name ?? string.Empty;
     }
 
     /// <summary>

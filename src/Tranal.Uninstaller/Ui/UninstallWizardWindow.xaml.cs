@@ -474,11 +474,23 @@ public partial class UninstallWizardWindow : Window
     /// </summary>
     private bool ConfirmPreUninstallAdvisories()
     {
+        // As guardas vem ANTES dos avisos: uma recusa (desinstalar o proprio
+        // Tranal, ou ja ter uma desinstalacao em andamento) nao e um aviso que
+        // o usuario pode aceitar — e uma operacao que nao deve comecar.
+        foreach (var program in _programs)
+        {
+            var guarda = UninstallGuards.Check(program, _mode == UninstallMode.Advanced);
+            if (guarda.Allowed) continue;
+
+            UserMessages.Information(this, guarda.Reason, Loc.Get("Wizard.GuardTitle"));
+            return false;
+        }
+
         var advisories = new List<UninstallAdvisory>();
 
         foreach (var program in _programs)
         {
-            advisories.AddRange(UninstallAdvisories.Build(program, _allPrograms));
+            advisories.AddRange(UninstallAdvisories.Build(program, _allPrograms, null, _mode));
         }
 
         if (advisories.Count == 0) return true;

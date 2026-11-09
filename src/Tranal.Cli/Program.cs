@@ -358,6 +358,21 @@ public static class Program
             return 1;
         }
 
+        // As guardas vêm antes de qualquer aviso: uma recusa (desinstalar o
+        // próprio Tranal, ou já ter uma desinstalação em andamento) não é um
+        // aviso que o usuário possa aceitar.
+        var guarda = UninstallGuards.Check(target, mode == UninstallMode.Advanced);
+        if (!guarda.Allowed)
+        {
+            Console.Error.WriteLine(guarda.Reason);
+            return 1;
+        }
+
+        if (guarda.RequiresWarning)
+        {
+            Console.WriteLine(guarda.Warning);
+        }
+
         return UninstallProgram(target, allPrograms, mode, runBuiltIn, remove, flags);
     }
 

@@ -965,5 +965,11 @@
     "Tool.Shared.Remove":  "Remover",
     "Tool.Shared.Start":  "Procure os componentes compartilhados.",
     "Tool.Shared.Empty":  "Nenhum componente compartilhado encontrado.",
+    "Common.Platform":  "Plataforma",
+    "Advisory.Title.ForcedWithoutSafe":  "Desinstalacao forcada",
+    "Advisory.ForcedWithoutSafe":  "Voce pediu a desinstalacao forcada. Ela apaga o que a desinstalacao segura deixaria. Use-a quando o programa recusar a desinstalacao normal.",
+    "Advisory.Title.UninstallInProgress":  "Desinstalacao em andamento",
+    "Advisory.UninstallInProgress":  "Ja existe uma desinstalacao em andamento. Espere ela terminar antes de comecar outra.",
+    "Wizard.GuardTitle":  "Desinstalacao bloqueada",
     "Tool.Shared.NothingSelected":  "Nenhum item marcado."
 }
