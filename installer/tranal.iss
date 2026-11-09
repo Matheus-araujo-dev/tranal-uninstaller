@@ -60,6 +60,13 @@
   #error "LicenseFile nao definido"
 #endif
 
+; A senha do instalador e opcional e vem da linha de comando do publicador
+; (/DSetupPassword=...). Quando ela vem, o setup e criptografado — o motor do
+; Inno Setup 6 usa ChaCha20 — e so abre com a senha.
+#ifndef SetupPassword
+  #define SetupPassword ""
+#endif
+
 #define AppName "Tranal Uninstaller Pro"
 #define AppPublisher "Tranal"
 #define AppExeName "TranalUninstaller.exe"
@@ -99,6 +106,13 @@ CloseApplications=yes
 RestartApplications=no
 SetupLogging=yes
 VersionInfoVersion={#AppVersion}
+; Instalador protegido por senha: quando a senha vem na linha de comando, o
+; setup e criptografado (ChaCha20, no motor do Inno Setup 6) e so abre com a
+; senha. Sem senha, o instalador fica como esta.
+#ifdef SetupPassword
+  Password={#SetupPassword}
+  Encryption=Password
+#endif
 
 [Languages]
 Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"

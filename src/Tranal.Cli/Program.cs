@@ -148,6 +148,10 @@ public static class Program
         var dados = DataCommands.TryRun(effective, flags);
         if (dados.HasValue) return dados.Value;
 
+        // O manifesto, a qualidade do rastreio, o removedor e o Bluetooth.
+        var manifesto = ManifestCommands.TryRun(effective, flags);
+        if (manifesto.HasValue) return manifesto.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

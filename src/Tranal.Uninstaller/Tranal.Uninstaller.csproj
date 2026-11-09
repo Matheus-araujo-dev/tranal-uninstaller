@@ -18,6 +18,16 @@
     <SatelliteResourceLanguages>en;pt-BR</SatelliteResourceLanguages>
   </PropertyGroup>
 
+  <!--
+    O manifesto lado a lado: o XML que declara as DLLs de sistema que o
+    programa usa (comctl32, mpr, netapi32, netutils, textshaping e version).
+    O conteudo vem de Core\Tools\SxSManifest.cs, que e a fonte unica; o
+    teste da suite confere que o arquivo no disco e o que o modulo gera.
+  -->
+  <ItemGroup>
+    <Content Include="Assets\tranal-sxs.manifest" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!-- Catalogos de idioma embarcados (Lang/pt-BR.json, Lang/en-US.json...). -->
   <ItemGroup>
     <EmbeddedResource Include="Lang\*.json" />
