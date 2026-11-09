@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -8,7 +8,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Microsoft.Win32;
+using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Tracing;
+using Tranal.Uninstaller.Ui.Reporting;
 
 namespace Tranal.Uninstaller.Ui.Tracing;
 
@@ -150,6 +153,21 @@ public static class TracingTexts
 
     /// <summary>Mensagem quando nada foi apagado.</summary>
     public const string NadaParaApagar = "Selecione o snapshot que deseja apagar.";
+
+    /// <summary>Botao que exporta a arvore de alteracoes.</summary>
+    public const string ExportarArvore = "Exportar arvore...";
+
+    /// <summary>Botao que imprime a arvore de alteracoes.</summary>
+    public const string ImprimirArvore = "Imprimir arvore...";
+
+    /// <summary>Mensagem quando a arvore foi exportada.</summary>
+    public const string ArvoreExportada = "Arvore exportada: ";
+
+    /// <summary>Mensagem quando a arvore nao pode ser exportada.</summary>
+    public const string ArvoreExportFalhou = "Nao foi possivel exportar a arvore.";
+
+    /// <summary>Mensagem quando ainda nao houve comparacao.</summary>
+    public const string SemComparacao = "Compare dois snapshots antes de exportar ou imprimir.";
 }
 
 /// <summary>
@@ -166,6 +184,18 @@ public partial class TracingWindow : Window
     private readonly ObservableCollection<LinhaSnapshot> _snapshots = new();
 
     private WriteWatcher? _watcher;
+
+    /// <summary>
+    /// A ultima comparacao feita. E ela que a arvore de alteracoes mostra,
+    /// exporta e imprime.
+    /// </summary>
+    private SnapshotComparison? _comparacao;
+
+    /// <summary>O nome do snapshot de antes da ultima comparacao.</summary>
+    private string _comparacaoAntes = string.Empty;
+
+    /// <summary>O nome do snapshot de depois da ultima comparacao.</summary>
+    private string _comparacaoDepois = string.Empty;
 
     /// <summary>
     /// Abre a janela de rastreio.
@@ -389,8 +419,81 @@ public partial class TracingWindow : Window
             return;
         }
 
+        _comparacao = comparacao;
+        _comparacaoAntes = antes.Name;
+        _comparacaoDepois = depois.Name;
+
         ComparisonText.Text = DescreverComparacao(antes.Name, depois.Name, comparacao);
         StatusText.Text = TracingTexts.ComparacaoPronta;
+    }
+
+    /// <summary>
+    /// Exporta a arvore de alteracoes da ultima comparacao.
+    ///
+    /// O formato sai da extensao do arquivo escolhido: .csv vira planilha,
+    /// .html vira pagina, o resto vira texto.
+    /// </summary>
+    private void ExportChangeTreeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_comparacao is null)
+        {
+            StatusText.Text = TracingTexts.SemComparacao;
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = TracingTexts.ExportarArvore,
+            Filter = "CSV (*.csv)|*.csv|HTML (*.html)|*.html|Texto (*.txt)|*.txt",
+            FileName = "arvore-alteracoes.csv",
+            AddExtension = true,
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        var gravado = ChangeTreeReport.Write(
+            _comparacao,
+            _comparacaoAntes,
+            _comparacaoDepois,
+            dialog.FileName,
+            FormatoDe(dialog.FileName));
+
+        StatusText.Text = gravado.Length > 0
+            ? TracingTexts.ArvoreExportada + gravado
+            : TracingTexts.ArvoreExportFalhou;
+    }
+
+    /// <summary>
+    /// Abre a pre-visualizacao de impressao da arvore de alteracoes.
+    ///
+    /// E a mesma janela de impressao da lista de programas: a regra de como
+    /// uma tabela vira folha mora no nucleo (<c>PrintTable</c>).
+    /// </summary>
+    private void PrintChangeTreeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_comparacao is null)
+        {
+            StatusText.Text = TracingTexts.SemComparacao;
+            return;
+        }
+
+        var tabela = ChangeTreeReport.Table(_comparacao, _comparacaoAntes, _comparacaoDepois);
+
+        var janela = new ReportingWindow(tabela);
+        janela.Owner = this;
+        janela.ShowDialog();
+    }
+
+    /// <summary>
+    /// O formato de exportacao, pela extensao do arquivo.
+    /// </summary>
+    /// <param name="caminho">O caminho do arquivo.</param>
+    private static ChangeTreeFormat FormatoDe(string caminho)
+    {
+        if (caminho.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)) return ChangeTreeFormat.Csv;
+        if (caminho.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+            || caminho.EndsWith(".htm", StringComparison.OrdinalIgnoreCase)) return ChangeTreeFormat.Html;
+        return ChangeTreeFormat.Text;
     }
 
     /// <summary>

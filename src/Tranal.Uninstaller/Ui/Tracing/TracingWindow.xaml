@@ -1,4 +1,4 @@
-<Window x:Class="Tranal.Uninstaller.Ui.Tracing.TracingWindow"
+﻿<Window x:Class="Tranal.Uninstaller.Ui.Tracing.TracingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:tr="clr-namespace:Tranal.Uninstaller.Ui.Tracing"
@@ -170,9 +170,17 @@
                                     AutomationProperties.AutomationId="TracingCompareSnapshots"
                                     Click="CompareSnapshotsButton_Click" />
                             <Button x:Name="DeleteSnapshotButton" Content="{x:Static tr:TracingTexts.Apagar}"
-                                    Style="{StaticResource FlatButton}"
+                                    Style="{StaticResource FlatButton}" Margin="0,0,6,0"
                                     AutomationProperties.AutomationId="TracingDeleteSnapshot"
                                     Click="DeleteSnapshotButton_Click" />
+                            <Button x:Name="ExportChangeTreeButton" Content="{x:Static tr:TracingTexts.ExportarArvore}"
+                                    Style="{StaticResource FlatButton}" Margin="0,0,6,0"
+                                    AutomationProperties.AutomationId="TracingExportChangeTree"
+                                    Click="ExportChangeTreeButton_Click" />
+                            <Button x:Name="PrintChangeTreeButton" Content="{x:Static tr:TracingTexts.ImprimirArvore}"
+                                    Style="{StaticResource FlatButton}"
+                                    AutomationProperties.AutomationId="TracingPrintChangeTree"
+                                    Click="PrintChangeTreeButton_Click" />
                         </WrapPanel>
 
                         <TextBox x:Name="ComparisonText" Grid.Row="1" Margin="0,8,0,0" Height="110"

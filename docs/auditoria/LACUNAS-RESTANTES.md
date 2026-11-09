@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(74,5% — 795 funcionalidades, 560 OK, 1 AUSENTE, 32 FORA por decisao).
+(74,8% — 795 funcionalidades, 563 OK, 1 AUSENTE, 32 FORA por decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
 
@@ -77,6 +77,28 @@ A diferenca e uma decisao do projeto, e ela esta escrita no modulo: o
 painel do IObit e uma vitrine dos produtos dele; o do Tranal lista as
 capacidades do Tranal. O Tranal nao tem suite de produtos para vender e nao
 vao fazer propaganda de nada.
+
+**TOTALUNINSTALL T5#54, T7#69 e T7#71 — exportar e imprimir a arvore de
+alteracoes.** A comparacao entre dois snapshots ja existia, mas morria
+como texto numa caixa: nao tinha para onde ir. Agora ela vira uma **tabela**
+(tipo, mudanca, item, detalhe) que sai em texto, CSV e HTML, e que e
+impressa com a janela de impressao do proprio Windows:
+
+- a regra de impressao mora em um lugar so, no `PrintTable`: a lista de
+  programas e a arvore de alteracoes usam o mesmo codigo de pagina e de
+  cabecalho;
+- a arvore esta no nucleo (`Core/Reporting/ChangeTreeReport.cs`), e a tela
+  (aba de snapshots da janela de rastreio) e a linha de comando
+  (`tranal /comparar "antes" "depois"`) consomem a mesma;
+- a comparacao ganhou um **atalho de biblioteca**: `tranal /snapshots`
+  lista e `tranal /snapshots /delete "nome"` apaga.
+
+Dois modulos orfaos ganharam consumidor no mesmo lote: a janela de
+impressao (que ninguem abria) e a janela de rastreio (que ninguem abria) —
+esta ultima levava o rastreio em tempo real, a politica de processos e a
+biblioteca de snapshots. Agora as duas abrem pelo menu principal
+("Imprimir lista..." e "Rastreio e comparacao A x B..."), e a impressao tem
+atalho (Ctrl+P).
 
 ## Como fechar
 

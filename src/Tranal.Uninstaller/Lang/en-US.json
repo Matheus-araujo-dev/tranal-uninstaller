@@ -1468,5 +1468,8 @@
     "Central.Kind.SelfUpdate":  "Tranal",
     "Central.Priority.High":  "High",
     "Central.Priority.Medium":  "Medium",
-    "Central.Priority.Low":  "Low"
+    "Central.Priority.Low":  "Low",
+    "Cmd.Print":  "Print list...",
+    "Shortcut.PrintList":  "Print the list",
+    "Cmd.Tracing":  "Tracing and A x B comparison..."
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -16,7 +16,7 @@ namespace Tranal.Uninstaller.Ui.Reporting;
 /// O nucleo nao pode usar WPF nem <c>System.Drawing</c> (e compartilhado
 /// entre a interface grafica e a CLI), entao quem decide o que entra em
 /// cada pagina, onde comeca a quebra e o que vai no cabecalho e o
-/// <see cref="PrintLayout"/>, no nucleo. A janela so desenha o que ele
+/// <see cref="PrintTable"/>, no nucleo. A janela so desenha o que ele
 /// entrega e entrega o desenho a impressora.
 ///
 /// A janela tem duas acoes: a visualizacao (que e o que aparece ao abrir) e
@@ -43,7 +43,7 @@ public sealed partial class ReportingWindow : Window
         public string Footer { get; init; } = string.Empty;
     }
 
-    private readonly PrintLayout _layout;
+    private readonly PrintTable _table;
     private readonly ObservableCollection<PageView> _pages = new();
 
     /// <summary>
@@ -55,22 +55,35 @@ public sealed partial class ReportingWindow : Window
     /// mostra a mesma lista que a exportacao mostra.
     /// </param>
     public ReportingWindow(IReadOnlyList<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
+        : this(PrintLayout.Build(programs ?? Array.Empty<InstalledProgram>(), columns).Table)
+    {
+    }
+
+    /// <summary>
+    /// Abre a janela de impressao de uma tabela.
+    ///
+    /// A janela e a mesma para a lista de programas e para a arvore de
+    /// alteracoes: o que muda e a tabela que entra. A regra de impressao
+    /// mora no <see cref="PrintTable"/>, no nucleo.
+    /// </summary>
+    /// <param name="table">A tabela a imprimir.</param>
+    public ReportingWindow(PrintTable table)
     {
         InitializeComponent();
 
-        _layout = PrintLayout.Build(programs ?? Array.Empty<InstalledProgram>(), columns);
+        _table = table ?? throw new ArgumentNullException(nameof(table));
 
         Title = Text("Reporting.Title", "Imprimir");
         PrintButton.Content = Text("Reporting.Print", "Imprimir");
         CloseButton.Content = Text("Reporting.Close", "Fechar");
-        HeaderText.Text = _layout.Header;
+        HeaderText.Text = _table.Header;
 
-        foreach (var page in _layout.Pages)
+        foreach (var page in _table.Pages)
         {
             _pages.Add(new PageView
             {
-                Title = _layout.Title,
-                Header = _layout.Header,
+                Title = _table.Title,
+                Header = _table.Header,
                 Rows = page.Rows,
                 Footer = page.Footer,
             });
@@ -80,10 +93,10 @@ public sealed partial class ReportingWindow : Window
     }
 
     /// <summary>
-    /// O layout que sera impresso. Serve para quem chama conferir o
+    /// A tabela que sera impressa. Serve para quem chama conferir o
     /// resultado sem precisar imprimir.
     /// </summary>
-    public PrintLayout Layout => _layout;
+    public PrintTable Table => _table;
 
     /// <summary>
     /// Imprime a lista. O dialogo do Windows aparece antes: quem imprime
@@ -97,13 +110,13 @@ public sealed partial class ReportingWindow : Window
             if (dialogo.ShowDialog() != true) return;
 
             using var documento = new System.Drawing.Printing.PrintDocument();
-            documento.DocumentName = _layout.Title;
+            documento.DocumentName = _table.Title;
 
             var indice = 0;
 
             documento.PrintPage += (_, args) =>
             {
-                if (indice >= _layout.Pages.Count)
+                if (indice >= _table.Pages.Count)
                 {
                     args.HasMorePages = false;
                     return;
@@ -116,10 +129,10 @@ public sealed partial class ReportingWindow : Window
                     return;
                 }
 
-                DesenharPagina(grafico, _layout.Pages[indice], args.MarginBounds);
+                DesenharPagina(grafico, _table.Pages[indice], args.MarginBounds);
 
                 indice++;
-                args.HasMorePages = indice < _layout.Pages.Count;
+                args.HasMorePages = indice < _table.Pages.Count;
             };
 
             documento.Print();
@@ -153,9 +166,9 @@ public sealed partial class ReportingWindow : Window
         // O titulo so na primeira pagina: e o titulo do documento.
         if (pagina.Number == 1)
         {
-            g.DrawString(_layout.Title, fonteTitulo, System.Drawing.Brushes.Black, area.Left, y);
+            g.DrawString(_table.Title, fonteTitulo, System.Drawing.Brushes.Black, area.Left, y);
             y += fonteTitulo.GetHeight() + 4f;
-            g.DrawString(_layout.Header, fonteRodape, System.Drawing.Brushes.Black, area.Left, y);
+            g.DrawString(_table.Header, fonteRodape, System.Drawing.Brushes.Black, area.Left, y);
             y += fonteRodape.GetHeight() + 6f;
         }
 

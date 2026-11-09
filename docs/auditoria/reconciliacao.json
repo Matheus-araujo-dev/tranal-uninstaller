@@ -576,7 +576,7 @@
                                             "catalogo":  17,
                                             "catalogoId":  "T2#17",
                                             "estado":  "PARCIAL",
-                                            "evidencia":  "**Comparar snapshots do sistema**, com perfis de comparação|`src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:235` (`public static class SnapshotComparer`) **Nota**: comparar snapshots, incluindo modificados e removidos, existe; os perfis de comparacao nao.",
+                                            "evidencia":  "**Comparar snapshots do sistema**, com perfis de comparação|`src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:235` (`public static class SnapshotComparer`) `src/Tranal.Uninstaller/Core/Reporting/ChangeTreeReport.cs` (`public static class ChangeTreeReport`) `src/Tranal.Uninstaller/Ui/Tracing/TracingWindow.xaml.cs` (`CompareSnapshotsButton_Click`)|**Nota**: comparar snapshots, incluindo modificados e removidos, existe e agora tem destino (exportacao em TXT/CSV/HTML e impressao); os perfis de comparacao nao.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -594,7 +594,7 @@
                                             "catalogo":  22,
                                             "catalogoId":  "T2#22",
                                             "estado":  "PARCIAL",
-                                            "evidencia":  "Árvore de alterações detectadas com **arquivos, pastas, chaves e valores** de registro|`src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:235` (`public static class SnapshotComparer`) `src/Tranal.Uninstaller/Core/Tracing/SnapshotLibrary.cs:298` (`SnapshotComparer.Compare`) **Nota**: os quatro tipos de item sao classificados, mas a apresentacao e texto, nao arvore.",
+                                            "evidencia":  "Árvore de alterações detectadas com **arquivos, pastas, chaves e valores** de registro|`src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:235` (`public static class SnapshotComparer`) `src/Tranal.Uninstaller/Core/Reporting/ChangeTreeReport.cs` (`public static class ChangeTreeReport`)|**Nota**: os quatro tipos de item sao classificados e mostrados (arquivo, pasta, registro e valor, com a mudanca e o detalhe), e a lista sai exportada e impressa; a apresentacao e uma tabela, nao uma arvore hierarquica.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -629,8 +629,8 @@
                                             "recon":  54,
                                             "catalogo":  54,
                                             "catalogoId":  "T5#54",
-                                            "estado":  "PARCIAL",
-                                            "evidencia":  "Exportar para arquivo ou **imprimir** as alterações detectadas|`src/Tranal.Uninstaller/Core/Reporting/PrintLayout.cs:42` (`public sealed class PrintLayout`) `src/Tranal.Uninstaller/Core/Reporting/TraceLogExporter.cs:37` (`public static class TraceLogExporter`) **Nota**: a impressao e a exportacao do log existem; falta a impressao da arvore de mudancas.",
+                                            "estado":  "OK",
+                                            "evidencia":  "Exportar para arquivo ou **imprimir** as alterações detectadas|`src/Tranal.Uninstaller/Core/Reporting/ChangeTreeReport.cs` (`public static class ChangeTreeReport`) `src/Tranal.Uninstaller/Core/Reporting/PrintTable.cs` (`public sealed class PrintTable`) `src/Tranal.Uninstaller/Ui/Tracing/TracingWindow.xaml.cs` (`ChangeTreeReport.Write` e `ChangeTreeReport.Table`) `src/Tranal.Cli/ExtraCommands.cs` (`RunCompare`)|As alteracoes detectadas sao exportadas em texto, CSV e HTML (`ChangeTreeReport.Write`) e imprimidas com a selecao de impressora do Windows (`ReportingWindow`, o mesmo dialogo de impressao da lista de programas). A comparacao sai da tela pela aba de snapshots da janela de rastreio e pela linha de comando (`tranal /comparar \"antes\" \"depois\" /export \"arquivo\"` e `/print`). A regra de impressao mora em um lugar so (`PrintTable`): a lista de programas e a arvore de alteracoes usam a mesma.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -701,8 +701,8 @@
                                             "recon":  69,
                                             "catalogo":  69,
                                             "catalogoId":  "T7#69",
-                                            "estado":  "PARCIAL",
-                                            "evidencia":  "**Exportar a árvore de mudanças**|`src/Tranal.Uninstaller/Core/Reporting/TraceLogExporter.cs:37` (`public static class TraceLogExporter`) **Nota**: a exportacao do log existe em TXT/CSV/HTML; nao ha exportacao da comparacao A x B.",
+                                            "estado":  "OK",
+                                            "evidencia":  "**Exportar a árvore de mudanças**|`src/Tranal.Uninstaller/Core/Reporting/ChangeTreeReport.cs` (`public static class ChangeTreeReport`) `src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:144` (`public sealed class SnapshotComparison`) `src/Tranal.Uninstaller/Ui/Tracing/TracingWindow.xaml.cs` (`ExportChangeTreeButton_Click`)|A comparacao A x B (arquivos, pastas, chaves e valores) vira uma tabela e sai em TXT, CSV e HTML; o formato sai da extensao do arquivo escolhido. MEDIDO no aplicativo de verdade: a exportacao foi feita com dois snapshots reais do sistema.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -710,8 +710,8 @@
                                             "recon":  71,
                                             "catalogo":  71,
                                             "catalogoId":  "T7#71",
-                                            "estado":  "PARCIAL",
-                                            "evidencia":  "**Imprimir a árvore de alterações** (com seleção de impressora)|`src/Tranal.Uninstaller/Core/Reporting/PrintLayout.cs:42` (`public sealed class PrintLayout`) **Nota**: a impressao existe, mas imprime a lista de programas, nao a arvore de alteracoes.",
+                                            "estado":  "OK",
+                                            "evidencia":  "**Imprimir a árvore de alterações** (com seleção de impressora)|`src/Tranal.Uninstaller/Core/Reporting/PrintTable.cs` (`public sealed class PrintTable`) `src/Tranal.Uninstaller/Ui/Reporting/ReportingWindow.xaml.cs` (`PrintButton_Click`) `src/Tranal.Uninstaller/Ui/Tracing/TracingWindow.xaml.cs` (`PrintChangeTreeButton_Click`)|A arvore de alteracoes e impressa com a janela de impressao do proprio Windows (`PrintDialog`, escolha de impressora e de paginas). A arvore vira a mesma tabela que a lista de programas usa (`PrintTable`), entao as duas tem a mesma regra de pagina e de cabecalho.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },

@@ -1,11 +1,13 @@
-using System.Text;
+﻿using System.Text;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
+using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Tools;
+using Tranal.Uninstaller.Core.Tracing;
 using Tranal.Uninstaller.Core.Updates;
 
 namespace Tranal.Cli;
@@ -32,6 +34,11 @@ namespace Tranal.Cli;
 ///   tranal /painel /dock "Id"           - ancora o painel de uma ferramenta na lateral
 ///   tranal /painel /undock              - solta o painel ancorado
 ///   tranal /central                     - mostra o que precisa de atencao na maquina
+///   tranal /snapshots                   - lista a biblioteca de snapshots
+///   tranal /snapshots /delete "nome"    - apaga um snapshot da biblioteca
+///   tranal /comparar "antes" "depois"   - compara dois snapshots e mostra a arvore de alteracoes
+///   tranal /comparar "antes" "depois" /export "arquivo" - exporta a arvore (csv, html ou txt)
+///   tranal /comparar "antes" "depois" /print - mostra o layout de impressao da arvore
 ///   tranal /regclean                     - lista as sobras de registro por categoria
 ///   tranal /regclean "ActiveX" /remove   - remove as sobras de uma categoria
 ///   tranal /com-unregister "C:\Pasta"    - lista e desregistra os componentes COM
@@ -79,6 +86,8 @@ public static class ExtraCommands
         if (flags.Contains("/be")) return RunBrowserExtensions(args, flags);
         if (flags.Contains("/autorun")) return RunAutorun();
         if (flags.Contains("/tools")) return RunWindowsTools();
+        if (flags.Contains("/snapshots")) return RunSnapshots(args, flags);
+        if (flags.Contains("/comparar")) return RunCompare(args, flags);
         if (flags.Contains("/export")) return RunExport(args, flags);
         if (flags.Contains("/hunter")) return RunHunter(args);
         if (flags.Contains("/lang")) return RunLanguage(args);
@@ -1225,6 +1234,172 @@ public static class ExtraCommands
         CentralPriority.Medium => "media",
         _ => "baixa",
     };
+
+    // ------------------------------------------------------------------
+    // A biblioteca de snapshots
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Lista a biblioteca de snapshots e apaga o que for pedido.
+    ///
+    /// A biblioteca mora no nucleo (<c>SnapshotLibrary</c>): a janela de
+    /// rastreio e a linha de comando leem a mesma.
+    /// </summary>
+    private static int RunSnapshots(string[] args, HashSet<string> flags)
+    {
+        var snapshots = SnapshotLibrary.List();
+
+        if (flags.Contains("/delete"))
+        {
+            var nome = CliArgs.ValueAfter(args, "/delete");
+            if (string.IsNullOrWhiteSpace(nome))
+            {
+                Console.WriteLine("Uso: tranal /snapshots /delete \"nome\"");
+                return 1;
+            }
+
+            var alvo = snapshots.FirstOrDefault(s => string.Equals(s.Name, nome.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (alvo is null)
+            {
+                Console.WriteLine("Snapshot nao encontrado: " + nome);
+                return 1;
+            }
+
+            if (!SnapshotLibrary.Delete(alvo.Id))
+            {
+                Console.WriteLine("Nao foi possivel apagar o snapshot: " + alvo.Name);
+                return 1;
+            }
+
+            Console.WriteLine("Snapshot apagado: " + alvo.Name);
+            return 0;
+        }
+
+        if (snapshots.Count == 0)
+        {
+            Console.WriteLine("Nenhum snapshot na biblioteca.");
+            return 0;
+        }
+
+        Console.WriteLine("Snapshots:");
+        foreach (var snapshot in snapshots)
+        {
+            Console.WriteLine($"  {snapshot.Name}  ({snapshot.CreatedUtc.ToLocalTime():dd/MM/yyyy HH:mm})  id={snapshot.Id}");
+        }
+
+        return 0;
+    }
+
+    // ------------------------------------------------------------------
+    // A arvore de alteracoes (comparacao de snapshots)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Compara dois snapshots e mostra (ou exporta, ou imprime) a arvore de
+    /// alteracoes.
+    ///
+    /// A comparacao e a do nucleo (<c>SnapshotLibrary.Compare</c>) e a
+    /// arvore e a do nucleo (<c>ChangeTreeReport</c>): a linha de comando e
+    /// a janela leem o mesmo modulo.
+    /// </summary>
+    private static int RunCompare(string[] args, HashSet<string> flags)
+    {
+        var nomes = ValoresDepois(args, "/comparar");
+        if (nomes.Count < 2)
+        {
+            Console.WriteLine("Uso: tranal /comparar \"antes\" \"depois\" [/export \"arquivo\"] [/print]");
+            return 1;
+        }
+
+        var snapshots = SnapshotLibrary.List();
+
+        var antes = snapshots.FirstOrDefault(s => string.Equals(s.Name, nomes[0], StringComparison.OrdinalIgnoreCase));
+        var depois = snapshots.FirstOrDefault(s => string.Equals(s.Name, nomes[1], StringComparison.OrdinalIgnoreCase));
+
+        if (antes is null || depois is null)
+        {
+            Console.WriteLine("Snapshot nao encontrado. Use tranal /snapshots para ver a lista.");
+            return 1;
+        }
+
+        var comparacao = SnapshotLibrary.Compare(antes.Id, depois.Id);
+        if (comparacao is null)
+        {
+            Console.WriteLine("Nao foi possivel comparar os snapshots.");
+            return 1;
+        }
+
+        var destino = CliArgs.ValueAfter(args, "/export");
+        if (!string.IsNullOrWhiteSpace(destino))
+        {
+            var gravado = ChangeTreeReport.Write(comparacao, antes.Name, depois.Name, destino, FormatoDaArvore(destino));
+            if (gravado.Length == 0)
+            {
+                Console.WriteLine("Nao foi possivel gravar o arquivo: " + destino);
+                return 1;
+            }
+
+            Console.WriteLine("Arvore exportada: " + gravado);
+            return 0;
+        }
+
+        if (flags.Contains("/print"))
+        {
+            var tabela = ChangeTreeReport.Table(comparacao, antes.Name, depois.Name);
+            Console.WriteLine(tabela.Title);
+            Console.WriteLine(tabela.Header);
+            Console.WriteLine();
+
+            foreach (var pagina in tabela.Pages)
+            {
+                foreach (var linha in pagina.Rows) Console.WriteLine(linha);
+                Console.WriteLine(pagina.Footer);
+                Console.WriteLine();
+            }
+
+            return 0;
+        }
+
+        Console.WriteLine(ChangeTreeReport.ToText(comparacao, antes.Name, depois.Name));
+        return 0;
+    }
+
+    /// <summary>
+    /// Os valores que vem depois de uma flag, ate a proxima flag.
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    /// <param name="flag">A flag.</param>
+    private static List<string> ValoresDepois(string[] args, string flag)
+    {
+        var valores = new List<string>();
+
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (!args[i].Equals(flag, StringComparison.OrdinalIgnoreCase)) continue;
+
+            for (var j = i + 1; j < args.Length; j++)
+            {
+                if (args[j].StartsWith("/", StringComparison.Ordinal)) break;
+                valores.Add(args[j]);
+            }
+
+            break;
+        }
+
+        return valores;
+    }
+
+    /// <summary>
+    /// O formato da arvore exportada, pela extensao do arquivo.
+    /// </summary>
+    /// <param name="caminho">O caminho do arquivo.</param>
+    private static ChangeTreeFormat FormatoDaArvore(string caminho)
+    {
+        if (caminho.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)) return ChangeTreeFormat.Csv;
+        if (caminho.EndsWith(".html", StringComparison.OrdinalIgnoreCase)
+            || caminho.EndsWith(".htm", StringComparison.OrdinalIgnoreCase)) return ChangeTreeFormat.Html;
+        return ChangeTreeFormat.Text;
+    }
 
     // ------------------------------------------------------------------
     // O painel ancorado (o "push pin" do Uninstall Tool)

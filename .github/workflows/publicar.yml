@@ -85,10 +85,32 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-central.ps1 `
             -Exe publish\preview\TranalUninstaller.exe
 
+      # A impressao: o item "Imprimir lista..." do menu principal abre a
+      # janela de impressao, e a janela de rastreio abre pelo mesmo menu.
+      # A suite de testes cobre o nucleo (PrintTable e ChangeTreeReport);
+      # estes passos cobrem a ligacao com a interface.
+      - name: Impressao (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-impressao.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe
+
       - name: Publicar a CLI (arquivo unico, com o .NET embutido)
         shell: pwsh
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
+
+      # A comparacao de snapshots pela linha de comando: a arvore de
+      # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
+      # O teste cria snapshots sinteticos e apaga tudo no final.
+      - name: Comparacao de snapshots (linha de comando)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-comparacao.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -Cli publish\cli\tranal.exe
 
       # O instalador. O programa vai leve (1,3 MB) e o runtime do .NET
       # Desktop (60 MB) viaja dentro do setup, instalado so quando o

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -20,6 +20,8 @@ using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui;
 using Tranal.Uninstaller.Ui.Appearance;
 using Tranal.Uninstaller.Ui.Discovery;
+using Tranal.Uninstaller.Ui.Reporting;
+using Tranal.Uninstaller.Ui.Tracing;
 
 namespace Tranal.Uninstaller;
 
@@ -1341,6 +1343,17 @@ public partial class MainWindow : Window
         var columns = CommandItem(Loc.Get("Cmd.Columns"), "CmdColumns", () => ShowColumns());
         menu.Items.Add(columns);
 
+        // Imprimir a lista. A janela de relatorio mostra o que sera
+        // impresso antes de a impressora receber qualquer folha.
+        var print = CommandItem(Loc.Get("Cmd.Print"), "CmdPrint", () => ShowPrintPreview());
+        menu.Items.Add(print);
+
+        // O rastreio: observar as escritas do sistema, a politica de
+        // processos e a comparacao A x B dos snapshots. A janela nao e
+        // modal: ela acompanha o trabalho do usuario.
+        var tracing = CommandItem(Loc.Get("Cmd.Tracing"), "CmdTracing", () => ShowTracing());
+        menu.Items.Add(tracing);
+
         // "Groups Manager" do Revo (15001).
         var groups = CommandItem(Loc.Get("Cmd.GroupsManager"), "CmdGroupsManager", () => ShowGroupsManager());
         menu.Items.Add(groups);
@@ -1384,6 +1397,34 @@ public partial class MainWindow : Window
 
         menu.PlacementTarget = MainMenuButton;
         menu.IsOpen = true;
+    }
+
+    /// <summary>
+    /// Abre a janela de rastreio e comparacao.
+    ///
+    /// A janela nao e modal: o rastreio observa o sistema em segundo plano
+    /// enquanto o usuario continua trabalhando na lista.
+    /// </summary>
+    private void ShowTracing()
+    {
+        var janela = new TracingWindow { Owner = this };
+        janela.Show();
+    }
+
+    /// <summary>
+    /// Abre a pre-visualizacao de impressao da lista de programas.
+    ///
+    /// A lista impressa e a lista que esta na tela: a mesma busca e o mesmo
+    /// filtro valem. As colunas impressas sao as colunas visiveis.
+    /// </summary>
+    private void ShowPrintPreview()
+    {
+        var programas = _view.Cast<ProgramRow>().Select(r => r.Program).ToList();
+        var colunas = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
+
+        var janela = new ReportingWindow(programas, colunas);
+        janela.Owner = this;
+        janela.ShowDialog();
     }
 
     // ------------------------------------------------------------------
@@ -2113,6 +2154,11 @@ public partial class MainWindow : Window
 
             case ShortcutAction.ExportList:
                 ExportList("TXT");
+                e.Handled = true;
+                break;
+
+            case ShortcutAction.PrintList:
+                ShowPrintPreview();
                 e.Handled = true;
                 break;
 

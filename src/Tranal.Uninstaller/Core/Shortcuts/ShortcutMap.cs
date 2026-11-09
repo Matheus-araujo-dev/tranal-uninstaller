@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,6 +26,9 @@ public enum ShortcutAction
 
     /// <summary>Abre a exportacao da lista.</summary>
     ExportList,
+
+    /// <summary>Abre a pre-visualizacao de impressao da lista.</summary>
+    PrintList,
 
     /// <summary>Abre as opcoes.</summary>
     Options,
@@ -72,6 +75,7 @@ public static class ShortcutMap
         new ShortcutBinding("Delete", ShortcutAction.Uninstall, "Shortcut.Uninstall"),
         new ShortcutBinding("Shift+Delete", ShortcutAction.QuickUninstall, "Shortcut.QuickUninstall"),
         new ShortcutBinding("Ctrl+E", ShortcutAction.ExportList, "Shortcut.ExportList"),
+        new ShortcutBinding("Ctrl+P", ShortcutAction.PrintList, "Shortcut.PrintList"),
         new ShortcutBinding("Ctrl+OemComma", ShortcutAction.Options, "Shortcut.Options"),
         new ShortcutBinding("Ctrl+D", ShortcutAction.Discovery, "Shortcut.Discovery"),
         new ShortcutBinding("F1", ShortcutAction.Support, "Shortcut.Support"),
