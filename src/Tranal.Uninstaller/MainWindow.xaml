@@ -384,6 +384,14 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="UninstallHistory" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolUninstallHistory">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4DC;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.UninstallHistory}" />
+            </StackPanel>
+          </Button>
+
           <!-- Limpeza: destravador, internet, disco, atalhos, MRU e componentes. -->
           <TextBlock Text="{loc:Tr Sidebar.GroupCleanup}" Margin="10,10,0,2"
                      FontSize="11" FontWeight="Bold"

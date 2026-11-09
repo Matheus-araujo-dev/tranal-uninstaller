@@ -39,6 +39,7 @@ public static class InspectionCommands
         if (CliArgs.Has(flags, "/inspection-affinity")) return ExecutarAfinidade();
         if (CliArgs.Has(flags, "/inspection-cleanmgr")) return ExecutarLimpezaDeDisco();
         if (CliArgs.Has(flags, "/inspection-logs")) return ExecutarPastaDeLogs();
+        if (CliArgs.Has(flags, "/inspection-site")) return ExecutarPaginaDoFabricante(args);
         return null;
     }
 
@@ -312,6 +313,54 @@ public static class InspectionCommands
     {
         var ok = SystemActions.AbrirPastaDeLogs();
         Console.WriteLine(ok ? $"Pasta de logs aberta: {RemovalLog.LogDirectory}" : "Nao foi possivel abrir a pasta de logs.");
+        return ok ? 0 : 1;
+    }
+
+    /// <summary>
+    /// Abre a pagina do fabricante de um programa instalado.
+    ///
+    /// E o "removal tool from the developer": a pagina oficial do programa,
+    /// onde esta a ferramenta de remocao do proprio fabricante. A regra mora
+    /// no nucleo (<see cref="SystemActions.AbrirPaginaDoFabricante"/>); aqui
+    /// so se localiza o programa e se mostra o resultado honesto.
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    public static int ExecutarPaginaDoFabricante(string[] args)
+    {
+        var nome = CliArgs.ValueAfter(args, "/inspection-site");
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            Console.Error.WriteLine("Informe o nome do programa.");
+            return 1;
+        }
+
+        var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = true,
+            IncludeMsiProducts = true,
+        });
+
+        var programa = programas.FirstOrDefault(p =>
+            p.DisplayName != null
+            && p.DisplayName.IndexOf(nome, StringComparison.OrdinalIgnoreCase) >= 0);
+
+        if (programa is null)
+        {
+            Console.Error.WriteLine($"Programa nao encontrado: {nome}");
+            return 1;
+        }
+
+        if (string.IsNullOrWhiteSpace(programa.UrlInfoAbout))
+        {
+            Console.WriteLine($"{programa.DisplayName} nao declara a pagina do fabricante.");
+            return 1;
+        }
+
+        var ok = SystemActions.AbrirPaginaDoFabricante(programa);
+        Console.WriteLine(ok
+            ? $"Pagina do fabricante aberta: {programa.UrlInfoAbout}"
+            : "Nao foi possivel abrir a pagina do fabricante.");
+
         return ok ? 0 : 1;
     }
 }

@@ -89,6 +89,33 @@ public static class OperationGuards
     }
 
     /// <summary>
+    /// True quando a desinstalação segura já foi tentada para o programa.
+    ///
+    /// A resposta vem do histórico: uma entrada com o nome do programa
+    /// significa que o Tranal já o desinstalou uma vez. E o que distingue
+    /// "a forçada é o plano B" de "a forçada é o único caminho" — e sem
+    /// essa distinção o aviso apareceria para quem já usou o caminho seguro.
+    /// </summary>
+    /// <param name="programa">O programa que o usuário quer remover.</param>
+    public static bool SeguraJaTentada(InstalledProgram? programa)
+    {
+        if (programa is null) return false;
+
+        var nome = (programa.DisplayName ?? string.Empty).Trim();
+        if (nome.Length == 0) return false;
+
+        foreach (var entrada in UninstallHistory.Read(int.MaxValue))
+        {
+            var programas = entrada?.Programs ?? string.Empty;
+            if (programas.Length == 0) continue;
+
+            if (programas.IndexOf(nome, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// O aviso de usar a desinstalação forçada antes da segura.
     ///
     /// O aviso só aparece quando faz sentido: quando o programa tem

@@ -91,6 +91,7 @@ public static class ExtraCommands
         if (MaintenanceCommands.TryRun(args, flags) is int maintenanceResult) return maintenanceResult;
         if (InspectionCommands.TryRun(args, flags) is int inspectionResult) return inspectionResult;
         if (UpdateCommands.TryRun(args, flags) is int updateResult) return updateResult;
+        if (HistoryCommands.TryRun(args, flags) is int historyResult) return historyResult;
         return null;
     }
 

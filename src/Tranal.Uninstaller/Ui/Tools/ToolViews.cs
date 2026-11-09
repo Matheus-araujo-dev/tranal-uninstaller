@@ -63,6 +63,7 @@ public static class ToolViews
         ToolCatalog.ProgramImpact => InsightViews.Create(toolId),
         ToolCatalog.CrashAnalyzer => InsightViews.Create(toolId),
         ToolCatalog.Relocation => InsightViews.Create(toolId),
+        ToolCatalog.UninstallHistory => HistoryViews.CreateHistory(),
         _ => CreateUnknown(toolId),
     };
 

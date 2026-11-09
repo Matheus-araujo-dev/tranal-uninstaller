@@ -486,6 +486,18 @@ public partial class UninstallWizardWindow : Window
             return false;
         }
 
+        // O aviso de forcada antes da segura: a guarda diz que a operacao
+        // pode seguir, mas pede um aviso. A interface mostrava a recusa e
+        // ignorava o aviso — e o aviso e a parte que o usuario precisa ler.
+        foreach (var program in _programs)
+        {
+            var guarda = UninstallGuards.Check(program, _mode == UninstallMode.Advanced);
+            if (!guarda.RequiresWarning) continue;
+
+            UserMessages.Information(this, guarda.Warning, Loc.Get("Guard.Title"));
+            break;
+        }
+
         var advisories = new List<UninstallAdvisory>();
 
         foreach (var program in _programs)

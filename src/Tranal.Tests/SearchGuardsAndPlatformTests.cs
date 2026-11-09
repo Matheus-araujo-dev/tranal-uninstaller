@@ -131,13 +131,34 @@ public class SearchGuardsAndPlatformTests
     [Fact]
     public void ModoForcadoPedeAviso()
     {
-        var comum = new InstalledProgram { DisplayName = "Bloco de Notas" };
+        // O aviso so faz sentido quando existe o caminho seguro: com
+        // desinstalador registrado, a forcada e o plano B e o usuario
+        // precisa saber disso antes de confirmar.
+        var comum = new InstalledProgram
+        {
+            DisplayName = "Bloco de Notas",
+            UninstallString = "\"C:\\Program Files\\Notas\\unins.exe\"",
+        };
 
         var resultado = UninstallGuards.Check(comum, forcado: true);
 
         Assert.True(resultado.Allowed);
         Assert.True(resultado.RequiresWarning);
-        Assert.Contains("forcada", resultado.Warning);
+        Assert.Contains("Bloco de Notas", resultado.Warning);
+    }
+
+    [Fact]
+    public void ModoForcadoSemDesinstaladorNaoAvisa()
+    {
+        // Sem desinstalador registrado, a forcada nao e um plano B: e o
+        // unico caminho. Nao ha o que avisar.
+        var semDesinstalador = new InstalledProgram { DisplayName = "Programa Sem Desinstalador" };
+
+        var resultado = UninstallGuards.Check(semDesinstalador, forcado: true);
+
+        Assert.True(resultado.Allowed);
+        Assert.False(resultado.RequiresWarning);
+        Assert.Equal(string.Empty, resultado.Warning);
     }
 
     [Fact]

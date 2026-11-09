@@ -75,12 +75,22 @@ public static class UninstallGuards
 
         if (forcado)
         {
+            // A REGRA do aviso mora em OperationGuards: ele decide quando
+            // ha o que avisar e o texto vem do catalogo de idioma. Aqui so
+            // se traduz o veredito em "pode seguir, mas avisa".
+            //
+            // Sem desinstalador registrado a forcada nao e um plano B: e o
+            // unico caminho, e nao ha o que avisar.
+            var aviso = OperationGuards.AvisoDeForcadaAntesDaSegura(
+                program, OperationGuards.SeguraJaTentada(program));
+
+            if (aviso is null) return new UninstallGuardResult { Allowed = true };
+
             return new UninstallGuardResult
             {
                 Allowed = true,
                 RequiresWarning = true,
-                Warning = "A desinstalacao forcada apaga o que a desinstalacao segura deixaria. "
-                          + "Use-a quando o programa recusar a desinstalacao normal.",
+                Warning = aviso.Message,
             };
         }
 

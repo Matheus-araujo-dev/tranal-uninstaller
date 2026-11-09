@@ -178,6 +178,13 @@ public static class ToolCatalog
     /// </summary>
     public const string AppUpdate = "AppUpdate";
 
+    /// <summary>
+    /// Historico de desinstalacoes: o que saiu do computador, com a data
+    /// em tempo relativo, os residuos que foram junto e o botao que devolve
+    /// as coisas.
+    /// </summary>
+    public const string UninstallHistory = "UninstallHistory";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
     public const string HistoryCleaner = "HistoryCleaner";
 
@@ -225,6 +232,7 @@ public static class ToolCatalog
         BrowserCleanup,
         SoftwareUpdates,
         AppUpdate,
+        UninstallHistory,
         CustomTools,
         Processes,
         SystemManagement,

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Diagnostics;
 using System.Linq;
 using Tranal.Uninstaller.Core;
@@ -101,5 +102,68 @@ public class GuardsAndActionsTests
         // Sem pagina declarada, o Tranal nao inventa um endereco.
         Assert.False(SystemActions.AbrirPaginaDoFabricante(null));
         Assert.False(SystemActions.AbrirPaginaDoFabricante(new InstalledProgram { DisplayName = "Sem pagina" }));
+    }
+
+    /// <summary>
+    /// A regra que decide se a forcada e "o plano B": o historico diz se a
+    /// desinstalacao segura ja foi tentada para aquele programa.
+    ///
+    /// O teste isola o historico: a leitura do arquivo real do usuario
+    /// mudaria o resultado da medicao.
+    /// </summary>
+    [Fact]
+    public void ASeguraNaoFoiTentadaQuandoONaoHaHistorico()
+    {
+        var arquivo = Path.Combine(Path.GetTempPath(), "tranal-historico-" + Guid.NewGuid().ToString("N")[..8] + ".jsonl");
+        UninstallHistory.FilePathOverride = arquivo;
+
+        try
+        {
+            var programa = new InstalledProgram
+            {
+                DisplayName = "Programa Sem Historico",
+                UninstallString = "unins.exe",
+            };
+
+            Assert.False(OperationGuards.SeguraJaTentada(programa));
+            Assert.False(OperationGuards.SeguraJaTentada(null));
+        }
+        finally
+        {
+            UninstallHistory.FilePathOverride = null;
+            if (File.Exists(arquivo)) File.Delete(arquivo);
+        }
+    }
+
+    /// <summary>
+    /// Com entrada no historico, a desinstalacao segura ja foi tentada: a
+    /// forcada deixa de ser o plano B e o aviso nao se aplica.
+    /// </summary>
+    [Fact]
+    public void ASeguraJaFoiTentadaQuandoOHistoricoTemOPrograma()
+    {
+        var arquivo = Path.Combine(Path.GetTempPath(), "tranal-historico-" + Guid.NewGuid().ToString("N")[..8] + ".jsonl");
+        UninstallHistory.FilePathOverride = arquivo;
+
+        try
+        {
+            UninstallHistory.Append(new UninstallHistoryEntry { Programs = "Programa Com Historico" });
+
+            var programa = new InstalledProgram
+            {
+                DisplayName = "Programa Com Historico",
+                UninstallString = "unins.exe",
+            };
+
+            Assert.True(OperationGuards.SeguraJaTentada(programa));
+
+            // E o aviso some: a forcada ja nao e o plano B.
+            Assert.Null(OperationGuards.AvisoDeForcadaAntesDaSegura(programa, seguraJaTentada: true));
+        }
+        finally
+        {
+            UninstallHistory.FilePathOverride = null;
+            if (File.Exists(arquivo)) File.Delete(arquivo);
+        }
     }
 }
