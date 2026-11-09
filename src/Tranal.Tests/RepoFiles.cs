@@ -67,7 +67,7 @@ internal static class RepoFiles
         // A definicao, e nao a chamada: um metodo chamado antes de ser
         // definido apareceria primeiro na busca por texto.
         var definicao = new System.Text.RegularExpressions.Regex(
-            $@"(?:void|bool|string|int|MenuItem|ContextMenu|IReadOnlyList<[^>]+>|List<[^>]+>)\s+{System.Text.RegularExpressions.Regex.Escape(nome)}\s*\(",
+            $@"(?:void|bool|string|int|MenuItem|ContextMenu|IReadOnlyList<[^>]+>|IReadOnlyDictionary<[^>]+>|List<[^>]+>)\s+{System.Text.RegularExpressions.Regex.Escape(nome)}\s*\(",
             System.Text.RegularExpressions.RegexOptions.CultureInvariant);
 
         var achado = definicao.Match(codigo);

@@ -84,6 +84,7 @@ public static class ToolViews
         ToolCatalog.CustomTools => CreateCustomTools(),
         ToolCatalog.Processes => CreateProcessPanel(),
         ToolCatalog.SystemManagement => new Management.ManagementView(),
+        ToolCatalog.ContextMenu => ContextMenuViews.Create(),
         ToolCatalog.Appearance => new Appearance.AppearanceView(),
         ToolCatalog.SystemInfo => InsightViews.Create(toolId),
         ToolCatalog.ProgramImpact => InsightViews.Create(toolId),

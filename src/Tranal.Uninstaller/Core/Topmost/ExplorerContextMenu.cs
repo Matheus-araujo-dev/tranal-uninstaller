@@ -129,6 +129,56 @@ public static class ExplorerContextMenu
     }
 
     /// <summary>
+    /// Grava um verbo do menu de contexto no Explorer.
+    ///
+    /// E o **unico** lugar que escreve um verbo: a entrada de desinstalar, as
+    /// entradas do Tranal e as entradas que o usuario cria passam todas por
+    /// aqui. A regra do verbo (o valor padrao, o <c>MUIVerb</c>, o
+    /// <c>Icon</c> e a subchave <c>command</c>) mora aqui.
+    /// </summary>
+    /// <param name="keyRelative">A chave (relativa a HKCU) do verbo.</param>
+    /// <param name="displayName">O texto que aparece no menu.</param>
+    /// <param name="commandLine">A linha de comando que roda o verbo.</param>
+    /// <param name="icon">O caminho do icone (vazio deixa o do Windows).</param>
+    /// <returns>True quando o verbo foi gravado.</returns>
+    public static bool WriteShellEntry(string keyRelative, string displayName, string commandLine, string icon)
+    {
+        if (string.IsNullOrWhiteSpace(keyRelative)) return false;
+        if (string.IsNullOrWhiteSpace(displayName)) return false;
+        if (string.IsNullOrWhiteSpace(commandLine)) return false;
+
+        try
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
+
+            using (var shell = baseKey.CreateSubKey(keyRelative))
+            {
+                if (shell is null) return false;
+
+                shell.SetValue(string.Empty, displayName);
+                shell.SetValue("MUIVerb", displayName);
+
+                if (!string.IsNullOrWhiteSpace(icon))
+                    shell.SetValue("Icon", icon);
+            }
+
+            using (var command = baseKey.CreateSubKey(keyRelative + @"\command"))
+            {
+                if (command is null) return false;
+
+                command.SetValue(string.Empty, commandLine);
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao gravar o verbo de menu de contexto: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Gera o script .reg equivalente ao registro criado pelo Revo.
     ///
     /// O conteudo (e apenas o conteudo) e devolvido: quem chama decide se
@@ -202,23 +252,13 @@ public static class ExplorerContextMenu
 
             var description = RegistrationDescription;
 
-            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
+            var gravado = WriteShellEntry(
+                ShellKeyRelative,
+                description,
+                BuildCommandLine(executable, arguments),
+                executable);
 
-            using (var shell = baseKey.CreateSubKey(ShellKeyRelative))
-            {
-                if (shell is null) return false;
-
-                shell.SetValue(string.Empty, description);
-                shell.SetValue("MUIVerb", description);
-                shell.SetValue("Icon", executable);
-            }
-
-            using (var command = baseKey.CreateSubKey(CommandKeyRelative))
-            {
-                if (command is null) return false;
-
-                command.SetValue(string.Empty, BuildCommandLine(executable, arguments));
-            }
+            if (!gravado) return false;
 
             // O script .reg e apenas uma copia legivel do que foi gravado.
             try
@@ -418,37 +458,36 @@ public static class ExplorerShellMenu
         return aplicadas;
     }
 
+    /// <summary>
+    /// Remove so as entradas de um identificador.
+    ///
+    /// A mesma entrada pode morar em mais de um lugar (o "Rastrear a
+    /// instalacao" vale para <c>.exe</c> e para <c>.msi</c>): todas as
+    /// chaves do identificador sao removidas.
+    /// </summary>
+    /// <param name="id">O identificador da entrada.</param>
+    /// <returns>Quantas chaves foram removidas.</returns>
+    public static int Remove(string id)
+    {
+        var removidas = 0;
+
+        foreach (var entry in EntriesOf(id))
+        {
+            if (Remove(entry)) removidas++;
+        }
+
+        return removidas;
+    }
+
     private static bool Write(ShellMenuEntry entry, string executable)
     {
         if (string.IsNullOrWhiteSpace(executable)) return false;
 
-        try
-        {
-            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Default);
-
-            using (var shell = baseKey.CreateSubKey(entry.ShellKeyRelative))
-            {
-                if (shell is null) return false;
-
-                shell.SetValue(string.Empty, entry.DisplayName);
-                shell.SetValue("MUIVerb", entry.DisplayName);
-                shell.SetValue("Icon", executable);
-            }
-
-            using (var command = baseKey.CreateSubKey(entry.ShellKeyRelative + "\\command"))
-            {
-                if (command is null) return false;
-
-                command.SetValue(string.Empty, ExplorerContextMenu.BuildCommandLine(executable, entry.Arguments));
-            }
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            ToolLog.Error($"Falha ao registrar a entrada '{entry.Id}': {ex.Message}");
-            return false;
-        }
+        return ExplorerContextMenu.WriteShellEntry(
+            entry.ShellKeyRelative,
+            entry.DisplayName,
+            ExplorerContextMenu.BuildCommandLine(executable, entry.Arguments),
+            executable);
     }
 
     private static bool Remove(ShellMenuEntry entry)

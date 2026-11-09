@@ -3,6 +3,7 @@ using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Settings;
@@ -34,6 +35,10 @@ namespace Tranal.Cli;
 ///   tranal /painel /dock "Id"           - ancora o painel de uma ferramenta na lateral
 ///   tranal /painel /undock              - solta o painel ancorado
 ///   tranal /central                     - mostra o que precisa de atencao na maquina
+///   tranal /contextmenu                 - lista as entradas do menu de contexto do Explorer
+///   tranal /contextmenu /restore        - registra as entradas do Tranal no Explorer
+///   tranal /contextmenu /disable        - remove as entradas do Tranal do Explorer
+///   tranal /contextmenu /remove "id"    - remove uma entrada do menu de contexto
 ///   tranal /snapshots                   - lista a biblioteca de snapshots
 ///   tranal /snapshots /delete "nome"    - apaga um snapshot da biblioteca
 ///   tranal /comparar "antes" "depois"   - compara dois snapshots e mostra a arvore de alteracoes
@@ -100,6 +105,7 @@ public static class ExtraCommands
         if (flags.Contains("/switches")) return RunSwitches();
         if (flags.Contains("/painel")) return RunDockPanel(args, flags);
         if (flags.Contains("/central")) return RunCentral();
+        if (flags.Contains("/contextmenu")) return RunContextMenu(args, flags);
         if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
@@ -1452,6 +1458,129 @@ public static class ExtraCommands
             Console.WriteLine(linha);
         }
 
+        return 0;
+    }
+
+    // ------------------------------------------------------------------
+    // Gerenciador de menu de contexto
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// O valor que vem logo depois de outro valor (o segundo de um par).
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    /// <param name="name">A opcao cujo par de valores se procura.</param>
+    private static string? ValorSeguinte(string[] args, string name)
+    {
+        if (args is null) return null;
+
+        for (var i = 0; i < args.Length - 2; i++)
+        {
+            if (!args[i].Equals(name, StringComparison.OrdinalIgnoreCase)) continue;
+            if (args[i + 1].StartsWith("/", StringComparison.Ordinal)) return null;
+            return args[i + 2];
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// O gerenciador de menu de contexto: as entradas do Explorer, do Tranal
+    /// e dos outros programas.
+    ///
+    /// A regra mora no nucleo (<c>Core/Management/ContextMenuOverview.cs</c>):
+    /// a linha de comando e a janela leem o mesmo modulo.
+    /// </summary>
+    private static int RunContextMenu(string[] args, HashSet<string> flags)
+    {
+        if (CliArgs.Has(flags, "/restore"))
+        {
+            var restaurado = ContextMenuOverview.Restore();
+            Console.WriteLine(restaurado.Message);
+            return restaurado.Success ? 0 : 1;
+        }
+
+        if (CliArgs.Has(flags, "/disable"))
+        {
+            var desativado = ContextMenuOverview.Disable();
+            Console.WriteLine(desativado.Message);
+            return desativado.Success ? 0 : 1;
+        }
+
+        var criar = CliArgs.ValueAfter(args, "/create");
+        if (!string.IsNullOrWhiteSpace(criar))
+        {
+            var comando = ValorSeguinte(args, "/create");
+            if (string.IsNullOrWhiteSpace(comando))
+            {
+                Console.Error.WriteLine("Uso: tranal /contextmenu /create \"nome\" \"comando\"");
+                return 1;
+            }
+
+            var criado = ContextMenuOverview.Create(criar, comando);
+            Console.WriteLine(criado.Message);
+            return criado.Success ? 0 : 1;
+        }
+
+        if (CliArgs.Has(flags, "/removeall"))
+        {
+            var apagado = ContextMenuOverview.RemoveAll();
+            Console.WriteLine(apagado.Message);
+            return apagado.Success ? 0 : 1;
+        }
+
+        var remover = CliArgs.ValueAfter(args, "/remove");
+        if (!string.IsNullOrWhiteSpace(remover))
+        {
+            var entrada = ContextMenuOverview.Find(remover);
+            if (entrada is null)
+            {
+                Console.Error.WriteLine($"Entrada de menu de contexto nao encontrada: {remover}");
+                return 1;
+            }
+
+            var removido = ContextMenuOverview.Remove(entrada);
+            Console.WriteLine(removido.Message);
+            return removido.Success ? 0 : 1;
+        }
+
+        var itens = ContextMenuOverview.List();
+
+        Console.WriteLine($"Entradas de menu de contexto: {itens.Count}");
+        Console.WriteLine();
+
+        foreach (var item in itens)
+        {
+            var dono = item.Kind switch
+            {
+                ContextMenuKind.Tranal => "Tranal",
+                ContextMenuKind.Windows => "Windows",
+                _ => "programa",
+            };
+
+            var estado = item.Kind switch
+            {
+                ContextMenuKind.Tranal => item.IsEnabled ? "ativa" : "desativada",
+                ContextMenuKind.Programa => "removivel",
+                _ => "do Windows",
+            };
+
+            var programa = string.IsNullOrWhiteSpace(item.Program)
+                ? string.Empty
+                : $" | programa: {item.Program}";
+
+            var dll = string.IsNullOrWhiteSpace(item.ServerPath)
+                ? string.Empty
+                : $" | dll: {item.ServerPath}";
+
+            Console.WriteLine($"  {item.Title}");
+            Console.WriteLine($"    id: {item.Id}");
+            Console.WriteLine($"    dono: {dono} | estado: {estado}{programa}{dll}");
+            Console.WriteLine($"    local: {item.Location}");
+            Console.WriteLine();
+        }
+
+        Console.WriteLine("Use /restore, /disable ou /remove \"id\" para agir sobre as entradas.");
         return 0;
     }
 }

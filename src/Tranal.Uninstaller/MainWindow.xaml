@@ -362,6 +362,19 @@
             </StackPanel>
           </Button>
 
+          <!--
+            Gerenciador de menu de contexto: as entradas do botao direito do
+            Explorer, em um lugar so — as do Tranal e as que os outros
+            programas deixaram.
+          -->
+          <Button Style="{StaticResource ModuleButton}" Tag="ContextMenu" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolContextMenu">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5D7;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.ContextMenu}" />
+            </StackPanel>
+          </Button>
+
           <!-- Diagnostico: informacoes do sistema, impacto, falhas e relocacao. -->
           <TextBlock Text="{loc:Tr Sidebar.GroupInsights}" Margin="10,10,0,2"
                      FontSize="11" FontWeight="Bold"

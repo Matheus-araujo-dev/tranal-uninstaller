@@ -124,6 +124,12 @@ public static class ToolCatalog
     public const string Relocation = "Relocation";
 
     /// <summary>
+    /// Gerenciador de menu de contexto: as entradas do botao direito do
+    /// Explorer, as do Tranal e as que os outros programas deixaram.
+    /// </summary>
+    public const string ContextMenu = "ContextMenu";
+
+    /// <summary>
     /// Destravador: quem esta segurando um arquivo, e as acoes para soltar.
     /// </summary>
     public const string Unlocker = "Unlocker";
@@ -288,6 +294,7 @@ public static class ToolCatalog
         CustomTools,
         Processes,
         SystemManagement,
+        ContextMenu,
         Appearance,
         SystemInfo,
         ProgramImpact,

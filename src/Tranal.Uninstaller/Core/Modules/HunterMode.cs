@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using Tranal.Uninstaller.Core.Settings;
+using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Uninstaller.Core.Modules;
 
@@ -134,6 +135,53 @@ public static class HunterMode
                 Message = $"Falha ao identificar o programa: {ex.Message}",
             };
         }
+    }
+
+    /// <summary>
+    /// Identifica, com uma varredura so, o programa dono de cada caminho.
+    ///
+    /// Resolver um caminho por vez refaz a varredura de programas instalados a
+    /// cada chamada: numa lista com dez entradas de menu de contexto isso
+    /// sao dez varreduras. Aqui a varredura acontece uma vez, e o casamento
+    /// continua sendo o mesmo (<see cref="MatchProgram"/>).
+    /// </summary>
+    /// <param name="executablePaths">Os caminhos a casar.</param>
+    /// <returns>O programa de cada caminho, indexado pelo caminho original e pelo normalizado.</returns>
+    public static IReadOnlyDictionary<string, InstalledProgram> ResolveExecutables(IEnumerable<string> executablePaths)
+    {
+        var mapa = new Dictionary<string, InstalledProgram>(StringComparer.OrdinalIgnoreCase);
+
+        if (executablePaths is null) return mapa;
+
+        try
+        {
+            var programas = ScanPrograms();
+
+            foreach (var bruto in executablePaths)
+            {
+                if (string.IsNullOrWhiteSpace(bruto)) continue;
+
+                var caminho = PathUtil.Normalize(bruto);
+                if (caminho.Length == 0) continue;
+
+                var programa = mapa.TryGetValue(caminho, out var jaachado)
+                    ? jaachado
+                    : MatchProgram(caminho, programas);
+
+                if (programa is null) continue;
+
+                mapa[caminho] = programa;
+                mapa[bruto] = programa;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Sem a lista de programas, a coluna fica vazia: a entrada continua
+            // valendo, so sem o nome do dono.
+            ToolLog.Error($"Falha ao identificar os donos dos executaveis: {ex.Message}");
+        }
+
+        return mapa;
     }
 
     /// <summary>

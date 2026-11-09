@@ -1185,6 +1185,7 @@ public static class Program
         Console.WriteLine("/custom-uninstall <id> - Revisao item a item do log");
         Console.WriteLine("/advanced-uninstall <id> - O que ficou fora do log");
         Console.WriteLine("/painel - Mostra o painel ancorado e as ferramentas (use /dock \"Id\" ou /undock)");
+        Console.WriteLine("/contextmenu - Lista as entradas do menu de contexto do Explorer (use /restore, /disable ou /remove \"id\")");
         Console.WriteLine("/? | /help - Esta ajuda");
         Console.WriteLine();
         Console.WriteLine("Operações:");

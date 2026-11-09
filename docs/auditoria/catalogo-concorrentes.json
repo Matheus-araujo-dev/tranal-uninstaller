@@ -1905,8 +1905,8 @@
                                                          "id":  "T2#18",
                                                          "funcionalidade":  "**Gerenciador do Menu de Contexto** — lista, cria e remove menus do shell, com \"Restaurar\" e \"Excluir tudo\"",
                                                          "evidencia":  "`hibit.recursos.txt:152` -\u003e `TCONTEXTMENUFORM/0`; `:153` -\u003e `TCREATECONTEXTMFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Core/Management/ContextMenuManager.cs:70` (`List`) e `:137` (`ListFor`, filtra por programa), `:148` (`Remove`); painel em `src/Tranal.Uninstaller/Ui/Management/ManagementView.xaml.cs:175`. **Nota**: **nao ha criacao de menu arbitrario**, nem \"Restaurar\", nem \"Apagar tudo\" — a unica acao e remover. Binario do concorrente: `hibit.recursos.txt:152` (`TCONTEXTMENUFORM/0`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `src/Tranal.Uninstaller/Core/Management/ContextMenuOverview.cs:94` (`List`), `:377` (`Restore`), `:269` (`RemoveAll`), `:245` (`Create`), `:420` (`Remove`); `src/Tranal.Uninstaller/Core/Management/ContextMenuManager.cs:123` (`List`), `:314` (`Remove`, com backup das chaves em .reg); a tela `src/Tranal.Uninstaller/Ui/Tools/ContextMenuViews.cs:21` e a CLI `src/Tranal.Cli/ExtraCommands.cs:1494` (`/restore`, `/disable`, `/remove`, `/create`, `/removeall`). Medido no aplicativo de verdade: 41 entradas (4 do Tranal e 37 do shell). Binario do concorrente: `hibit.recursos.txt:152` (`TCONTEXTMENUFORM/0`)"
                                                      },
                                                      {
                                                          "numero":  19,
@@ -2041,8 +2041,8 @@
                                                          "id":  "T4#71",
                                                          "funcionalidade":  "Gerenciador de **Menu de Contexto**",
                                                          "evidencia":  "`hibit.recursos.txt:152` -\u003e `TCONTEXTMENUFORM/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Core/Management/ContextMenuManager.cs:70` (`List`) e `:137` (`ListFor`, filtro por programa), `:148` (`Remove`); painel em `src/Tranal.Uninstaller/Ui/Management/ManagementView.xaml.cs:175` (e a correlacao por programa em `src/Tranal.Uninstaller/Core/Management/AppPermissionManager.cs:120`). **Nota**: **sem \"Restaurar\"** e **sem \"Apagar tudo\"** — so apagamento (`ContextMenuManager.cs:148`). Binario do concorrente: `hibit.recursos.txt:152` (`TCONTEXTMENUFORM/0`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `src/Tranal.Uninstaller/Core/Management/ContextMenuOverview.cs:94` (`List`); a tela `src/Tranal.Uninstaller/Ui/Tools/ContextMenuViews.cs:21` e a CLI `src/Tranal.Cli/ExtraCommands.cs:1494`; a correlacao por programa continua em `src/Tranal.Uninstaller/Core/Management/AppPermissionManager.cs:120`. Medido no aplicativo de verdade: 41 entradas (4 do Tranal e 37 do shell). Binario do concorrente: `hibit.recursos.txt:152` (`TCONTEXTMENUFORM/0`)"
                                                      },
                                                      {
                                                          "numero":  72,

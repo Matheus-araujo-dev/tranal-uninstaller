@@ -1,14 +1,15 @@
 # Lacunas restantes (medido em 09/11/2026)
 
 Este documento lista a **uma** funcionalidade que ainda nao existe no
-Tranal, entre as 795 funcionalidades medidas contra os 11 concorrentes.
+Tranal, entre as 725 funcionalidades medidas contra os 11 concorrentes.
 
 Cada linha diz **o que falta** e **por que** ela continua de fora. Nenhuma
 linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(74,8% — 795 funcionalidades, 563 OK, 1 AUSENTE, 32 FORA por decisao).
+(72,7% — 725 funcionalidades, 497 OK, 197 PARCIAL, 1 AUSENTE, 30 FORA por
+decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
 
@@ -99,6 +100,31 @@ esta ultima levava o rastreio em tempo real, a politica de processos e a
 biblioteca de snapshots. Agora as duas abrem pelo menu principal
 ("Imprimir lista..." e "Rastreio e comparacao A x B..."), e a impressao tem
 atalho (Ctrl+P).
+
+**HIBIT T2#18 e T4#71 — Gerenciador de Menu de Contexto.** A linha do
+HiBit ("lista, cria e apaga menus do shell, com \"Restaurar\" e \"Apagar
+tudo\"") estava em PARCIAL, e a medicao mostrou que ela estava **errada
+desde a origem**: o modulo que a sustentava (`ContextMenuManager`) nunca
+funcionou — a leitura abria o caminho do registro duas vezes, e por isso
+devolvia **zero** entradas em qualquer maquina. O detalhe esta em
+`EVIDENCIA-MENU-CONTEXTO.md`:
+
+- a tela nova (`Ui/Tools/ContextMenuViews.cs`) lista as entradas do Explorer
+  e as do Tranal, com o dono de cada uma e o que pode ser feito com ela
+  (o botao "Gerenciador de menu de contexto" fica na barra lateral);
+- o nucleo (`Core/Management/ContextMenuOverview.cs`) tem **Restaurar**,
+  **Desativar**, **Remover**, **Criar entrada** e **Apagar tudo** — e o
+  backup das chaves vem antes de qualquer remocao;
+- a linha de comando expoe os mesmos verbos (`tranal /contextmenu`, com
+  `/restore`, `/disable`, `/remove`, `/create` e `/removeall`);
+- a suite tem 49 testes proprios (`Lote20FeatureTests.cs`) e um teste de
+  ponta a ponta no aplicativo de verdade (`tools/test-contextmenu.ps1`, 37
+  verificacoes).
+
+A medicao na maquina: **41 entradas** na tela — 4 do Tranal e 37 do shell.
+Oito delas pertencem a programas (OneDrive, IObit, McAfee) e as outras
+sao do Windows, que **nao podem ser removidas** (remover uma quebra o
+Explorer).
 
 ## Como fechar
 

@@ -101,6 +101,27 @@ jobs:
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
 
+      # O gerenciador de menu de contexto (o "Context Menu Manager" do HiBit):
+      # o botao da barra lateral abre a tela, a tela carrega e mostra as
+      # entradas medidas, e a linha de comando lista as mesmas entradas.
+      #
+      # O teste cria uma entrada de menu de contexto so para ele (com uma DLL
+      # que nao existe, para nao mudar o botao direito da maquina) e apaga
+      # tudo no final; as entradas do Tranal sao restauradas e desativadas,
+      # voltando ao estado anterior.
+      #
+      # A suite de testes cobre o nucleo (ContextMenuOverview e
+      # ContextMenuManager); este passo cobre a ligacao com a interface e com
+      # a linha de comando, que a suite nao alcanca (ela nao referencia o
+      # projeto WPF).
+      - name: Gerenciador de menu de contexto (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-contextmenu.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
       # O teste cria snapshots sinteticos e apaga tudo no final.

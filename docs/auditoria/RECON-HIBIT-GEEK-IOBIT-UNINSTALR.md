@@ -1,4 +1,4 @@
-# Reconciliacao de lacunas contra o codigo - HiBit, Geek, IObit e Uninstalr
+﻿# Reconciliacao de lacunas contra o codigo - HiBit, Geek, IObit e Uninstalr
 
 **Metodo: lido no codigo, nao na memoria.** Cada linha de lacuna dos quatro
 documentos `docs/auditoria/BINARIO-<CONCORRENTE>.md` foi conferida contra
@@ -41,7 +41,7 @@ Total apurado: **154 linhas** (HiBit 56, Geek 30, IObit 34, Uninstalr 34).
 | 13 | Copiar dados do programa para a area de transferencia | JA EXISTE | `Core/Appearance/ProgramTextFormatter.cs:47` (`Format`, `ClipboardFormat`) + `Ui/Appearance/ProgramClipboard.cs` |
 | 15 | Modificar/reparar instalacao MSI (`ModifyPath`) | JA EXISTE | `Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`) e (`Repair`) |
 | 17 | Menu de contexto do Monitor de Instalacao (entrada separada no shell) | NAO EXISTE | `Core/Topmost/ExplorerContextMenu.cs` registra apenas o menu de desinstalacao do Tranal; nao ha entrada do monitor |
-| 18 | Gerenciador do Menu de Contexto - cria e remove menus do shell, com "Restaurar" e "Excluir tudo" | NAO EXISTE | `Core/Management/ContextMenuManager.cs:70/137/148` faz List/ListFor/Remove de handlers; `Core/Topmost/ExplorerContextMenu.cs:189/156` instala/remove o menu **do proprio Tranal**. Nao ha criacao de menu arbitrario, nem "Restaurar"/"Excluir tudo" |
+| 18 | Gerenciador do Menu de Contexto - cria e remove menus do shell, com "Restaurar" e "Excluir tudo" | JA EXISTE | `Core/Management/ContextMenuOverview.cs:94` (`List`), `:377` (`Restore`), `:269` (`RemoveAll`), `:245` (`Create`), `:420` (`Remove`); `Core/Management/ContextMenuManager.cs:123` (`List`), `:212` (`ListFor`), `:314` (`Remove`); `Core/Topmost/CustomShellMenu.cs:81` (`Create`); a tela `Ui/Tools/ContextMenuViews.cs:21` e a CLI `src/Tranal.Cli/ExtraCommands.cs:1494`. Medido no aplicativo de verdade: 41 entradas (4 do Tranal e 37 do shell) |
 | 20 | Monitoramento de instalacao com eventos por tipo | JA EXISTE | `Core/Modules/InstallMonitor.cs:103` (`Start`) e (`StopAndSave`); `Core/Tracing/WriteWatcher.cs` (observacao de escrita, sem driver); `Core/Tracing/TraceEntry.cs` (`TraceChangeKind`) |
 | 21 | Desinstalar atualizacoes do Windows (`wusa`/KB) | NAO EXISTE | `Core/Discovery/WindowsFeatures.cs:350` (`ListInstalled`) e (`ListAvailable`) so catalogam; nao existe comando de remocao de KB |
 | 59 | Arrastar e soltar um programa para desinstalar | JA EXISTE | `Ui/Modules/HunterView.xaml` (`AllowDrop`) + `Core/Modules/HunterMode.cs:41` (`Resolve`) |
@@ -56,7 +56,7 @@ Total apurado: **154 linhas** (HiBit 56, Geek 30, IObit 34, Uninstalr 34).
 | 68 | Gerenciador de Servicos que **cria** servico | NAO EXISTE | `Core/Management/ServiceManager.cs:113/148/199/209/217/242` - List/ListFor/Disable/Enable/Stop/Delete. Nenhum `Create` |
 | 69 | Gerenciador de Processos (painel) | NAO EXISTE | `Core/ProcessTerminator.cs:61/107/156` encerra processos e `Ui/Tools/TopmostOverlayWindow.xaml.cs` tem "Kill process"; nao existe listagem/painel de processos do sistema |
 | 70 | Gerenciador de Tarefas Agendadas | JA EXISTE | `Core/Management/ScheduledTaskManager.cs:79/114/125/137/149` + `Ui/Management/ManagementView.xaml.cs` |
-| 71 | Gerenciador de Menu de Contexto (janela propria) | JA EXISTE | `Core/Management/ContextMenuManager.cs:70` + `Ui/Management/ManagementView.xaml.cs`. **Nota**: sem "Restaurar" e sem "Excluir tudo" |
+| 71 | Gerenciador de Menu de Contexto (janela propria) | JA EXISTE | `Core/Management/ContextMenuOverview.cs:94` (`List`); a tela `Ui/Tools/ContextMenuViews.cs:21` (janela propria, com "Restaurar", "Desativar", "Remover", "Criar entrada" e "Apagar tudo") e a CLI `src/Tranal.Cli/ExtraCommands.cs:1494` |
 | 72 | Gerenciador de Componentes de Programas (DLLs compartilhadas) | NAO EXISTE | `Core/ProgramScanner.cs:64` so le chave de desinstalacao, catalogo MSI e Store (`Core/ProgramColumns.cs`); nao ha enumerador de DLL compartilhada entre programas |
 | 73 | Gerenciador de Extensoes de Navegador para mais navegadores | NAO EXISTE | `Core/Modules/BrowserExtensions.cs:76-80` cobre apenas chrome, edge, opera (+ firefox em ); nao ha Brave, Vivaldi, Yandex |
 | 74 | Gerenciador de Conexoes (rede) | FORA POR DECISAO | `docs/auditoria/BINARIO.md` 3.2: "Analisador de disco, gerenciador de conexoes, de fontes, papel de parede, destruidor de arquivos - Nao e dominio de desinstalacao" |
