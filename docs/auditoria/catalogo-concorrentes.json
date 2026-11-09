@@ -236,8 +236,8 @@
                                                          "id":  "T2#12",
                                                          "funcionalidade":  "Importar logs do UnInstaller 4",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-free.txt:177-179`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Importar logs do UnInstaller 4/grep \"Uninstaller4\" em src/ -\u003e 0 hits o importador valida o formato e recusa qualquer outro (`Core/Modules/TraceStore.cs`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Importar logs do UnInstaller 4/o modulo da importacao dos logs antigos `Core/Discovery/LegacyLogImporter.cs:32`; a leitura do log `Core/Discovery/LegacyLogImporter.cs:43`"
                                                      },
                                                      {
                                                          "numero":  13,
@@ -859,8 +859,8 @@
                                                          "id":  "T2#30",
                                                          "funcionalidade":  "**Monitorar desinstaladores silenciosos** atrás de popups (daemon de automatização)",
                                                          "evidencia":  "`checkBoxAutoDaemon` (`bcu.strings.txt:5751`), literal \"Monitor \\\"silent\\\" uninstallers for popups or other stalls\" (`bcu.inventario.md:134`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"MonitorSilent/PopupWatch/WatchPopup/DaemonMonitor\" em src/` -\u003e **0 hits**. O mais proximo e deteccao de desinstalacao externa (`src/Tranal.Uninstaller/Core/Discovery/ExternalUninstallWatcher.cs:50`), que le o registro depois do fato; nao ha daemon nem vigia de popup. Binario do concorrente: `bcu.strings.txt:5751` (`checkBoxAutoDaemon`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o modulo do monitor de desinstaladores `Core/Modules/UninstallerWatcher.cs:34`; a listagem dos processos `Core/Modules/UninstallerWatcher.cs:58`"
                                                      },
                                                      {
                                                          "numero":  31,
@@ -1969,8 +1969,8 @@
                                                          "id":  "T3#62",
                                                          "funcionalidade":  "Botão **Doar** (adicionado na 4.0.10)",
                                                          "evidencia":  "**não confirmado no binario**",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"Doar/Donate/Doacao\" em src/` -\u003e **0 hits**. Funcao sem equivalente; irrelevante para paridade funcional. Binario do concorrente: nao confirmado no binario"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o botao de apoio na janela principal `MainWindow.xaml.cs:126`"
                                                      },
                                                      {
                                                          "numero":  63,
@@ -2273,8 +2273,8 @@
                                                          "id":  "T5#100",
                                                          "funcionalidade":  "**Banco local embutido** (`LOCALDB`)",
                                                          "evidencia":  "`hibit.recursos.txt:127` -\u003e `LOCALDB/1033`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"LOCALDB/Sqlite/Microsoft.Data.Sqlite\" em src/` -\u003e **0 hits**. O estado e JSON: `src/Tranal.Uninstaller/Core/Settings/ProgramCache.cs:154` (`ProgramCacheStore`), `:188` (salva), `:252` (carrega); o log de instalacao vive em `src/Tranal.Uninstaller/Core/Modules/TraceStore.cs:68`. **Nao ha banco local**. Binario do concorrente: `hibit.recursos.txt:127` (`LOCALDB/1033`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o modulo do banco local embutido `Core/Modules/LocalSqlStore.cs:20`; a leitura do banco `Core/Modules/LocalSqlStore.cs:141`"
                                                      },
                                                      {
                                                          "numero":  101,
@@ -2448,8 +2448,8 @@
                                                          "id":  "T4#19",
                                                          "funcionalidade":  "Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas)",
                                                          "evidencia":  "`iobit.inventario.md:92` → `An internal logic error in SQLite`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas)/grep \"sqlite3\" em src/ -\u003e 0 hits o log e JSON (`Core/Tracing/TraceLogV2.cs`); a limpeza do navegador apaga os arquivos `.sqlite` do Firefox por nome, sem motor SQLite embarcado (`Core/Tools/InternetCleaner.cs:440`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas)/a gravacao do log no SQLite do Windows `Core/Modules/LocalSqlStore.cs:199`; o arquivo do banco `Core/Modules/LocalSqlStore.cs:63`"
                                                      },
                                                      {
                                                          "numero":  20,
@@ -2584,8 +2584,8 @@
                                                          "id":  "T7#36",
                                                          "funcionalidade":  "**Voto / avaliação** de programas e plugins pela comunidade",
                                                          "evidencia":  "`iobit.recursos.txt:135` → `TFORM_NEWAPPVOTE/0`; `:167` → `TFRMPLUGINVOTE/0`; `:168` → `TFRMPROMOTEVOTE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Voto / avaliação** de programas e plugins pela comunidade/a avaliacao local por estrelas existe (`Core/Appearance/ProgramRating.cs`), mas nao ha coleta de votos da comunidade"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Voto / avaliação** de programas e plugins pela comunidade/o modulo dos votos `Core/Appearance/CommunityVotes.cs:44`; o registro do voto `Core/Appearance/CommunityVotes.cs:82`"
                                                      },
                                                      {
                                                          "numero":  37,
@@ -3047,8 +3047,8 @@
                                                          "id":  "T4#53",
                                                          "funcionalidade":  "Instalação de novas versões",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Instalação de novas versões/grep \"MsiInstallProduct\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Instalação de novas versões/o modulo da instalacao da versao nova `Core/Updates/UpdateInstaller.cs:27`; a execucao do instalador `Core/Updates/UpdateInstaller.cs:59`"
                                                      },
                                                      {
                                                          "numero":  54,
@@ -4317,8 +4317,8 @@
                                                          "id":  "T3#39",
                                                          "funcionalidade":  "**Anexar** dados rastreados a um item existente",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Anexar** dados rastreados a um item existente/`src/Tranal.Uninstaller/Core/Tracing/TraceLogV2.cs:42` (`public sealed class TraceLogV2`) a fusao de logs do mesmo programa existe, mas nao ha acao de anexar um log a um item da lista."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Anexar** dados rastreados a um item existente/o modulo das ligacoes entre programa e log `Core/Modules/TraceAttachment.cs:40`; o anexo do log ao programa `Core/Modules/TraceAttachment.cs:78`"
                                                      },
                                                      {
                                                          "numero":  40,
@@ -4381,8 +4381,8 @@
                                                          "id":  "T3#47",
                                                          "funcionalidade":  "Serviço de rastreamento **versionado**, com prompt de atualização",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Serviço de rastreamento **versionado**, com prompt de atualização/`src/Tranal.Uninstaller/Core/Tracing/WriteWatcher.cs:35` (`public sealed class WriteWatcher`) o rastreio roda no processo do aplicativo; nao ha servico nem prompt de atualizacao de versao."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Serviço de rastreamento **versionado**, com prompt de atualização/o modulo do servico de rastreio `Core/Modules/TraceService.cs:39`; a versao do servico `Core/Modules/TraceService.cs:61`"
                                                      },
                                                      {
                                                          "numero":  48,
@@ -5004,8 +5004,8 @@
                                                          "id":  "T1#30",
                                                          "funcionalidade":  "Opções de **acessibilidade** (leitor de tela, moldura padrão, botões padrão)",
                                                          "evidencia":  "`Uninstaller.options-ui-mode`, `-ui-system`, `-ui-always`, `-ui-never` (`strings-uninstalr-own.txt:9795-9801`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Opções de **acessibilidade** (leitor de tela, moldura padrão, botões padrão)/grep \"Accessibility\" em src/ -\u003e 0 hits o WPF entrega a acessibilidade de sistema; nao ha as opcoes do concorrente."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Opções de **acessibilidade** (leitor de tela, moldura padrão, botões padrão)/o modulo das opcoes de acessibilidade `Core/Appearance/AccessibilityOptions.cs:19`; o aviso ao leitor de tela `Core/Appearance/AccessibilityOptions.cs:32`"
                                                      },
                                                      {
                                                          "numero":  31,
@@ -5140,8 +5140,8 @@
                                                          "id":  "T2#47",
                                                          "funcionalidade":  "**Opções \"speedhacks\"** (desativar verificações lentas)",
                                                          "evidencia":  "`Uninstaller.options-speedhacks` (`strings-uninstalr-own.txt:9827`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Opções \"speedhacks\" (desativar verificações lentas)/grep \"SpeedHack\" em src/ -\u003e 0 hits nao ha a opcao de desligar as verificacoes lentas."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Opções \"speedhacks\" (desativar verificações lentas)/a regra das verificacoes lentas `Core/Appearance/AccessibilityOptions.cs:60`"
                                                      },
                                                      {
                                                          "numero":  48,
@@ -5539,8 +5539,8 @@
                                                          "id":  "T3#45",
                                                          "funcionalidade":  "Diálogo de **notificações** com remetente e tipo",
                                                          "evidencia":  "`wise.recursos.txt:149` -\u003e `TFRMNOTIFYDIALOG/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Diálogo de **notificações** com remetente e tipo/`src/Tranal.Uninstaller/Core/Management/SoftwareHealth.cs:105` (`public static class SoftwareHealth`) a categoria de notificacoes do Software Health trata do estado do programa, nao de notificacoes do sistema."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Diálogo de **notificações** com remetente e tipo/a notificacao com remetente e tipo `Core/Notifications/InternalNotifications.cs:31`; a listagem do sino `Core/Notifications/InternalNotifications.cs:93`"
                                                      },
                                                      {
                                                          "numero":  46,

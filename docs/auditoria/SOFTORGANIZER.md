@@ -181,7 +181,7 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | 50 | "Rarely used apps" | nao confirmado no binario | **OK** - O filtro de uso raro se apoia nos sinais do Windows (UserAssist e Prefetch) e a coluna de ultimo uso vem dos mesmos sinais. |
 | 51 | Leftovers de programas **já desinstalados** (lista de apps deletadas) | `recursos.txt:100` → `TAPPLICATIONSDELETEDFORM/0` | **OK** - Leftovers de programas **já desinstalados** (lista de apps deletadas)/`src/Tranal.Uninstaller/Core/History/HistoryReport.cs:93` (`public static IReadOnlyList<HistoryRow> Build`) `src/Tranal.Uninstaller/Ui/Tools/HistoryViews.cs:98` (`HistoryReport.Read`) `src/Tranal.Cli/HistoryCommands.cs:53` (`HistoryReport.Read`) a tela de historico lista as operacoes e os residuos que sairam em cada uma. |
 | 52 | Instalação silenciosa de programas | nao confirmado no binario | **OK** - Instalação silenciosa de programas/instalador silencioso `Core/Automation/SilentInstaller.cs:46` |
-| 53 | Instalação de novas versões | nao confirmado no binario | **AUSENTE** - Instalação de novas versões/grep "MsiInstallProduct" em src/ -> 0 hits |
+| 53 | Instalação de novas versões | nao confirmado no binario | **OK** - Instalação de novas versões/o modulo da instalacao da versao nova `Core/Updates/UpdateInstaller.cs:27`; a execucao do instalador `Core/Updates/UpdateInstaller.cs:59` |
 
 ### 2.5 Linhas novas: funcionalidades presentes no binário e ainda não no documento
 
