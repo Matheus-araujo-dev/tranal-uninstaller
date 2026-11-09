@@ -109,6 +109,51 @@ public static class Exporters
         return Core.Reporting.ReportFormats.WriteReg(path, changes);
     }
 
+    /// <summary>
+    /// Exporta a lista de programas em JSON.
+    ///
+    /// O Bullseye NortonCleanup e o BCU exportam a lista em JSON: e o formato
+    /// que as ferramentas de linha de comando consumem sem depender do
+    /// separador regional.
+    ///
+    /// As chaves sao os identificadores das colunas do catalogo unico
+    /// (<see cref="ProgramColumns"/>), e o valor de cada uma vem do mesmo
+    /// metodo que a tela usa — nao existe uma segunda interpretacao do que e
+    /// uma coluna.
+    /// </summary>
+    /// <param name="programs">Os programas a exportar.</param>
+    /// <param name="columns">As colunas exportadas.</param>
+    public static string ToJson(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
+    {
+        var sel = columns ?? DefaultColumns;
+        var anotacoes = ProgramCustomizationStore.PeekAll();
+
+        var lista = (programs ?? Enumerable.Empty<InstalledProgram>())
+            .Where(p => p is not null)
+            .Select(p =>
+            {
+                var item = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var coluna in sel)
+                {
+                    item[ExportNameOf(coluna)] = ProgramColumns.Value(coluna, p, CustomizationOf(p, anotacoes));
+                }
+
+                return item;
+            })
+            .ToList();
+
+        var documento = new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            ["exported"] = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss"),
+            ["count"] = lista.Count,
+            ["programs"] = lista,
+        };
+
+        return System.Text.Json.JsonSerializer.Serialize(
+            documento,
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+    }
+
     public static string ToXml(IEnumerable<InstalledProgram> programs, IReadOnlyList<ProgramColumn>? columns = null)
     {
         var sel = columns ?? DefaultColumns;

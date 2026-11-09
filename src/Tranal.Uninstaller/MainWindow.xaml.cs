@@ -1537,6 +1537,7 @@ public partial class MainWindow : Window
         ("HTML", "html", "Cmd.ExportHtml"),
         ("XML", "xml", "Cmd.ExportXml"),
         ("XLS", "xls", "Cmd.ExportExcel"),
+        ("JSON", "json", "Cmd.ExportJson"),
     };
 
     private void ExportList(string format)
@@ -1581,6 +1582,7 @@ public partial class MainWindow : Window
             "CSV" => Exporters.ToCsv(rows.Select(r => r.Program), selecionadas),
             "HTML" => Exporters.ToHtml(rows.Select(r => r.Program), selecionadas),
             "XML" => Exporters.ToXml(rows.Select(r => r.Program), selecionadas),
+            "JSON" => Exporters.ToJson(rows.Select(r => r.Program), selecionadas),
             _ => Exporters.ToText(rows.Select(r => r.Program), selecionadas),
         };
 

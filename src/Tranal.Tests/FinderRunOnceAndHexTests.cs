@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Tools;
@@ -163,5 +164,23 @@ public class FinderRunOnceAndHexTests : IDisposable
     {
         Assert.Empty(HexViewer.Dump(Path.Combine(_temp, "nao-existe.bin")));
         Assert.Equal(string.Empty, HexViewer.Md5Of(Path.Combine(_temp, "nao-existe.bin")));
+    }
+    // ------------------------------------------------------------------
+    // Exportacao em JSON
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public void ExportacaoEmJsonTrazOsProgramas()
+    {
+        var programas = new[]
+        {
+            new InstalledProgram { DisplayName = "Exemplo", Publisher = "Empresa" },
+        };
+
+        var json = Exporters.ToJson(programas);
+
+        Assert.Contains("Exemplo", json);
+        Assert.Contains("\"count\": 1", json);
+        Assert.Contains("\"programs\"", json);
     }
 }

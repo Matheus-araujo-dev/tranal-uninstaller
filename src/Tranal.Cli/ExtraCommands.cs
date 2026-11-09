@@ -239,6 +239,7 @@ public static class ExtraCommands
         if (flags.Contains("/html")) content = Exporters.ToHtml(programs, columns);
         else if (flags.Contains("/csv")) content = Exporters.ToCsv(programs, columns);
         else if (flags.Contains("/xml")) content = Exporters.ToXml(programs, columns);
+        else if (flags.Contains("/json")) content = Exporters.ToJson(programs, columns);
         else content = Exporters.ToText(programs, columns);
 
         try

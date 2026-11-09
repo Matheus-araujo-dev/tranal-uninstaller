@@ -1003,5 +1003,6 @@
     "Tool.Hex.Offset":  "Offset",
     "Tool.Hex.Hex":  "Hexadecimal",
     "Tool.Hex.Text":  "Text",
+    "Cmd.ExportJson":  "JSON",
     "Tool.Shared.NothingSelected":  "No item selected."
 }
