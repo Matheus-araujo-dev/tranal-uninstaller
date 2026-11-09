@@ -44,6 +44,7 @@ public static class ToolViews
         ToolCatalog.ShortcutFixer => CleanupViews.Create(toolId),
         ToolCatalog.MruCleaner => CleanupViews.Create(toolId),
         ToolCatalog.SharedDlls => CleanupViews.Create(toolId),
+        ToolCatalog.RecycleBin => CleanupViews.Create(toolId),
         ToolCatalog.CustomTools => CreateCustomTools(),
         ToolCatalog.Processes => CreateProcessPanel(),
         ToolCatalog.SystemManagement => new Management.ManagementView(),

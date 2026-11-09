@@ -33,6 +33,7 @@ public static class CleanupViews
         ToolCatalog.ShortcutFixer => CreateShortcutFixer(),
         ToolCatalog.MruCleaner => CreateMruCleaner(),
         ToolCatalog.SharedDlls => CreateSharedDlls(),
+        ToolCatalog.RecycleBin => CreateRecycleBin(),
         _ => new ItemListPanel(),
     };
 
@@ -601,6 +602,67 @@ public static class CleanupViews
 
             var resultado = SharedDllCatalog.Remove((SharedDllEntry)entrada.Source);
             panel.PanelStatus = resultado.Message;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Lixeira
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Tela da Lixeira: o que foi apagado sem querer, com o caminho original
+    /// e a data do apagamento.
+    /// </summary>
+    private static FrameworkElement CreateRecycleBin()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<CleanupRow>();
+
+        panel.Configure(
+            Loc.Get("Module.RecycleBin"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 240, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 480, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Size"), Width = 110, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Common.Date"), Width = 150, BindingPath = "Detail" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "RecycleScan", Text = Loc.Get("Tool.Recycle.Scan"), Action = () => Escanear() },
+            });
+
+        panel.SetItems(rows);
+        panel.PanelStatus = Loc.Get("Tool.Recycle.Start");
+        return panel;
+
+        void Escanear()
+        {
+            panel.RunAsync(async () =>
+            {
+                var itens = await Task.Run(() => RecycleBinInspector.List());
+
+                rows.Clear();
+
+                foreach (var item in itens)
+                {
+                    rows.Add(new CleanupRow
+                    {
+                        Category = item.Name,
+                        Path = item.OriginalPath,
+                        Size = ByteFormatter.Format(item.SizeBytes),
+                        Detail = item.DeletedAt == DateTime.MinValue
+                            ? string.Empty
+                            : item.DeletedAt.ToString("d", System.Globalization.CultureInfo.CurrentCulture),
+                        Source = item,
+                    });
+                }
+
+                var total = RecycleBinInspector.TotalSize();
+                panel.PanelStatus = rows.Count == 0
+                    ? Loc.Get("Tool.Recycle.Empty")
+                    : Loc.Get("Status.Done") + " — " + rows.Count + " item(ns), " + ByteFormatter.Format(total);
+            });
         }
     }
 }

@@ -122,6 +122,11 @@ public static class ToolCatalog
     /// </summary>
     public const string SharedDlls = "SharedDlls";
 
+    /// <summary>
+    /// Consulta da Lixeira: o que foi apagado sem querer.
+    /// </summary>
+    public const string RecycleBin = "RecycleBin";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
     public const string HistoryCleaner = "HistoryCleaner";    /// <summary>Tracks Cleaner: modulo dos navegadores.</summary>
     public const string TracksBrowsers = "TracksBrowsers";
@@ -156,6 +161,7 @@ public static class ToolCatalog
         ShortcutFixer,
         MruCleaner,
         SharedDlls,
+        RecycleBin,
         CustomTools,
         Processes,
         SystemManagement,

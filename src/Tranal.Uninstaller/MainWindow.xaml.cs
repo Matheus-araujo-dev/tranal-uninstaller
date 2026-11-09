@@ -1239,6 +1239,51 @@ public partial class MainWindow : Window
 
         menu.Items.Add(addGroup);
         menu.Items.Add(removeGroup);
+
+        // Esconder (ou remover) a entrada do programa na lista do Windows
+        // ("Adicionar e Remover Programas"), sem desinstalar o programa.
+        var esconder = CommandItem(
+            Loc.Get("Cmd.HideFromWindowsList"),
+            "CmdHideFromWindowsList",
+            () => HideFromWindowsList(row));
+        menu.Items.Add(esconder);
+
+        var removerDaLista = CommandItem(
+            Loc.Get("Cmd.RemoveFromWindowsList"),
+            "CmdRemoveFromWindowsList",
+            () => RemoveFromWindowsList(row));
+        menu.Items.Add(removerDaLista);
+    }
+
+    /// <summary>
+    /// Esconde a entrada do programa na lista de "Adicionar e Remover
+    /// Programas" do Windows. A operacao e reversivel: o programa continua
+    /// instalado e a entrada volta quando o usuario pedir.
+    /// </summary>
+    /// <param name="row">O programa selecionado.</param>
+    private async void HideFromWindowsList(ProgramRow row)
+    {
+        var escondido = Core.Management.WindowsListEntry.Hide(row.Program);
+        if (escondido) await ReloadAsync();
+
+        UserMessages.Information(this, escondido
+            ? Loc.Get("Cmd.HideFromWindowsListDone")
+            : Loc.Get("Cmd.HideFromWindowsListFailed"));
+    }
+
+    /// <summary>
+    /// Remove a entrada do programa da lista do Windows, sem desinstalar o
+    /// programa.
+    /// </summary>
+    /// <param name="row">O programa selecionado.</param>
+    private async void RemoveFromWindowsList(ProgramRow row)
+    {
+        var removido = Core.Management.WindowsListEntry.Remove(row.Program);
+        if (removido) await ReloadAsync();
+
+        UserMessages.Information(this, removido
+            ? Loc.Get("Cmd.RemoveFromWindowsListDone")
+            : Loc.Get("Cmd.RemoveFromWindowsListFailed"));
     }
 
     /// <summary>

@@ -971,5 +971,15 @@
     "Advisory.Title.UninstallInProgress":  "Uninstall in progress",
     "Advisory.UninstallInProgress":  "An uninstall is already running. Wait for it to finish before starting another one.",
     "Wizard.GuardTitle":  "Uninstall blocked",
+    "Module.RecycleBin":  "Recycle Bin",
+    "Tool.Recycle.Scan":  "Scan",
+    "Tool.Recycle.Start":  "Scan the recycle bin.",
+    "Tool.Recycle.Empty":  "The recycle bin is empty.",
+    "Cmd.HideFromWindowsList":  "Hide from the Windows list",
+    "Cmd.RemoveFromWindowsList":  "Remove from the Windows list",
+    "Cmd.HideFromWindowsListDone":  "The program entry was hidden from the Windows list. The program is still installed.",
+    "Cmd.HideFromWindowsListFailed":  "Could not hide the program entry.",
+    "Cmd.RemoveFromWindowsListDone":  "The program entry was removed from the Windows list. The program is still installed.",
+    "Cmd.RemoveFromWindowsListFailed":  "Could not remove the program entry.",
     "Tool.Shared.NothingSelected":  "No item selected."
 }

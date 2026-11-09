@@ -971,5 +971,15 @@
     "Advisory.Title.UninstallInProgress":  "Desinstalacao em andamento",
     "Advisory.UninstallInProgress":  "Ja existe uma desinstalacao em andamento. Espere ela terminar antes de comecar outra.",
     "Wizard.GuardTitle":  "Desinstalacao bloqueada",
+    "Module.RecycleBin":  "Lixeira",
+    "Tool.Recycle.Scan":  "Procurar",
+    "Tool.Recycle.Start":  "Procure o que esta na Lixeira.",
+    "Tool.Recycle.Empty":  "A Lixeira esta vazia.",
+    "Cmd.HideFromWindowsList":  "Ocultar da lista do Windows",
+    "Cmd.RemoveFromWindowsList":  "Remover da lista do Windows",
+    "Cmd.HideFromWindowsListDone":  "A entrada do programa foi escondida na lista do Windows. O programa continua instalado.",
+    "Cmd.HideFromWindowsListFailed":  "Nao foi possivel esconder a entrada do programa.",
+    "Cmd.RemoveFromWindowsListDone":  "A entrada do programa foi removida da lista do Windows. O programa continua instalado.",
+    "Cmd.RemoveFromWindowsListFailed":  "Nao foi possivel remover a entrada do programa.",
     "Tool.Shared.NothingSelected":  "Nenhum item marcado."
 }
