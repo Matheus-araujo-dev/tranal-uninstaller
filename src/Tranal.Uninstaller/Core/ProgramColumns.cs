@@ -250,6 +250,38 @@ public static class ProgramColumns
     /// O valor da coluna para um programa. E o mesmo valor que a lista
     /// mostra e que a exportacao grava — uma coluna, uma interpretacao.
     /// </summary>
+    /// <summary>
+    /// A largura que a coluna precisa para caber o maior texto que ela mostra.
+    ///
+    /// A REGRA mora aqui, em um lugar so: o "best fit" de UMA coluna e o
+    /// "auto-ajustar TODAS as colunas" usam esta mesma conta. Sao o mesmo
+    /// numero calculado de dois jeitos — e nao duas contas parecidas, que e
+    /// como as colunas comecam a discordar entre si.
+    ///
+    /// A conta e uma estimativa de caracteres (8 pixels por caractere, mais
+    /// 24 de folga), limitada entre 48 e 600. E a mesma conta que o "Best
+    /// Fit" de uma coluna ja usava; agora os dois caminhos usam o mesmo
+    /// numero.
+    /// </summary>
+    /// <param name="id">A coluna.</param>
+    /// <param name="rows">As linhas visiveis, com o programa e a personalizacao.</param>
+    /// <param name="maxWidth">A largura maxima.</param>
+    public static double AutoWidth(
+        ProgramColumn id,
+        IEnumerable<(InstalledProgram Program, ProgramCustomization? Custom)> rows,
+        double maxWidth = 600)
+    {
+        var maior = Label(id).Length;
+
+        foreach (var linha in rows)
+        {
+            var texto = Value(id, linha.Program, linha.Custom);
+            if (texto.Length > maior) maior = texto.Length;
+        }
+
+        return Math.Clamp(maior * 8 + 24, 48, maxWidth);
+    }
+
     public static string Value(ProgramColumn id, InstalledProgram program, ProgramCustomization? custom)
     {
         switch (id)

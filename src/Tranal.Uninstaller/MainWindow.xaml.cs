@@ -572,6 +572,12 @@ public partial class MainWindow : Window
 
         menu.Items.Add(new Separator());
 
+        // O auto-ajuste de todas as colunas: um comando, e nao um por coluna.
+        var ajustarTodas = CommandItem(Loc.Get("Cmd.BestFitAll"), "CmdBestFitAll", BestFitAll);
+        menu.Items.Add(ajustarTodas);
+
+        menu.Items.Add(new Separator());
+
         var align = new MenuItem { Header = Loc.Get("Cmd.Alignment") };
         AutomationProperties.SetAutomationId(align, "CmdAlignment");
         align.Items.Add(MenuItemFor(Loc.Get("Cmd.AlignLeft"), "AlignLeft", () => SetAlignment(HorizontalAlignment.Left)));
@@ -623,20 +629,45 @@ public partial class MainWindow : Window
     {
         var id = ColumnIdOf(column);
 
-        var maior = ProgramColumns.Label(id).Length;
-        foreach (var row in _view.Cast<ProgramRow>())
-        {
-            var texto = ProgramColumns.Value(id, row.Program, row.Custom);
-            if (texto.Length > maior) maior = texto.Length;
-        }
-
-        var largura = Math.Clamp(maior * 8 + 24, 48, 600);
+        // A conta mora no nucleo: e a mesma que o auto-ajuste de todas as
+        // colunas usa.
+        var largura = ProgramColumns.AutoWidth(id, _view.Cast<ProgramRow>().Select(r => (r.Program, r.Custom)));
         column.Width = largura;
 
         // A largura fica guardada: voltar para o modo "Detalhes" reescrevia
         // todas as larguras com o valor padrao e o ajuste do usuario
         // sumia — ele acabara de apertar "Best Fit" e nao via nada acontecer.
         _columnWidths[id] = largura;
+    }
+
+    /// <summary>
+    /// Ajusta a largura de TODAS as colunas de uma vez.
+    ///
+    /// E o "auto-ajustar a largura de todas as colunas" do BCU: o ajuste de
+    /// uma coluna por vez obriga o usuario a passar por cada uma, e o
+    /// resultado sai desigual.
+    ///
+    /// A conta e a mesma do "Best Fit" (<see cref="ProgramColumns.AutoWidth"/>):
+    /// as duas telas medem o mesmo texto do mesmo jeito.
+    /// </summary>
+    private void BestFitAll()
+    {
+        if (ProgramsList.View is not GridView grid) return;
+
+        var linhas = _view.Cast<ProgramRow>().Select(r => (r.Program, r.Custom)).ToList();
+
+        foreach (var column in grid.Columns)
+        {
+            // A coluna das caixas de selecao nao tem texto: e um comando,
+            // nao um dado.
+            if (ReferenceEquals(column, _checkColumn)) continue;
+
+            var id = ColumnIdOf(column);
+            var largura = ProgramColumns.AutoWidth(id, linhas);
+
+            column.Width = largura;
+            _columnWidths[id] = largura;
+        }
     }
 
     private void SetAlignment(HorizontalAlignment alignment)

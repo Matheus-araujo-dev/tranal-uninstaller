@@ -19,6 +19,7 @@ public static class ToolCatalog
     public const string FileAssociator = "FileAssociator";
     public const string UndoCenter = "UndoCenter";
     public const string FileOwnership = "FileOwnership";
+    public const string DeepAnalysis = "DeepAnalysis";
 
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
@@ -213,6 +214,7 @@ public static class ToolCatalog
         FileAssociator,
         UndoCenter,
         FileOwnership,
+        DeepAnalysis,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

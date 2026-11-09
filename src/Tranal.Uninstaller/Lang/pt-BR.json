@@ -1160,5 +1160,13 @@
     "Tool.BootCenter.CreateCommand":  "Comando (caminho do executavel)",
     "Tool.BootCenter.CreateMissing":  "O nome e o comando sao obrigatorios.",
     "Tool.BootCenter.Created":  "Item de inicializacao '{0}' criado.",
-    "Status.NoMatchingItems":  "nenhum item corresponde — pressione ESC para limpar o filtro"
+    "Status.NoMatchingItems":  "nenhum item corresponde — pressione ESC para limpar o filtro",
+    "Module.DeepAnalysis":  "Analise profunda",
+    "Tool.DeepAnalysis.Kind":  "Tipo",
+    "Tool.DeepAnalysis.Detail":  "Detalhe",
+    "Tool.DeepAnalysis.ProgramsList":  "Programas",
+    "Tool.DeepAnalysis.Run":  "Analisar",
+    "Tool.DeepAnalysis.Programs":  "{0} programa(s) instalado(s).",
+    "Tool.DeepAnalysis.Status":  "{0}: {1} entrada(s) — {2} medida(s), {3} inferida(s), {4} candidata(s).",
+    "Cmd.BestFitAll":  "Ajustar todas as colunas"
 }

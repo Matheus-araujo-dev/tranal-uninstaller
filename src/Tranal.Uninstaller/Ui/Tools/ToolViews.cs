@@ -14,6 +14,7 @@ using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Recovery;
 using Tranal.Uninstaller.Core.Tools;
+using Tranal.Uninstaller.Core.Tracing;
 using Tranal.Uninstaller.Ui.Shared;
 
 namespace Tranal.Uninstaller.Ui.Tools;
@@ -34,6 +35,7 @@ public static class ToolViews
         ToolCatalog.FileAssociator => CreateFileAssociator(),
         ToolCatalog.UndoCenter => CreateUndoCenter(),
         ToolCatalog.FileOwnership => CreateFileOwnership(),
+        ToolCatalog.DeepAnalysis => CreateDeepAnalysis(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -721,6 +723,97 @@ public static class ToolViews
         {
             foreach (var item in panel.SelectedItems)
                 if (item is ToolRow row && row.Source is OwnershipItem ownership) return ownership;
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Analise profunda: o que o Tranal sabe sobre um programa instalado
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateDeepAnalysis()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.DeepAnalysis"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.DeepAnalysis.Kind"), Width = 110, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 420, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.DeepAnalysis.Detail"), Width = 320, BindingPath = "Detail" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "DeepAnalysisPrograms", Text = Loc.Get("Tool.DeepAnalysis.Programs"), Action = () => panel.RunAsync(() => ListarProgramasAsync(panel, rows)) },
+                new CommandDef { AutomationId = "DeepAnalysisRun", Text = Loc.Get("Tool.DeepAnalysis.Run"), IsPrimary = true, Action = () => panel.RunAsync(() => AnalisarAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ListarProgramasAsync(panel, rows));
+        return panel;
+
+        static async Task ListarProgramasAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var instalados = await Task.Run(() => ProgramScanner.Scan(new ProgramScanner.ScanOptions
+            {
+                IncludeSystemComponents = false,
+                IncludeMsiProducts = false,
+            }));
+
+            rows.Clear();
+            foreach (var programa in instalados)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = programa.DisplayName,
+                    Kind = programa.DisplayVersion,
+                    Path = programa.InstallLocation,
+                    Detail = programa.Publisher,
+                    Source = programa,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.DeepAnalysis.Programs", rows.Count);
+        }
+
+        static async Task AnalisarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var programa = PrimeiroPrograma(panel);
+            if (programa is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var report = await Task.Run(() => ForensicAnalyzer.Analyze(programa));
+
+            rows.Clear();
+            foreach (var entrada in report.Entries)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = entrada.Kind,
+                    Kind = entrada.Provenance.ToString(),
+                    Path = entrada.Path,
+                    Detail = entrada.Detail,
+                    Source = entrada,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.DeepAnalysis.Status",
+                report.ProgramName,
+                report.Entries.Count,
+                report.MeasuredCount,
+                report.InferredCount,
+                report.CandidateCount);
+        }
+
+        static InstalledProgram? PrimeiroPrograma(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is InstalledProgram programa) return programa;
             return null;
         }
     }

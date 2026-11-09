@@ -1160,5 +1160,13 @@
     "Tool.BootCenter.CreateCommand":  "Command (executable path)",
     "Tool.BootCenter.CreateMissing":  "Name and command are required.",
     "Tool.BootCenter.Created":  "Startup item '{0}' created.",
-    "Status.NoMatchingItems":  "no matching items — press ESC to reset the filter"
+    "Status.NoMatchingItems":  "no matching items — press ESC to reset the filter",
+    "Module.DeepAnalysis":  "Deep Analysis",
+    "Tool.DeepAnalysis.Kind":  "Type",
+    "Tool.DeepAnalysis.Detail":  "Detail",
+    "Tool.DeepAnalysis.ProgramsList":  "Programs",
+    "Tool.DeepAnalysis.Run":  "Analyze",
+    "Tool.DeepAnalysis.Programs":  "{0} installed program(s).",
+    "Tool.DeepAnalysis.Status":  "{0}: {1} entry/entries — {2} measured, {3} inferred, {4} candidate(s).",
+    "Cmd.BestFitAll":  "Fit all columns"
 }

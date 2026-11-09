@@ -112,6 +112,10 @@ public static class Program
         var propriedade = OwnershipCommands.TryRun(effective, flags);
         if (propriedade.HasValue) return propriedade.Value;
 
+        // A analise profunda: o que o Tranal sabe sobre um programa.
+        var analise = AnalysisCommands.TryRun(effective, flags);
+        if (analise.HasValue) return analise.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");
