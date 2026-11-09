@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Security.Principal;
+using Tranal.Uninstaller.Core.Reporting;
+using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Core.Tools;
 
@@ -52,6 +56,41 @@ public sealed class CrashEntry
 /// O log de aplicacao exige permissao de leitura; quando falta, a lista
 /// fica vazia e a tela diz isso, em vez de fingir que nao houve falha.
 /// </summary>
+/// <summary>
+/// Os textos do relatorio de falhas.
+///
+/// O relatorio e escrito em dois lugares (a tela e a CLI) e cada um fala o
+/// seu idioma: por isso os rotulos entram por parametro. A regra de COMO uma
+/// falha vira uma linha mora no <see cref="CrashAnalyzer"/>.
+/// </summary>
+public sealed class CrashReportLabels
+{
+    /// <summary>O titulo do relatorio.</summary>
+    public string Title { get; init; } = "Crash Analyzer";
+
+    /// <summary>A coluna do nome do programa.</summary>
+    public string Program { get; init; } = "Programa";
+
+    /// <summary>A coluna da quantidade de falhas.</summary>
+    public string Count { get; init; } = "Falhas";
+
+    /// <summary>A coluna da primeira falha do periodo.</summary>
+    public string First { get; init; } = "Primeira";
+
+    /// <summary>A coluna da ultima falha do periodo.</summary>
+    public string Last { get; init; } = "Ultima";
+
+    /// <summary>A coluna do evento.</summary>
+    public string Event { get; init; } = "Evento";
+
+    /// <summary>A coluna do executavel que falhou.</summary>
+    public string Executable { get; init; } = "Executavel";
+
+    /// <summary>O subtitulo, com o total de programas.</summary>
+    public string SubtitleFormat { get; init; } = "{0} programa(s) com falha registrada.";
+}
+
+
 public static class CrashAnalyzer
 {
     /// <summary>
@@ -128,6 +167,123 @@ public static class CrashAnalyzer
     }
 
     /// <summary>
+    /// <summary>
+    /// O relatorio em HTML das falhas agrupadas.
+    ///
+    /// E o "export" do Crash Analyzer: o que a tela mostra, em um arquivo que
+    /// abre em qualquer navegador.
+    ///
+    /// A REGRA de COMO uma falha vira uma linha mora aqui, no nucleo. Os
+    /// TEXTOS sao de quem chama: a tela fala o idioma da interface e a CLI
+    /// fala o dela.
+    /// </summary>
+    /// <param name="entries">As falhas agrupadas.</param>
+    /// <param name="labels">Os textos do relatorio (pt-BR quando omitido).</param>
+    public static string ToHtmlReport(IReadOnlyList<CrashEntry> entries, CrashReportLabels? labels = null)
+    {
+        var textos = labels ?? new CrashReportLabels();
+        var lista = entries ?? Array.Empty<CrashEntry>();
+
+        var columns = new[]
+        {
+            new ToolReportColumn { Header = textos.Program, Width = 240 },
+            new ToolReportColumn { Header = textos.Count, Width = 80 },
+            new ToolReportColumn { Header = textos.First, Width = 150 },
+            new ToolReportColumn { Header = textos.Last, Width = 150 },
+            new ToolReportColumn { Header = textos.Event, Width = 240 },
+            new ToolReportColumn { Header = textos.Executable, Width = 420 },
+        };
+
+        var rows = new List<ToolReportRow>();
+        foreach (var entrada in lista)
+        {
+            rows.Add(new ToolReportRow
+            {
+                Cells = new[]
+                {
+                    entrada.ProgramName,
+                    entrada.Count.ToString(CultureInfo.CurrentCulture),
+                    FormatarData(entrada.FirstSeen),
+                    FormatarData(entrada.LastSeen),
+                    $"{entrada.EventName} ({entrada.EventId})",
+                    entrada.Executable,
+                },
+            });
+        }
+
+        var subtitle = string.Format(CultureInfo.CurrentCulture, textos.SubtitleFormat, lista.Count);
+        return ToolReportWriter.ToHtml(textos.Title, subtitle, columns, rows);
+    }
+
+    /// <summary>
+    /// <summary>
+    /// Grava o relatorio em HTML no arquivo informado.
+    ///
+    /// Quem grava o arquivo e o modulo (a regra fica em um lugar so); a tela
+    /// e a CLI so escolhem o caminho.
+    /// </summary>
+    /// <param name="path">O caminho do arquivo.</param>
+    /// <param name="entries">As falhas agrupadas.</param>
+    /// <param name="labels">Os textos do relatorio.</param>
+    public static bool WriteReport(string path, IReadOnlyList<CrashEntry> entries, CrashReportLabels? labels = null)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
+        try
+        {
+            File.WriteAllText(path, ToHtmlReport(entries, labels));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao gravar o relatorio '{path}': {ex.Message}");
+            return false;
+        }
+    }
+
+
+    /// O termo de busca de uma falha: o nome do programa com a pista do tipo
+    /// de evento. E o que a "busca online" do Crash Analyzer procura.
+    /// </summary>
+    /// <param name="entry">A falha.</param>
+    public static string BuildSearchTerm(CrashEntry entry)
+    {
+        if (entry is null) return string.Empty;
+
+        var nome = (entry.ProgramName ?? string.Empty).Trim();
+        if (nome.Length == 0) return string.Empty;
+
+        // 1001 = "Aplicativo travado" (hang); 1000 e 1002 = "Aplicativo com
+        // falha" (crash). A pista em ingles traz mais resultados.
+        var pista = entry.EventId == 1001 ? "hang" : "crash";
+
+        return $"\"{nome}\" {pista}";
+    }
+
+    /// <summary>
+    /// O endereco da busca online de uma falha, pelo motor configurado.
+    /// </summary>
+    /// <param name="entry">A falha.</param>
+    /// <param name="settings">As preferencias do usuario (o motor de busca).</param>
+    public static string BuildSearchUrl(CrashEntry entry, AppSettings settings)
+    {
+        var termo = BuildSearchTerm(entry);
+        if (termo.Length == 0) return string.Empty;
+
+        if (settings is null) return WebSearch.BuildUrl(termo);
+
+        return WebSearch.BuildUrl(termo, settings);
+    }
+
+    /// <summary>
+    /// A data no formato do relatorio (vazio quando nao ha data).
+    /// </summary>
+    private static string FormatarData(DateTime momento) =>
+        momento == default
+            ? string.Empty
+            : momento.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture);
+
+
     /// Converte um evento do log em uma falha de programa, quando o evento
     /// for de um programa (e nao do proprio Windows).
     /// </summary>

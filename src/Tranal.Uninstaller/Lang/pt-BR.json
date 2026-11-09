@@ -1496,5 +1496,22 @@
     "ContextMenu.CreateCommand":  "Comando",
     "ContextMenu.CreateMissing":  "Informe o nome e o comando da entrada.",
     "ContextMenu.RemoveAll":  "Apagar tudo",
-    "ContextMenu.RemoveAllConfirm":  "Apagar todas as entradas de menu de contexto, menos as do Windows?"
+    "ContextMenu.RemoveAllConfirm":  "Apagar todas as entradas de menu de contexto, menos as do Windows?",
+    "Tool.Autorun.Edit":  "Editar item",
+    "Tool.Autorun.EditName":  "Nome do item",
+    "Tool.Autorun.EditCommand":  "Comando (caminho do executável)",
+    "Tool.Autorun.LocationOptional":  "Local (opcional: chave de registro ou pasta)",
+    "Tool.Autorun.EditMissing":  "O nome e o comando são obrigatórios.",
+    "Tool.Autorun.Added":  "Item de inicialização '{0}' criado.",
+    "Tool.Autorun.Edited":  "Item de inicialização '{0}' editado.",
+    "Tool.Autorun.NotEditable":  "Item de sistema: não pode ser editado.",
+    "Insight.Crash.Export":  "Exportar relatório",
+    "Insight.Crash.Exported":  "Relatório gravado",
+    "Insight.Crash.Search":  "Pesquisar na web",
+    "Insight.Crash.SearchTerm":  "Busca",
+    "Insight.Crash.Column.Count":  "Falhas",
+    "Insight.Crash.Column.First":  "Primeira falha",
+    "Insight.Crash.Column.Last":  "Última falha",
+    "Insight.Crash.Column.Event":  "Evento",
+    "Insight.Crash.Column.Executable":  "Executável"
 }

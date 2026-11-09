@@ -1496,5 +1496,22 @@
     "ContextMenu.CreateCommand":  "Command",
     "ContextMenu.CreateMissing":  "Type the entry name and its command.",
     "ContextMenu.RemoveAll":  "Delete all",
-    "ContextMenu.RemoveAllConfirm":  "Delete every context menu entry, except the Windows ones?"
+    "ContextMenu.RemoveAllConfirm":  "Delete every context menu entry, except the Windows ones?",
+    "Tool.Autorun.Edit":  "Edit item",
+    "Tool.Autorun.EditName":  "Item name",
+    "Tool.Autorun.EditCommand":  "Command (executable path)",
+    "Tool.Autorun.LocationOptional":  "Location (optional: registry key or folder)",
+    "Tool.Autorun.EditMissing":  "The name and the command are required.",
+    "Tool.Autorun.Added":  "Startup item '{0}' created.",
+    "Tool.Autorun.Edited":  "Startup item '{0}' edited.",
+    "Tool.Autorun.NotEditable":  "System item: it cannot be edited.",
+    "Insight.Crash.Export":  "Export report",
+    "Insight.Crash.Exported":  "Report saved",
+    "Insight.Crash.Search":  "Search the web",
+    "Insight.Crash.SearchTerm":  "Search",
+    "Insight.Crash.Column.Count":  "Failures",
+    "Insight.Crash.Column.First":  "First crash",
+    "Insight.Crash.Column.Last":  "Last crash",
+    "Insight.Crash.Column.Event":  "Event",
+    "Insight.Crash.Column.Executable":  "Executable"
 }

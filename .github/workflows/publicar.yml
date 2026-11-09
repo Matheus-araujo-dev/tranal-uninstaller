@@ -121,6 +121,21 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-contextmenu.ps1 `
             -Exe publish\preview\TranalUninstaller.exe `
             -CliExe publish\cli\tranal.exe
+      # O StartUp Tuner e o Crash Analyzer (ASHAMPOO T4#47 e T4#51): a tela do
+      # gerenciador de autorun tem "Adicionar" e "Editar", a do crash analyzer
+      # tem "Exportar relatorio" e "Pesquisar na web", e a linha de comando faz
+      # o ciclo inteiro do item de inicializacao (criar, editar, desativar,
+      # ativar e remover) — medido no registro.
+      #
+      # O teste cria um item de inicializacao so para ele (na chave Run do
+      # usuario) e apaga tudo no final, mesmo se o teste falhar.
+      - name: StartUp Tuner e Crash Analyzer (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote21.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
 
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.

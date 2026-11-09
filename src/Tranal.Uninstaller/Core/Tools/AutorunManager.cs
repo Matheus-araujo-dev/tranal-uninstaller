@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Management;
 using Microsoft.Win32;
+using Tranal.Uninstaller.Core.Recovery;
 
 namespace Tranal.Uninstaller.Core.Tools;
 
@@ -33,13 +34,13 @@ public sealed class AutorunItem
     public AutorunItemKind Kind { get; init; }
 
     /// <summary>Nome exibido (valor do registro, nome do servico, nome da tarefa).</summary>
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>Comando ou caminho do executavel.</summary>
-    public string Command { get; init; } = string.Empty;
+    public string Command { get; set; } = string.Empty;
 
     /// <summary>Chave de registro / pasta / nome do servico.</summary>
-    public string Location { get; init; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
 
     /// <summary>Origen legivel do item (ex.: "HKCU\SOFTWARE\...\Run", "Servicos").</summary>
     public string Source { get; init; } = string.Empty;
@@ -209,6 +210,444 @@ public static class AutorunManager
             return false;
         }
     }
+
+    // ---------------------------------------------------------------------
+    // Edicao
+    // ---------------------------------------------------------------------
+
+    /// <summary>
+    /// Descobre a natureza do item a partir do local informado.
+    ///
+    /// O local pode ser o caminho de uma chave de registro
+    /// ("HKEY_CURRENT_USER\SOFTWARE\...\Run") ou uma pasta. Vazio significa a
+    /// chave de execucao automatica do usuario.
+    ///
+    /// A REGRA mora aqui, em um lugar so: quem pergunta (a tela e a CLI) e
+    /// quem responde (o nucleo) nao podem ter copias diferentes.
+    /// </summary>
+    /// <param name="location">O local informado pelo usuario.</param>
+    public static AutorunItemKind ResolveKind(string? location)
+    {
+        var local = (location ?? string.Empty).Trim();
+        if (local.Length == 0) return AutorunItemKind.RunKey;
+
+        if (local.StartsWith("HKEY_", StringComparison.OrdinalIgnoreCase)) return AutorunItemKind.RunKey;
+
+        return AutorunItemKind.StartupFolder;
+    }
+
+    /// <summary>
+    /// Edita um item de inicializacao existente: o nome e o comando.
+    ///
+    /// E o "editar" do StartUp Tuner: a entrada continua no mesmo lugar, mas
+    /// passa a apontar para outro executavel e (quando o nome muda) ganha
+    /// outro nome.
+    ///
+    /// Nome vazio mantem o nome atual; comando vazio mantem o comando atual.
+    ///
+    /// O que cada natureza de item aceita:
+    ///   - chave de registro: o nome (o valor) e o comando;
+    ///   - pasta de inicializacao: o nome (o arquivo) e o comando (o novo
+    ///     executavel); o arquivo antigo vai para o backup antes de trocar;
+    ///   - servico: o nome (o nome de exibicao) e o comando (o binario); o
+    ///     nome do servico e a identidade dele no Windows e nao muda;
+    ///   - tarefa agendada: so o comando (a acao); o nome da tarefa e o
+    ///     endereco dela no Agendador e nao muda.
+    ///
+    /// Item de sistema nunca e editado. Devolve true em caso de sucesso.
+    /// </summary>
+    /// <param name="item">O item a editar (o mesmo que a varredura devolveu).</param>
+    /// <param name="newName">O novo nome (vazio mantem o atual).</param>
+    /// <param name="newCommand">O novo comando (vazio mantem o atual).</param>
+    public static bool Update(AutorunItem item, string newName, string newCommand)
+    {
+        try
+        {
+            if (item is null) return false;
+
+            if (item.IsSystem)
+            {
+                ToolLog.Info($"Item de sistema protegido, nao editado: {item.Name}");
+                return false;
+            }
+
+            var nome = (newName ?? string.Empty).Trim();
+            var comando = (newCommand ?? string.Empty).Trim();
+
+            if (nome.Length == 0 && comando.Length == 0)
+            {
+                ToolLog.Info("Update: informe o novo nome ou o novo comando.");
+                return false;
+            }
+
+            return item.Kind switch
+            {
+                AutorunItemKind.RunKey => UpdateRunKeyValue(item, nome, comando),
+                AutorunItemKind.StartupFolder => UpdateStartupFile(item, nome, comando),
+                AutorunItemKind.Service => UpdateService(item, nome, comando),
+                AutorunItemKind.ScheduledTask => UpdateScheduledTask(item, comando),
+                _ => false,
+            };
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao editar '{item.Name}': {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Edita o VALOR de registro: o nome do valor e o comando apontado por ele.
+    /// O valor nao e renomeavel no registro, entao a edicao grava o valor novo
+    /// e apaga o antigo.
+    /// </summary>
+    private static bool UpdateRunKeyValue(AutorunItem item, string newName, string newCommand)
+    {
+        if (!TrySplitRegistryValuePath(item.Location, out var hive, out var subPath, out var valueName))
+        {
+            ToolLog.Info($"Localizacao invalida para item de registro: {item.Location}");
+            return false;
+        }
+
+        var keyPath = $@"{SafetyRules.HiveName(hive)}\{subPath}";
+        if (SafetyRules.IsProtectedRegistryKey(keyPath + "\\" + valueName))
+        {
+            ToolLog.Info($"Chave protegida pelas regras de seguranca: {keyPath}");
+            return false;
+        }
+
+        if (ExcludeList.Current.ContainsRegistryKey(keyPath))
+        {
+            ToolLog.Info($"Chave na lista de exclusoes: {keyPath}");
+            return false;
+        }
+
+        using var baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
+        using var key = baseKey.OpenSubKey(subPath, writable: true);
+        if (key is null)
+        {
+            ToolLog.Info($"Chave de registro nao encontrada ou sem permissao: {keyPath}");
+            return false;
+        }
+
+        // O Local do item pode estar desatualizado (o item pode ter sido lido
+        // antes de uma desabilitacao): o nome ativo e resolvido pelo estado real.
+        var activeName = ResolveActiveValueName(key, valueName);
+        if (activeName is null)
+        {
+            ToolLog.Info($"Valor de registro nao encontrado: {item.Location}");
+            return false;
+        }
+
+        // O item pode estar desabilitado: o prefixo do estado continua no nome.
+        var disabled = activeName.StartsWith(DisabledPrefix, StringComparison.Ordinal);
+        var targetName = newName.Length > 0
+            ? (disabled ? DisabledPrefix + newName : newName)
+            : activeName;
+
+        var renomeia = !string.Equals(activeName, targetName, StringComparison.Ordinal);
+        if (renomeia && ContainsValueName(key.GetValueNames(), targetName))
+        {
+            ToolLog.Info($"Ja existe o valor '{targetName}'; operacao cancelada.");
+            return false;
+        }
+
+        if (newCommand.Length == 0)
+        {
+            // So o nome mudou: o valor e movido, preservando os dados e o tipo.
+            if (renomeia && !MoveValue(key, activeName, targetName)) return false;
+        }
+        else
+        {
+            var kind = RegistryValueKind.String;
+            try { kind = key.GetValueKind(activeName); }
+            catch (Exception ex) { ToolLog.Error($"Falha ao ler o tipo do valor '{activeName}': {ex.Message}"); }
+
+            if (kind is RegistryValueKind.Binary or RegistryValueKind.MultiString or RegistryValueKind.Unknown)
+                kind = RegistryValueKind.String;
+
+            key.SetValue(targetName, newCommand, kind);
+
+            if (renomeia)
+                key.DeleteValue(activeName, throwOnMissingValue: false);
+        }
+
+        item.Name = newName.Length > 0 ? newName : item.Name;
+        if (newCommand.Length > 0) item.Command = newCommand;
+        item.Location = keyPath + "\\" + targetName;
+        return true;
+    }
+
+    /// <summary>
+    /// Edita o item da pasta de inicializacao: o nome e o nome do arquivo, e o
+    /// comando e o novo executavel apontado por ele.
+    ///
+    /// O arquivo antigo vai para o backup antes de ser trocado: o atalho e a
+    /// manha de o programa comecar junto com a maquina.
+    /// </summary>
+    private static bool UpdateStartupFile(AutorunItem item, string newName, string newCommand)
+    {
+        var location = item.Location;
+        var desabilitado = location.EndsWith(DisabledFileSuffix, StringComparison.OrdinalIgnoreCase);
+        var basePath = desabilitado ? location[..^DisabledFileSuffix.Length] : location;
+
+        // O arquivo pode ter mudado de nome depois da leitura: o caminho real
+        // e resolvido pelo disco.
+        string currentPath;
+        if (File.Exists(basePath)) currentPath = basePath;
+        else if (File.Exists(location)) currentPath = location;
+        else
+        {
+            ToolLog.Info($"Arquivo de inicializacao nao encontrado: {location}");
+            return false;
+        }
+
+        var folder = Path.GetDirectoryName(currentPath) ?? string.Empty;
+        var extension = Path.GetExtension(basePath);
+        var suffix = desabilitado ? DisabledFileSuffix : string.Empty;
+
+        var targetPath = currentPath;
+        if (newName.Length > 0)
+        {
+            var fileName = SanitizeFileName(newName) + extension + suffix;
+            targetPath = Path.Combine(folder, fileName);
+        }
+
+        // O comando novo e o novo executavel.
+        string? origem = null;
+        if (newCommand.Length > 0
+            && !string.Equals(newCommand, currentPath, StringComparison.OrdinalIgnoreCase))
+        {
+            var source = newCommand.Trim().Trim('"');
+            if (!File.Exists(source))
+            {
+                ToolLog.Info($"Arquivo de origem nao encontrado: {source}");
+                return false;
+            }
+
+            origem = source;
+        }
+
+        var renomeia = !string.Equals(targetPath, currentPath, StringComparison.OrdinalIgnoreCase);
+        if (renomeia && File.Exists(targetPath))
+        {
+            ToolLog.Info($"Ja existe '{targetPath}'; operacao cancelada.");
+            return false;
+        }
+
+        if (renomeia || origem is not null)
+        {
+            // Backup antes de trocar: o item antigo pode ser o unico atalho
+            // que o usuario tinha.
+            var backup = LeftoverBackup.Backup(
+                new[]
+                {
+                    new LeftoverItem
+                    {
+                        Kind = "Arquivo",
+                        Path = currentPath,
+                        Detail = "Item de inicializacao automatica (backup antes da edicao)",
+                        Selected = true,
+                    },
+                },
+                string.IsNullOrWhiteSpace(item.Name) ? "Inicializacao" : item.Name);
+
+            if (!backup.Ok)
+            {
+                ToolLog.Info($"Nao foi possivel guardar o backup do arquivo: {backup.Message}");
+                return false;
+            }
+        }
+
+        if (renomeia) File.Move(currentPath, targetPath);
+
+        if (origem is not null)
+        {
+            if (extension.Equals(".lnk", StringComparison.OrdinalIgnoreCase))
+            {
+                // Atalho: o novo alvo vira um novo atalho.
+                if (!WriteShortcut(targetPath, origem)) return false;
+            }
+            else
+            {
+                File.Copy(origem, targetPath, overwrite: true);
+            }
+        }
+
+        item.Name = newName.Length > 0 ? newName : item.Name;
+        if (origem is not null) item.Command = origem;
+        item.Location = targetPath;
+        return true;
+    }
+
+    /// <summary>
+    /// Edita o servico: o nome de exibicao e o binario que ele executa.
+    /// O nome do servico e a identidade dele no Windows e nao muda.
+    /// </summary>
+    private static bool UpdateService(AutorunItem item, string newName, string newCommand)
+    {
+        var scope = new ManagementScope(@"\\.\root\cimv2");
+        scope.Connect();
+        using var searcher = new ManagementObjectSearcher(scope,
+            new ObjectQuery($"SELECT * FROM Win32_Service WHERE Name='{EscapeWql(item.Location)}'"));
+        using var results = searcher.Get();
+
+        foreach (var raw in results)
+        {
+            if (raw is not ManagementObject service) continue;
+
+            try
+            {
+                var parameters = service.GetMethodParameters("Change");
+
+                // O modo de inicializacao e repassado como esta: a edicao nao
+                // pode mudar como o servico sobe. A conta NAO e repassada:
+                // mudar a conta do servico exige a senha dela.
+                parameters["StartMode"] = service["StartMode"]?.ToString() ?? string.Empty;
+
+                if (newName.Length > 0) parameters["DisplayName"] = newName;
+                if (newCommand.Length > 0) parameters["PathName"] = newCommand;
+
+                var result = service.InvokeMethod("Change", parameters, null);
+                var code = Convert.ToUInt32(result["ReturnValue"]);
+
+                // 0 = sucesso, 10 = o servico ja esta no estado pedido.
+                if (code is 0 or 10)
+                {
+                    if (newName.Length > 0) item.Name = newName;
+                    if (newCommand.Length > 0) item.Command = newCommand;
+                    return true;
+                }
+
+                ToolLog.Error($"Falha ao editar o servico '{item.Location}' (codigo {code}). "
+                             + "A operacao exige permissao de administrador.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                ToolLog.Error($"Falha ao editar o servico '{item.Location}': {ex.Message}");
+                return false;
+            }
+        }
+
+        ToolLog.Info($"Servico nao encontrado: {item.Location}");
+        return false;
+    }
+
+    /// <summary>
+    /// Edita a acao da tarefa agendada.
+    ///
+    /// O nome da tarefa e o endereco dela no Agendador: nao muda. O que muda e
+    /// o executavel da acao.
+    /// </summary>
+    private static bool UpdateScheduledTask(AutorunItem item, string newCommand)
+    {
+        if (newCommand.Length == 0) return false;
+
+        var com = CreateComObject("Schedule.Service");
+        if (com is null)
+        {
+            ToolLog.Info("Agendador de Tarefas indisponivel.");
+            return false;
+        }
+
+        dynamic service = com;
+        try
+        {
+            service.Connect();
+
+            var location = item.Location;
+            var separator = location.LastIndexOf('\\');
+            var folderPath = separator > 0 ? location[..(separator + 1)] : "\\";
+            var taskName = separator > 0 ? location[(separator + 1)..] : location;
+
+            dynamic folder = service.GetFolder(folderPath);
+            dynamic task = folder.GetTask(taskName);
+
+            dynamic definition = task.Definition;
+            dynamic actions = definition.Actions;
+
+            var count = 0;
+            try { count = Convert.ToInt32(actions.Count); }
+            catch (Exception ex) { ToolLog.Error($"Falha ao ler as acoes da tarefa agendada: {ex.Message}"); }
+
+            var editada = false;
+            for (var index = 1; index <= count && !editada; index++)
+            {
+                dynamic action = actions.Item(index);
+                if (Convert.ToInt32(action.Type) != 0) continue; // 0 = Exec
+
+                action.Path = newCommand;
+                editada = true;
+            }
+
+            if (!editada)
+            {
+                ToolLog.Info($"A tarefa agendada '{item.Location}' nao tem acao de execucao para editar.");
+                return false;
+            }
+
+            var logonType = 5; // TASK_LOGON_SERVICE_ACCOUNT
+            try { logonType = Convert.ToInt32(definition.Principal.LogonType); }
+            catch (Exception ex) { ToolLog.Error($"Falha ao ler a conta da tarefa agendada: {ex.Message}"); }
+
+            var xml = Convert.ToString(definition.XmlText) ?? string.Empty;
+            if (xml.Length == 0)
+            {
+                ToolLog.Info($"Nao foi possivel ler a definicao da tarefa agendada '{item.Location}'.");
+                return false;
+            }
+
+            task.RegisterTaskDefinition(xml, null, null, taskName, logonType, null);
+
+            item.Command = newCommand;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao editar a tarefa agendada '{item.Location}': {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Grava um atalho do Windows (.lnk) apontando para o executavel informado.
+    /// </summary>
+    private static bool WriteShortcut(string targetPath, string target)
+    {
+        var com = CreateComObject("WScript.Shell");
+        if (com is null)
+        {
+            ToolLog.Info("Nao foi possivel gravar o atalho: o componente de scripts do Windows nao esta disponivel.");
+            return false;
+        }
+
+        dynamic shell = com;
+        try
+        {
+            dynamic shortcut = shell.CreateShortcut(targetPath);
+            shortcut.TargetPath = target;
+            shortcut.Save();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao gravar o atalho '{targetPath}': {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Limpa o nome de um arquivo: os caracteres que o Windows nao aceita em
+    /// um nome viram "_".
+    /// </summary>
+    private static string SanitizeFileName(string name)
+    {
+        var invalidos = Path.GetInvalidFileNameChars();
+        var limpo = new string(name.Trim().Select(c => invalidos.Contains(c) ? '_' : c).ToArray());
+        return limpo.Length > 0 ? limpo : "item";
+    }
+
 
     // ---------------------------------------------------------------------
     // Varredura das chaves de registro

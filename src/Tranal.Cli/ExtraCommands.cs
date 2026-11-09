@@ -21,6 +21,14 @@ namespace Tranal.Cli;
 ///   tranal /be                           - lista as extensoes de navegador (RevoUninPro /be)
 ///   tranal /be "Ext1;Ext2" /remove      - remove extensoes de navegador
 ///   tranal /autorun                      - lista os itens de inicializacao automatica
+///   tranal /autorun /add "nome" "comando" ["local"] - cria um item de inicializacao
+///   tranal /autorun /edit "nome" ["novoNome"] ["novoComando"] - edita um item
+///   tranal /autorun /enable "nome"          - ativa um item
+///   tranal /autorun /disable "nome"         - desativa um item
+///   tranal /autorun /remove "nome"          - remove um item
+///   tranal /crashanalyzer                   - as falhas do Event Log agrupadas por programa
+///   tranal /crashanalyzer /export "arquivo" - grava o relatorio HTML das falhas
+///   tranal /crashanalyzer /search "programa" - mostra o endereco da busca online
 ///   tranal /tools                        - lista as ferramentas nativas do Windows
 ///   tranal /export "caminho" [/txt|/html|/csv|/xml]  - exporta a listagem
 ///   tranal /hunter "caminho"             - resolve um icone para o programa instalado
@@ -89,7 +97,8 @@ public static class ExtraCommands
         if (flags.Contains("/winapps")) return RunWindowsApps(args, flags);
         if (flags.Contains("/wa")) return RunWindowsApps(args, flags, uninstall: true);
         if (flags.Contains("/be")) return RunBrowserExtensions(args, flags);
-        if (flags.Contains("/autorun")) return RunAutorun();
+        if (flags.Contains("/autorun")) return RunAutorun(args, flags);
+        if (flags.Contains("/crashanalyzer")) return RunCrashAnalyzer(args, flags);
         if (flags.Contains("/tools")) return RunWindowsTools();
         if (flags.Contains("/snapshots")) return RunSnapshots(args, flags);
         if (flags.Contains("/comparar")) return RunCompare(args, flags);
@@ -221,9 +230,101 @@ public static class ExtraCommands
     // ------------------------------------------------------------------
     // Autorun
     // ------------------------------------------------------------------
-    private static int RunAutorun()
+    /// <summary>
+    /// Os itens de inicializacao automatica.
+    ///
+    /// E o StartUp Tuner: listar, adicionar, editar, ativar, desativar e
+    /// remover. A listagem vem primeiro para o usuario ver o que existe; as
+    /// acoes sao o resto.
+    /// </summary>
+    private static int RunAutorun(string[] args, HashSet<string> flags)
     {
         var items = AutorunManager.Scan();
+
+        var adicionar = CliArgs.ValueAfter(args, "/add");
+        if (!string.IsNullOrWhiteSpace(adicionar))
+        {
+            var comando = CliArgs.ValuesAfter(args, "/add", 1);
+            var local = CliArgs.ValuesAfter(args, "/add", 2);
+
+            if (string.IsNullOrWhiteSpace(comando))
+            {
+                Console.Error.WriteLine("Uso: tranal /autorun /add \"nome\" \"comando\" [\"local\"]");
+                return 1;
+            }
+
+            // A natureza do item (chave de registro ou pasta) e decidida pelo
+            // nucleo: a CLI nao decide sozinha.
+            var criado = AutorunManager.Add(new AutorunItem
+            {
+                Kind = AutorunManager.ResolveKind(local),
+                Name = adicionar,
+                Command = comando,
+                Location = local ?? string.Empty,
+            });
+
+            Console.WriteLine(criado
+                ? $"Item de inicializacao criado: {adicionar}"
+                : "Falha ao criar o item de inicializacao.");
+
+            return criado ? 0 : 1;
+        }
+
+        var editar = CliArgs.ValueAfter(args, "/edit");
+        if (!string.IsNullOrWhiteSpace(editar))
+        {
+            var novoNome = CliArgs.ValuesAfter(args, "/edit", 1);
+            var novoComando = CliArgs.ValuesAfter(args, "/edit", 2);
+
+            if (novoNome is null && novoComando is null)
+            {
+                Console.Error.WriteLine("Uso: tranal /autorun /edit \"nome\" [\"novoNome\"] [\"novoComando\"]");
+                return 1;
+            }
+
+            var alvo = ProcurarItem(items, editar);
+            if (alvo is null)
+            {
+                Console.Error.WriteLine($"Item de inicializacao nao encontrado: {editar}");
+                return 1;
+            }
+
+            var editado = AutorunManager.Update(alvo, novoNome ?? string.Empty, novoComando ?? string.Empty);
+
+            Console.WriteLine(editado
+                ? $"Item de inicializacao editado: {alvo.Name}"
+                : "Falha ao editar o item de inicializacao.");
+
+            return editado ? 0 : 1;
+        }
+
+        var remover = CliArgs.ValueAfter(args, "/remove");
+        if (!string.IsNullOrWhiteSpace(remover))
+        {
+            var alvo = ProcurarItem(items, remover);
+            if (alvo is null)
+            {
+                Console.Error.WriteLine($"Item de inicializacao nao encontrado: {remover}");
+                return 1;
+            }
+
+            var removido = AutorunManager.Remove(alvo);
+
+            Console.WriteLine(removido
+                ? $"Item de inicializacao removido: {remover}"
+                : "Falha ao remover o item de inicializacao.");
+
+            return removido ? 0 : 1;
+        }
+
+        var ativar = CliArgs.ValueAfter(args, "/enable");
+        if (!string.IsNullOrWhiteSpace(ativar))
+            return AlterarEstado(items, ativar, true);
+
+        var desativar = CliArgs.ValueAfter(args, "/disable");
+        if (!string.IsNullOrWhiteSpace(desativar))
+            return AlterarEstado(items, desativar, false);
+
         Console.WriteLine($"Itens de inicialização automática: {items.Count}");
         Console.WriteLine();
 
@@ -232,6 +333,86 @@ public static class ExtraCommands
             var state = item.Enabled ? "ativo " : "inativo";
             Console.WriteLine($"[{state}] {item.Name}");
             Console.WriteLine($"         {item.Source} :: {item.Command}");
+        }
+
+        return 0;
+
+        static AutorunItem? ProcurarItem(IReadOnlyList<AutorunItem> lista, string nome) =>
+            lista.FirstOrDefault(i => string.Equals(i.Name, nome, StringComparison.OrdinalIgnoreCase));
+
+        static int AlterarEstado(IReadOnlyList<AutorunItem> items, string nome, bool enabled)
+        {
+            var alvo = ProcurarItem(items, nome);
+            if (alvo is null)
+            {
+                Console.Error.WriteLine($"Item de inicializacao nao encontrado: {nome}");
+                return 1;
+            }
+
+            var ok = AutorunManager.SetEnabled(alvo, enabled);
+
+            Console.WriteLine(ok
+                ? $"Item de inicializacao {(enabled ? "ativado" : "desativado")}: {nome}"
+                : "Falha ao alterar o estado do item de inicializacao.");
+
+            return ok ? 0 : 1;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Crash Analyzer
+    // ------------------------------------------------------------------
+    /// <summary>
+    /// O Crash Analyzer: as falhas do Windows Event Log agrupadas por programa,
+    /// com o relatorio HTML e o endereco da busca online.
+    /// </summary>
+    private static int RunCrashAnalyzer(string[] args, HashSet<string> flags)
+    {
+        var falhas = CrashAnalyzer.Scan();
+
+        var destino = CliArgs.ValueAfter(args, "/export");
+        if (!string.IsNullOrWhiteSpace(destino))
+        {
+            var gravado = CrashAnalyzer.WriteReport(destino, falhas);
+
+            Console.WriteLine(gravado
+                ? $"Relatorio gravado: {destino}"
+                : $"Falha ao gravar o relatorio: {destino}");
+
+            return gravado ? 0 : 1;
+        }
+
+        var programa = CliArgs.ValueAfter(args, "/search");
+        if (!string.IsNullOrWhiteSpace(programa))
+        {
+            var alvo = falhas.FirstOrDefault(f =>
+                string.Equals(f.ProgramName, programa, StringComparison.OrdinalIgnoreCase));
+
+            if (alvo is null)
+            {
+                Console.Error.WriteLine($"Programa sem falha registrada: {programa}");
+                return 1;
+            }
+
+            var url = CrashAnalyzer.BuildSearchUrl(alvo, AppSettingsStore.Current);
+            if (url.Length == 0)
+            {
+                Console.Error.WriteLine("Nao foi possivel montar o endereco da busca.");
+                return 1;
+            }
+
+            Console.WriteLine(url);
+            return 0;
+        }
+
+        Console.WriteLine($"Programas com falha registrada: {falhas.Count}");
+        Console.WriteLine();
+
+        foreach (var falha in falhas)
+        {
+            Console.WriteLine($"[{falha.Count}x] {falha.ProgramName}");
+            Console.WriteLine($"         {falha.EventName} ({falha.EventId}) - {falha.Executable}");
+            Console.WriteLine($"         primeira: {falha.FirstSeen:dd/MM/yyyy HH:mm}  ultima: {falha.LastSeen:dd/MM/yyyy HH:mm}");
         }
 
         return 0;

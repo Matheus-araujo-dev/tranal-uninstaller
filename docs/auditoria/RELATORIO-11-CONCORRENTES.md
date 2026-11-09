@@ -10,7 +10,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 
 | Concorrente | Medido | OK | PARCIAL | AUSENTE | FORA | Cobertura |
 |---|---|---|---|---|---|---|
-| Ashampoo UnInstaller 27 | 76 | 51 | 21 | 0 | 4 | 72.4% |
+| Ashampoo UnInstaller 27 | 76 | 53 | 19 | 0 | 4 | 75.0% |
 | Bulk Cookie Uninstaller | 97 | 72 | 23 | 0 | 2 | 76.3% |
 | Geek Uninstaller | 44 | 30 | 14 | 0 | 0 | 68.2% |
 | HiBit Uninstaller | 66 | 44 | 18 | 0 | 4 | 72.7% |
@@ -20,7 +20,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Uninstall Tool | 94 | 61 | 27 | 1 | 5 | 70.2% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 53 | 30 | 0 | 3 | 65.1% |
-| **TOTAL** | **725** | **497** | **197** | **1** | **30** | **72.7%** |
+| **TOTAL** | **725** | **499** | **195** | **1** | **30** | **73.0%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -29,11 +29,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 76 |
-| **OK** | **51** |
-| PARCIAL | 21 |
+| **OK** | **53** |
+| PARCIAL | 19 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **72.4%** |
+| **Cobertura** | **75.0%** |
 
 ### O que ainda falta
 
@@ -47,8 +47,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#37 | Snapshot: seleção de drives incluídos e pastas excluídas | PARCIAL | **PARCIAL** - Snapshot: seleção de drives incluídos e pastas excluídas/`src/Tranal.Uninstaller/Core/Tracing/SnapshotLibrary.cs:60` (`public static class SnapshotLibrary`) `src/Tranal.Uninstaller/Core/Modules/SystemSnapshot.cs:43` (`public sealed class SystemSnapshot`) **Nota**: as raizes sao parametrizaveis no nucleo, mas a interface chama `Capture(nome, rotulo)` sem raizes — nao ha selecao de unidades nem pastas excluidas. |
 | T4#40 | Registry Optimizer 2 + "Super Safe Mode" (limpeza mais cautelosa) | PARCIAL | **PARCIAL** - Registry Optimizer 2 + "Super Safe Mode" (limpeza mais cautelosa)/`src/Tranal.Uninstaller/Core/Tools/RegistryOptimizer.cs:16` (`public sealed class RegistryOptimizer`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:37` (`RegistryOptimizer`) **Nota**: o otimizador e as regras de protecao existem; nao ha o modo "Super Safe Mode" nomeado. |
 | T4#43 | File Wiper (sobrescrita de espaço livre e de arquivos/pastas) | PARCIAL | **PARCIAL** - File Wiper (sobrescrita de espaço livre e de arquivos/pastas)/`src/Tranal.Uninstaller/Core/Tools/UnrecoverableDelete.cs:46` (`public static class`) **Nota**: a sobrescrita do arquivo removido existe; nao ha a varredura de espaco livre por volume. |
-| T4#47 | Autorun / StartUp Tuner: habilitar, desabilitar, adicionar, editar e remover entradas de inicialização | PARCIAL | **PARCIAL** - Autorun / StartUp Tuner: habilitar, desabilitar, adicionar, editar e remover entradas de inicialização/`src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:72` (`public static class AutorunManager`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:185` (`AutorunManager.SetEnabled`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:205` (`AutorunManager.Remove`) **Nota**: habilitar, desabilitar e apagar existem e tem consumidor na tela; **editar** a entrada existente (nome e comando) e **adicionar** nao tem consumidor na interface. |
-| T4#51 | **Crash Analyzer**: relatórios de falha do Windows Event Log, agrupados por programa, com export e busca online | PARCIAL | **PARCIAL** - A leitura e o agrupamento existem: `src/Tranal.Uninstaller/Core/Tools/CrashAnalyzer.cs:62` (`Scan` do Event Log "Application"), `:134` (`Converter` do evento) e agrupamento por `ProgramName` em `:109-113` (nome em `:154`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:171`, carga em `:201`, barra lateral em `src/Tranal.Uninstaller/MainWindow.xaml:371`. **Nota**: faltam **export** e **busca online** - a tela tem um unico comando, "Atualizar" (`InsightViews.cs:187-192`), e em `CrashAnalyzer.cs` nao ha gravacao de relatorio (a busca por `Export` e `ToolReportWriter` no arquivo nao retorna hits; o `ToolReportWriter` so e usado em `src/Tranal.Cli/RegistryCommands.cs:105`). Binario do concorrente: nao confirmado no binario |
 | T4#52 | **Undeleter**: recuperar arquivos apagados acidentalmente | PARCIAL | **PARCIAL** - **Undeleter**: recuperar arquivos apagados acidentalmente/`src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:99` (`public static class LeftoverBackup`) `src/Tranal.Uninstaller/Core/History/HistoryReport.cs:148` (`public static (bool Ok, string Message) Recover`) **Nota**: o Tranal recupera o que ele proprio removeu (backup antes da remocao); nao ha undelete de arquivo apagado fora do Tranal. |
 | T4#58 | Atalho de área de trabalho "Drag & Drop UnInstall" (arrastar atalhos para desinstalar) | PARCIAL | **PARCIAL** - Atalho de área de trabalho "Drag & Drop UnInstall" (arrastar atalhos para desinstalar)/`src/Tranal.Uninstaller/Core/Modules/HunterMode.cs:38` (`public static class HunterMode`) `src/Tranal.Uninstaller/MainWindow.xaml:189` (`AutomationProperties.AutomationId="ModuleHunterMode"`) **Nota**: o arrastar-e-soltar existe na tela do Hunter, mas nao ha o atalho de area de trabalho do concorrente (`installer/tranal.iss` cria so o icone do programa). |
 | T5#30 | Remoção de Windows-Apps / system apps, com remoção parcial e restauração dos apps padrão | PARCIAL | **PARCIAL** - Remoção de Windows-Apps / system apps, com remoção parcial e restauração dos apps padrão/`src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs:39` (`public static class WindowsApps`) `src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:23` (`WindowsApps`) **Nota**: a listagem e a remocao de pacotes MSIX existem, mas nao ha a remocao parcial nem a restauracao dos apps padrao. |

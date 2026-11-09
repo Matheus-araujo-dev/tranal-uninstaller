@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(72,7% — 725 funcionalidades, 497 OK, 197 PARCIAL, 1 AUSENTE, 30 FORA por
+(73,0% — 725 funcionalidades, 499 OK, 195 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -125,6 +125,39 @@ A medicao na maquina: **41 entradas** na tela — 4 do Tranal e 37 do shell.
 Oito delas pertencem a programas (OneDrive, IObit, McAfee) e as outras
 sao do Windows, que **nao podem ser removidas** (remover uma quebra o
 Explorer).
+
+**ASHAMPOO T4#47 e T4#51 — o StartUp Tuner inteiro e o Crash Analyzer com
+export e busca online.** As duas linhas estavam em PARCIAL por causa de
+**comandos que faltavam**, nao da regra — e o detalhe esta em
+`EVIDENCIA-AUTORUN-CRASH.md`:
+
+- o **StartUp Tuner** ficou completo: habilitar, desabilitar, **adicionar**,
+  **editar** e remover. A edicao mora no nucleo (`AutorunManager.Update`) e
+  sabe o que cada natureza de item aceita — chave de registro (nome e
+  comando), pasta de inicializacao (o arquivo e o executavel), servico (o
+  nome de exibicao e o binario) e tarefa agendada (o executavel da acao). O
+  item de sistema nao e editado, e o arquivo trocado vai para o backup antes;
+- a natureza do item (chave de registro ou pasta) e decidida pelo nucleo, em
+  um lugar so (`AutorunManager.ResolveKind`): a tela e a linha de comando
+  perguntam, o nucleo responde;
+- o **Crash Analyzer** ganhou o **export** (relatorio HTML, com a regra de
+  escrita no `ToolReportWriter`, o mesmo de todas as outras ferramentas) e a
+  **busca online** (o termo com o nome do programa e a pista do tipo de
+  evento, pelo motor configurado);
+- a linha de comando expoe os mesmos verbos: `tranal /autorun` (com `/add`,
+  `/edit`, `/enable`, `/disable` e `/remove`) e `tranal /crashanalyzer` (com
+  `/export` e `/search`);
+- a suite tem 26 testes proprios (`Lote21FeatureTests.cs`) e um teste de
+  ponta a ponta no aplicativo de verdade (`tools/test-lote21.ps1`, 44
+  verificacoes).
+
+A medicao na maquina: o ciclo inteiro foi medido **no registro** — criar (o
+valor aparece), editar (o nome novo aparece, o antigo some, o comando novo e o
+do valor), desativar (o valor ganha o prefixo do estado), ativar (volta ao
+nome normal) e remover (o valor some). A tela do Gerenciador de Autorun
+listou **62** itens de inicializacao, e o teste devolveu a maquina ao estado
+anterior: **sobrou valor de teste no registro: nao**.
+
 
 ## Como fechar
 

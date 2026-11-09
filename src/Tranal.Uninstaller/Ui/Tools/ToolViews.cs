@@ -174,6 +174,9 @@ public static class ToolViews
                 new CommandDef { AutomationId = "AutorunEnable", Text = Loc.Get("Common.Enable"), Action = () => panel.RunAsync(() => SetEnabledAsync(panel, rows, true)) },
                 new CommandDef { AutomationId = "AutorunDisable", Text = Loc.Get("Common.Disable"), Action = () => panel.RunAsync(() => SetEnabledAsync(panel, rows, false)) },
                 new CommandDef { AutomationId = "AutorunRemove", Text = Loc.Get("Common.Remove"), Action = () => panel.RunAsync(() => RemoveAsync(panel, rows)) },
+                new CommandDef { AutomationId = "AutorunAdd", Text = Loc.Get("Tool.Autorun.Add"), Action = () => Adicionar(panel, rows) },
+                new CommandDef { AutomationId = "AutorunEdit", Text = Loc.Get("Tool.Autorun.Edit"), Action = () => Editar(panel, rows) },
+
             });
 
         panel.SetItems(rows);
@@ -233,6 +236,91 @@ public static class ToolViews
             panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
             await ReloadAsync(panel, rows);
         }
+
+        static void Adicionar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var dialog = new InputDialog(
+                Loc.Get("Tool.Autorun.Add"),
+                (Loc.Get("Common.Name"), string.Empty),
+                (Loc.Get("Tool.Autorun.Command"), string.Empty),
+                (Loc.Get("Tool.Autorun.LocationOptional"), string.Empty));
+
+            if (dialog.ShowDialog() != true) return;
+
+            var valores = dialog.Values;
+            if (valores.Count < 3) return;
+
+            var nome = valores[0].Trim();
+            var comando = valores[1].Trim();
+            var local = valores[2].Trim();
+
+            if (nome.Length == 0 || comando.Length == 0)
+            {
+                panel.PanelStatus = Loc.Get("Tool.Autorun.EditMissing");
+                return;
+            }
+
+            // A natureza do item (chave de registro ou pasta de inicializacao)
+            // e decidida pelo nucleo: a tela nao decide sozinha.
+            var criado = AutorunManager.Add(new AutorunItem
+            {
+                Kind = AutorunManager.ResolveKind(local),
+                Name = nome,
+                Command = comando,
+                Location = local,
+            });
+
+            panel.PanelStatus = criado
+                ? Loc.Get("Tool.Autorun.Added", nome)
+                : Loc.Get("Status.Error");
+
+            if (criado) panel.RunAsync(() => ReloadAsync(panel, rows));
+        }
+
+        static void Editar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var target = FirstAutorun(panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            if (target.IsSystem)
+            {
+                panel.PanelStatus = Loc.Get("Tool.Autorun.NotEditable");
+                return;
+            }
+
+            // O nome de uma tarefa agendada e o endereco dela no Agendador:
+            // o campo do nome nao entra no dialogo nesse caso.
+            var comNome = target.Kind is not AutorunItemKind.ScheduledTask;
+
+            var dialog = comNome
+                ? new InputDialog(
+                    Loc.Get("Tool.Autorun.Edit"),
+                    (Loc.Get("Tool.Autorun.EditName"), target.Name),
+                    (Loc.Get("Tool.Autorun.EditCommand"), target.Command))
+                : new InputDialog(
+                    Loc.Get("Tool.Autorun.Edit"),
+                    (Loc.Get("Tool.Autorun.EditCommand"), target.Command));
+
+            if (dialog.ShowDialog() != true) return;
+
+            var valores = dialog.Values;
+            if (valores.Count == 0) return;
+
+            var nome = comNome ? valores[0].Trim() : string.Empty;
+            var comando = valores[comNome ? 1 : 0].Trim();
+
+            var ok = AutorunManager.Update(target, nome, comando);
+            panel.PanelStatus = ok
+                ? Loc.Get("Tool.Autorun.Edited", target.Name)
+                : Loc.Get("Status.Error");
+
+            if (ok) panel.RunAsync(() => ReloadAsync(panel, rows));
+        }
+
 
         static AutorunItem? FirstAutorun(ItemListPanel panel)
         {

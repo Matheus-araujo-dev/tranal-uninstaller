@@ -1242,6 +1242,15 @@ public static class Program
         Console.WriteLine("tranal /be                   - Lista as extensões de navegador");
         Console.WriteLine("tranal /be \"Ext1;Ext2\" /remove - Remove extensões de navegador pelo nome");
         Console.WriteLine("tranal /autorun              - Lista os itens de inicialização automática (chaves, serviços, tarefas)");
+        Console.WriteLine("tranal /autorun              - Lista os itens de inicialização automática (chaves, serviços, tarefas)");
+        Console.WriteLine("tranal /autorun /add \"nome\" \"comando\" [\"local\"] - Cria um item de inicialização automática");
+        Console.WriteLine("tranal /autorun /edit \"nome\" [\"novoNome\"] [\"novoComando\"] - Edita um item de inicialização automática");
+        Console.WriteLine("tranal /autorun /enable \"nome\" - Ativa um item de inicialização automática");
+        Console.WriteLine("tranal /autorun /disable \"nome\" - Desativa um item de inicialização automática");
+        Console.WriteLine("tranal /autorun /remove \"nome\" - Remove um item de inicialização automática");
+        Console.WriteLine("tranal /crashanalyzer       - Lista as falhas do Event Log agrupadas por programa (Crash Analyzer)");
+        Console.WriteLine("tranal /crashanalyzer /export \"arquivo\" - Grava o relatório HTML das falhas");
+        Console.WriteLine("tranal /crashanalyzer /search \"programa\" - Mostra o endereço da busca online das falhas");
         Console.WriteLine("tranal /tools                - Lista as ferramentas nativas do Windows");
         Console.WriteLine("tranal /export \"caminho\" [/txt|/html|/csv|/xml] - Exporta a listagem de programas");
         Console.WriteLine("tranal /export \"caminho\" /csv /columns \"Program,Version,Note\" - Exporta só as colunas pedidas");

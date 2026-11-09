@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -8,6 +10,7 @@ using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
+using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Tools;
 using Tranal.Uninstaller.Ui.Shared;
 
@@ -172,6 +175,7 @@ public static class InsightViews
     {
         var panel = new ItemListPanel();
         var rows = new ObservableCollection<InsightRow>();
+        var falhas = new List<CrashEntry>();
 
         panel.Configure(
             Loc.Get("Module.CrashAnalyzer"),
@@ -188,20 +192,35 @@ public static class InsightViews
                 {
                     AutomationId = "CrashAnalyzerRefresh",
                     Text = Loc.Get("Common.Refresh"),
-                    Action = () => panel.RunAsync(() => LoadAsync(panel, rows)),
+                    Action = () => panel.RunAsync(() => LoadAsync(panel, rows, falhas)),
+                },
+                new CommandDef
+                {
+                    AutomationId = "CrashAnalyzerExport",
+                    Text = Loc.Get("Insight.Crash.Export"),
+                    Action = () => Exportar(panel, falhas),
+                },
+                new CommandDef
+                {
+                    AutomationId = "CrashAnalyzerSearch",
+                    Text = Loc.Get("Insight.Crash.Search"),
+                    Action = () => Pesquisar(panel),
                 },
             });
 
         panel.SetItems(rows);
-        panel.RunAsync(() => LoadAsync(panel, rows));
+        panel.RunAsync(() => LoadAsync(panel, rows, falhas));
         return panel;
 
-        static async Task LoadAsync(ItemListPanel panel, ObservableCollection<InsightRow> rows)
+        static async Task LoadAsync(ItemListPanel panel, ObservableCollection<InsightRow> rows, List<CrashEntry> falhas)
         {
-            var falhas = await Task.Run(() => CrashAnalyzer.Scan());
+            var entradas = await Task.Run(() => CrashAnalyzer.Scan());
+
+            falhas.Clear();
+            falhas.AddRange(entradas);
 
             rows.Clear();
-            foreach (var falha in falhas)
+            foreach (var falha in entradas)
             {
                 rows.Add(new InsightRow
                 {
@@ -209,12 +228,93 @@ public static class InsightViews
                     Kind = falha.Count.ToString(CultureInfo.CurrentCulture),
                     Path = RelativeDate.Format(falha.LastSeen),
                     Size = $"{falha.EventName} ({falha.EventId})",
+                    Source = falha,
                 });
             }
 
             panel.PanelStatus = string.Format(
-                CultureInfo.CurrentCulture, Loc.Get("Insight.Crash.Count2"), falhas.Count);
+                CultureInfo.CurrentCulture, Loc.Get("Insight.Crash.Count2"), entradas.Count);
         }
+
+        /// <summary>
+        /// Exporta as falhas agrupadas para um relatorio HTML.
+        /// </summary>
+        static void Exportar(ItemListPanel panel, List<CrashEntry> falhas)
+        {
+            if (falhas.Count == 0)
+            {
+                panel.PanelStatus = Loc.Get("Common.Empty");
+                return;
+            }
+
+            var dialog = new SaveFileDialog
+            {
+                Title = Loc.Get("Insight.Crash.Export"),
+                Filter = "HTML (*.html)|*.html",
+                FileName = "crash-analyzer.html",
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            var ok = CrashAnalyzer.WriteReport(dialog.FileName, falhas, RelatorioLabels());
+            panel.PanelStatus = ok
+                ? Loc.Get("Insight.Crash.Exported") + ": " + dialog.FileName
+                : Loc.Get("Status.Error");
+        }
+
+        /// <summary>
+        /// Abre a busca online das falhas do programa selecionado.
+        /// </summary>
+        static void Pesquisar(ItemListPanel panel)
+        {
+            CrashEntry? alvo = null;
+            foreach (var item in panel.SelectedItems)
+            {
+                if (item is InsightRow row && row.Source is CrashEntry crash)
+                {
+                    alvo = crash;
+                    break;
+                }
+            }
+
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var url = CrashAnalyzer.BuildSearchUrl(alvo, AppSettingsStore.Current);
+            if (url.Length == 0)
+            {
+                panel.PanelStatus = Loc.Get("Status.Error");
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                panel.PanelStatus = Loc.Get("Insight.Crash.SearchTerm") + ": " + CrashAnalyzer.BuildSearchTerm(alvo);
+            }
+            catch (Exception ex)
+            {
+                panel.PanelStatus = Loc.Get("Status.Error") + ": " + ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Os textos do relatorio, no idioma da interface.
+        /// </summary>
+        static CrashReportLabels RelatorioLabels() => new()
+        {
+            Title = Loc.Get("Module.CrashAnalyzer"),
+            Program = Loc.Get("Common.Program"),
+            Count = Loc.Get("Insight.Crash.Column.Count"),
+            First = Loc.Get("Insight.Crash.Column.First"),
+            Last = Loc.Get("Insight.Crash.Column.Last"),
+            Event = Loc.Get("Insight.Crash.Column.Event"),
+            Executable = Loc.Get("Insight.Crash.Column.Executable"),
+            SubtitleFormat = Loc.Get("Insight.Crash.Count2"),
+        };
     }
 
     // ------------------------------------------------------------------
