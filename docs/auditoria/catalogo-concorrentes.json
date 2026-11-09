@@ -268,8 +268,8 @@
                                                          "id":  "T2#61",
                                                          "funcionalidade":  "Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-pro27.txt:489-490`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar/grep \"InstallerGuard\" em src/ -\u003e 0 hits o Tranal identifica o instalador pelo tipo de desinstalador (`Core/UninstallerKind.cs`) e pelo log do instalador (`Core/MsiInstallLog.cs`), mas nao ha o painel de configuracao do \"instal guard\"."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar/modulo do Instal guard `Core/Automation/InstallerGuard.cs:153`; a deteccao do instalador `Core/Automation/InstallerGuard.cs:250`; as regras embutidas `Core/Automation/InstallerGuard.cs:169`"
                                                      },
                                                      {
                                                          "numero":  16,
@@ -452,8 +452,8 @@
                                                          "id":  "T4#54",
                                                          "funcionalidade":  "**Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-pro27.txt:177-181`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois/grep \"Hibernat\" em src/ -\u003e 0 hits o Tranal desabilita o autorun e os servicos de um programa (`Core/Management/AppPermissionManager.cs`), mas nao existe a operacao de suspender e acordar."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois/modulo da dormencia `Core/Tools/ProgramHibernation.cs:69`; o ato de dormir `Core/Tools/ProgramHibernation.cs:115`; o ato de acordar `Core/Tools/ProgramHibernation.cs:209`"
                                                      },
                                                      {
                                                          "numero":  55,
@@ -1275,8 +1275,8 @@
                                                          "id":  "T5#82",
                                                          "funcionalidade":  "**Colocar o PC para dormir** quando a tarefa termina, com contagem regressiva",
                                                          "evidencia":  "`checkBoxFinishSleep` (`bcu.strings.txt:5854`), `PutToSleep` (`:5855`), `sleepTimer` (`:6021`), `SleepControls` (`:6508`), `get_UninstallProgressWindow_StatusPuttingToSleepInSeconds` (`:6199`), literal \"Put PC to sleep when done\" (`bcu.inventario.md:298`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"SetSuspendState/PutToSleep/Suspend/Hibernat\" em src/` -\u003e **0 hits** (o unico `Sleep` e `Thread.Sleep`). O que ha e o contrario: `src/Tranal.Uninstaller/Core/Automation/ShutdownGuard.cs:56` impede o desligamento durante a tarefa. Binario do concorrente: `bcu.strings.txt:5854` (`checkBoxFinishSleep`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - modulo das acoes de energia `Core/Tools/PowerPlanner.cs:41`; o agendamento com a contagem `Core/Tools/PowerPlanner.cs:102`; o cancelamento `Core/Tools/PowerPlanner.cs:106`"
                                                      },
                                                      {
                                                          "numero":  83,
@@ -1331,8 +1331,8 @@
                                                          "id":  "T5#89",
                                                          "funcionalidade":  "**Adicionar os selecionados como filtro** (a seleção vira critério)",
                                                          "evidencia":  "`toolStripButtonAddSelectedAsFilters` (`bcu.strings.txt:6620`), `toolStripButtonAddSelectedAsFilters_Click` (`:5235`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"AddSelectedAsFilter/SelecionadosComoFiltro\" em src/` -\u003e **0 hits**; o filtro da lista e construido por campos fixos (`src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:147`) e nao pela selecao. Binario do concorrente: `bcu.strings.txt:6620` (`toolStripButtonAddSelectedAsFilters`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - a selecao transformada em filtro `Core/Appearance/ProgramFilters.cs:233`"
                                                      },
                                                      {
                                                          "numero":  90,
@@ -1363,8 +1363,8 @@
                                                          "id":  "T5#93",
                                                          "funcionalidade":  "**Compressão Brotli** em backups/arquivos gerados",
                                                          "evidencia":  "`System.IO.Compression.Brotli` (`bcu.strings.txt:5103`), `BrotliStream` (`:5394`), `BrotliCompress` (`:6650`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"Brotli\" em src/` -\u003e **0 hits**; os backups sao JSON + arquivos (`src/Tranal.Uninstaller/Core/BackupManager.cs:282` `Save`). Binario do concorrente: `bcu.strings.txt:5103` (`System.IO.Compression.Brotli`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - a compressao Brotli do backup `Core/Recovery/LeftoverBackup.cs:209`; a preferencia da compressao `Core/Settings/AppSettings.cs:401`"
                                                      },
                                                      {
                                                          "numero":  94,
@@ -1514,8 +1514,8 @@
                                                          "id":  "T1#14",
                                                          "funcionalidade":  "Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos**",
                                                          "evidencia":  "literal `\u003cmsgUninstallFailed\u003eUninstallation process failed. \\nWould you like to clean this program entry from registry and clean up its files?\u003c/msgUninstallFailed\u003e` (`geek.strings.txt:4610`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos**/grep \"msgUninstallFailed\" em src/ -\u003e 0 hits existe o relatorio de remocao com codigo de erro (`Core/Removal.cs`) e a desinstalacao forcada como caminho separado (`Ui/ForcedUninstallWindow.xaml.cs`), mas nao o dialogo que pergunta pela limpeza."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos**/modulo das falhas de desinstalacao `Core/Automation/UninstallFailureRecovery.cs:48`; o registro da falha `Core/Automation/UninstallFailureRecovery.cs:66`; a limpeza da entrada e dos arquivos `Core/Automation/UninstallFailureRecovery.cs:146`"
                                                      },
                                                      {
                                                          "numero":  15,
@@ -2384,8 +2384,8 @@
                                                          "id":  "T2#11",
                                                          "funcionalidade":  "Confirmar/avisar antes de apagar **arquivo pessoal**",
                                                          "evidencia":  "**não confirmado no binario**",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Confirmar/avisar antes de apagar **arquivo pessoal**/grep \"PersonalFile\" em src/ -\u003e 0 hits a remocao segue a regra de protecao por lista de exclusoes e por confianca da sobra (`Core/UninstallSupport.cs`), sem uma categoria de \"arquivo pessoal\""
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Confirmar/avisar antes de apagar **arquivo pessoal**/modulo da guarda de arquivo pessoal `Core/Automation/PersonalFileGuard.cs:58`; a classificacao do caminho `Core/Automation/PersonalFileGuard.cs:109`"
                                                      },
                                                      {
                                                          "numero":  12,
@@ -2600,8 +2600,8 @@
                                                          "id":  "T7#38",
                                                          "funcionalidade":  "**Catálogo embutido de Appx pré-instalados** (a lista do que o Windows traz de fábrica)",
                                                          "evidencia":  "`iobit.identificadores.txt:103` → `Microsoft.Windows.Ai.Copilot.Provider`; `:107` → `Microsoft.Windows.DevHome`; `:98` → `Microsoft.WebView2Runtime.Stable_8wekyb3d8bbwe`; `:110` → `Microsoft.Xbox.TCUI`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Catálogo embutido de Appx pré-instalados** (a lista do que o Windows traz de fábrica)/o Tranal lista os pacotes MSIX instalados (`Core/Modules/WindowsApps.cs`) e detecta o bloatware por marcadores de pasta (`Core/Discovery/BundlewareDetector.cs`), mas nao tem a lista de fabrica do Windows"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Catálogo embutido de Appx pré-instalados** (a lista do que o Windows traz de fábrica)/modulo do catalogo Appx `Core/Discovery/AppxCatalog.cs:48`; a lista dos pre-instalados `Core/Discovery/AppxCatalog.cs:72`"
                                                      },
                                                      {
                                                          "numero":  39,
@@ -2943,8 +2943,8 @@
                                                          "id":  "T3#40",
                                                          "funcionalidade":  "Rastreamento de **DLLs em pastas do sistema**",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Rastreamento de **DLLs em pastas do sistema**/`src/Tranal.Uninstaller/Core/Modules/SystemSnapshot.cs:43` (`public sealed class SystemSnapshot`) **Nota**: as raizes varridas sao Program Files, Program Files (x86), CommonApplicationData, LocalApplicationData e ApplicationData; `C:\\Windows` nao entra, e DLL nao e um motivo de sobra."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Rastreamento de **DLLs em pastas do sistema**/modulo das DLLs de sistema `Core/Discovery/SystemDllTracker.cs:48`; as candidatas a biblioteca deixada `Core/Discovery/SystemDllTracker.cs:124`"
                                                      },
                                                      {
                                                          "numero":  41,
@@ -3430,8 +3430,8 @@
                                                          "id":  "T2#15",
                                                          "funcionalidade":  "Pasta de snapshots com limite de tamanho e contagem (\"Limits for Snapshots folder\")",
                                                          "evidencia":  "`inventario.md:326` → `Limits for Snapshots folder`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Pasta de snapshots com limite de tamanho e contagem (\"Limits for Snapshots folder\")/`src/Tranal.Uninstaller/Core/Tracing/SnapshotLibrary.cs:60` (`public static class SnapshotLibrary`) a pasta e `SnapshotLibrary.SnapshotDirectory`, sem limite nem purga."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Pasta de snapshots com limite de tamanho e contagem (\"Limits for Snapshots folder\")/modulo dos limites de snapshots `Core/Recovery/SnapshotLimits.cs:37`; a regra do que sai `Core/Recovery/SnapshotLimits.cs:49`"
                                                      },
                                                      {
                                                          "numero":  16,
@@ -3494,8 +3494,8 @@
                                                          "id":  "T2#23",
                                                          "funcionalidade":  "Opção de **não usar o log de mudanças detectadas** (\"Don\u0027t use detected changes log\")",
                                                          "evidencia":  "`inventario.md:167` → `Don\u0027t use detected changes log`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Opção de **não usar o log de mudanças detectadas** (\"Don\u0027t use detected changes log\")/grep \"UseChangeLog\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Opção de **não usar o log de mudanças detectadas** (\"Don\u0027t use detected changes log\")/a preferencia do log `Core/Settings/AppSettings.cs:424`"
                                                      },
                                                      {
                                                          "numero":  63,
@@ -3910,8 +3910,8 @@
                                                          "id":  "T7#83",
                                                          "funcionalidade":  "**Dependências entre pacotes MSI** (\"Depends on packages\")",
                                                          "evidencia":  "`strings.txt:50864` → `Depends on packages\u0026Uninstall the selected application(s)?%Error uninstalling %d application(s).`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Dependências entre pacotes MSI** (\"Depends on packages\")/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:74` (`public static class MsiProductCatalog`) o catalogo le o produto MSI, mas nao resolve dependencia entre pacotes."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Dependências entre pacotes MSI** (\"Depends on packages\")/modulo das dependencias MSI `Core/Discovery/MsiDependencies.cs:55`; a leitura das dependencias `Core/Discovery/MsiDependencies.cs:68`"
                                                      },
                                                      {
                                                          "numero":  84,
@@ -4445,8 +4445,8 @@
                                                          "id":  "T4#55",
                                                          "funcionalidade":  "Itens de inicialização de **aplicativos UWP / Store**",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Itens de inicialização de **aplicativos UWP / Store**/grep \"StartupTask\" em src/ -\u003e 0 hits `Core/Modules/WindowsApps.cs` le o MSIX instalado, nao o item de inicializacao do Store."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Itens de inicialização de **aplicativos UWP / Store**/modulo da inicializacao da Store `Core/Discovery/StoreStartupEntries.cs:52`; a listagem das StartupTask `Core/Discovery/StoreStartupEntries.cs:63`"
                                                      },
                                                      {
                                                          "numero":  56,
@@ -5491,8 +5491,8 @@
                                                          "id":  "T3#39",
                                                          "funcionalidade":  "\"Stop\" para interromper a varredura",
                                                          "evidencia":  "`wise.recursos.txt:146` -\u003e `TFRMCLEANPAGE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - \"Stop\" para interromper a varredura/grep \"CancelarVarredura\" em src/ -\u003e 0 hits as varreduras rodam em `Task.Run` sem cancelamento — a busca por \"CancellationToken\" em `src/` so encontra o plano de desinstalacao e o atualizador."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - \"Stop\" para interromper a varredura/a varredura que aceita ser interrompida `Core/ProgramScanner.cs:74`; o botao de parar a varredura `MainWindow.xaml.cs:241`"
                                                      },
                                                      {
                                                          "numero":  40,
