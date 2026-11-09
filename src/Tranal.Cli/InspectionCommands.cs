@@ -42,7 +42,58 @@ public static class InspectionCommands
         if (CliArgs.Has(flags, "/inspection-logs")) return ExecutarPastaDeLogs();
         if (CliArgs.Has(flags, "/inspection-site")) return ExecutarPaginaDoFabricante(args);
         if (CliArgs.Has(flags, "/inspection-leftovers")) return ExecutarExportarSobras(args);
+        if (CliArgs.Has(flags, "/inspection-boot")) return ExecutarBootCenter(args, flags);
         return null;
+    }
+
+    /// <summary>
+    /// O Boot Center pela linha de comando: quando a maquina subiu, ha quanto
+    /// tempo ela esta de pe e o que sobe junto com ela.
+    ///
+    /// Com <c>/disable "nome"</c>, <c>/enable "nome"</c> ou
+    /// <c>/remove "nome"</c>, o item com aquele nome e alterado.
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    /// <param name="flags">As opcoes reconhecidas.</param>
+    public static int ExecutarBootCenter(string[] args, HashSet<string> flags)
+    {
+        var report = BootCenter.Scan();
+
+        Console.WriteLine($"Subiu em: {report.BootTime.ToString("g")}");
+        Console.WriteLine($"De pe ha: {report.Uptime}");
+        Console.WriteLine($"Itens: {report.Items.Count} ({report.EnabledCount} ativo(s), {report.SystemCount} de sistema)");
+        Console.WriteLine();
+
+        var alvo = CliArgs.ValueAfter(args, "/disable")
+                   ?? CliArgs.ValueAfter(args, "/enable")
+                   ?? CliArgs.ValueAfter(args, "/remove");
+
+        if (!string.IsNullOrWhiteSpace(alvo))
+        {
+            var item = report.Items.FirstOrDefault(i =>
+                string.Equals(i.Name, alvo, StringComparison.CurrentCultureIgnoreCase));
+
+            if (item is null)
+            {
+                Console.Error.WriteLine($"Nenhum item de inicializacao com o nome '{alvo}'.");
+                return 1;
+            }
+
+            var ok = CliArgs.Has(flags, "/disable") ? BootCenter.SetEnabled(item, false)
+                : CliArgs.Has(flags, "/enable") ? BootCenter.SetEnabled(item, true)
+                : BootCenter.Remove(item);
+
+            Console.WriteLine(ok ? $"Feito: {item.Name}" : $"Nao foi possivel alterar: {item.Name}");
+            return ok ? 0 : 1;
+        }
+
+        foreach (var item in report.Items)
+        {
+            var estado = item.Enabled ? "ativo" : "desativado";
+            Console.WriteLine($"  [{estado}] {item.Name} — {item.Location}");
+        }
+
+        return 0;
     }
 
     /// <summary>

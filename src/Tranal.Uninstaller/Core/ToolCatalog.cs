@@ -14,6 +14,8 @@ public static class ToolCatalog
 {
     /// <summary>Gerenciador de execucao automatica.</summary>
     public const string AutorunManager = "AutorunManager";
+    public const string BootCenter = "BootCenter";
+    public const string ActiveFiles = "ActiveFiles";
 
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
@@ -203,6 +205,8 @@ public static class ToolCatalog
     public static IReadOnlyList<string> All { get; } = new[]
     {
         AutorunManager,
+        BootCenter,
+        ActiveFiles,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

@@ -1096,5 +1096,13 @@
     "Wizard.BatchTruncated":  "The batch has {0} program(s), but the limit is {1}. These were left out and stay installed: {2}",
     "Wizard.BatchTruncatedTitle":  "Batch cut by the limit",
     "Wizard.RestartQuestion":  "{0} item(s) are still pending for the next restart. Restart the machine now?",
-    "Wizard.RestartTitle":  "Restart the machine"
+    "Wizard.RestartTitle":  "Restart the machine",
+    "Module.BootCenter":  "Boot Center",
+    "Module.ActiveFiles":  "Files in use",
+    "Tool.BootCenter.Status":  "Booted at {0} — up for {1}. {2} item(s), {3} active.",
+    "Tool.ActiveFiles.Pick":  "Choose files",
+    "Tool.ActiveFiles.Processes":  "Processes",
+    "Tool.ActiveFiles.Start":  "Choose the files to see who is holding them.",
+    "Tool.ActiveFiles.Selected":  "{0} file(s) chosen.",
+    "Tool.ActiveFiles.Found":  "{0} file(s) in use."
 }

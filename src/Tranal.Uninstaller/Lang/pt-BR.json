@@ -1096,5 +1096,13 @@
     "Wizard.BatchTruncated":  "O lote tem {0} programa(s), mas o teto é {1}. Estes ficaram de fora e continuam instalados: {2}",
     "Wizard.BatchTruncatedTitle":  "Lote cortado pelo teto",
     "Wizard.RestartQuestion":  "Sobrou {0} item(ns) para o próximo reinício. Reiniciar a máquina agora?",
-    "Wizard.RestartTitle":  "Reiniciar a máquina"
+    "Wizard.RestartTitle":  "Reiniciar a máquina",
+    "Module.BootCenter":  "Boot Center",
+    "Module.ActiveFiles":  "Arquivos em uso",
+    "Tool.BootCenter.Status":  "Subiu em {0} — de pé há {1}. {2} item(ns), {3} ativo(s).",
+    "Tool.ActiveFiles.Pick":  "Escolher arquivos",
+    "Tool.ActiveFiles.Processes":  "Processos",
+    "Tool.ActiveFiles.Start":  "Escolha os arquivos para ver quem os segura.",
+    "Tool.ActiveFiles.Selected":  "{0} arquivo(s) escolhido(s).",
+    "Tool.ActiveFiles.Found":  "{0} arquivo(s) em uso."
 }

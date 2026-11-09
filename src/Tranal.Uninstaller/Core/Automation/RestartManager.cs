@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Tranal.Uninstaller.Core.Tools;
+using System.Text;
 
 namespace Tranal.Uninstaller.Core.Automation;
 
@@ -91,17 +93,25 @@ public static class RestartManager
         public bool bRestartable;
     }
 
+    /// <summary>
+    /// Inicia uma sessao do Restart Manager.
+    ///
+    /// A chave da sessao e um buffer de **saida**: a API do Windows escreve
+    /// nela a chave que ela gerou. Passar uma string (que e entrada) faz a
+    /// chamada falhar com ERROR_BAD_ARGUMENTS, e o modulo inteiro devolvia
+    /// lista vazia — nenhum arquivo em uso era encontrado.
+    /// </summary>
     [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
-    private static extern int RmStartSession(out uint pSessionHandle, int dwSessionFlags, string strSessionKey);
+    private static extern int RmStartSession(out uint pSessionHandle, int dwSessionFlags, StringBuilder strSessionKey);
 
-    [DllImport("rstrtmgr.dll")]
+    [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
     private static extern int RmEndSession(uint pSessionHandle);
 
-    [DllImport("rstrtmgr.dll")]
+    [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
     private static extern int RmRegisterResources(uint pSessionHandle, uint nFiles, string[] rgsFilenames,
         uint nApplications, RmUniqueProcess[]? rgApplications, uint nServices, string[]? rgsServiceNames);
 
-    [DllImport("rstrtmgr.dll")]
+    [DllImport("rstrtmgr.dll", CharSet = CharSet.Unicode)]
     private static extern int RmGetList(uint dwSessionHandle, out uint pnProcInfoNeeded,
         ref uint pnProcInfo, [In, Out] RmProcessInfo[] rgAffectedApps, ref uint lpdwRebootReasons);
 
@@ -116,16 +126,24 @@ public static class RestartManager
         if (string.IsNullOrWhiteSpace(filePath)) return processos;
 
         uint session = 0;
-        var chave = Guid.NewGuid().ToString("N");
+        var chave = new StringBuilder(CchRmSessionKey + 1);
 
         try
         {
             var erro = RmStartSession(out session, 0, chave);
-            if (erro != 0) return processos;
+            if (erro != 0)
+            {
+                ToolLog.Error($"Restart Manager: nao foi possivel iniciar a sessao (codigo {erro}).");
+                return processos;
+            }
 
             var arquivos = new[] { filePath };
             erro = RmRegisterResources(session, 1, arquivos, 0, null, 0, null);
-            if (erro != 0) return processos;
+            if (erro != 0)
+            {
+                ToolLog.Error($"Restart Manager: falha ao registrar o recurso (codigo {erro}).");
+                return processos;
+            }
 
             uint needed = 0;
             uint reasons = RmRebootReasonNone;

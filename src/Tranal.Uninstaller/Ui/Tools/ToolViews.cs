@@ -1,3 +1,4 @@
+using Tranal.Uninstaller.Core.Automation;
 using System.Globalization;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -26,6 +27,8 @@ public static class ToolViews
     public static FrameworkElement Create(string toolId) => toolId switch
     {
         ToolCatalog.AutorunManager => CreateAutorun(),
+        ToolCatalog.BootCenter => CreateBootCenter(),
+        ToolCatalog.ActiveFiles => CreateActiveFiles(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -212,6 +215,167 @@ public static class ToolViews
             foreach (var item in panel.SelectedItems)
                 if (item is ToolRow row && row.Source is AutorunItem autorun) return autorun;
             return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Boot Center: o que sobe junto com a maquina
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateBootCenter()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.BootCenter"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 240, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Type"), Width = 130, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Common.Status"), Width = 110, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.Autorun.Location"), Width = 260, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.Autorun.Command"), Width = 340, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "BootCenterRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => ReloadAsync(panel, rows)) },
+                new CommandDef { AutomationId = "BootCenterEnable", Text = Loc.Get("Common.Enable"), Action = () => panel.RunAsync(() => SetEnabledAsync(panel, rows, true)) },
+                new CommandDef { AutomationId = "BootCenterDisable", Text = Loc.Get("Common.Disable"), Action = () => panel.RunAsync(() => SetEnabledAsync(panel, rows, false)) },
+                new CommandDef { AutomationId = "BootCenterRemove", Text = Loc.Get("Common.Remove"), Action = () => panel.RunAsync(() => RemoveAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ReloadAsync(panel, rows));
+        return panel;
+
+        static async Task ReloadAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var report = await Task.Run(BootCenter.Scan);
+
+            rows.Clear();
+            foreach (var item in report.Items)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = item.Name,
+                    Kind = item.Kind == BootCenterItemKind.ScheduledTask
+                        ? Loc.Get("Tool.Autorun.Tasks")
+                        : Loc.Get("Tool.Autorun.Run"),
+                    Detail = item.Enabled ? Loc.Get("Common.Enable") : Loc.Get("Common.Disable"),
+                    Path = item.Location,
+                    Size = item.Command,
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.BootCenter.Status",
+                report.BootTime.ToString("g"),
+                report.Uptime,
+                rows.Count,
+                report.EnabledCount);
+        }
+
+        static async Task SetEnabledAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool enabled)
+        {
+            var target = FirstBootItem(panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var ok = await Task.Run(() => BootCenter.SetEnabled(target, enabled));
+            panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
+            await ReloadAsync(panel, rows);
+        }
+
+        static async Task RemoveAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var target = FirstBootItem(panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var ok = await Task.Run(() => BootCenter.Remove(target));
+            panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
+            await ReloadAsync(panel, rows);
+        }
+
+        static BootCenterItem? FirstBootItem(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is BootCenterItem boot) return boot;
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Arquivos em uso: quem segura o arquivo
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateActiveFiles()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+        var paths = new List<string>();
+
+        panel.Configure(
+            Loc.Get("Module.ActiveFiles"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 560, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.ActiveFiles.Processes"), Width = 320, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "ActiveFilesPick", Text = Loc.Get("Tool.ActiveFiles.Pick"), IsPrimary = true, Action = () => Escolher() },
+                new CommandDef { AutomationId = "ActiveFilesScan", Text = Loc.Get("Common.Scan"), Action = () => panel.RunAsync(() => VerificarAsync(panel, rows, paths)) },
+            });
+
+        panel.SetItems(rows);
+        panel.PanelStatus = Loc.Get("Tool.ActiveFiles.Start");
+        return panel;
+
+        void Escolher()
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = Loc.Get("Tool.ActiveFiles.Pick"),
+                Multiselect = true,
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            paths.Clear();
+            paths.AddRange(dialog.FileNames);
+            panel.PanelStatus = Loc.Get("Tool.ActiveFiles.Selected", paths.Count);
+        }
+
+        static async Task VerificarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<string> paths)
+        {
+            if (paths.Count == 0)
+            {
+                panel.PanelStatus = Loc.Get("Tool.ActiveFiles.Start");
+                return;
+            }
+
+            var locked = await Task.Run(() => ActiveFiles.Scan(paths));
+
+            rows.Clear();
+            foreach (var file in locked)
+            {
+                rows.Add(new ToolRow
+                {
+                    Path = file.Path,
+                    Size = file.DescribeProcesses(),
+                    Source = file,
+                });
+            }
+
+            panel.PanelStatus = locked.Count == 0
+                ? Loc.Get("Common.Empty")
+                : Loc.Get("Tool.ActiveFiles.Found", locked.Count);
         }
     }
 
