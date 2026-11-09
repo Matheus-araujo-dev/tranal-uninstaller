@@ -460,6 +460,12 @@ public sealed class AppSettings
     /// </summary>
     public bool ShowNewProgramsPopup { get; set; } = true;
 
+    /// <summary>
+    /// Liga o agente de fundo: um processo leve que fica de olho na maquina
+    /// e avisa quando algo muda. Padrao: <c>false</c>.
+    /// </summary>
+    public bool BackgroundAgent { get; set; }
+
     /// <summary>O modo de execucao, ja lido pela regra.</summary>
     public ExecutionPreference RunMode => ExecutionPreferences.Parse(RunPreference);
 

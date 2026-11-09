@@ -140,6 +140,10 @@ public static class Program
         var explorer = ExplorerCommands.TryRun(effective, flags);
         if (explorer.HasValue) return explorer.Value;
 
+        // A limpeza, o sistema e o agente de fundo.
+        var agente = AgentCommands.TryRun(effective, flags);
+        if (agente.HasValue) return agente.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");
