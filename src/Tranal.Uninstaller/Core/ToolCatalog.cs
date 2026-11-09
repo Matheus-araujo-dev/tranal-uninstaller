@@ -142,8 +142,35 @@ public static class ToolCatalog
     /// </summary>
     public const string HexViewer = "HexViewer";
 
+    /// <summary>
+    /// Programas que vieram com o Windows e quase nunca sao usados.
+    /// </summary>
+    public const string Bloatware = "Bloatware";
+
+    /// <summary>
+    /// Instalacoes duplicadas: o mesmo programa em dois lugares.
+    /// </summary>
+    public const string Duplicates = "Duplicates";
+
+    /// <summary>
+    /// Impressoras instaladas e fila de impressao.
+    /// </summary>
+    public const string Printers = "Printers";
+
+    /// <summary>
+    /// Dumps de falha do Windows.
+    /// </summary>
+    public const string CrashDumps = "CrashDumps";
+
+    /// <summary>
+    /// Limpeza do navegador: extensoes orfas e reset de padroes.
+    /// </summary>
+    public const string BrowserCleanup = "BrowserCleanup";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
-    public const string HistoryCleaner = "HistoryCleaner";    /// <summary>Tracks Cleaner: modulo dos navegadores.</summary>
+    public const string HistoryCleaner = "HistoryCleaner";
+
+    /// <summary>Tracks Cleaner: modulo dos navegadores.</summary>
     public const string TracksBrowsers = "TracksBrowsers";
 
     /// <summary>Tracks Cleaner: modulo do Microsoft Office.</summary>
@@ -180,6 +207,11 @@ public static class ToolCatalog
         Finder,
         RunOnce,
         HexViewer,
+        Bloatware,
+        Duplicates,
+        Printers,
+        CrashDumps,
+        BrowserCleanup,
         CustomTools,
         Processes,
         SystemManagement,

@@ -45,6 +45,13 @@ namespace Tranal.Cli;
 ///   tranal /shortcuts /repair         - repara os atalhos quebrados
 ///   tranal /mru /clean                - limpa o cache de uso recente
 ///   tranal /shared-dlls               - lista os componentes compartilhados
+///   tranal /bloatware                  - lista os programas que vieram com o Windows
+///   tranal /duplicates                 - lista as instalacoes duplicadas
+///   tranal /printers                   - lista as impressoras e a fila
+///   tranal /dumps [/clean]             - lista (ou limpa) os dumps de falha
+///   tranal /browser-clean [/clean]     - lista (ou limpa) as extensoes orfas
+///   tranal /checksum "arquivo"         - mostra o MD5 e o SHA256 do arquivo
+///   tranal /tasks                      - lista as tarefas agendadas
 /// </summary>
 public static class ExtraCommands
 {
@@ -74,6 +81,7 @@ public static class ExtraCommands
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
         if (ResumeCommands.TryRun(args, flags) is int resumeResult) return resumeResult;
         if (CleanupCommands.TryRun(args, flags) is int cleanupResult) return cleanupResult;
+        if (MaintenanceCommands.TryRun(args, flags) is int maintenanceResult) return maintenanceResult;
         return null;
     }
 

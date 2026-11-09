@@ -471,6 +471,50 @@
               <TextBlock Text="{loc:Tr Module.HexViewer}" />
             </StackPanel>
           </Button>
+
+          <!-- Manutencao: bloatware, duplicatas, impressoras, dumps e navegador. -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupMaintenance}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="Bloatware" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolBloatware">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F9F9;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Bloatware}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="Duplicates" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolDuplicates">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F465;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Duplicates}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="Printers" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolPrinters">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5A8;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Printers}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="CrashDumps" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolCrashDumps">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4A5;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.CrashDumps}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="BrowserCleanup" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolBrowserCleanup">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5D8;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.BrowserCleanup}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>
