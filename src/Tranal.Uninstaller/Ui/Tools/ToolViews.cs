@@ -36,6 +36,8 @@ public static class ToolViews
         ToolCatalog.UndoCenter => CreateUndoCenter(),
         ToolCatalog.FileOwnership => CreateFileOwnership(),
         ToolCatalog.DeepAnalysis => CreateDeepAnalysis(),
+        ToolCatalog.InstallerGuard => CreateInstallerGuard(),
+        ToolCatalog.FailedUninstalls => CreateFailedUninstalls(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -723,6 +725,178 @@ public static class ToolViews
         {
             foreach (var item in panel.SelectedItems)
                 if (item is ToolRow row && row.Source is OwnershipItem ownership) return ownership;
+            return null;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // Instal guard: como o programa reconhece um instalador
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateInstallerGuard()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.InstallerGuard"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.InstallerGuard.Detected"), Width = 140, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.InstallerGuard.Rule"), Width = 160, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.InstallerGuard.Signature"), Width = 120, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.InstallerGuard.Properties"), Width = 380, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "InstallerGuardAnalyze", Text = Loc.Get("Tool.InstallerGuard.Analyze"), Action = () => Analisar(panel, rows) },
+                new CommandDef { AutomationId = "InstallerGuardRules", Text = Loc.Get("Tool.InstallerGuard.Rules"), Action = () => MostrarRegras(panel, rows) },
+            });
+
+        panel.SetItems(rows);
+        MostrarRegras(panel, rows);
+        return panel;
+
+        static void Analisar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = Loc.Get("Tool.InstallerGuard.Pick"),
+                Filter = Loc.Get("Tool.InstallerGuard.PickFilter"),
+                CheckFileExists = true,
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            var achado = InstallerGuard.Detect(dialog.FileName);
+
+            rows.Clear();
+            rows.Add(new ToolRow
+            {
+                Category = achado.Family.ToString(),
+                Detail = achado.MatchedRule,
+                Size = achado.SignatureFound
+                    ? Loc.Get("Tool.InstallerGuard.Yes")
+                    : Loc.Get("Tool.InstallerGuard.No"),
+                Path = achado.PropertiesText,
+                Source = achado,
+            });
+
+            panel.PanelStatus = achado.Detected
+                ? Loc.Get("Tool.InstallerGuard.Status", achado.Family.ToString(), achado.MatchedRule)
+                : Loc.Get("Tool.InstallerGuard.NotDetected");
+        }
+
+        static void MostrarRegras(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            rows.Clear();
+
+            foreach (var regra in InstallerGuard.Rules)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = regra.Family.ToString(),
+                    Detail = regra.Name,
+                    Size = regra.IsCustom
+                        ? Loc.Get("Tool.InstallerGuard.Custom")
+                        : Loc.Get("Tool.InstallerGuard.Builtin"),
+                    Path = regra.Signature.Length > 0
+                        ? regra.Signature
+                        : $"{regra.Property}: {regra.PropertyValue}",
+                    Source = regra,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.InstallerGuard.RulesCount",
+                InstallerGuard.Rules.Count,
+                InstallerGuard.BuiltinRules.Count,
+                InstallerGuard.CustomRules.Count);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Falhas de desinstalacao: o que o desinstalador nativo nao conseguiu
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateFailedUninstalls()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.FailedUninstalls"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.FailedUninstalls.Program"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.FailedUninstalls.Code"), Width = 80, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.FailedUninstalls.Message"), Width = 330, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.FailedUninstalls.When"), Width = 150, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "FailedUninstallsRefresh", Text = Loc.Get("Tool.FailedUninstalls.Refresh"), Action = () => Recarregar(panel, rows) },
+                new CommandDef { AutomationId = "FailedUninstallsCleanup", Text = Loc.Get("Tool.FailedUninstalls.Cleanup"), Action = () => Limpar(panel, rows) },
+                new CommandDef { AutomationId = "FailedUninstallsForget", Text = Loc.Get("Tool.FailedUninstalls.Forget"), Action = () => Esquecer(panel, rows) },
+            });
+
+        panel.SetItems(rows);
+        Recarregar(panel, rows);
+        return panel;
+
+        static void Recarregar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var falhas = UninstallFailureRecovery.List();
+
+            rows.Clear();
+            foreach (var falha in falhas)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = falha.ProgramName,
+                    Detail = falha.ExitCode.ToString(),
+                    Size = falha.Message,
+                    Path = falha.FailedAt.ToString("yyyy-MM-dd HH:mm"),
+                    Source = falha,
+                });
+            }
+
+            panel.PanelStatus = falhas.Count == 0
+                ? Loc.Get("Tool.FailedUninstalls.Empty")
+                : Loc.Get("Tool.FailedUninstalls.Status", falhas.Count);
+        }
+
+        static void Limpar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = UninstallFailureRecovery.Cleanup(alvo);
+            panel.PanelStatus = Loc.Get("Tool.FailedUninstalls.Done", alvo.ProgramName, mensagem);
+            if (!ok) panel.PanelStatus = Loc.Get("Tool.FailedUninstalls.Error", mensagem);
+
+            Recarregar(panel, rows);
+        }
+
+        static void Esquecer(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            UninstallFailureRecovery.Forget(alvo.ProgramName);
+            Recarregar(panel, rows);
+        }
+
+        static FailedUninstall? Primeiro(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is FailedUninstall falha) return falha;
             return null;
         }
     }

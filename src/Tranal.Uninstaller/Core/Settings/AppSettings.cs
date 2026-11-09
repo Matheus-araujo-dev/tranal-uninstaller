@@ -383,6 +383,14 @@ public sealed class AppSettings
     /// </summary>
     public List<string> PreservedFileKinds { get; set; } = new();
 
+    /// <summary>
+    /// Preserva os arquivos que estao em pastas pessoais do usuario.
+    ///
+    /// E a regra que impede que uma desinstalacao apague um documento, uma
+    /// foto ou um video do usuario sem que ele saiba. Padrao: <c>true</c>.
+    /// </summary>
+    public bool ProtectPersonalFiles { get; set; } = true;
+
     /// <summary>O modo de execucao, ja lido pela regra.</summary>
     public ExecutionPreference RunMode => ExecutionPreferences.Parse(RunPreference);
 

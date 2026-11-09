@@ -1169,4 +1169,62 @@
     "Tool.DeepAnalysis.Programs":  "{0} programa(s) instalado(s).",
     "Tool.DeepAnalysis.Status":  "{0}: {1} entrada(s) — {2} medida(s), {3} inferida(s), {4} candidata(s).",
     "Cmd.BestFitAll":  "Ajustar todas as colunas"
+,
+    "Module.InstallerGuard": "Instal guard"
+,
+    "Module.FailedUninstalls": "Falhas de desinstalacao"
+,
+    "Tool.InstallerGuard.Detected": "Detectado"
+,
+    "Tool.InstallerGuard.Rule": "Regra"
+,
+    "Tool.InstallerGuard.Signature": "Assinatura"
+,
+    "Tool.InstallerGuard.Properties": "Propriedades"
+,
+    "Tool.InstallerGuard.Analyze": "Analisar"
+,
+    "Tool.InstallerGuard.Rules": "Regras"
+,
+    "Tool.InstallerGuard.Pick": "Escolher um instalador"
+,
+    "Tool.InstallerGuard.PickFilter": "Instaladores|*.exe;*.msi;*.dll|Todos os arquivos|*.*"
+,
+    "Tool.InstallerGuard.Yes": "sim"
+,
+    "Tool.InstallerGuard.No": "nao"
+,
+    "Tool.InstallerGuard.Custom": "personalizada"
+,
+    "Tool.InstallerGuard.Builtin": "embutida"
+,
+    "Tool.InstallerGuard.Status": "Instalador do tipo {0} (regra '{1}')."
+,
+    "Tool.InstallerGuard.NotDetected": "Nenhuma regra reconheceu o arquivo."
+,
+    "Tool.InstallerGuard.RulesCount": "{0} regra(s): {1} embutida(s) e {2} personalizada(s)."
+,
+    "Tool.FailedUninstalls.Program": "Programa"
+,
+    "Tool.FailedUninstalls.Code": "Codigo"
+,
+    "Tool.FailedUninstalls.Message": "Mensagem"
+,
+    "Tool.FailedUninstalls.When": "Quando"
+,
+    "Tool.FailedUninstalls.Refresh": "Atualizar"
+,
+    "Tool.FailedUninstalls.Cleanup": "Limpar entrada e arquivos"
+,
+    "Tool.FailedUninstalls.Forget": "Esquecer"
+,
+    "Tool.FailedUninstalls.Empty": "Nenhuma desinstalacao falhou."
+,
+    "Tool.FailedUninstalls.Status": "{0} desinstalacao(oes) falharam."
+,
+    "Tool.FailedUninstalls.Done": "Limpeza de '{0}': {1}"
+,
+    "Tool.FailedUninstalls.Error": "A limpeza nao ficou completa: {0}"
+,
+    "Options.ProtectPersonalFiles": "Preservar arquivos pessoais (documentos, fotos, videos)"
 }

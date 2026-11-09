@@ -492,6 +492,22 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="InstallerGuard" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolInstallerGuard">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F50D;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.InstallerGuard}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="FailedUninstalls" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolFailedUninstalls">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x26A0;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.FailedUninstalls}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="RecycleBin" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolRecycleBin">
             <StackPanel Orientation="Horizontal">

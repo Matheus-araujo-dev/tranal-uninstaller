@@ -116,6 +116,10 @@ public static class Program
         var analise = AnalysisCommands.TryRun(effective, flags);
         if (analise.HasValue) return analise.Value;
 
+        // O Instal guard e as desinstalacoes que falharam.
+        var guardas = GuardCommands.TryRun(effective, flags);
+        if (guardas.HasValue) return guardas.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

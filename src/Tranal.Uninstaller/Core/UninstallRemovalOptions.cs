@@ -53,6 +53,16 @@ public sealed class UninstallRemovalOptions
     public bool KeepPreferences { get; init; } = true;
 
     /// <summary>
+    /// Preserva os arquivos que estao em pastas pessoais do usuario
+    /// (documentos, imagens, videos, musicas, area de trabalho, downloads e
+    /// favoritos).
+    ///
+    /// Corresponde ao aviso do IObit Uninstall antes de apagar um arquivo
+    /// pessoal. Padrao: <c>true</c>.
+    /// </summary>
+    public bool ProtectPersonalFiles { get; init; } = true;
+
+    /// <summary>
     /// O filtro de tipo de arquivo: as familias que a operacao PRESERVA.
     ///
     /// Nulo = sem filtro (o padrao): tudo o que esta marcado e removido.
@@ -87,6 +97,7 @@ public sealed class UninstallRemovalOptions
             KillRunningProcesses = settings.ForciblyStopRunningExecutables,
             FullRegistryBackup = settings.CreateFullRegistryBackupBeforeUninstall,
             KeepPreferences = keepPreferences ?? settings.KeepPreferencesOnUninstall,
+            ProtectPersonalFiles = settings.ProtectPersonalFiles,
             RestorePointName = restorePointName,
             FileTypeFilter = Automation.FileTypeFilter.FromNames(settings.PreservedFileKinds),
         };

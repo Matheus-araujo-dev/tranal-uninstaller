@@ -131,6 +131,7 @@ public partial class OptionsWindow : Window
         PreserveWebPagesCheck.IsChecked = Preserved(settings, RemovalFileKind.WebPage);
         PreserveShortcutsCheck.IsChecked = Preserved(settings, RemovalFileKind.Shortcut);
         PreserveExecutablesCheck.IsChecked = Preserved(settings, RemovalFileKind.Executable);
+        ProtectPersonalFilesCheck.IsChecked = settings.ProtectPersonalFiles;
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -426,6 +427,7 @@ public partial class OptionsWindow : Window
             s.DisplayPreference = ExecutionPreferences.Normalize(
                 (DisplayPreferenceCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString());
             s.PreservedFileKinds = ReadPreservedKinds();
+            s.ProtectPersonalFiles = ProtectPersonalFilesCheck.IsChecked == true;
 
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;

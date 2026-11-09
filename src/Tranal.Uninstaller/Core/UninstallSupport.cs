@@ -1316,6 +1316,19 @@ public static class UninstallEngine
     public static async Task<BuiltInUninstallResult> RunBuiltInUninstaller(
         InstalledProgram program, bool silent = false)
     {
+        var resultado = await RunBuiltInUninstallerCore(program, silent);
+
+        // A falha fica REGISTRADA: e o que permite oferecer depois a limpeza
+        // da entrada do registro e dos arquivos (a opcao que o Geek
+        // Uninstaller oferece no dialogo de falha).
+        if (!resultado.Succeeded) UninstallFailureRecovery.Record(program, resultado);
+
+        return resultado;
+    }
+
+    private static async Task<BuiltInUninstallResult> RunBuiltInUninstallerCore(
+        InstalledProgram program, bool silent = false)
+    {
         var command = silent
             ? (program.QuietUninstallCommand.Length > 0
                 ? program.QuietUninstallCommand
@@ -1859,6 +1872,19 @@ public static class UninstallEngine
             // lista de exclusoes e a ultima palavra: o item nao e removido.
             if (ExcludeList.Current.Contains(item.Kind, item.Path))
                 return Fail(item, RemovalStatus.Protected, "item na lista de exclusões");
+
+            // A guarda do arquivo pessoal: um documento, uma foto ou um video
+            // do usuario nao e sobra do programa. A REGRA esta no modulo
+            // (PersonalFileGuard); aqui so e a aplicacao.
+            if (options.ProtectPersonalFiles && item.Kind is "Arquivo" or "Pasta")
+            {
+                var pessoal = PersonalFileGuard.Classify(item.Path);
+                if (pessoal is not null)
+                {
+                    return Fail(item, RemovalStatus.Protected,
+                                $"arquivo pessoal ({pessoal.Value}) preservado");
+                }
+            }
 
             switch (item.Kind)
             {

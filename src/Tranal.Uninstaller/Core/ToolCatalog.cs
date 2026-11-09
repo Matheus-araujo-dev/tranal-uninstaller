@@ -20,6 +20,8 @@ public static class ToolCatalog
     public const string UndoCenter = "UndoCenter";
     public const string FileOwnership = "FileOwnership";
     public const string DeepAnalysis = "DeepAnalysis";
+    public const string InstallerGuard = "InstallerGuard";
+    public const string FailedUninstalls = "FailedUninstalls";
 
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
@@ -215,6 +217,8 @@ public static class ToolCatalog
         UndoCenter,
         FileOwnership,
         DeepAnalysis,
+        InstallerGuard,
+        FailedUninstalls,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

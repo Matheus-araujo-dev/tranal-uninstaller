@@ -203,6 +203,9 @@
         <CheckBox x:Name="PreserveExecutablesCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.FileKind.Executable}"
                   AutomationProperties.AutomationId="OptPreserveExecutables" />
+        <CheckBox x:Name="ProtectPersonalFilesCheck" Margin="0,6,0,2"
+                  Content="{loc:Tr Options.ProtectPersonalFiles}"
+                  AutomationProperties.AutomationId="OptProtectPersonalFiles" />
 
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />

@@ -1169,4 +1169,62 @@
     "Tool.DeepAnalysis.Programs":  "{0} installed program(s).",
     "Tool.DeepAnalysis.Status":  "{0}: {1} entry/entries — {2} measured, {3} inferred, {4} candidate(s).",
     "Cmd.BestFitAll":  "Fit all columns"
+,
+    "Module.InstallerGuard": "Install guard"
+,
+    "Module.FailedUninstalls": "Failed uninstalls"
+,
+    "Tool.InstallerGuard.Detected": "Detected"
+,
+    "Tool.InstallerGuard.Rule": "Rule"
+,
+    "Tool.InstallerGuard.Signature": "Signature"
+,
+    "Tool.InstallerGuard.Properties": "Properties"
+,
+    "Tool.InstallerGuard.Analyze": "Analyze"
+,
+    "Tool.InstallerGuard.Rules": "Rules"
+,
+    "Tool.InstallerGuard.Pick": "Pick an installer"
+,
+    "Tool.InstallerGuard.PickFilter": "Installers|*.exe;*.msi;*.dll|All files|*.*"
+,
+    "Tool.InstallerGuard.Yes": "yes"
+,
+    "Tool.InstallerGuard.No": "no"
+,
+    "Tool.InstallerGuard.Custom": "custom"
+,
+    "Tool.InstallerGuard.Builtin": "built-in"
+,
+    "Tool.InstallerGuard.Status": "Installer of type {0} (rule '{1}')."
+,
+    "Tool.InstallerGuard.NotDetected": "No rule recognized the file."
+,
+    "Tool.InstallerGuard.RulesCount": "{0} rule(s): {1} built-in and {2} custom."
+,
+    "Tool.FailedUninstalls.Program": "Program"
+,
+    "Tool.FailedUninstalls.Code": "Code"
+,
+    "Tool.FailedUninstalls.Message": "Message"
+,
+    "Tool.FailedUninstalls.When": "When"
+,
+    "Tool.FailedUninstalls.Refresh": "Refresh"
+,
+    "Tool.FailedUninstalls.Cleanup": "Clean entry and files"
+,
+    "Tool.FailedUninstalls.Forget": "Forget"
+,
+    "Tool.FailedUninstalls.Empty": "No uninstall failed."
+,
+    "Tool.FailedUninstalls.Status": "{0} uninstall(s) failed."
+,
+    "Tool.FailedUninstalls.Done": "Cleanup of '{0}': {1}"
+,
+    "Tool.FailedUninstalls.Error": "The cleanup was not complete: {0}"
+,
+    "Options.ProtectPersonalFiles": "Preserve personal files (documents, photos, videos)"
 }
