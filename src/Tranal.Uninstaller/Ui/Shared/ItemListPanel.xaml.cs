@@ -335,6 +335,47 @@ public partial class ItemListPanel : UserControl
     public void SetItems(IEnumerable items)
     {
         ItemsList.ItemsSource = items;
+
+        // O conteudo mudou: quem mostra a pre-visualizacao da barra lateral
+        // precisa saber. O painel nao sabe qual e a ferramenta — quem sabe e
+        // quem o criou.
+        ContentChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Dispara quando o conteudo da lista muda.
+    ///
+    /// A pre-visualizacao da barra lateral (o <c>PanelPreview</c> do nucleo)
+    /// mostra o que o painel ja carregou: e este evento que avisa que ha
+    /// coisa nova para mostrar.
+    /// </summary>
+    public event EventHandler? ContentChanged;
+
+    /// <summary>
+    /// Quantos itens a lista esta mostrando.
+    /// </summary>
+    public int ItemCount
+    {
+        get
+        {
+            try
+            {
+                var fonte = ItemsList.ItemsSource;
+                if (fonte is null) return 0;
+
+                // A fonte da lista e uma colecao na maioria das vezes: o
+                // proprio tamanho ja e a resposta.
+                if (fonte is System.Collections.ICollection colecao) return colecao.Count;
+
+                return ItemsList.Items.Count;
+            }
+            catch
+            {
+                // A lista pode mudar enquanto e contada: a pre-visualizacao
+                // mostra o que deu, e nao derruba o painel.
+                return 0;
+            }
+        }
     }
 
     /// <summary>True quando o item implementa ISelectableRow e esta marcado.</summary>

@@ -1977,7 +1977,7 @@
                                    "catalogo":  34,
                                    "catalogoId":  "T7#34",
                                    "estado":  "AUSENTE",
-                                   "evidencia":  "Integração com a **Central de Ações do Windows** (Action Center)|grep \"ActionCenter\" em src/ -\u003e 0 hits",
+                                   "evidencia":  "Integração com a **Central de Ações do Windows** (Action Center)|grep \"ActionCenter\" em src/ -\u003e 0 hits; MEDIDO em 09/11/2026: o balao da bandeja com `SetCurrentProcessExplicitAppUserModelID` (retorno 0x00000000) e `Shell_NotifyIcon` (ADD, SETVERSION e MODIFY com NIF_INFO, todos True) **nao entra** na Central de Acoes — a contagem do banco real `%LOCALAPPDATA%\\Microsoft\\Windows\\Notifications\\wpndatabase.db` ficou em 27 antes e 27 depois, com o mesmo `Order` maximo (1336). O detalhe esta em `docs/auditoria/EVIDENCIA-CENTRAL-ACoes.md`.",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -4335,8 +4335,8 @@
                                            "recon":  85,
                                            "catalogo":  85,
                                            "catalogoId":  "T6#85",
-                                           "estado":  "AUSENTE",
-                                           "evidencia":  "**Painéis ancoráveis** (\"push pin\") com pré-visualização|grep \"PushPin\" em src/ -\u003e 0 hits",
+                                           "estado":  "OK",
+                                           "evidencia":  "**Painéis ancoráveis** (\"push pin\") com pré-visualização|o modulo do painel ancorado `src/Tranal.Uninstaller/Core/Appearance/DockedPanel.cs:37` (`Toggle`); a pre-visualizacao `src/Tranal.Uninstaller/Core/Appearance/PanelPreview.cs:47` (`Publish`) e `src/Tranal.Uninstaller/Core/Appearance/PanelPreview.cs:65` (`Forget`); a janela `src/Tranal.Uninstaller/MainWindow.xaml:845` (`DockPanelBorder`) e `src/Tranal.Uninstaller/MainWindow.xaml.cs:998` (`RefreshDock`); a linha de comando `src/Tranal.Cli/ExtraCommands.cs:90` (`/painel`); os testes `src/Tranal.Tests/Lote17FeatureTests.cs`. Binario do concorrente: `Click push pin to keep open`, `Close Preview`, `Close Window`.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },

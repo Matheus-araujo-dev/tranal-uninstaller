@@ -45,6 +45,7 @@
       <ColumnDefinition Width="212" />
       <ColumnDefinition Width="*" />
       <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
 
     <!-- ================= BARRA LATERAL ================= -->
@@ -729,6 +730,7 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <TextBlock x:Name="ModuleHeader" Text="{loc:Tr Module.AllPrograms}" Margin="8,0"
                      VerticalAlignment="Center" FontWeight="SemiBold"
@@ -742,7 +744,15 @@
                   Style="{StaticResource FlatButton}" Margin="0,2,0,2" Padding="0"
                   Click="SettingsPanelButton_Click" AutomationProperties.AutomationId="CmdSettingsPanel"
                   ToolTip="{loc:Tr Sidebar.Settings}" />
-          <Button Grid.Column="2" x:Name="MainMenuButton" Content="&#x2630;" Width="34"
+          <!--
+            O painel ancorado: a ferramenta que o usuario fixou. O painel
+            continua na lateral quando o usuario troca de tela.
+          -->
+          <Button Grid.Column="2" x:Name="DockPanelButton" Content="&#x1F4CC;" Width="30"
+                  Style="{StaticResource FlatButton}" Margin="0,2,0,2" Padding="0"
+                  Click="DockPanelButton_Click" AutomationProperties.AutomationId="CmdDockPanel"
+                  ToolTip="{loc:Tr Panel.Dock}" />
+          <Button Grid.Column="3" x:Name="MainMenuButton" Content="&#x2630;" Width="34"
                   Style="{StaticResource FlatButton}" Margin="0,2,4,2" Padding="0"
                   Click="MainMenuButton_Click" AutomationProperties.AutomationId="CmdMainMenu"
                   ToolTip="Menu" />
@@ -826,6 +836,36 @@
             Background="{DynamicResource PanelBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
       <ui:SettingsSidebar x:Name="SettingsSidebarPanel" />
+    </Border>
+
+    <!--
+      O painel ancorado (o "push pin" do Uninstall Tool): a ferramenta que o
+      usuario fixou continua na lateral enquanto ele navega pelas outras.
+    -->
+    <Border Grid.Column="3" x:Name="DockPanelBorder" Visibility="Collapsed" Width="320"
+            Background="{DynamicResource PanelBrush}"
+            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" x:Name="DockPanelHeaderBorder" MinHeight="26"
+                Background="{DynamicResource HeaderBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+          <Grid>
+            <TextBlock x:Name="DockPanelTitle" Margin="8,0" VerticalAlignment="Center"
+                       FontWeight="SemiBold" Foreground="{DynamicResource TitleTextBrush}" />
+            <Button x:Name="DockPanelCloseButton" Content="&#x2715;" Width="26"
+                    HorizontalAlignment="Right" Style="{StaticResource FlatButton}"
+                    Margin="0,1,2,1" Padding="0"
+                    Click="DockPanelCloseButton_Click"
+                    AutomationProperties.AutomationId="CmdDockPanelClose"
+                    ToolTip="{loc:Tr Panel.Undock}" />
+          </Grid>
+        </Border>
+        <ContentControl Grid.Row="1" x:Name="DockPanelHost" />
+      </Grid>
     </Border>
   </Grid>
 </Window>

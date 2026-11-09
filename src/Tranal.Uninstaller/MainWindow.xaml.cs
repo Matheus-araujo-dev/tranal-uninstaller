@@ -38,6 +38,18 @@ public partial class MainWindow : Window
     private string _module = "AllPrograms";
 
     /// <summary>
+    /// A ferramenta cujo painel esta aberto na area principal. Vazio quando a
+    /// tela atual e a lista de programas (ou um modulo que nao e ferramenta).
+    /// </summary>
+    private string _ferramentaAtual = string.Empty;
+
+    /// <summary>
+    /// A ferramenta cujo painel esta ancorado na lateral. Serve para saber
+    /// se o painel ancorado precisa ser recriado.
+    /// </summary>
+    private string _painelAncorado = string.Empty;
+
+    /// <summary>
     /// Aviso sobre o arquivo de preferencias do usuario (comentarios,
     /// grupos, icones). Vazio quando esta tudo bem.
     ///
@@ -99,6 +111,11 @@ public partial class MainWindow : Window
 
         // Visibilidade dos paineis conforme as preferencias.
         ApplyLayout();
+
+        // O painel ancorado (a ferramenta fixada na lateral) e a
+        // pre-visualizacao das ferramentas na barra lateral.
+        RefreshDock();
+        RefreshToolPreviews();
 
         // As preferencias de layout tambem podem mudar pela janela de Opcoes:
         // o painel tem de refletir a mudanca sem esperar o proximo arranque.
@@ -844,6 +861,7 @@ public partial class MainWindow : Window
     private void SwitchView(string id, bool tool)
     {
         _module = id;
+        _ferramentaAtual = tool ? id : string.Empty;
 
         foreach (var child in ModulePanel.Children.OfType<Button>())
         {
@@ -869,6 +887,9 @@ public partial class MainWindow : Window
             SearchBox.IsEnabled = true;
             FilterButton.IsEnabled = true;
             _ = ReloadAsync();
+
+            RefreshDock();
+            RefreshToolPreviews();
             return;
         }
 
@@ -879,7 +900,16 @@ public partial class MainWindow : Window
 
         var view = ViewRegistry.Create(id);
         ContentHost.Content = view;
-        if (view is Ui.Shared.ItemListPanel panel) panel.PanelStatus = Loc.Get("Status.Loading");
+
+        if (view is Ui.Shared.ItemListPanel panel)
+        {
+            panel.PanelStatus = Loc.Get("Status.Loading");
+        }
+
+        AttachPanel(id, view);
+
+        RefreshDock();
+        RefreshToolPreviews();
     }
 
     /// <summary>Atualiza os textos fixos apos troca de idioma.</summary>
@@ -901,8 +931,17 @@ public partial class MainWindow : Window
         if (_module != "AllPrograms")
         {
             var view = ViewRegistry.Create(_module);
-            if (view is not null) ContentHost.Content = view;
+            if (view is not null)
+            {
+                ContentHost.Content = view;
+                AttachPanel(_module, view);
+            }
         }
+
+        // O painel ancorado e a pre-visualizacao tambem tem texto: eles
+        // mudam com o idioma.
+        RefreshDock(recriar: true);
+        RefreshToolPreviews();
     }
 
     /// <summary>
@@ -913,6 +952,122 @@ public partial class MainWindow : Window
         var key = $"Desc.{module}";
         var text = Loc.Get(key);
         return text == key ? string.Empty : text;
+    }
+
+    /// <summary>
+    /// Ancora (ou solta) o painel da ferramenta atual na lateral da janela.
+    ///
+    /// E o "push pin" do Uninstall Tool: a ferramenta que o usuario fixou
+    /// continua na lateral enquanto ele navega pelas outras.
+    /// </summary>
+    private void DockPanelButton_Click(object sender, RoutedEventArgs e)
+    {
+        var id = _ferramentaAtual;
+        if (id.Length == 0)
+        {
+            UpdateStatus();
+            StatusText.Text = Loc.Get("Panel.NoTool");
+            return;
+        }
+
+        DockedPanel.Toggle(id);
+
+        RefreshDock();
+        RefreshToolPreviews();
+        UpdateStatus();
+        StatusText.Text = DockedPanel.Describe();
+    }
+
+    /// <summary>Solta o painel ancorado.</summary>
+    private void DockPanelCloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        DockedPanel.Undock();
+
+        RefreshDock();
+        RefreshToolPreviews();
+        UpdateStatus();
+        StatusText.Text = DockedPanel.Describe();
+    }
+
+    /// <summary>
+    /// Mostra (ou esconde) o painel ancorado na lateral.
+    /// </summary>
+    /// <param name="recriar">
+    /// True quando o painel precisa ser recriado do zero (troca de idioma).
+    /// </param>
+    private void RefreshDock(bool recriar = false)
+    {
+        var id = DockedPanel.ToolId;
+
+        if (id.Length == 0)
+        {
+            DockPanelBorder.Visibility = Visibility.Collapsed;
+            DockPanelTitle.Text = string.Empty;
+            DockPanelHost.Content = null;
+            _painelAncorado = string.Empty;
+            return;
+        }
+
+        DockPanelBorder.Visibility = Visibility.Visible;
+        DockPanelTitle.Text = Loc.Get($"Module.{id}");
+
+        // O painel ancorado e uma tela propria: so e recriado quando a
+        // ferramenta ancorada muda, para nao perder o que ele ja carregou a
+        // cada troca de tela.
+        var atual = DockPanelHost.Content as FrameworkElement;
+        if (recriar || atual is null || !string.Equals(_painelAncorado, id, StringComparison.OrdinalIgnoreCase))
+        {
+            var view = ViewRegistry.Create(id);
+            AttachPanel(id, view);
+            DockPanelHost.Content = view;
+        }
+
+        _painelAncorado = id;
+    }
+
+    /// <summary>
+    /// Liga um painel recem-criado a pre-visualizacao da barra lateral.
+    /// </summary>
+    /// <param name="id">O identificador da ferramenta.</param>
+    /// <param name="view">A tela recem-criada.</param>
+    private void AttachPanel(string id, FrameworkElement? view)
+    {
+        if (view is not Ui.Shared.ItemListPanel panel) return;
+
+        // O painel recem-criado ainda nao carregou nada: a pre-visualizacao
+        // fica sem numero ate ele carregar de verdade. O numero antigo (de
+        // uma tela anterior) ja nao vale.
+        PanelPreview.Forget(id);
+        panel.ContentChanged += (_, _) => PublishPreview(id, panel);
+    }
+
+    /// <summary>
+    /// Publica o que um painel carregou e atualiza a pre-visualizacao.
+    /// </summary>
+    /// <param name="id">O identificador da ferramenta.</param>
+    /// <param name="panel">O painel que carregou.</param>
+    private void PublishPreview(string id, Ui.Shared.ItemListPanel panel)
+    {
+        PanelPreview.Publish(id, panel.ItemCount);
+        RefreshToolPreviews();
+    }
+
+    /// <summary>
+    /// Atualiza a pre-visualizacao das ferramentas da barra lateral.
+    ///
+    /// O texto vem do nucleo (<see cref="PanelPreview"/>): o nome, a
+    /// descricao e o que o painel ja encontrou. O numero so entra depois que
+    /// o painel carregou — antes disso nao ha nada a mostrar.
+    /// </summary>
+    private void RefreshToolPreviews()
+    {
+        foreach (var botao in ToolPanel.Children.OfType<Button>())
+        {
+            var id = botao.Tag?.ToString();
+            if (string.IsNullOrEmpty(id)) continue;
+
+            botao.ToolTip = PanelPreview.Text(id, Loc.Get($"Module.{id}"), DescriptionFor(id));
+        }
     }
 
     // ------------------------------------------------------------------

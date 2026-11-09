@@ -1,5 +1,6 @@
 using System.Text;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
@@ -26,6 +27,9 @@ namespace Tranal.Cli;
 ///   tranal /plan "programa"              - mostra o plano de desinstalacao, sem executar
 ///   tranal /batch "arquivo" [/remove]    - desinstalacao em lote a partir de um arquivo de lista
 ///   tranal /switches                     - lista os switches de linha de comando de cada ferramenta
+///   tranal /painel                      - mostra o painel ancorado e as ferramentas
+///   tranal /painel /dock "Id"           - ancora o painel de uma ferramenta na lateral
+///   tranal /painel /undock              - solta o painel ancorado
 ///   tranal /regclean                     - lista as sobras de registro por categoria
 ///   tranal /regclean "ActiveX" /remove   - remove as sobras de uma categoria
 ///   tranal /com-unregister "C:\Pasta"    - lista e desregistra os componentes COM
@@ -83,6 +87,7 @@ public static class ExtraCommands
         if (flags.Contains("/plan")) return RunPlan(args);
         if (flags.Contains("/batch")) return RunBatch(args, flags);
         if (flags.Contains("/switches")) return RunSwitches();
+        if (flags.Contains("/painel")) return RunDockPanel(args, flags);
         if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
@@ -1118,6 +1123,60 @@ public static class ExtraCommands
         Console.WriteLine();
         Console.WriteLine("A forma longa que executa a ferramenta é o nome com o sufixo "
                           + $"{CliToolSwitchCatalog.RunSuffix} (ex.: --temporarios-run).");
+        return 0;
+    }
+
+    // ------------------------------------------------------------------
+    // O painel ancorado (o "push pin" do Uninstall Tool)
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// O painel ancorado e a pre-visualizacao das ferramentas.
+    ///
+    /// A regra mora no nucleo (<c>Core/Appearance/DockedPanel.cs</c>): a linha
+    /// de comando e a janela leem o mesmo modulo, e nenhuma delas reescreve a
+    /// decisao por conta propria.
+    /// </summary>
+    private static int RunDockPanel(string[] args, HashSet<string> flags)
+    {
+        if (flags.Contains("/undock"))
+        {
+            DockedPanel.Undock();
+            Console.WriteLine("Painel ancorado solto.");
+            return 0;
+        }
+
+        var alvo = CliArgs.ValueAfter(args, "/dock");
+        if (!string.IsNullOrWhiteSpace(alvo))
+        {
+            var id = alvo.Trim();
+            if (!ToolCatalog.All.Contains(id, StringComparer.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Ferramenta desconhecida: {id}");
+                Console.WriteLine("Use /painel para ver a lista de ferramentas.");
+                return 1;
+            }
+
+            DockedPanel.Toggle(id);
+            Console.WriteLine(DockedPanel.Describe());
+            return 0;
+        }
+
+        Console.WriteLine(DockedPanel.Describe());
+        Console.WriteLine();
+        Console.WriteLine("Ferramentas (id - nome):");
+
+        foreach (var id in ToolCatalog.All)
+        {
+            var nome = Loc.Get($"Module.{id}");
+            var descricao = Loc.Get($"Desc.{id}");
+            if (descricao == $"Desc.{id}") descricao = string.Empty;
+
+            var linha = $"  {id}  -  {nome}";
+            if (descricao.Length > 0) linha += $"  ({descricao})";
+            Console.WriteLine(linha);
+        }
+
         return 0;
     }
 }

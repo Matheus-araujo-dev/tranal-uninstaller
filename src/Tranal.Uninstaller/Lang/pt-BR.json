@@ -1444,5 +1444,12 @@
     "Cmd.DonateUrl":  "https://github.com/sponsors/Matheus-araujo-dev",
     "Tool.Notifications.Sender":  "Remetente",
     "Options.AccessibilityMode":  "Modo de acessibilidade (leitor de tela, foco visivel)",
-    "Options.FastMode":  "Modo rapido (pula as verificacoes lentas)"
+    "Options.FastMode":  "Modo rapido (pula as verificacoes lentas)",
+    "Panel.Dock":  "Fixar este painel na lateral",
+    "Panel.Undock":  "Soltar o painel ancorado",
+    "Panel.Docked":  "Painel ancorado: {0}",
+    "Panel.NoneDocked":  "Nenhum painel ancorado.",
+    "Panel.NoTool":  "Abra uma ferramenta para fixar o painel dela.",
+    "Preview.OneItem":  "{0} item encontrado",
+    "Preview.ManyItems":  "{0} itens encontrados"
 }

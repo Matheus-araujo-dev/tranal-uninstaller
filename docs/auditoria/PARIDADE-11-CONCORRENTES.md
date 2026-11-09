@@ -21,11 +21,11 @@ colunas.
 | IOBIT | 40 | 27 | 8 | 1 | 4 | 0 | 77.5% |
 | SOFTORGANIZER | 77 | 58 | 18 | 0 | 1 | 0 | 76.6% |
 | TOTALUNINSTALL | 94 | 61 | 29 | 0 | 4 | 0 | 69.1% |
-| UNINSTALLTOOL | 94 | 60 | 27 | 2 | 5 | 0 | 69.1% |
+| UNINSTALLTOOL | 94 | 61 | 27 | 1 | 5 | 0 | 70.2% |
 | UNINSTALR | 51 | 36 | 12 | 0 | 3 | 0 | 76.5% |
 | WISE | 86 | 53 | 30 | 0 | 3 | 0 | 65.1% |
 | REVO PRO 5.5.4 | 70 | 68 | 0 | 0 | 2 | 0 | 100% |
-| **TOTAL** | **795** | **558** | **202** | **3** | **32** | **0** | **74.2%** |
+| **TOTAL** | **795** | **559** | **202** | **2** | **32** | **0** | **74.3%** |
 
 Apuracoes linha a linha aplicadas: 506.
 
@@ -35,11 +35,10 @@ Apuracoes linha a linha aplicadas: 506.
 
 | # | Funcionalidade | Evidencia no codigo |
 |---|---|---|
-| 34 | Integração com a **Central de Ações do Windows** (Action Center) | Integração com a **Central de Ações do Windows** (Action Center)/grep "ActionCenter" em src/ -> 0 hits |
+| 34 | Integração com a **Central de Ações do Windows** (Action Center) | Integração com a **Central de Ações do Windows** (Action Center)/grep "ActionCenter" em src/ -> 0 hits; MEDIDO em 09/11/2026: o balao da bandeja com `SetCurrentProcessExplicitAppUserModelID` (retorno 0x00000000) e `Shell_NotifyIcon` (ADD, SETVERSION e MODIFY com NIF_INFO, todos True) **nao entra** na Central de Acoes — a contagem do banco real `%LOCALAPPDATA%\Microsoft\Windows\Notifications\wpndatabase.db` ficou em 27 antes e 27 depois, com o mesmo `Order` maximo (1336). O detalhe esta em `docs/auditoria/EVIDENCIA-CENTRAL-ACoes.md`. |
 
-### UNINSTALLTOOL — 2
+### UNINSTALLTOOL — 1
 
 | # | Funcionalidade | Evidencia no codigo |
 |---|---|---|
 | 46 | Extensão de shell **empacotada em MSIX** para o Windows 11 | Extensão de shell **empacotada em MSIX** para o Windows 11/o instalador (`installer/tranal.iss`) cria grupo e area de trabalho; nao ha empacotamento MSIX da extensao de shell. |
-| 85 | **Painéis ancoráveis** ("push pin") com pré-visualização | **Painéis ancoráveis** ("push pin") com pré-visualização/grep "PushPin" em src/ -> 0 hits |

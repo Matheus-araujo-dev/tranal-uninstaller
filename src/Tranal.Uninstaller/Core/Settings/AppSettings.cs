@@ -461,6 +461,12 @@ public sealed class AppSettings
     public bool ShowNewProgramsPopup { get; set; } = true;
 
     /// <summary>
+    /// A ferramenta cujo painel fica ancorado na lateral da janela. Vazio
+    /// quando nenhum painel esta ancorado.
+    /// </summary>
+    public string DockedToolId { get; set; } = string.Empty;
+
+    /// <summary>
     /// Liga o agente de fundo: um processo leve que fica de olho na maquina
     /// e avisa quando algo muda. Padrao: <c>false</c>.
     /// </summary>
@@ -505,6 +511,16 @@ public static class AppSettingsStore
 
     /// <summary>Preferencias em memoria (carregadas uma unica vez).</summary>
     public static AppSettings Current => _current ??= Load();
+
+    /// <summary>
+    /// Esquece as preferencias que estao em memoria.
+    ///
+    /// Existe para os testes: um teste que grava as preferencias em um
+    /// arquivo temporario deixa o objeto em memoria apontando para aquele
+    /// arquivo. Sem esquecer, o teste seguinte leria as preferencias do
+    /// temporario e as gravaria no arquivo real do usuario.
+    /// </summary>
+    internal static void ResetCurrent() => _current = null;
 
     /// <summary>Dispara quando as preferencias mudam em disco.</summary>
     public static event EventHandler? Saved;
@@ -588,6 +604,7 @@ public static class AppSettingsStore
         if (string.IsNullOrWhiteSpace(settings.Language)) settings.Language = "pt-BR";
         if (string.IsNullOrWhiteSpace(settings.ColorVisionMode)) settings.ColorVisionMode = "Standard";
         settings.RecentPrograms ??= new List<string>();
+        settings.DockedToolId ??= string.Empty;
         settings.PortableDataFolder ??= string.Empty;
         settings.WebSearchEngine ??= string.Empty;
         settings.WebSearchEngines ??= new List<string>();

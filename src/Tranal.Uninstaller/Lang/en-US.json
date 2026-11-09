@@ -1444,5 +1444,12 @@
     "Cmd.DonateUrl":  "https://github.com/sponsors/Matheus-araujo-dev",
     "Tool.Notifications.Sender":  "Sender",
     "Options.AccessibilityMode":  "Accessibility mode (screen reader, focus visuals)",
-    "Options.FastMode":  "Fast mode (skips the slow checks)"
+    "Options.FastMode":  "Fast mode (skips the slow checks)",
+    "Panel.Dock":  "Pin this panel to the side",
+    "Panel.Undock":  "Unpin the panel",
+    "Panel.Docked":  "Pinned panel: {0}",
+    "Panel.NoneDocked":  "No pinned panel.",
+    "Panel.NoTool":  "Open a tool to pin its panel.",
+    "Preview.OneItem":  "{0} item found",
+    "Preview.ManyItems":  "{0} items found"
 }

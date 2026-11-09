@@ -17,10 +17,10 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | IObit Uninstaller | 40 | 27 | 8 | 1 | 4 | 77.5% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
 | Total Uninstall | 94 | 61 | 29 | 0 | 4 | 69.1% |
-| Uninstall Tool | 94 | 60 | 27 | 2 | 5 | 69.1% |
+| Uninstall Tool | 94 | 61 | 27 | 1 | 5 | 70.2% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 53 | 30 | 0 | 3 | 65.1% |
-| **TOTAL** | **725** | **490** | **202** | **3** | **30** | **71.7%** |
+| **TOTAL** | **725** | **491** | **202** | **2** | **30** | **71.9%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -188,7 +188,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#12 | **Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL | PARCIAL | **PARCIAL** - **Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL/`src/Tranal.Uninstaller/Core/UninstallSupport.cs:49` (`public enum LeftoverReason`) `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:89` (`public static class ServiceManager`) **Nota**: DLL nao e um motivo de sobra no Tranal — a biblioteca compartilhada tem catalogo proprio (`Core/Modules/SharedDllCatalog.cs:60`). |
 | T4#21 | Monitor roda **em segundo plano no startup** | PARCIAL | **PARCIAL** - Monitor roda **em segundo plano no startup**/`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: o rastreio existe sob demanda, mas nao roda continuamente em segundo plano ao iniciar. |
 | T6#28 | Remoção de item fixado na barra de tarefas | PARCIAL | **PARCIAL** - Remoção de item fixado na barra de tarefas/`src/Tranal.Uninstaller/Core/Tools/EvidenceRemover.cs:72` (`ScanJumpLists`) **Nota**: as Jump Lists sao tratadas, mas o item fixado na barra de tarefas nao — a busca por "Taskbar" em `src/` so acha `ShowInTaskbar` das janelas. |
-| T7#34 | Integração com a **Central de Ações do Windows** (Action Center) | AUSENTE | **AUSENTE** - Integração com a **Central de Ações do Windows** (Action Center)/grep "ActionCenter" em src/ -> 0 hits |
+| T7#34 | Integração com a **Central de Ações do Windows** (Action Center) | AUSENTE | **AUSENTE** - Integração com a **Central de Ações do Windows** (Action Center)/grep "ActionCenter" em src/ -> 0 hits; MEDIDO em 09/11/2026: o balao da bandeja com `SetCurrentProcessExplicitAppUserModelID` (retorno 0x00000000) e `Shell_NotifyIcon` (ADD, SETVERSION e MODIFY com NIF_INFO, todos True) **nao entra** na Central de Acoes — a contagem do banco real `%LOCALAPPDATA%\Microsoft\Windows\Notifications\wpndatabase.db` ficou em 27 antes e 27 depois, com o mesmo `Order` maximo (1336). O detalhe esta em `docs/auditoria/EVIDENCIA-CENTRAL-ACoes.md`. |
 | T7#35 | Gerência de **tarefas agendadas** via COM Task Scheduler | PARCIAL | **PARCIAL** - Gerência de **tarefas agendadas** via COM Task Scheduler/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/AppPermissionManager.cs:134` (`ScheduledTaskManager.ListFor`) **Nota**: a gerencia existe, mas por `schtasks` e nao pela COM do Task Scheduler 1.0. |
 
 ## Soft Organizer
@@ -275,11 +275,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **60** |
+| **OK** | **61** |
 | PARCIAL | 27 |
-| AUSENTE | 2 |
+| AUSENTE | 1 |
 | FORA POR DECISAO | 5 |
-| **Cobertura** | **69.1%** |
+| **Cobertura** | **70.2%** |
 
 ### O que ainda falta
 
@@ -313,7 +313,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T6#75 | **Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável | PARCIAL | **PARCIAL** - **Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável/`src/Tranal.Uninstaller/Theming/ThemeManager.cs:41` (`public static class ThemeManager`) `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:315` (`public static class AppSettings`) **Nota**: a visibilidade das barras e os quatro temas existem; faltam as legendas nos botoes e a barra de status editavel. |
 | T6#80 | **Criar item personalizado na lista** | PARCIAL | **PARCIAL** - **Criar item personalizado na lista**/`src/Tranal.Uninstaller/Core/Automation/AdvancedUninstallReview.cs:89` (`public static class AdvancedUninstallReview`) **Nota**: existe a criacao assistida de item para quando o instalador nao deixou registro, mas ela nao entra na lista de programas. |
 | T6#84 | **Limpar o cache** da aplicação | PARCIAL | **PARCIAL** - **Limpar o cache** da aplicação/`src/Tranal.Uninstaller/Core/Settings/ProgramCache.cs:154` (`public static class ProgramCache`) **Nota**: o cache e invalidado e reconstruido na varredura seguinte; nao ha "limpar cache" como acao sobre o cache do aplicativo. |
-| T6#85 | **Painéis ancoráveis** ("push pin") com pré-visualização | AUSENTE | **AUSENTE** - **Painéis ancoráveis** ("push pin") com pré-visualização/grep "PushPin" em src/ -> 0 hits |
 
 ## Uninstalr
 
