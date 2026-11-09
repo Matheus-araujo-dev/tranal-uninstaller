@@ -151,6 +151,19 @@
 
         <!-- lista de modulos -->
         <StackPanel Grid.Row="5" x:Name="ModulePanel">
+          <!--
+            A Central: o que precisa de atencao na maquina, em um lugar so.
+            E o "Action Center" do IObit (medido no binario dele), sem a
+            propaganda de produtos: aqui cada item leva a ferramenta do
+            Tranal que age sobre ele.
+          -->
+          <Button x:Name="BtnCentral" Style="{StaticResource ModuleButton}" Tag="Central"
+                  Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleCentral">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F9ED;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Central}" />
+            </StackPanel>
+          </Button>
           <Button x:Name="BtnAllPrograms" Style="{StaticResource ModuleButtonSelected}" Tag="AllPrograms"
                   Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleAllPrograms">
             <StackPanel Orientation="Horizontal">

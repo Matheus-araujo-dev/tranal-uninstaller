@@ -1976,8 +1976,8 @@
                                    "recon":  34,
                                    "catalogo":  34,
                                    "catalogoId":  "T7#34",
-                                   "estado":  "AUSENTE",
-                                   "evidencia":  "Integração com a **Central de Ações do Windows** (Action Center)|grep \"ActionCenter\" em src/ -\u003e 0 hits; MEDIDO em 09/11/2026: o balao da bandeja com `SetCurrentProcessExplicitAppUserModelID` (retorno 0x00000000) e `Shell_NotifyIcon` (ADD, SETVERSION e MODIFY com NIF_INFO, todos True) **nao entra** na Central de Acoes — a contagem do banco real `%LOCALAPPDATA%\\Microsoft\\Windows\\Notifications\\wpndatabase.db` ficou em 27 antes e 27 depois, com o mesmo `Order` maximo (1336). O detalhe esta em `docs/auditoria/EVIDENCIA-CENTRAL-ACoes.md`.",
+                                   "estado":  "OK",
+                                   "evidencia":  "**Painel \"Action Center\"**: o estado de cada area e a acao de cada item, em um painel so|Binario do concorrente: `lng-english-plano.txt` → `[ActionCenter_M]` (`M_Outdated=Outdated`, `M_NotInstalled=Not installed`, `M_Insatlled=Installed`, `M_Fix=Install now`, `M_RunASC=Scan now`, `M_LearnMore=Learn more`); `strings-IObitUninstaler.txt:12039` → `TFrameActionCenter8`; `:12040` → `UnitActionCenter8`; `:11991` → `TActionCenterAppList`; `:13436` → `btn_ActionCenter`; `lng-english-plano.txt` → `[ACD_frmActionCenter]` (`lblCaption.Caption=IObit Downloader`). No Tranal a mesma forma (itens com estado e acao) serve as capacidades do proprio Tranal: a regra `src/Tranal.Uninstaller/Core/Modules/CentralOverview.cs` (`CentralOverview.Build`); a tela `src/Tranal.Uninstaller/Ui/Modules/CentralView.cs`; a janela `src/Tranal.Uninstaller/MainWindow.xaml` (botao `BtnCentral`) e `src/Tranal.Uninstaller/MainWindow.xaml.cs` (`OpenTool`); a linha de comando `src/Tranal.Cli/ExtraCommands.cs` (`/central`); os testes `src/Tranal.Tests/CentralFeatureTests.cs`.",
                                    "via":  "id",
                                    "motivo":  ""
                                },

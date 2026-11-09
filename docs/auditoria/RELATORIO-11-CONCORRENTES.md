@@ -14,13 +14,13 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Bulk Cookie Uninstaller | 97 | 72 | 23 | 0 | 2 | 76.3% |
 | Geek Uninstaller | 44 | 30 | 14 | 0 | 0 | 68.2% |
 | HiBit Uninstaller | 66 | 42 | 20 | 0 | 4 | 69.7% |
-| IObit Uninstaller | 40 | 27 | 8 | 1 | 4 | 77.5% |
+| IObit Uninstaller | 40 | 28 | 8 | 0 | 4 | 80.0% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
 | Total Uninstall | 94 | 61 | 29 | 0 | 4 | 69.1% |
 | Uninstall Tool | 94 | 61 | 27 | 1 | 5 | 70.2% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 53 | 30 | 0 | 3 | 65.1% |
-| **TOTAL** | **725** | **491** | **202** | **2** | **30** | **71.9%** |
+| **TOTAL** | **725** | **492** | **202** | **1** | **30** | **72.0%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -171,11 +171,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 40 |
-| **OK** | **27** |
+| **OK** | **28** |
 | PARCIAL | 8 |
-| AUSENTE | 1 |
+| AUSENTE | 0 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **77.5%** |
+| **Cobertura** | **80.0%** |
 
 ### O que ainda falta
 
@@ -188,7 +188,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#12 | **Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL | PARCIAL | **PARCIAL** - **Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL/`src/Tranal.Uninstaller/Core/UninstallSupport.cs:49` (`public enum LeftoverReason`) `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:89` (`public static class ServiceManager`) **Nota**: DLL nao e um motivo de sobra no Tranal — a biblioteca compartilhada tem catalogo proprio (`Core/Modules/SharedDllCatalog.cs:60`). |
 | T4#21 | Monitor roda **em segundo plano no startup** | PARCIAL | **PARCIAL** - Monitor roda **em segundo plano no startup**/`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: o rastreio existe sob demanda, mas nao roda continuamente em segundo plano ao iniciar. |
 | T6#28 | Remoção de item fixado na barra de tarefas | PARCIAL | **PARCIAL** - Remoção de item fixado na barra de tarefas/`src/Tranal.Uninstaller/Core/Tools/EvidenceRemover.cs:72` (`ScanJumpLists`) **Nota**: as Jump Lists sao tratadas, mas o item fixado na barra de tarefas nao — a busca por "Taskbar" em `src/` so acha `ShowInTaskbar` das janelas. |
-| T7#34 | Integração com a **Central de Ações do Windows** (Action Center) | AUSENTE | **AUSENTE** - Integração com a **Central de Ações do Windows** (Action Center)/grep "ActionCenter" em src/ -> 0 hits; MEDIDO em 09/11/2026: o balao da bandeja com `SetCurrentProcessExplicitAppUserModelID` (retorno 0x00000000) e `Shell_NotifyIcon` (ADD, SETVERSION e MODIFY com NIF_INFO, todos True) **nao entra** na Central de Acoes — a contagem do banco real `%LOCALAPPDATA%\Microsoft\Windows\Notifications\wpndatabase.db` ficou em 27 antes e 27 depois, com o mesmo `Order` maximo (1336). O detalhe esta em `docs/auditoria/EVIDENCIA-CENTRAL-ACoes.md`. |
 | T7#35 | Gerência de **tarefas agendadas** via COM Task Scheduler | PARCIAL | **PARCIAL** - Gerência de **tarefas agendadas** via COM Task Scheduler/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/AppPermissionManager.cs:134` (`ScheduledTaskManager.ListFor`) **Nota**: a gerencia existe, mas por `schtasks` e nao pela COM do Task Scheduler 1.0. |
 
 ## Soft Organizer

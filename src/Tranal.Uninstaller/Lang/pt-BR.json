@@ -1451,5 +1451,22 @@
     "Panel.NoneDocked":  "Nenhum painel ancorado.",
     "Panel.NoTool":  "Abra uma ferramenta para fixar o painel dela.",
     "Preview.OneItem":  "{0} item encontrado",
-    "Preview.ManyItems":  "{0} itens encontrados"
+    "Preview.ManyItems":  "{0} itens encontrados",
+    "Module.Central":  "Central",
+    "Desc.Central":  "O que precisa de atencao na maquina, em um lugar so.",
+    "Central.Column.Item":  "Item",
+    "Central.Column.Kind":  "Area",
+    "Central.Column.Priority":  "Prioridade",
+    "Central.Column.Detail":  "Detalhe",
+    "Central.Open":  "Abrir a ferramenta",
+    "Central.Empty":  "Nada precisa de atencao agora.",
+    "Central.Summary":  "{0} item(ns) precisam de atencao",
+    "Central.NoAction":  "Este item nao tem acao directe.",
+    "Central.Kind.Update":  "Atualizacao",
+    "Central.Kind.NewProgram":  "Programa novo",
+    "Central.Kind.Health":  "Saude",
+    "Central.Kind.SelfUpdate":  "Tranal",
+    "Central.Priority.High":  "Alta",
+    "Central.Priority.Medium":  "Media",
+    "Central.Priority.Low":  "Baixa"
 }

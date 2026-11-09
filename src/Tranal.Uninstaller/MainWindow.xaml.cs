@@ -912,6 +912,22 @@ public partial class MainWindow : Window
         RefreshToolPreviews();
     }
 
+    /// <summary>
+    /// Abre a tela de uma ferramenta.
+    ///
+    /// E o que a Central usa: a acao de um item leva para a ferramenta que
+    /// age sobre ele. A troca passa pelo mesmo caminho do clique na barra
+    /// lateral — o botao fica marcado e o cabecalho muda.
+    /// </summary>
+    /// <param name="toolId">O identificador da ferramenta.</param>
+    public void OpenTool(string toolId)
+    {
+        if (string.IsNullOrWhiteSpace(toolId)) return;
+        if (!ToolCatalog.All.Contains(toolId, StringComparer.OrdinalIgnoreCase)) return;
+
+        SwitchView(toolId, tool: true);
+    }
+
     /// <summary>Atualiza os textos fixos apos troca de idioma.</summary>
     private void RefreshLocalizedTexts()
     {

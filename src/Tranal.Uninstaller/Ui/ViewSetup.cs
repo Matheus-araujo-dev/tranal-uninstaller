@@ -13,6 +13,11 @@ public static class ViewSetup
 {
     public static void RegisterAll(MainWindow host)
     {
+        // A Central: o resumo do que precisa de atencao. E a unica tela que
+        // junta areas diferentes — cada item leva a ferramenta que age
+        // sobre ele.
+        ViewRegistry.Register("Central", () => CentralView.Create(host));
+
         // Modulos de dados
         ViewRegistry.Register("TracedPrograms", () => ModuleViews.Create("TracedPrograms", host));
         ViewRegistry.Register("WindowsApps", () => ModuleViews.Create("WindowsApps", host));

@@ -18,6 +18,7 @@
     <Border Grid.Row="0" Background="{DynamicResource HeaderBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="8,5">
       <TextBlock x:Name="TitleText" Text="" FontWeight="SemiBold"
+                 AutomationProperties.AutomationId="PanelTitle"
                  Foreground="{DynamicResource TitleTextBrush}" />
     </Border>
 
@@ -35,6 +36,7 @@
 
     <!-- Lista -->
     <ListView x:Name="ItemsList" Grid.Row="2" BorderThickness="0"
+              AutomationProperties.AutomationId="PanelItems"
               Background="{DynamicResource PanelBrush}" AlternationCount="2"
               SelectionMode="Extended"
               ScrollViewer.CanContentScroll="True"
@@ -45,6 +47,7 @@
     <Border Grid.Row="3" Background="{DynamicResource StatusBarBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
       <TextBlock x:Name="PanelStatusText" Margin="8,0" VerticalAlignment="Center"
+                 AutomationProperties.AutomationId="PanelStatus"
                  Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
     </Border>
   </Grid>

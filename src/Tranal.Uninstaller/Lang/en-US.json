@@ -1451,5 +1451,22 @@
     "Panel.NoneDocked":  "No pinned panel.",
     "Panel.NoTool":  "Open a tool to pin its panel.",
     "Preview.OneItem":  "{0} item found",
-    "Preview.ManyItems":  "{0} items found"
+    "Preview.ManyItems":  "{0} items found",
+    "Module.Central":  "Central",
+    "Desc.Central":  "What needs attention on this machine, in one place.",
+    "Central.Column.Item":  "Item",
+    "Central.Column.Kind":  "Area",
+    "Central.Column.Priority":  "Priority",
+    "Central.Column.Detail":  "Detail",
+    "Central.Open":  "Open the tool",
+    "Central.Empty":  "Nothing needs attention right now.",
+    "Central.Summary":  "{0} item(s) need attention",
+    "Central.NoAction":  "This item has no direct action.",
+    "Central.Kind.Update":  "Update",
+    "Central.Kind.NewProgram":  "New program",
+    "Central.Kind.Health":  "Health",
+    "Central.Kind.SelfUpdate":  "Tranal",
+    "Central.Priority.High":  "High",
+    "Central.Priority.Medium":  "Medium",
+    "Central.Priority.Low":  "Low"
 }

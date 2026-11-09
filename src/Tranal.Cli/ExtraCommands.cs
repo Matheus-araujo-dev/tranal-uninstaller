@@ -6,6 +6,7 @@ using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Tools;
+using Tranal.Uninstaller.Core.Updates;
 
 namespace Tranal.Cli;
 
@@ -30,6 +31,7 @@ namespace Tranal.Cli;
 ///   tranal /painel                      - mostra o painel ancorado e as ferramentas
 ///   tranal /painel /dock "Id"           - ancora o painel de uma ferramenta na lateral
 ///   tranal /painel /undock              - solta o painel ancorado
+///   tranal /central                     - mostra o que precisa de atencao na maquina
 ///   tranal /regclean                     - lista as sobras de registro por categoria
 ///   tranal /regclean "ActiveX" /remove   - remove as sobras de uma categoria
 ///   tranal /com-unregister "C:\Pasta"    - lista e desregistra os componentes COM
@@ -88,6 +90,7 @@ public static class ExtraCommands
         if (flags.Contains("/batch")) return RunBatch(args, flags);
         if (flags.Contains("/switches")) return RunSwitches();
         if (flags.Contains("/painel")) return RunDockPanel(args, flags);
+        if (flags.Contains("/central")) return RunCentral();
         if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
@@ -1125,6 +1128,103 @@ public static class ExtraCommands
                           + $"{CliToolSwitchCatalog.RunSuffix} (ex.: --temporarios-run).");
         return 0;
     }
+
+    // ------------------------------------------------------------------
+    // A Central: o que precisa de atencao na maquina
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// A Central: um resumo, em um lugar so, do que precisa de atencao.
+    ///
+    /// E o "Action Center" do IObit (medido no binario dele), sem a
+    /// propaganda de produtos: aqui cada item leva a ferramenta do Tranal
+    /// que age sobre ele.
+    ///
+    /// A regra mora no nucleo (<c>Core/Modules/CentralOverview.cs</c>): a
+    /// linha de comando e a janela leem o mesmo modulo.
+    /// </summary>
+    private static int RunCentral()
+    {
+        var instalados = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = false,
+            IncludeMsiProducts = true,
+        });
+
+        UpdatePlan? plano = null;
+        try
+        {
+            plano = UpdateService.AtualizadorDeProgramas().MontarPlanoAsync(instalados).GetAwaiter().GetResult();
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or TaskCanceledException)
+        {
+            // Sem rede: a Central mostra as outras areas.
+        }
+
+        string? versaoTranal = null;
+        try
+        {
+            var check = UpdateService.VerificarTranalAsync().GetAwaiter().GetResult();
+            if (check.Success) versaoTranal = check.LatestVersion;
+        }
+        catch (Exception ex) when (ex is System.Net.Http.HttpRequestException or TaskCanceledException)
+        {
+            // Mesma coisa: a versao do Tranal e uma das areas, nao a Central.
+        }
+
+        var report = CentralOverview.Build(instalados, plano, versaoTranal);
+
+        if (report.IsClear)
+        {
+            Console.WriteLine("Nada precisa de atencao agora.");
+            return 0;
+        }
+
+        var areas = new[]
+        {
+            CentralKind.SelfUpdate,
+            CentralKind.Update,
+            CentralKind.NewProgram,
+            CentralKind.Health,
+        };
+
+        foreach (var area in areas)
+        {
+            var itens = report.Items.Where(i => i.Kind == area).ToList();
+            if (itens.Count == 0) continue;
+
+            Console.WriteLine($"{TituloDaArea(area)} ({itens.Count}):");
+
+            foreach (var item in itens)
+            {
+                Console.WriteLine($"  [{TituloDaPrioridade(item.Priority)}] {item.Title}");
+                if (item.Detail.Length > 0) Console.WriteLine($"      {item.Detail}");
+                if (item.ToolId.Length > 0) Console.WriteLine($"      ferramenta: {item.ToolId}");
+            }
+
+            Console.WriteLine();
+        }
+
+        return 0;
+    }
+
+    /// <summary>O nome da area, em portugues.</summary>
+    private static string TituloDaArea(CentralKind kind) => kind switch
+    {
+        CentralKind.Update => "Atualizacoes",
+        CentralKind.NewProgram => "Programas novos",
+        CentralKind.Health => "Saude",
+        CentralKind.SelfUpdate => "Tranal",
+        _ => "Outros",
+    };
+
+    /// <summary>O nome da prioridade, em portugues.</summary>
+    private static string TituloDaPrioridade(CentralPriority priority) => priority switch
+    {
+        CentralPriority.High => "alta",
+        CentralPriority.Medium => "media",
+        _ => "baixa",
+    };
 
     // ------------------------------------------------------------------
     // O painel ancorado (o "push pin" do Uninstall Tool)

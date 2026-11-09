@@ -73,6 +73,18 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-painel-ancorado.ps1 `
             -Exe publish\preview\TranalUninstaller.exe
 
+      # A Central (o "Action Center" do IObit): o botao da barra lateral abre a
+      # tela, a tela carrega e a linha de status chega ao resumo. A suite de
+      # testes cobre o nucleo (CentralOverview); este passo cobre a ligacao
+      # com a interface, que a suite nao alcanca (ela nao referencia o
+      # projeto WPF).
+      - name: Central (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-central.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe
+
       - name: Publicar a CLI (arquivo unico, com o .NET embutido)
         shell: pwsh
         run: |
