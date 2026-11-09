@@ -443,6 +443,34 @@
               <TextBlock Text="{loc:Tr Module.RecycleBin}" />
             </StackPanel>
           </Button>
+
+          <!-- Inspecao: localizador, acoes agendadas e visor hexadecimal. -->
+          <TextBlock Text="{loc:Tr Sidebar.GroupInspect}" Margin="10,10,0,2"
+                     FontSize="11" FontWeight="Bold"
+                     Foreground="{DynamicResource TextDimBrush}" />
+          <Button Style="{StaticResource ModuleButton}" Tag="Finder" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolFinder">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F50D;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Finder}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="RunOnce" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolRunOnce">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x23F3;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.RunOnce}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="HexViewer" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolHexViewer">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4A3;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.HexViewer}" />
+            </StackPanel>
+          </Button>
         </StackPanel>
       </Grid>
     </Border>

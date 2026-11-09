@@ -127,6 +127,21 @@ public static class ToolCatalog
     /// </summary>
     public const string RecycleBin = "RecycleBin";
 
+    /// <summary>
+    /// Localizador de arquivos e chaves de registro pelo nome.
+    /// </summary>
+    public const string Finder = "Finder";
+
+    /// <summary>
+    /// Acoes agendadas para o proximo logon (RunOnce).
+    /// </summary>
+    public const string RunOnce = "RunOnce";
+
+    /// <summary>
+    /// Visor hexadecimal com a soma de verificacao do arquivo.
+    /// </summary>
+    public const string HexViewer = "HexViewer";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
     public const string HistoryCleaner = "HistoryCleaner";    /// <summary>Tracks Cleaner: modulo dos navegadores.</summary>
     public const string TracksBrowsers = "TracksBrowsers";
@@ -162,6 +177,9 @@ public static class ToolCatalog
         MruCleaner,
         SharedDlls,
         RecycleBin,
+        Finder,
+        RunOnce,
+        HexViewer,
         CustomTools,
         Processes,
         SystemManagement,
