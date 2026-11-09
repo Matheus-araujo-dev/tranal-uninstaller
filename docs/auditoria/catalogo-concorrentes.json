@@ -588,8 +588,8 @@
                                                          "id":  "T7#73",
                                                          "funcionalidade":  "Instalador protegido por senha (criptografia ChaCha20 do setup)",
                                                          "evidencia":  "`ashampoo-instalador.inventario.md:9` → classe RTTI `TChaCha20Context`; `ashampoo-instalador.strings.txt` → `TSetupEncryptionKey`, `The password you specified is not correct. Please try again.`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Instalador protegido por senha (criptografia ChaCha20 do setup)/grep \"Password\" em `installer/tranal.iss` -\u003e 0 hits; o Inno Setup do Tranal nao define `Password=` nem `Encryption=`"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Instalador protegido por senha (criptografia ChaCha20 do setup)/a criptografia do setup `installer/tranal.iss:114`; a senha vinda da linha de comando do publicador `installer/tranal.iss:64`"
                                                      },
                                                      {
                                                          "numero":  74,
@@ -604,8 +604,8 @@
                                                          "id":  "T7#75",
                                                          "funcionalidade":  "Manifesto que redireciona DLLs de sistema (`comctl32`, `mpr`, `netapi32`, `netutils`, `textshaping`, `version`)",
                                                          "evidencia":  "`ashampoo-instalador.strings.txt:66-71` → `file name=\"comctl32.dll\" loadFrom=\"%SystemRoot%\\system32\\\" /` e equivalentes",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Manifesto que redireciona DLLs de sistema (`comctl32`, `mpr`, `netapi32`, `netutils`, `textshaping`, `version`)/grep \"comctl32\" e \"loadFrom\" em `installer/tranal.iss` -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Manifesto que redireciona DLLs de sistema (`comctl32`, `mpr`, `netapi32`, `netutils`, `textshaping`, `version`)/o modulo do manifesto `Core/Tools/SxSManifest.cs:22`; as DLLs de sistema declaradas `Core/Tools/SxSManifest.cs:35`"
                                                      },
                                                      {
                                                          "numero":  76,
@@ -2352,8 +2352,8 @@
                                                          "id":  "T2#7",
                                                          "funcionalidade":  "**Stubborn Program Remover** com base de **4.000+ programas** travados",
                                                          "evidencia":  "`iobit.strings.txt:11326` → `TStubbornData`; `:11327` → `StubbornHelper`; `:11330` → `TStubbronUninstallManager`; `:11332` → `TStubbornCheckThread`; `iobit.recursos.txt:121` → `TFORM_CHECKSTUBBRON/0`; `:127` → `TFORM_FORCESTUBBRON/0`; `:142` → `TFORM_STUBBORNTOOL/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Stubborn Program Remover** com base de **4.000+ programas** travados/grep \"Stubborn\" em src/ -\u003e 0 hits o Tranal tem desinstalacao forcada por alvo (`Core/Automation/ForcedRemovalOptions.cs`) e remocao manual assistida (`Core/Automation/ManualRemoval.cs`) — mas nao ha base de conhecimento"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Stubborn Program Remover** com base de **4.000+ programas** travados/o modulo do removedor teimoso `Core/Automation/StubbornRemover.cs:60`; a medicao do que trava a remocao `Core/Automation/StubbornRemover.cs:82`"
                                                      },
                                                      {
                                                          "numero":  8,
@@ -2855,8 +2855,8 @@
                                                          "id":  "T2#29",
                                                          "funcionalidade":  "Aviso para melhorar a qualidade do rastreio",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Aviso para melhorar a qualidade do rastreio/grep \"TraceQuality\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Aviso para melhorar a qualidade do rastreio/o modulo do aviso sobre a qualidade do rastreio `Core/Modules/TraceQuality.cs:38`; a leitura do estado do aviso `Core/Modules/TraceQuality.cs:62`"
                                                      },
                                                      {
                                                          "numero":  30,
@@ -3111,8 +3111,8 @@
                                                          "id":  "T5#61",
                                                          "funcionalidade":  "**Descoberta de dispositivos Bluetooth LE**",
                                                          "evidencia":  "`identificadores.txt:58` → `Windows.Devices.Bluetooth`; `strings.txt:15394` → `TWinRTBluetoothLEAdapter`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Descoberta de dispositivos Bluetooth LE/grep \"Bluetooth\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Descoberta de dispositivos Bluetooth LE/o modulo dos dispositivos Bluetooth `Core/Discovery/BluetoothLeDevices.cs:37`; o reconhecimento do Bluetooth LE `Core/Discovery/BluetoothLeDevices.cs:107`"
                                                      },
                                                      {
                                                          "numero":  62,
