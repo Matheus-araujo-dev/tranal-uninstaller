@@ -120,6 +120,10 @@ public static class Program
         var guardas = GuardCommands.TryRun(effective, flags);
         if (guardas.HasValue) return guardas.Value;
 
+        // As acoes de energia e o programa dormente.
+        var energia = PowerCommands.TryRun(effective, flags);
+        if (energia.HasValue) return energia.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

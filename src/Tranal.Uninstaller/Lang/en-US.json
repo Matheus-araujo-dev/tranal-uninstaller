@@ -1227,4 +1227,62 @@
     "Tool.FailedUninstalls.Error": "The cleanup was not complete: {0}"
 ,
     "Options.ProtectPersonalFiles": "Preserve personal files (documents, photos, videos)"
+,
+    "Module.PowerPlan": "Power"
+,
+    "Module.Hibernation": "Hibernation"
+,
+    "Tool.PowerPlan.Action": "Action"
+,
+    "Tool.PowerPlan.Deadline": "Deadline"
+,
+    "Tool.PowerPlan.State": "State"
+,
+    "Tool.PowerPlan.Shutdown": "Shut down"
+,
+    "Tool.PowerPlan.Restart": "Restart"
+,
+    "Tool.PowerPlan.Suspend": "Suspend"
+,
+    "Tool.PowerPlan.Hibernate": "Hibernate"
+,
+    "Tool.PowerPlan.Cancel": "Cancel"
+,
+    "Tool.PowerPlan.DeadlineTitle": "Time until the action"
+,
+    "Tool.PowerPlan.DeadlineLabel": "Seconds (minimum 5)"
+,
+    "Tool.PowerPlan.Scheduled": "Scheduled: {0}."
+,
+    "Tool.PowerPlan.Error": "The action could not be scheduled."
+,
+    "Tool.PowerPlan.Canceled": "Action canceled."
+,
+    "Tool.PowerPlan.Idle": "No power action scheduled."
+,
+    "Tool.PowerPlan.Counting": "counting down"
+,
+    "Tool.PowerPlan.Pending": "The action happens in {0} second(s)."
+,
+    "Tool.Hibernation.Program": "Program"
+,
+    "Tool.Hibernation.State": "State"
+,
+    "Tool.Hibernation.Location": "Folder"
+,
+    "Tool.Hibernation.Sleep": "Sleep"
+,
+    "Tool.Hibernation.Wake": "Wake"
+,
+    "Tool.Hibernation.Asleep": "asleep"
+,
+    "Tool.Hibernation.Awake": "awake"
+,
+    "Tool.Hibernation.Status": "{0} installed program(s), {1} asleep."
+,
+    "Tool.Hibernation.Error": "Not possible: {0}"
+,
+    "Cmd.StopScan": "Stop scan"
+,
+    "Status.ScanStopped": "Scan stopped — {0} program(s) read before the stop."
 }

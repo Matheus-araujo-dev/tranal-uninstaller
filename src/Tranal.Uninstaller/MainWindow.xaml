@@ -508,6 +508,22 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="PowerPlan" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolPowerPlan">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x23F8;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.PowerPlan}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="Hibernation" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolHibernation">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F634;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.Hibernation}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="RecycleBin" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolRecycleBin">
             <StackPanel Orientation="Horizontal">

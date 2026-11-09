@@ -1227,4 +1227,62 @@
     "Tool.FailedUninstalls.Error": "A limpeza nao ficou completa: {0}"
 ,
     "Options.ProtectPersonalFiles": "Preservar arquivos pessoais (documentos, fotos, videos)"
+,
+    "Module.PowerPlan": "Energia"
+,
+    "Module.Hibernation": "Dormencia"
+,
+    "Tool.PowerPlan.Action": "Acao"
+,
+    "Tool.PowerPlan.Deadline": "Prazo"
+,
+    "Tool.PowerPlan.State": "Estado"
+,
+    "Tool.PowerPlan.Shutdown": "Desligar"
+,
+    "Tool.PowerPlan.Restart": "Reiniciar"
+,
+    "Tool.PowerPlan.Suspend": "Suspender"
+,
+    "Tool.PowerPlan.Hibernate": "Hibernar"
+,
+    "Tool.PowerPlan.Cancel": "Cancelar"
+,
+    "Tool.PowerPlan.DeadlineTitle": "Prazo ate a acao"
+,
+    "Tool.PowerPlan.DeadlineLabel": "Segundos (minimo 5)"
+,
+    "Tool.PowerPlan.Scheduled": "Agendado: {0}."
+,
+    "Tool.PowerPlan.Error": "Nao foi possivel agendar a acao."
+,
+    "Tool.PowerPlan.Canceled": "Acao cancelada."
+,
+    "Tool.PowerPlan.Idle": "Nenhuma acao de energia agendada."
+,
+    "Tool.PowerPlan.Counting": "contando"
+,
+    "Tool.PowerPlan.Pending": "A acao acontece em {0} segundo(s)."
+,
+    "Tool.Hibernation.Program": "Programa"
+,
+    "Tool.Hibernation.State": "Estado"
+,
+    "Tool.Hibernation.Location": "Pasta"
+,
+    "Tool.Hibernation.Sleep": "Dormir"
+,
+    "Tool.Hibernation.Wake": "Acordar"
+,
+    "Tool.Hibernation.Asleep": "dormindo"
+,
+    "Tool.Hibernation.Awake": "acordado"
+,
+    "Tool.Hibernation.Status": "{0} programa(s) instalado(s), {1} dormindo."
+,
+    "Tool.Hibernation.Error": "Nao foi possivel: {0}"
+,
+    "Cmd.StopScan": "Parar varredura"
+,
+    "Status.ScanStopped": "Varredura interrompida — {0} programa(s) lido(s) ate a parada."
 }

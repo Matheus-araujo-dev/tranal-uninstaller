@@ -350,6 +350,54 @@ public static class ServiceManager
         }
     }
 
+    /// <summary>
+    /// Define o modo de inicializacao do servico.
+    ///
+    /// E o que permite devolver o servico ao modo que ele tinha: o
+    /// "acordar" de um programa dormente precisa devolver o Automatic para
+    /// Manual, e nao deixar tudo como Automatic.
+    /// </summary>
+    public static ManagementResult SetStartMode(WindowsService service, string startMode)
+    {
+        if (service is null) return ManagementResult.Fail("Servico nao informado.");
+        if (IsCritical(service))
+            return ManagementResult.Fail($"O servico '{service.Name}' e protegido pelo Windows e nao pode ser alterado aqui.");
+
+        var modo = (startMode ?? string.Empty).Trim();
+        if (modo.Length == 0)
+            return ManagementResult.Fail("Modo de inicializacao nao informado.");
+
+        if (ServiceStartMode(modo) == uint.MaxValue)
+            return ManagementResult.Fail($"Modo de inicializacao invalido: '{modo}'.");
+
+        return ChangeStartMode(service, modo, $"definido como {modo}");
+    }
+
+    /// <summary>Inicia o servico, se ele aceitar.</summary>
+    public static ManagementResult Start(WindowsService service)
+    {
+        if (service is null) return ManagementResult.Fail("Servico nao informado.");
+        if (IsCritical(service))
+            return ManagementResult.Fail($"O servico '{service.Name}' e protegido pelo Windows e nao pode ser iniciado aqui.");
+
+        try
+        {
+            using var wmi = Open(service.Name);
+            var result = Convert.ToUInt32(wmi.InvokeMethod("Start", null, null), CultureInfo.InvariantCulture);
+            if (result is 0 or 2)
+                return ManagementResult.Ok($"O servico '{service.DisplayName}' foi iniciado.");
+
+            return ManagementResult.Fail(
+                $"O Windows recusou iniciar o servico '{service.DisplayName}' (codigo {result}).");
+        }
+        catch (ManagementException ex)
+        {
+            return ManagementResult.Fail(
+                $"Nao foi possivel iniciar o servico '{service.DisplayName}': {ex.Message}",
+                RemovalOutcome.ErrorCodeOf(ex));
+        }
+    }
+
     /// <summary>Remove o servico do sistema.</summary>
     public static ManagementResult Delete(WindowsService service)
     {

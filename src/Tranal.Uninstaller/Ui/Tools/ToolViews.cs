@@ -38,6 +38,8 @@ public static class ToolViews
         ToolCatalog.DeepAnalysis => CreateDeepAnalysis(),
         ToolCatalog.InstallerGuard => CreateInstallerGuard(),
         ToolCatalog.FailedUninstalls => CreateFailedUninstalls(),
+        ToolCatalog.PowerPlan => CreatePowerPlan(),
+        ToolCatalog.Hibernation => CreateHibernation(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -897,6 +899,178 @@ public static class ToolViews
         {
             foreach (var item in panel.SelectedItems)
                 if (item is ToolRow row && row.Source is FailedUninstall falha) return falha;
+            return null;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // Energia: desligar, reiniciar, suspender ou hibernar com contagem
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreatePowerPlan()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.PowerPlan"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.PowerPlan.Action"), Width = 160, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.PowerPlan.Deadline"), Width = 140, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.PowerPlan.State"), Width = 320, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "PowerShutdown", Text = Loc.Get("Tool.PowerPlan.Shutdown"), Action = () => Agendar(panel, rows, PowerAction.Desligar) },
+                new CommandDef { AutomationId = "PowerRestart", Text = Loc.Get("Tool.PowerPlan.Restart"), Action = () => Agendar(panel, rows, PowerAction.Reiniciar) },
+                new CommandDef { AutomationId = "PowerSuspend", Text = Loc.Get("Tool.PowerPlan.Suspend"), Action = () => Agendar(panel, rows, PowerAction.Suspender) },
+                new CommandDef { AutomationId = "PowerHibernate", Text = Loc.Get("Tool.PowerPlan.Hibernate"), Action = () => Agendar(panel, rows, PowerAction.Hibernar) },
+                new CommandDef { AutomationId = "PowerCancel", Text = Loc.Get("Tool.PowerPlan.Cancel"), Action = () => Cancelar(panel, rows) },
+            });
+
+        panel.SetItems(rows);
+        Mostrar(panel, rows);
+        return panel;
+
+        static void Agendar(ItemListPanel panel, ObservableCollection<ToolRow> rows, PowerAction acao)
+        {
+            var dialogo = new InputDialog(
+                Loc.Get("Tool.PowerPlan.DeadlineTitle"),
+                (Loc.Get("Tool.PowerPlan.DeadlineLabel"), PowerPlanner.DefaultSeconds.ToString()));
+
+            if (dialogo.ShowDialog() != true) return;
+
+            var prazo = int.TryParse(dialogo.Value, out var segundos) ? segundos : PowerPlanner.DefaultSeconds;
+
+            var ok = PowerPlanner.Plan(acao, prazo);
+            panel.PanelStatus = ok
+                ? Loc.Get("Tool.PowerPlan.Scheduled", PowerPlanner.Describe(acao, prazo))
+                : Loc.Get("Tool.PowerPlan.Error");
+
+            Mostrar(panel, rows);
+        }
+
+        static void Cancelar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            PowerPlanner.Cancel();
+            panel.PanelStatus = Loc.Get("Tool.PowerPlan.Canceled");
+            Mostrar(panel, rows);
+        }
+
+        static void Mostrar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            rows.Clear();
+
+            var pendente = PowerPlanner.Pending;
+            if (pendente is null)
+            {
+                panel.PanelStatus = Loc.Get("Tool.PowerPlan.Idle");
+                return;
+            }
+
+            rows.Add(new ToolRow
+            {
+                Category = pendente.Value.ToString(),
+                Detail = $"{PowerPlanner.RemainingSeconds}s",
+                Size = Loc.Get("Tool.PowerPlan.Counting"),
+                Source = pendente.Value,
+            });
+
+            panel.PanelStatus = Loc.Get("Tool.PowerPlan.Pending", PowerPlanner.RemainingSeconds);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Dormencia: colocar um programa para dormir e acorda-lo depois
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateHibernation()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.Hibernation"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.Hibernation.Program"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.Hibernation.State"), Width = 140, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.Hibernation.Location"), Width = 400, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "HibernationRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "HibernationSleep", Text = Loc.Get("Tool.Hibernation.Sleep"), Action = () => Dormir(panel, rows) },
+                new CommandDef { AutomationId = "HibernationWake", Text = Loc.Get("Tool.Hibernation.Wake"), Action = () => Acordar(panel, rows) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var instalados = await Task.Run(() => ProgramScanner.Scan(new ProgramScanner.ScanOptions
+            {
+                IncludeSystemComponents = false,
+                IncludeMsiProducts = false,
+            }));
+
+            var dormentes = ProgramHibernation.List()
+                .Select(h => h.ProgramName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            rows.Clear();
+            foreach (var programa in instalados)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = programa.DisplayName,
+                    Detail = dormentes.Contains(programa.DisplayName)
+                        ? Loc.Get("Tool.Hibernation.Asleep")
+                        : Loc.Get("Tool.Hibernation.Awake"),
+                    Path = programa.InstallLocation,
+                    Source = programa,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.Hibernation.Status", instalados.Count, dormentes.Count);
+        }
+
+        static void Dormir(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = ProgramHibernation.Hibernate(alvo);
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Tool.Hibernation.Error", mensagem);
+
+            panel.RunAsync(() => RecarregarAsync(panel, rows));
+        }
+
+        static void Acordar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = ProgramHibernation.Wake(alvo.DisplayName);
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Tool.Hibernation.Error", mensagem);
+
+            panel.RunAsync(() => RecarregarAsync(panel, rows));
+        }
+
+        static InstalledProgram? Primeiro(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is InstalledProgram programa) return programa;
             return null;
         }
     }

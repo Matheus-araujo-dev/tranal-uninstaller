@@ -176,6 +176,8 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
     // Carga dos dados
     // ------------------------------------------------------------------
+    private CancellationTokenSource? _scanCancellation;
+
     private async Task ReloadAsync()
     {
         StatusText.Text = Loc.Get("Status.Loading");
@@ -185,7 +187,19 @@ public partial class MainWindow : Window
             IncludeMsiProducts = false,
         };
 
-        var programs = await Task.Run(() => ProgramScanner.Scan(options));
+        // A varredura pode ser interrompida (Wise: o botao "Stop"). O token
+        // e do Tranal: e o que cancela o trabalho em andamento.
+        _scanCancellation?.Cancel();
+        _scanCancellation?.Dispose();
+
+        var cancelamento = new CancellationTokenSource();
+        _scanCancellation = cancelamento;
+
+        var programs = await Task.Run(() => ProgramScanner.Scan(options, cancelamento.Token));
+
+        var interrompida = cancelamento.IsCancellationRequested;
+        cancelamento.Dispose();
+        if (ReferenceEquals(_scanCancellation, cancelamento)) _scanCancellation = null;
 
         // O "registro de ultima analise" (Wise): quando a maquina foi vista
         // pela ultima vez e quantos programas foram encontrados. A regra
@@ -214,6 +228,19 @@ public partial class MainWindow : Window
 
         ApplyFilter();
         UpdateStatus();
+
+        if (interrompida)
+        {
+            StatusText.Text = Loc.Get("Status.ScanStopped", programs.Count);
+        }
+    }
+
+    /// <summary>
+    /// Interrompe a varredura em andamento.
+    /// </summary>
+    private void StopScan()
+    {
+        _scanCancellation?.Cancel();
     }
 
     private void UpdateStatus()
@@ -782,6 +809,10 @@ public partial class MainWindow : Window
 
         var refresh = CommandItem(Loc.Get("Cmd.Refresh"), "CmdRefresh", async () => await ReloadAsync());
         menu.Items.Add(refresh);
+
+        // Parar a varredura (Wise: o botao "Stop").
+        var parar = CommandItem(Loc.Get("Cmd.StopScan"), "CmdStopScan", () => StopScan());
+        menu.Items.Add(parar);
 
         var uninstall = CommandItem(Loc.Get("Cmd.Uninstall"), "CmdUninstall", () => StartUninstall(quick: false));
         menu.Items.Add(uninstall);

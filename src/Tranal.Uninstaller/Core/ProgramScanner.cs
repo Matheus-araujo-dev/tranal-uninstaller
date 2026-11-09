@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.IO;
+using System.Threading;
 using Microsoft.Win32;
 
 namespace Tranal.Uninstaller.Core;
@@ -61,10 +62,21 @@ public static class ProgramScanner
         public bool IncludeEntriesWithoutUninstaller { get; init; }
     }
 
-    public static List<InstalledProgram> Scan(ScanOptions options)
+    /// <summary>
+    /// Varre as chaves de desinstalacao. A varredura pode ser interrompida:
+    /// o token e conferido a cada chave, e o que ja foi lido e devolvido.
+    /// </summary>
+    /// <param name="options">As opcoes da varredura.</param>
+    /// <param name="cancellation">
+    /// O token que interrompe a varredura. O botao "Parar varredura" da
+    /// interface cancela por ele.
+    /// </param>
+    public static List<InstalledProgram> Scan(ScanOptions options, CancellationToken cancellation = default)
     {
         var results = new ConcurrentBag<InstalledProgram>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (cancellation.IsCancellationRequested) return Finalize(results);
 
         foreach (var (hive, view, path) in Sources)
         {
@@ -74,6 +86,8 @@ public static class ProgramScanner
 
             foreach (var subName in key.GetSubKeyNames())
             {
+                if (cancellation.IsCancellationRequested) return Finalize(results);
+
                 using var sub = key.OpenSubKey(subName);
                 if (sub is null) continue;
 
@@ -92,16 +106,22 @@ public static class ProgramScanner
         {
             foreach (var program in ScanMsiProducts(options))
             {
+                if (cancellation.IsCancellationRequested) return Finalize(results);
+
                 var identity = $"{program.DisplayName}|{program.DisplayVersion}|{program.RegistryPath}";
                 if (!seen.Add(identity)) continue;
                 results.Add(program);
             }
         }
 
-        return results
+        return Finalize(results);
+    }
+
+    /// <summary>Ordena o resultado da varredura pelo nome do programa.</summary>
+    private static List<InstalledProgram> Finalize(IEnumerable<InstalledProgram> results) =>
+        results
             .OrderBy(p => p.DisplayName, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
-    }
 
     private static InstalledProgram? ReadEntry(
         RegistryKey sub, string subName, RegistryHive hive, RegistryView view,

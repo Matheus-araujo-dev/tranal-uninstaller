@@ -22,6 +22,8 @@ public static class ToolCatalog
     public const string DeepAnalysis = "DeepAnalysis";
     public const string InstallerGuard = "InstallerGuard";
     public const string FailedUninstalls = "FailedUninstalls";
+    public const string PowerPlan = "PowerPlan";
+    public const string Hibernation = "Hibernation";
 
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
@@ -219,6 +221,8 @@ public static class ToolCatalog
         DeepAnalysis,
         InstallerGuard,
         FailedUninstalls,
+        PowerPlan,
+        Hibernation,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,
