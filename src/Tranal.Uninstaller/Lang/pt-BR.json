@@ -1293,4 +1293,66 @@
     "Options.CompressBackups": "Comprimir os backups (Brotli)"
 ,
     "Options.KeepDetectedChangesLog": "Manter o log das mudancas detectadas"
+,
+    "Module.StoreStartup": "Inicializacao da Store"
+,
+    "Module.MsiDependencies": "Dependencias MSI"
+,
+    "Module.AppxCatalog": "Catalogo Appx"
+,
+    "Module.SystemDlls": "DLLs de sistema"
+,
+    "Tool.StoreStartup.Name": "Tarefa"
+,
+    "Tool.StoreStartup.Package": "Pacote"
+,
+    "Tool.StoreStartup.State": "Estado"
+,
+    "Tool.StoreStartup.Command": "Comando"
+,
+    "Tool.StoreStartup.Enabled": "habilitada"
+,
+    "Tool.StoreStartup.Disabled": "desabilitada"
+,
+    "Tool.StoreStartup.Status": "{0} tarefa(s) de inicializacao da Store."
+,
+    "Tool.MsiDependencies.Package": "Pacote"
+,
+    "Tool.MsiDependencies.Requires": "Exige"
+,
+    "Tool.MsiDependencies.Code": "Codigo do produto"
+,
+    "Tool.MsiDependencies.Status": "{0} dependencia(s) entre pacotes MSI."
+,
+    "Tool.AppxCatalog.Name": "Pacote"
+,
+    "Tool.AppxCatalog.Version": "Versao"
+,
+    "Tool.AppxCatalog.Origin": "Origem"
+,
+    "Tool.AppxCatalog.Publisher": "Editora"
+,
+    "Tool.AppxCatalog.PreInstalled": "do sistema"
+,
+    "Tool.AppxCatalog.Framework": "framework"
+,
+    "Tool.AppxCatalog.UserInstalled": "do usuario"
+,
+    "Tool.AppxCatalog.Status": "{0} pacote(s) Appx, {1} pre-instalado(s)."
+,
+    "Tool.SystemDlls.Name": "DLL"
+,
+    "Tool.SystemDlls.Size": "Bytes"
+,
+    "Tool.SystemDlls.State": "Estado"
+,
+    "Tool.SystemDlls.Publisher": "Editora"
+,
+    "Tool.SystemDlls.Known": "conhecida"
+,
+    "Tool.SystemDlls.Candidate": "candidata"
+,
+    "Tool.SystemDlls.Candidates": "So as candidatas"
+,
+    "Tool.SystemDlls.Status": "{0} DLL(s) em pastas de sistema."
 }

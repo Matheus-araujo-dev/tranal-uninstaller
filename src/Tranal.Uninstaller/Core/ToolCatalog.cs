@@ -24,6 +24,10 @@ public static class ToolCatalog
     public const string FailedUninstalls = "FailedUninstalls";
     public const string PowerPlan = "PowerPlan";
     public const string Hibernation = "Hibernation";
+    public const string StoreStartup = "StoreStartup";
+    public const string MsiDependencies = "MsiDependencies";
+    public const string AppxCatalog = "AppxCatalog";
+    public const string SystemDlls = "SystemDlls";
 
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
@@ -223,6 +227,10 @@ public static class ToolCatalog
         FailedUninstalls,
         PowerPlan,
         Hibernation,
+        StoreStartup,
+        MsiDependencies,
+        AppxCatalog,
+        SystemDlls,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

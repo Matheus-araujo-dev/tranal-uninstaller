@@ -40,6 +40,10 @@ public static class ToolViews
         ToolCatalog.FailedUninstalls => CreateFailedUninstalls(),
         ToolCatalog.PowerPlan => CreatePowerPlan(),
         ToolCatalog.Hibernation => CreateHibernation(),
+        ToolCatalog.StoreStartup => CreateStoreStartup(),
+        ToolCatalog.MsiDependencies => CreateMsiDependencies(),
+        ToolCatalog.AppxCatalog => CreateAppxCatalog(),
+        ToolCatalog.SystemDlls => CreateSystemDlls(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -1072,6 +1076,205 @@ public static class ToolViews
             foreach (var item in panel.SelectedItems)
                 if (item is ToolRow row && row.Source is InstalledProgram programa) return programa;
             return null;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // Inicializacao da Store: as StartupTask dos aplicativos empacotados
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateStoreStartup()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.StoreStartup"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.StoreStartup.Name"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.StoreStartup.Package"), Width = 220, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.StoreStartup.State"), Width = 140, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.StoreStartup.Command"), Width = 340, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "StoreStartupRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var entradas = await Task.Run(StoreStartupEntries.List);
+
+            rows.Clear();
+            foreach (var entrada in entradas)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = entrada.DisplayName,
+                    Detail = entrada.PackageName,
+                    Size = entrada.Enabled
+                        ? Loc.Get("Tool.StoreStartup.Enabled")
+                        : Loc.Get("Tool.StoreStartup.Disabled"),
+                    Path = entrada.Command,
+                    Source = entrada,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.StoreStartup.Status", entradas.Count);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Dependencias entre pacotes do Windows Installer
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateMsiDependencies()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.MsiDependencies"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.MsiDependencies.Package"), Width = 240, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.MsiDependencies.Requires"), Width = 240, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.MsiDependencies.Code"), Width = 300, BindingPath = "Size" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "MsiDependenciesRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var dependencias = await Task.Run(MsiDependencies.List);
+
+            rows.Clear();
+            foreach (var dependencia in dependencias)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = dependencia.RequiredPackage,
+                    Detail = dependencia.DependentPackage,
+                    Size = dependencia.DependentProductCode,
+                    Source = dependencia,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.MsiDependencies.Status", dependencias.Count);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Catalogo de pacotes Appx: o que veio com o Windows
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateAppxCatalog()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.AppxCatalog"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.AppxCatalog.Name"), Width = 240, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.AppxCatalog.Version"), Width = 110, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.AppxCatalog.Origin"), Width = 170, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.AppxCatalog.Publisher"), Width = 300, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "AppxCatalogRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var pacotes = await Task.Run(AppxCatalog.List);
+
+            rows.Clear();
+            foreach (var pacote in pacotes)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = pacote.DisplayName,
+                    Detail = pacote.Version,
+                    Size = pacote.NonRemovable
+                        ? Loc.Get("Tool.AppxCatalog.PreInstalled")
+                        : (pacote.IsFramework
+                            ? Loc.Get("Tool.AppxCatalog.Framework")
+                            : Loc.Get("Tool.AppxCatalog.UserInstalled")),
+                    Path = pacote.Publisher,
+                    Source = pacote,
+                });
+            }
+
+            var preinstalados = pacotes.Count(p => p.NonRemovable);
+            panel.PanelStatus = Loc.Get("Tool.AppxCatalog.Status", pacotes.Count, preinstalados);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // DLLs em pastas de sistema
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateSystemDlls()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.SystemDlls"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.SystemDlls.Name"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.SystemDlls.Size"), Width = 100, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.SystemDlls.State"), Width = 180, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.SystemDlls.Publisher"), Width = 300, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "SystemDllsRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "SystemDllsCandidates", Text = Loc.Get("Tool.SystemDlls.Candidates"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, candidatos: true)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool candidatos = false)
+        {
+            var dlls = await Task.Run(() => candidatos
+                ? SystemDllTracker.Candidates()
+                : SystemDllTracker.List());
+
+            rows.Clear();
+            foreach (var dll in dlls)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = dll.Name,
+                    Detail = dll.SizeBytes.ToString(),
+                    Size = dll.IsKnownDll
+                        ? Loc.Get("Tool.SystemDlls.Known")
+                        : Loc.Get("Tool.SystemDlls.Candidate"),
+                    Path = dll.CompanyName,
+                    Source = dll,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.SystemDlls.Status", dlls.Count);
         }
     }
 

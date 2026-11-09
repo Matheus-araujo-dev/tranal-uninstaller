@@ -128,6 +128,10 @@ public static class Program
         var snapshots = SnapshotCommands.TryRun(effective, flags);
         if (snapshots.HasValue) return snapshots.Value;
 
+        // As integracoes do Windows: Store, MSI, Appx e DLLs de sistema.
+        var integracoes = IntegrationCommands.TryRun(effective, flags);
+        if (integracoes.HasValue) return integracoes.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

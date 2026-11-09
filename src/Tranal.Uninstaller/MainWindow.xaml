@@ -524,6 +524,38 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="StoreStartup" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolStoreStartup">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F6F1;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.StoreStartup}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="MsiDependencies" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolMsiDependencies">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F517;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.MsiDependencies}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="AppxCatalog" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolAppxCatalog">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4E6;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.AppxCatalog}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="SystemDlls" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolSystemDlls">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C5;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.SystemDlls}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="RecycleBin" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolRecycleBin">
             <StackPanel Orientation="Horizontal">

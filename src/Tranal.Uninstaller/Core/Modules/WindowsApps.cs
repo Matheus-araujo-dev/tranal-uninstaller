@@ -29,6 +29,15 @@ public sealed class WindowsApp
 
     /// <summary>True quando o pacote e um framework (dependencia de outro app).</summary>
     public bool IsFramework { get; init; }
+
+    /// <summary>
+    /// True quando o Windows nao deixa remover o pacote.
+    ///
+    /// E o sinal medido de pacote pre-instalado: o proprio Windows marca
+    /// o pacote como nao removivel, e e por isso que ele vem com o
+    /// sistema.
+    /// </summary>
+    public bool NonRemovable { get; init; }
 }
 
 /// <summary>
@@ -40,7 +49,7 @@ public static class WindowsApps
 {
     /// <summary>Comando de listagem dos pacotes do usuario atual.</summary>
     private const string ListCommand =
-        "Get-AppxPackage | Select-Object Name,PackageFullName,Publisher,Version,InstallLocation,IsFramework | ConvertTo-Json -Compress";
+        "Get-AppxPackage | Select-Object Name,PackageFullName,Publisher,Version,InstallLocation,IsFramework,NonRemovable | ConvertTo-Json -Compress";
 
     /// <summary>Timeout da listagem (segundos).</summary>
     private const int ListTimeoutSeconds = 60;
@@ -135,6 +144,7 @@ public static class WindowsApps
                 Version = GetString(element, "Version"),
                 InstallLocation = GetString(element, "InstallLocation"),
                 IsFramework = GetBoolean(element, "IsFramework"),
+                NonRemovable = GetBoolean(element, "NonRemovable"),
             };
         }
         catch

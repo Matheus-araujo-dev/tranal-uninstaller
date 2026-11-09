@@ -1293,4 +1293,66 @@
     "Options.CompressBackups": "Compress the backups (Brotli)"
 ,
     "Options.KeepDetectedChangesLog": "Keep the detected changes log"
+,
+    "Module.StoreStartup": "Store startup"
+,
+    "Module.MsiDependencies": "MSI dependencies"
+,
+    "Module.AppxCatalog": "Appx catalog"
+,
+    "Module.SystemDlls": "System DLLs"
+,
+    "Tool.StoreStartup.Name": "Task"
+,
+    "Tool.StoreStartup.Package": "Package"
+,
+    "Tool.StoreStartup.State": "State"
+,
+    "Tool.StoreStartup.Command": "Command"
+,
+    "Tool.StoreStartup.Enabled": "enabled"
+,
+    "Tool.StoreStartup.Disabled": "disabled"
+,
+    "Tool.StoreStartup.Status": "{0} Store startup task(s)."
+,
+    "Tool.MsiDependencies.Package": "Package"
+,
+    "Tool.MsiDependencies.Requires": "Requires"
+,
+    "Tool.MsiDependencies.Code": "Product code"
+,
+    "Tool.MsiDependencies.Status": "{0} dependency(ies) between MSI packages."
+,
+    "Tool.AppxCatalog.Name": "Package"
+,
+    "Tool.AppxCatalog.Version": "Version"
+,
+    "Tool.AppxCatalog.Origin": "Origin"
+,
+    "Tool.AppxCatalog.Publisher": "Publisher"
+,
+    "Tool.AppxCatalog.PreInstalled": "system"
+,
+    "Tool.AppxCatalog.Framework": "framework"
+,
+    "Tool.AppxCatalog.UserInstalled": "user"
+,
+    "Tool.AppxCatalog.Status": "{0} Appx package(s), {1} pre-installed."
+,
+    "Tool.SystemDlls.Name": "DLL"
+,
+    "Tool.SystemDlls.Size": "Bytes"
+,
+    "Tool.SystemDlls.State": "State"
+,
+    "Tool.SystemDlls.Publisher": "Publisher"
+,
+    "Tool.SystemDlls.Known": "known"
+,
+    "Tool.SystemDlls.Candidate": "candidate"
+,
+    "Tool.SystemDlls.Candidates": "Candidates only"
+,
+    "Tool.SystemDlls.Status": "{0} DLL(s) in system folders."
 }
