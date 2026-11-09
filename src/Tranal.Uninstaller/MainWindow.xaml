@@ -556,6 +556,38 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="TrayIcon" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolTrayIcon">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F4E3;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.TrayIcon}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="NewInstalls" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolNewInstalls">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F195;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.NewInstalls}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="ProgramCategories" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolProgramCategories">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C2;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.ProgramCategories}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="WindowsIntegration" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolWindowsIntegration">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5A5;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.WindowsIntegration}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="RecycleBin" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolRecycleBin">
             <StackPanel Orientation="Horizontal">

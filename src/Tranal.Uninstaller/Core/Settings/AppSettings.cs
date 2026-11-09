@@ -423,6 +423,43 @@ public sealed class AppSettings
     /// </summary>
     public bool KeepDetectedChangesLog { get; set; } = true;
 
+    /// <summary>
+    /// Mostra o icone do Tranal na bandeja do sistema.
+    ///
+    /// A bandeja e a forma de o Tranal continuar vivo sem ocupar a tela.
+    /// Padrao: <c>true</c>.
+    /// </summary>
+    public bool ShowTrayIcon { get; set; } = true;
+
+    /// <summary>
+    /// Comeca minimizado na bandeja. Sem esta preferencia, o Tranal sempre
+    /// abre a janela na tela. Padrao: <c>false</c>.
+    /// </summary>
+    public bool StartMinimizedToTray { get; set; }
+
+    /// <summary>
+    /// Minimiza na bandeja enquanto a desinstalacao roda: e o que atrapalha
+    /// menos o proprio desinstalador. Padrao: <c>true</c>.
+    /// </summary>
+    public bool MinimizeToTrayDuringUninstall { get; set; } = true;
+
+    /// <summary>
+    /// Um clique no icone da bandeja devolve a janela para a tela.
+    /// Padrao: <c>true</c>.
+    /// </summary>
+    public bool RestoreTrayOnClick { get; set; } = true;
+
+    /// <summary>
+    /// A lista de programas em modo compacto: so as colunas essenciais.
+    /// Padrao: <c>false</c>.
+    /// </summary>
+    public bool CompactProgramList { get; set; }
+
+    /// <summary>
+    /// Avisa quando aparece um programa novo. Padrao: <c>true</c>.
+    /// </summary>
+    public bool ShowNewProgramsPopup { get; set; } = true;
+
     /// <summary>O modo de execucao, ja lido pela regra.</summary>
     public ExecutionPreference RunMode => ExecutionPreferences.Parse(RunPreference);
 

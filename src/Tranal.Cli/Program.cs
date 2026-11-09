@@ -132,6 +132,10 @@ public static class Program
         var integracoes = IntegrationCommands.TryRun(effective, flags);
         if (integracoes.HasValue) return integracoes.Value;
 
+        // A bandeja, os programas novos, as categorias e a integracao.
+        var shell = ShellCommands.TryRun(effective, flags);
+        if (shell.HasValue) return shell.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

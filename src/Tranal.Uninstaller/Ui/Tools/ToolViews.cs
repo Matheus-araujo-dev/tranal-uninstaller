@@ -13,6 +13,7 @@ using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Recovery;
+using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Tools;
 using Tranal.Uninstaller.Core.Tracing;
 using Tranal.Uninstaller.Ui.Shared;
@@ -44,6 +45,10 @@ public static class ToolViews
         ToolCatalog.MsiDependencies => CreateMsiDependencies(),
         ToolCatalog.AppxCatalog => CreateAppxCatalog(),
         ToolCatalog.SystemDlls => CreateSystemDlls(),
+        ToolCatalog.TrayIcon => CreateTrayIcon(),
+        ToolCatalog.NewInstalls => CreateNewInstalls(),
+        ToolCatalog.ProgramCategories => CreateProgramCategories(),
+        ToolCatalog.WindowsIntegration => CreateWindowsIntegration(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -1275,6 +1280,260 @@ public static class ToolViews
             }
 
             panel.PanelStatus = Loc.Get("Tool.SystemDlls.Status", dlls.Count);
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // A bandeja do sistema
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateTrayIcon()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.TrayIcon"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.TrayIcon.Rule"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.TrayIcon.State"), Width = 140, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.TrayIcon.Detail"), Width = 380, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "TrayIconRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "TrayIconToggle", Text = Loc.Get("Tool.TrayIcon.Toggle"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, alternar: true)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool alternar = false)
+        {
+            if (alternar)
+            {
+                var atual = SystemTray.ShowIcon;
+                AppSettingsStore.Update(s => s.ShowTrayIcon = !atual);
+            }
+
+            var regras = SystemTray.Rules;
+
+            rows.Clear();
+            foreach (var regra in regras)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = Loc.Get("Tool.TrayIcon." + regra.Id),
+                    Size = regra.Enabled
+                        ? Loc.Get("Common.Enabled")
+                        : Loc.Get("Common.Disabled"),
+                    Path = regra.Enabled
+                        ? Loc.Get("Tool.TrayIcon.RuleOn")
+                        : Loc.Get("Tool.TrayIcon.RuleOff"),
+                    Source = regra,
+                });
+            }
+
+            panel.PanelStatus = SystemTray.Describe();
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Os programas recem-instalados
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateNewInstalls()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.NewInstalls"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Common.Program"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.NewInstalls.Publisher"), Width = 200, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.NewInstalls.Source"), Width = 160, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.NewInstalls.Location"), Width = 320, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "NewInstallsRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "NewInstallsBaseline", Text = Loc.Get("Tool.NewInstalls.Baseline"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, gravarBase: true)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool gravarBase = false)
+        {
+            var instalados = await Task.Run(() => ProgramScanner.Scan(new ProgramScanner.ScanOptions
+            {
+                IncludeSystemComponents = false,
+                IncludeMsiProducts = false,
+            }));
+
+            if (gravarBase)
+            {
+                await Task.Run(() => NewInstallsTracker.SaveBaseline(instalados));
+            }
+
+            var novos = await Task.Run(() => NewInstallsTracker.Detect(instalados));
+
+            rows.Clear();
+            foreach (var novo in novos)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = novo.DisplayName,
+                    Detail = novo.Publisher,
+                    Size = novo.FromBaseline
+                        ? Loc.Get("Tool.NewInstalls.ByBaseline")
+                        : Loc.Get("Tool.NewInstalls.ByDate"),
+                    Path = novo.InstallLocation,
+                    Source = novo,
+                });
+            }
+
+            var base_ = NewInstallsTracker.BaselineAt;
+            panel.PanelStatus = base_ is { } quando
+                ? Loc.Get("Tool.NewInstalls.Status", novos.Count, quando)
+                : Loc.Get("Tool.NewInstalls.StatusNoBaseline", novos.Count);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // A arvore de categorias automaticas
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateProgramCategories()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.ProgramCategories"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.ProgramCategories.Category"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.ProgramCategories.Count"), Width = 110, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.ProgramCategories.Programs"), Width = 420, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "ProgramCategoriesRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "ProgramCategoriesReset", Text = Loc.Get("Tool.ProgramCategories.Reset"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, resetar: true)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool resetar = false)
+        {
+            var instalados = await Task.Run(() => ProgramScanner.Scan(new ProgramScanner.ScanOptions
+            {
+                IncludeSystemComponents = false,
+                IncludeMsiProducts = false,
+            }));
+
+            if (resetar)
+            {
+                await Task.Run(() => ProgramCategoryTree.ResetToUnsorted());
+            }
+
+            var nos = ProgramCategoryTree.Build(instalados);
+
+            rows.Clear();
+            foreach (var no in nos)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = no.Name,
+                    Detail = no.TotalPrograms.ToString(),
+                    Path = string.Join(", ", no.Programs.Select(p => p.DisplayName).Take(6)),
+                    Source = no,
+                });
+            }
+
+            var semCategoria = ProgramCategoryTree.Assignments.Count;
+            panel.PanelStatus = Loc.Get("Tool.ProgramCategories.Status", nos.Count, semCategoria);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // A integracao com o Windows
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateWindowsIntegration()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.WindowsIntegration"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.WindowsIntegration.Item"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.WindowsIntegration.State"), Width = 140, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.WindowsIntegration.Detail"), Width = 380, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "WindowsIntegrationRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows)) },
+                new CommandDef { AutomationId = "WindowsIntegrationRegister", Text = Loc.Get("Tool.WindowsIntegration.Register"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, registrar: true)) },
+                new CommandDef { AutomationId = "WindowsIntegrationUnregister", Text = Loc.Get("Tool.WindowsIntegration.Unregister"), Action = () => panel.RunAsync(() => RecarregarAsync(panel, rows, remover: true)) },
+                new CommandDef { AutomationId = "WindowsIntegrationCredentials", Text = Loc.Get("Tool.WindowsIntegration.Credentials"), Action = () => ExternalLaunchers.OpenCredentialManager() },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => RecarregarAsync(panel, rows));
+        return panel;
+
+        static async Task RecarregarAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows, bool registrar = false, bool remover = false)
+        {
+            if (registrar)
+            {
+                await Task.Run(() => ControlPanelIcon.Register(
+                    "Tranal Uninstaller",
+                    "\"" + SystemTray.ExecutablePath + "\"",
+                    ControlPanelIcon.IconPath));
+            }
+
+            if (remover)
+            {
+                await Task.Run(() => ControlPanelIcon.Unregister());
+            }
+
+            var ferramentas = ExternalLaunchers.Known();
+
+            rows.Clear();
+            rows.Add(new ToolRow
+            {
+                Category = Loc.Get("Tool.WindowsIntegration.ControlPanel"),
+                Size = ControlPanelIcon.IsRegistered()
+                    ? Loc.Get("Common.Enabled")
+                    : Loc.Get("Common.Disabled"),
+                Path = ControlPanelIcon.RegistryPath,
+                Source = ControlPanelIcon.RegistryPath,
+            });
+
+            foreach (var ferramenta in ferramentas)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = ferramenta.DisplayName,
+                    Size = ferramenta.Available
+                        ? Loc.Get("Common.Enabled")
+                        : Loc.Get("Common.Disabled"),
+                    Path = ferramenta.Available
+                        ? (ferramenta.ExecutablePath.Length > 0 ? ferramenta.ExecutablePath : ferramenta.Arguments)
+                        : Loc.Get("Tool.WindowsIntegration.NotFound"),
+                    Source = ferramenta,
+                });
+            }
+
+            panel.PanelStatus = ControlPanelIcon.Describe();
         }
     }
 

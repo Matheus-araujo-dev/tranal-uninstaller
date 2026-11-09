@@ -29,6 +29,18 @@ public static class ToolCatalog
     public const string AppxCatalog = "AppxCatalog";
     public const string SystemDlls = "SystemDlls";
 
+    /// <summary>A bandeja do sistema.</summary>
+    public const string TrayIcon = "TrayIcon";
+
+    /// <summary>Os programas recem-instalados.</summary>
+    public const string NewInstalls = "NewInstalls";
+
+    /// <summary>A arvore de categorias automaticas.</summary>
+    public const string ProgramCategories = "ProgramCategories";
+
+    /// <summary>A integracao com o Windows (painel de controle e ferramentas).</summary>
+    public const string WindowsIntegration = "WindowsIntegration";
+
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
 
@@ -231,6 +243,10 @@ public static class ToolCatalog
         MsiDependencies,
         AppxCatalog,
         SystemDlls,
+        TrayIcon,
+        NewInstalls,
+        ProgramCategories,
+        WindowsIntegration,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

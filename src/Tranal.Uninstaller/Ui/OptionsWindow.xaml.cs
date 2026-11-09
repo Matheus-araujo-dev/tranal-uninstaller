@@ -134,6 +134,12 @@ public partial class OptionsWindow : Window
         ProtectPersonalFilesCheck.IsChecked = settings.ProtectPersonalFiles;
         CompressBackupsCheck.IsChecked = settings.CompressBackups;
         KeepChangesLogCheck.IsChecked = settings.KeepDetectedChangesLog;
+        ShowTrayIconCheck.IsChecked = settings.ShowTrayIcon;
+        StartMinimizedCheck.IsChecked = settings.StartMinimizedToTray;
+        MinimizeToTrayCheck.IsChecked = settings.MinimizeToTrayDuringUninstall;
+        RestoreTrayCheck.IsChecked = settings.RestoreTrayOnClick;
+        CompactProgramListCheck.IsChecked = settings.CompactProgramList;
+        ShowNewProgramsPopupCheck.IsChecked = settings.ShowNewProgramsPopup;
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -432,6 +438,12 @@ public partial class OptionsWindow : Window
             s.ProtectPersonalFiles = ProtectPersonalFilesCheck.IsChecked == true;
             s.CompressBackups = CompressBackupsCheck.IsChecked == true;
             s.KeepDetectedChangesLog = KeepChangesLogCheck.IsChecked == true;
+        s.ShowTrayIcon = ShowTrayIconCheck.IsChecked == true;
+        s.StartMinimizedToTray = StartMinimizedCheck.IsChecked == true;
+        s.MinimizeToTrayDuringUninstall = MinimizeToTrayCheck.IsChecked == true;
+        s.RestoreTrayOnClick = RestoreTrayCheck.IsChecked == true;
+        s.CompactProgramList = CompactProgramListCheck.IsChecked == true;
+        s.ShowNewProgramsPopup = ShowNewProgramsPopupCheck.IsChecked == true;
 
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;

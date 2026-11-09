@@ -213,6 +213,25 @@
                   Content="{loc:Tr Options.KeepDetectedChangesLog}"
                   AutomationProperties.AutomationId="OptKeepChangesLog" />
 
+        <CheckBox x:Name="ShowTrayIconCheck" Margin="0,8,0,2"
+                  Content="{loc:Tr Options.ShowTrayIcon}"
+                  AutomationProperties.AutomationId="OptShowTrayIcon" />
+        <CheckBox x:Name="StartMinimizedCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.StartMinimizedToTray}"
+                  AutomationProperties.AutomationId="OptStartMinimizedToTray" />
+        <CheckBox x:Name="MinimizeToTrayCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.MinimizeToTrayOnUninstall}"
+                  AutomationProperties.AutomationId="OptMinimizeToTrayOnUninstall" />
+        <CheckBox x:Name="RestoreTrayCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.RestoreTrayOnClick}"
+                  AutomationProperties.AutomationId="OptRestoreTrayOnClick" />
+        <CheckBox x:Name="CompactProgramListCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.CompactProgramList}"
+                  AutomationProperties.AutomationId="OptCompactProgramList" />
+        <CheckBox x:Name="ShowNewProgramsPopupCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.ShowNewProgramsPopup}"
+                  AutomationProperties.AutomationId="OptShowNewProgramsPopup" />
+
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
         <TextBlock Text="{loc:Tr Options.PortableFolder}" Margin="0,0,0,4" />

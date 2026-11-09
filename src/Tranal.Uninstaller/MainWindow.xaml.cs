@@ -109,10 +109,73 @@ public partial class MainWindow : Window
         Loc.LanguageChanged += (_, _) => RefreshLocalizedTexts();
         Loaded += async (_, _) =>
         {
+            SetupTray();
             await ReloadAsync();
             FocusStartupModule();
             _ = CheckForUpdateOnStartup();
         };
+    }
+
+    /// <summary>
+    /// O icone na bandeja do sistema.
+    ///
+    /// A bandeja e o que permite ao Tranal sair da frente da tela sem sair
+    /// de cena: o icone fica na area de notificacoes e um clique traz a
+    /// janela de volta.
+    ///
+    /// As regras moram no nucleo (<see cref="SystemTray"/>); aqui so mora o
+    /// icone e a ligacao com a janela.
+    /// </summary>
+    private Ui.Tools.TrayIconManager? _tray;
+
+    private void SetupTray()
+    {
+        if (!SystemTray.ShowIcon) return;
+
+        try
+        {
+            _tray = new Ui.Tools.TrayIconManager(this);
+            _tray.ClickRequested += (_, _) => RestoreFromTray();
+
+            if (SystemTray.StartMinimized) Hide();
+        }
+        catch
+        {
+            // Sem bandeja, o Tranal funciona igual — so nao ha icone.
+            _tray = null;
+        }
+    }
+
+    /// <summary>Devolve a janela para a tela, a partir do clique no icone.</summary>
+    private void RestoreFromTray()
+    {
+        if (!SystemTray.RestoreOnClick) return;
+
+        Show();
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        Activate();
+    }
+
+    /// <summary>
+    /// Minimiza na bandeja enquanto o desinstalador roda.
+    ///
+    /// E o que o Uninstall Tool faz: o desinstalador de terceiros abre
+    /// varias janelas, e a janela do Tranal atrapalharia o proprio
+    /// desinstalador na frente.
+    /// </summary>
+    private void MinimizarDuranteDesinstalacao()
+    {
+        if (!SystemTray.MinimizeDuringUninstall) return;
+        if (_tray is null) return;
+
+        try
+        {
+            Hide();
+        }
+        catch
+        {
+            // Sem janela escondida, o desinstalador roda por cima. Sem drama.
+        }
     }
 
     /// <summary>
@@ -1903,12 +1966,16 @@ public partial class MainWindow : Window
             if (!UserMessages.Confirm(this, message)) return;
         }
 
+        MinimizarDuranteDesinstalacao();
+
         var wizard = new Ui.UninstallWizardWindow(
             targets.Select(t => t.Program).ToList(), quick, _all.Select(r => r.Program).ToList())
         {
             Owner = this,
         };
         wizard.ShowDialog();
+
+        RestoreFromTray();
         _ = ReloadAsync();
     }
 
