@@ -127,6 +127,10 @@ public static class Program
 
         var programs = ProgramScanner.Scan(options);
 
+        // O "registro de ultima analise" (Wise): a mesma regra que a
+        // interface grafica usa — quem varreu nao muda o que fica gravado.
+        AppSettingsStore.RecordScan(programs.Count);
+
         if (pattern is not null)
         {
             var regex = WildcardToRegex(pattern);

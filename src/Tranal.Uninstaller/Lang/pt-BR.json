@@ -1084,5 +1084,17 @@
     "Cmd.UnmarkByCountry":  "Desmarcar os programas de {0}",
     "Cmd.MarkedByCountry":  "{0} programa(s) de {1} marcados.",
     "Cmd.UnmarkedByCountry":  "{0} programa(s) de {1} desmarcados.",
-    "Shortcut.CopySelection":  "Copia a seleção para a área de transferência."
+    "Shortcut.CopySelection":  "Copia a seleção para a área de transferência.",
+    "Options.BatchSection":  "Lote e fim da tarefa",
+    "Options.BatchItemLimit":  "Teto de itens do lote (0 = sem teto)",
+    "Options.BatchItemLimitNote":  "O que passar do teto fica adiado: os programas adiados continuam instalados e saem do lote.",
+    "Options.RetryFailedAttempts":  "Tentativas para o que falhou",
+    "Options.RestartWhenFinished":  "Reiniciar a máquina quando a desinstalação terminar",
+    "Options.CloseAppWhenFinished":  "Fechar o aplicativo quando a desinstalação terminar",
+    "Options.LastScan":  "Última varredura: {0} — {1} programa(s) encontrado(s).",
+    "Options.LastScanNever":  "Última varredura: nunca.",
+    "Wizard.BatchTruncated":  "O lote tem {0} programa(s), mas o teto é {1}. Estes ficaram de fora e continuam instalados: {2}",
+    "Wizard.BatchTruncatedTitle":  "Lote cortado pelo teto",
+    "Wizard.RestartQuestion":  "Sobrou {0} item(ns) para o próximo reinício. Reiniciar a máquina agora?",
+    "Wizard.RestartTitle":  "Reiniciar a máquina"
 }

@@ -187,6 +187,12 @@ public partial class MainWindow : Window
 
         var programs = await Task.Run(() => ProgramScanner.Scan(options));
 
+        // O "registro de ultima analise" (Wise): quando a maquina foi vista
+        // pela ultima vez e quantos programas foram encontrados. A regra
+        // mora no nucleo — a interface e a linha de comando gravam do mesmo
+        // jeito.
+        AppSettingsStore.RecordScan(programs.Count);
+
         // O cache de programas (paridade com o Revo Pro, que mantem um cache
         // em disco) e gravado no fim da varredura. Ele e um resumo: a proxima
         // abertura parte dele em vez de varrer o Registro inteiro de novo.

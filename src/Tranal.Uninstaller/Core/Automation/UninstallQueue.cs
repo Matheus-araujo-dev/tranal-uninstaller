@@ -44,6 +44,12 @@ public sealed class UninstallQueueItem
 
     /// <summary>True quando o programa saiu da tarefa.</summary>
     public bool LeftTheTask => Outcome == UninstallQueueOutcome.RemovedFromTask;
+
+    /// <summary>
+    /// Quantas vezes a desinstalacao foi tentada. Vale 1 quando nao houve
+    /// repeticao — e mais quando o que falhou foi tentado de novo.
+    /// </summary>
+    public int Attempts { get; set; } = 1;
 }
 
 /// <summary>
@@ -86,7 +92,8 @@ public static class UninstallQueue
     public static IReadOnlyList<UninstallQueueItem> Run(
         IReadOnlyList<InstalledProgram> programs,
         Func<InstalledProgram, bool> uninstallOne,
-        Func<InstalledProgram, bool>? stillInstalled = null)
+        Func<InstalledProgram, bool>? stillInstalled = null,
+        int maxAttempts = 1)
     {
         if (programs is null || programs.Count == 0) return Array.Empty<UninstallQueueItem>();
         if (uninstallOne is null) throw new ArgumentNullException(nameof(uninstallOne));
@@ -111,39 +118,61 @@ public static class UninstallQueue
                     break;
                 }
 
-                bool done;
-                try
+                var tentativa = 0;
+
+                // A repeticao do que falhou mora na REGRA
+                // (<see cref="ExecutionPolicy.ShouldRetry"/>): quem decide se
+                // vale tentar de novo e o nucleo, e nao a fila.
+                while (true)
                 {
-                    done = uninstallOne(program);
-                }
-                catch (Exception ex)
-                {
+                    tentativa++;
+                    item.Attempts = tentativa;
+
+                    bool done;
+                    try
+                    {
+                        done = uninstallOne(program);
+                    }
+                    catch (Exception ex)
+                    {
+                        item.Outcome = UninstallQueueOutcome.Failed;
+                        item.Detail = ex.Message;
+
+                        if (!ExecutionPolicy.ShouldRetry(item.Outcome, tentativa, maxAttempts))
+                            break;
+
+                        continue;
+                    }
+
+                    if (done)
+                    {
+                        item.Outcome = UninstallQueueOutcome.Completed;
+                        item.Detail = "desinstalado";
+                        break;
+                    }
+
+                    // Nao desinstalou e o chamador nao diz se ainda esta
+                    // instalado: nao ha o que repetir nem o que concluir.
+                    if (stillInstalled is null || !stillInstalled(program))
+                    {
+                        item.Outcome = UninstallQueueOutcome.Completed;
+                        item.Detail = "desinstalado";
+                        break;
+                    }
+
+                    // Ainda esta instalado: a tentativa falhou, e vale tentar
+                    // de novo — e a regra do BCU.
                     item.Outcome = UninstallQueueOutcome.Failed;
-                    item.Detail = ex.Message;
-                    results.Add(item);
-                    continue;
-                }
+                    item.Detail = "não desinstalou em silêncio";
 
-                if (done)
-                {
-                    item.Outcome = UninstallQueueOutcome.Completed;
-                    item.Detail = "desinstalado";
-                    results.Add(item);
-                    continue;
-                }
-
-                // Nao desinstalou. Se ainda esta instalado, e porque o
-                // desinstalador nao roda em silencio: ele sai da tarefa em
-                // vez de travar o lote.
-                if (stillInstalled is not null && stillInstalled(program))
-                {
-                    item.Outcome = UninstallQueueOutcome.RemovedFromTask;
-                    item.Detail = "não desinstalou em silêncio: saiu da tarefa";
-                }
-                else
-                {
-                    item.Outcome = UninstallQueueOutcome.Completed;
-                    item.Detail = "desinstalado";
+                    if (!ExecutionPolicy.ShouldRetry(item.Outcome, tentativa, maxAttempts))
+                    {
+                        // As tentativas acabaram: o programa sai da tarefa
+                        // para o usuario tratar, como o Revo faz.
+                        item.Outcome = UninstallQueueOutcome.RemovedFromTask;
+                        item.Detail = "não desinstalou em silêncio: saiu da tarefa";
+                        break;
+                    }
                 }
 
                 results.Add(item);

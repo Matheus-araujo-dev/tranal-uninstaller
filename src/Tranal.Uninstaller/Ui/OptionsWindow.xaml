@@ -156,6 +156,28 @@
                   Content="{loc:Tr Options.ShowScanAllAccountsOption}"
                   AutomationProperties.AutomationId="OptShowScanAllAccounts" />
 
+        <!-- Lote e fim da tarefa: o teto de lote, a repeticao do que falhou
+             e o que acontece quando a desinstalacao termina. -->
+        <TextBlock x:Name="BatchSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+          <TextBlock Text="{loc:Tr Options.BatchItemLimit}" VerticalAlignment="Center" Margin="0,0,8,0" />
+          <TextBox x:Name="BatchLimitBox" Width="60" VerticalContentAlignment="Center"
+                   AutomationProperties.AutomationId="OptBatchItemLimit" />
+        </StackPanel>
+        <TextBlock Text="{loc:Tr Options.BatchItemLimitNote}" Margin="0,0,0,4" TextWrapping="Wrap" />
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+          <TextBlock Text="{loc:Tr Options.RetryFailedAttempts}" VerticalAlignment="Center" Margin="0,0,8,0" />
+          <TextBox x:Name="RetryAttemptsBox" Width="60" VerticalContentAlignment="Center"
+                   AutomationProperties.AutomationId="OptRetryAttempts" />
+        </StackPanel>
+        <CheckBox x:Name="RestartWhenFinishedCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.RestartWhenFinished}"
+                  AutomationProperties.AutomationId="OptRestartWhenFinished" />
+        <CheckBox x:Name="CloseAppWhenFinishedCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.CloseAppWhenFinished}"
+                  AutomationProperties.AutomationId="OptCloseAppWhenFinished" />
+        <TextBlock x:Name="LastScanText" Margin="0,8,0,2" TextWrapping="Wrap" />
+
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
         <TextBlock Text="{loc:Tr Options.PortableFolder}" Margin="0,0,0,4" />

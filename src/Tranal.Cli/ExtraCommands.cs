@@ -1020,10 +1020,24 @@ public static class ExtraCommands
 
         var matched = parsed.List.Match(programs);
         Console.WriteLine($"Programas casados com a lista: {matched.Count}");
-        foreach (var program in matched)
+
+        // O teto de lote (regra do Uninstall Tool, no nucleo): o que passa
+        // do teto e adiado e nomeado — nunca descartado em silencio.
+        var settings = AppSettingsStore.Current;
+        var plan = ExecutionPolicy.ApplyBatchLimit(matched, settings.BatchItemLimit);
+
+        if (plan.WasTruncated)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Teto de lote ({settings.BatchItemLimit}): {plan.Deferred.Count} programa(s) adiados — continuam instalados:");
+            foreach (var program in plan.Deferred)
+                Console.WriteLine($"  - {program.DisplayName}");
+        }
+
+        foreach (var program in plan.Accepted)
             Console.WriteLine($"  - {program.DisplayName}");
 
-        if (matched.Count == 0)
+        if (plan.Accepted.Count == 0)
         {
             Console.WriteLine();
             Console.WriteLine("(nada casou: nenhuma alteração foi feita)");
@@ -1051,7 +1065,7 @@ public static class ExtraCommands
         // mesmo tempo disputam os mesmos arquivos), e quem nao desinstala em
         // silencio sai da tarefa em vez de travar o lote.
         var queue = UninstallQueue.Run(
-            matched,
+            plan.Accepted,
             program =>
             {
                 Console.WriteLine();
@@ -1061,7 +1075,8 @@ public static class ExtraCommands
                 if (result != 0) exit = result;
                 return result == 0;
             },
-            Program.IsStillInstalled);
+            Program.IsStillInstalled,
+            settings.RetryFailedAttempts);
 
         foreach (var item in queue)
         {
@@ -1073,6 +1088,9 @@ public static class ExtraCommands
 
             if (item.Outcome == UninstallQueueOutcome.Failed)
                 Console.WriteLine($"  [falhou] {item.Program.DisplayName}: {item.Detail}");
+
+            if (item.Attempts > 1)
+                Console.WriteLine($"  [tentativas] {item.Program.DisplayName}: {item.Attempts}");
         }
 
         return exit;

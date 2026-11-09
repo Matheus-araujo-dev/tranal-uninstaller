@@ -226,6 +226,16 @@ public sealed class BuiltInUninstallResult
     /// </summary>
     public bool Uninstalled => Started && (ExitCode == 0 || ExitCode == 3010);
 
+    /// <summary>
+    /// True quando a desinstalacao foi feita, mas a maquina precisa
+    /// reiniciar para concluir.
+    ///
+    /// E o codigo 3010 do Windows Installer: a desinstalacao foi feita e ha
+    /// o que so termina com o reinicio. E o que decide o reinicio
+    /// automatico do fim da tarefa.
+    /// </summary>
+    public bool NeedsRestart => Started && ExitCode == 3010;
+
     public string Describe()
     {
         if (!Started)

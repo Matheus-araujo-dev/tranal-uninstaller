@@ -81,6 +81,38 @@ public static class SystemActions
     }
 
     /// <summary>
+    /// Agenda o reinicio da maquina.
+    ///
+    /// O prazo de 60 segundos nao e um detalhe: e o que da chance de o
+    /// usuario cancelar o reinicio e de os programas salvarem o que estao
+    /// escrevendo. O chamador decide se o reinicio acontece — aqui so
+    /// ele e agendado.
+    /// </summary>
+    /// <param name="segundos">Quanto tempo ate o reinicio (minimo de 5).</param>
+    /// <returns>True quando o reinicio foi agendado.</returns>
+    public static bool AgentarReinicio(int segundos = 60)
+    {
+        if (segundos < 5) segundos = 5;
+
+        try
+        {
+            var info = new ProcessStartInfo("shutdown.exe", $"/r /t {segundos}")
+            {
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+
+            using var processo = Process.Start(info);
+            return processo is not null;
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao agendar o reinicio: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Abre um endereco ou programa com o programa padrao do Windows.
     /// </summary>
     /// <param name="arquivo">O executavel ou o endereco.</param>

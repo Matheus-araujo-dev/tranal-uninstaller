@@ -1084,5 +1084,17 @@
     "Cmd.UnmarkByCountry":  "Unmark the programs from {0}",
     "Cmd.MarkedByCountry":  "{0} program(s) from {1} marked.",
     "Cmd.UnmarkedByCountry":  "{0} program(s) from {1} unmarked.",
-    "Shortcut.CopySelection":  "Copies the selection to the clipboard."
+    "Shortcut.CopySelection":  "Copies the selection to the clipboard.",
+    "Options.BatchSection":  "Batch and end of task",
+    "Options.BatchItemLimit":  "Batch item limit (0 = no limit)",
+    "Options.BatchItemLimitNote":  "What goes past the limit is deferred: deferred programs stay installed and leave the batch.",
+    "Options.RetryFailedAttempts":  "Attempts for what failed",
+    "Options.RestartWhenFinished":  "Restart the machine when the uninstall finishes",
+    "Options.CloseAppWhenFinished":  "Close the application when the uninstall finishes",
+    "Options.LastScan":  "Last scan: {0} — {1} program(s) found.",
+    "Options.LastScanNever":  "Last scan: never.",
+    "Wizard.BatchTruncated":  "The batch has {0} program(s), but the limit is {1}. These were left out and stay installed: {2}",
+    "Wizard.BatchTruncatedTitle":  "Batch cut by the limit",
+    "Wizard.RestartQuestion":  "{0} item(s) are still pending for the next restart. Restart the machine now?",
+    "Wizard.RestartTitle":  "Restart the machine"
 }

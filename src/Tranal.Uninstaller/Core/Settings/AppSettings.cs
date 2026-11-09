@@ -309,6 +309,50 @@ public sealed class AppSettings
     /// nunca podem ser atualizados.
     /// </summary>
     public List<string> UpdateBlacklist { get; set; } = new();
+
+    /// <summary>
+    /// Teto de itens de um lote de desinstalacao (0 = sem teto).
+    ///
+    /// Medido no Uninstall Tool: um lote nao roda o programa inteiro de uma
+    /// vez — ele avisa e corta. O corte e sempre do fim da fila, e o que
+    /// ficou de fora e mostrado ao usuario.
+    /// </summary>
+    public int BatchItemLimit { get; set; }
+
+    /// <summary>
+    /// Numero maximo de tentativas para um silencioso que falhou (1 = sem
+    /// repeticao). Medido no BCU ("tentar novamente").
+    /// </summary>
+    public int RetryFailedAttempts { get; set; } = 1;
+
+    /// <summary>
+    /// Reinicia a maquina quando a desinstalacao termina, para concluir o
+    /// que ficou pendente para o proximo reinicio.
+    ///
+    /// Medido no Uninstalr ("reiniciar automaticamente para finalizar").
+    /// So acontece quando sobrou item pendente: sem pendencia, reiniciar nao
+    /// adianta.
+    /// </summary>
+    public bool RestartWhenFinished { get; set; }
+
+    /// <summary>
+    /// Fecha o proprio aplicativo quando a desinstalacao termina.
+    /// Medido no Uninstalr ("fechar o proprio aplicativo ao terminar").
+    /// </summary>
+    public bool CloseAppWhenFinished { get; set; }
+
+    /// <summary>
+    /// Data e hora da ultima varredura da lista de programas.
+    ///
+    /// E o "registro de ultima analise" do Wise: saber quando a maquina foi
+    /// vista pela ultima vez e o que foi encontrado. Nulo = nunca varreu.
+    /// </summary>
+    public DateTime? LastScanAt { get; set; }
+
+    /// <summary>
+    /// Quantos programas a ultima varredura encontrou.
+    /// </summary>
+    public int LastScanCount { get; set; }
 }
 
 /// <summary>Leitura e gravacao das <see cref="AppSettings"/>.</summary>
@@ -379,6 +423,24 @@ public static class AppSettingsStore
     }
 
     /// <summary>
+    /// Registra que a maquina foi varrida agora, e quantos programas foram
+    /// encontrados.
+    ///
+    /// E o "registro de ultima analise" do Wise: a interface grafica e a
+    /// linha de comando gravam por este mesmo metodo, para que o historico
+    /// diga a verdade independente de quem varreu.
+    /// </summary>
+    /// <param name="count">Quantos programas foram encontrados.</param>
+    public static void RecordScan(int count)
+    {
+        Update(s =>
+        {
+            s.LastScanAt = DateTime.Now;
+            s.LastScanCount = count < 0 ? 0 : count;
+        });
+    }
+
+    /// <summary>
     /// Completa as preferencias com os valores padrao das chaves que
     /// faltam ou chegaram vazias.
     ///
@@ -397,6 +459,8 @@ public static class AppSettingsStore
         settings.PortableDataFolder ??= string.Empty;
         settings.WebSearchEngine ??= string.Empty;
         settings.WebSearchEngines ??= new List<string>();
+        if (settings.BatchItemLimit < 0) settings.BatchItemLimit = 0;
+        if (settings.RetryFailedAttempts < 1) settings.RetryFailedAttempts = 1;
         return settings;
     }
 }
@@ -418,5 +482,7 @@ public static class SettingsFileFormat
         + "showMainToolbar, showDescriptionPanel, showStatusBar, showToolsToolbar, "
         + "showContextMenuCommands, deleteTracedLogAfterUninstall, "
         + "showScanAllAccountsOption, scanAllWindowsAccounts, uninstallFromAllWindowsAccounts, "
-        + "forciblyStopRunningExecutables, createFullRegistryBackupBeforeUninstall";
+        + "forciblyStopRunningExecutables, createFullRegistryBackupBeforeUninstall, "
+        + "batchItemLimit, retryFailedAttempts, restartWhenFinished, closeAppWhenFinished, "
+        + "lastScanAt, lastScanCount";
 }

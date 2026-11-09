@@ -1,3 +1,4 @@
+using Tranal.Uninstaller.Core.Tools;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
@@ -41,6 +42,13 @@ public partial class UninstallWizardWindow : Window
     private static string RestorePointHint => Loc.Get("Wizard.RestorePointHint");
 
     private readonly List<InstalledProgram> _programs;
+
+    /// <summary>
+    /// Os programas que ficaram de fora do lote por causa do teto de itens.
+    ///
+    /// Eles continuam instalados: sao adiados, nunca descartados em silencio.
+    /// </summary>
+    private readonly List<InstalledProgram> _deferred = new();
 
     /// <summary>
     /// Todos os programas instalados. E o que permite avisar que outro
@@ -161,7 +169,14 @@ public partial class UninstallWizardWindow : Window
         // A ordem inteligente e a do Revo: os desinstaladores que abrem janela
         // vao primeiro, enquanto o usuario ainda esta attentive; os
         // silenciosos depois, em lote.
-        _programs = SmartOrdering.Order(programs).ToList();
+        // O teto de lote mora na REGRA (ExecutionPolicy.ApplyBatchLimit): o
+        // que passa do teto e adiado e nomeado, nunca descartado em silencio.
+        var plan = ExecutionPolicy.ApplyBatchLimit(
+            SmartOrdering.Order(programs).ToList(),
+            AppSettingsStore.Current.BatchItemLimit);
+
+        _programs = plan.Accepted.ToList();
+        _deferred = plan.Deferred.ToList();
         _allPrograms = allPrograms;
         _quick = quick;
         StepsBar.ItemsSource = StepNames;
@@ -175,6 +190,21 @@ public partial class UninstallWizardWindow : Window
         ScanAllAccountsCheck.Unchecked += (_, _) => SyncAccountChecks();
 
         ShowStep(0);
+
+        // O lote foi cortado no teto: o usuario precisa saber o que ficou de
+        // fora, porque um programa que sai da fila sem aviso e um programa
+        // que o usuario achou que foi removido.
+        if (_deferred.Count > 0)
+        {
+            MessageBox.Show(this,
+                Loc.Get("Wizard.BatchTruncated",
+                    _deferred.Count,
+                    AppSettingsStore.Current.BatchItemLimit,
+                    string.Join(", ", _deferred.Select(p => p.DisplayName))),
+                Loc.Get("Wizard.BatchTruncatedTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
     }
 
     private InstalledProgram Target => _programs[0];
@@ -402,6 +432,7 @@ public partial class UninstallWizardWindow : Window
                     break;
 
                 case 4:
+                    ApplyCompletion();
                     Close();
                     break;
             }
@@ -629,9 +660,30 @@ public partial class UninstallWizardWindow : Window
 
         StatusText.Text = Loc.Get("Wizard.RunningBuiltIn");
         var silent = SilentUninstallCheck.IsChecked == true;
+
+        // Quantas vezes vale tentar de novo o que falhou: a REGRA mora no
+        // nucleo (ExecutionPolicy.ShouldRetry) e so o que FALHOU volta.
+        var maximo = Math.Max(1, AppSettingsStore.Current.RetryFailedAttempts);
+
         foreach (var program in _programs)
         {
-            _builtInResults.Add(await UninstallEngine.RunBuiltInUninstaller(program, silent));
+            var tentativa = 0;
+            BuiltInUninstallResult resultado;
+
+            while (true)
+            {
+                tentativa++;
+                resultado = await UninstallEngine.RunBuiltInUninstaller(program, silent);
+
+                var outcome = resultado.Uninstalled
+                    ? UninstallQueueOutcome.Completed
+                    : UninstallQueueOutcome.Failed;
+
+                if (!ExecutionPolicy.ShouldRetry(outcome, tentativa, maximo))
+                    break;
+            }
+
+            _builtInResults.Add(resultado);
 
             // O usuario mandou encerrar enquanto o desinstalador nativo
             // rodava. Ele NAO foi morto: matar o desinstalador no meio
@@ -950,6 +1002,44 @@ public partial class UninstallWizardWindow : Window
         }
 
         return sb.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// O que fazer quando a desinstalacao acaba: reiniciar a maquina ou
+    /// fechar o aplicativo.
+    ///
+    /// A REGRA mora no nucleo (<see cref="ExecutionPolicy.Completion"/>): a
+    /// tela pergunta ao usuario e executa o que a regra decidiu — ela nunca
+    /// decide sozinha.
+    /// </summary>
+    private void ApplyCompletion()
+    {
+        var settings = AppSettingsStore.Current;
+        var pendente = (_report?.DeferredCount ?? 0) > 0
+            || _builtInResults.Any(r => r.NeedsRestart);
+
+        var acao = ExecutionPolicy.Completion(settings, pendente);
+
+        if (acao == CompletionAction.RestartMachine)
+        {
+            var resposta = MessageBox.Show(this,
+                Loc.Get("Wizard.RestartQuestion", _report?.DeferredCount ?? 0),
+                Loc.Get("Wizard.RestartTitle"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            // Recusar o reinicio nao fecha o aplicativo: o usuario recusou
+            // justamente a maquina voltar, e fechar a tela nao e a mesma
+            // coisa.
+            if (resposta == MessageBoxResult.Yes) SystemActions.AgentarReinicio();
+
+            return;
+        }
+
+        if (acao == CompletionAction.CloseApplication)
+        {
+            Application.Current.Shutdown();
+        }
     }
 
     /// <summary>

@@ -45,6 +45,7 @@ public partial class OptionsWindow : Window
         StorageSectionText.Text = StorageSection;
         LayoutSectionText.Text = LayoutSection;
         PreferencesSectionText.Text = PreferencesSection;
+        BatchSectionText.Text = Loc.Get("Options.BatchSection");
         ShortcutsSectionText.Text = Loc.Get("Shortcut.Title");
 
         // O modo de visao de cores e as ferramentas novas tambem tem texto
@@ -111,6 +112,12 @@ public partial class OptionsWindow : Window
         CheckAllLeftoversCheck.IsChecked = settings.CheckAllLeftoversByDefault;
         ForciblyStopExecutablesCheck.IsChecked = settings.ForciblyStopRunningExecutables;
         ShowScanAllAccountsCheck.IsChecked = settings.ShowScanAllAccountsOption;
+
+        BatchLimitBox.Text = settings.BatchItemLimit.ToString();
+        RetryAttemptsBox.Text = settings.RetryFailedAttempts.ToString();
+        RestartWhenFinishedCheck.IsChecked = settings.RestartWhenFinished;
+        CloseAppWhenFinishedCheck.IsChecked = settings.CloseAppWhenFinished;
+        LastScanText.Text = DescribeLastScan(settings);
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -335,6 +342,13 @@ public partial class OptionsWindow : Window
             s.ForciblyStopRunningExecutables = ForciblyStopExecutablesCheck.IsChecked == true;
             s.ShowScanAllAccountsOption = ShowScanAllAccountsCheck.IsChecked == true;
 
+            s.BatchItemLimit = int.TryParse(BatchLimitBox.Text, out var teto) && teto > 0 ? teto : 0;
+            s.RetryFailedAttempts = int.TryParse(RetryAttemptsBox.Text, out var tentativas) && tentativas > 0
+                ? tentativas
+                : 1;
+            s.RestartWhenFinished = RestartWhenFinishedCheck.IsChecked == true;
+            s.CloseAppWhenFinished = CloseAppWhenFinishedCheck.IsChecked == true;
+
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;
             s.ShowSplashScreen = ShowSplashScreenCheck.IsChecked == true;
@@ -444,6 +458,22 @@ public partial class OptionsWindow : Window
         }
 
         return lista;
+    }
+
+    /// <summary>
+    /// O texto do "registro de ultima analise": quando a maquina foi varrida
+    /// pela ultima vez e quantos programas foram encontrados.
+    ///
+    /// E o mesmo dado que a linha de comando grava — a regra esta no
+    /// nucleo, e aqui so o texto e montado.
+    /// </summary>
+    private static string DescribeLastScan(AppSettings settings)
+    {
+        if (settings.LastScanAt is null) return Loc.Get("Options.LastScanNever");
+
+        return Loc.Get("Options.LastScan",
+            settings.LastScanAt.Value.ToString("g"),
+            settings.LastScanCount);
     }
 
     /// <summary>
