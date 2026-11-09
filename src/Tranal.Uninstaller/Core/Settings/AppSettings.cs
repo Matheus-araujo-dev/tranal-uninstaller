@@ -391,6 +391,38 @@ public sealed class AppSettings
     /// </summary>
     public bool ProtectPersonalFiles { get; set; } = true;
 
+    /// <summary>
+    /// Comprime os arquivos guardados no backup com Brotli.
+    ///
+    /// O BCU usa Brotli nos backups que gera. O ganho e real em arquivos de
+    /// texto e de configuracao, que e o que sobra de programa. Padrao:
+    /// <c>true</c>.
+    /// </summary>
+    public bool CompressBackups { get; set; } = true;
+
+    /// <summary>
+    /// Quantos snapshots a pasta de backups guarda.
+    ///
+    /// O limite existe porque a pasta cresce sem parar: sem ele, o backup
+    /// que existe para devolver as sobras acaba sendo o que enche o disco.
+    /// Padrao: 20.
+    /// </summary>
+    public int MaxSnapshotCount { get; set; } = 20;
+
+    /// <summary>
+    /// Quantos megabytes a pasta de backups pode ocupar. Padrao: 512.
+    /// </summary>
+    public int MaxSnapshotSizeMb { get; set; } = 512;
+
+    /// <summary>
+    /// Mantem o log das mudancas detectadas na desinstalacao.
+    ///
+    /// E o registro do que a desinstalacao encontrou e removeu. O Total
+    /// Uninstall tem a opcao "Don't use detected changes log". Padrao:
+    /// <c>true</c>.
+    /// </summary>
+    public bool KeepDetectedChangesLog { get; set; } = true;
+
     /// <summary>O modo de execucao, ja lido pela regra.</summary>
     public ExecutionPreference RunMode => ExecutionPreferences.Parse(RunPreference);
 

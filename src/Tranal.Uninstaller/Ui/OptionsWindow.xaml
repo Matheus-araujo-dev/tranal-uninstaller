@@ -206,6 +206,12 @@
         <CheckBox x:Name="ProtectPersonalFilesCheck" Margin="0,6,0,2"
                   Content="{loc:Tr Options.ProtectPersonalFiles}"
                   AutomationProperties.AutomationId="OptProtectPersonalFiles" />
+        <CheckBox x:Name="CompressBackupsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.CompressBackups}"
+                  AutomationProperties.AutomationId="OptCompressBackups" />
+        <CheckBox x:Name="KeepChangesLogCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.KeepDetectedChangesLog}"
+                  AutomationProperties.AutomationId="OptKeepChangesLog" />
 
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />

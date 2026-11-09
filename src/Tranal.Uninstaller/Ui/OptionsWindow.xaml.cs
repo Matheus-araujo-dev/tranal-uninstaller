@@ -132,6 +132,8 @@ public partial class OptionsWindow : Window
         PreserveShortcutsCheck.IsChecked = Preserved(settings, RemovalFileKind.Shortcut);
         PreserveExecutablesCheck.IsChecked = Preserved(settings, RemovalFileKind.Executable);
         ProtectPersonalFilesCheck.IsChecked = settings.ProtectPersonalFiles;
+        CompressBackupsCheck.IsChecked = settings.CompressBackups;
+        KeepChangesLogCheck.IsChecked = settings.KeepDetectedChangesLog;
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -428,6 +430,8 @@ public partial class OptionsWindow : Window
                 (DisplayPreferenceCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString());
             s.PreservedFileKinds = ReadPreservedKinds();
             s.ProtectPersonalFiles = ProtectPersonalFilesCheck.IsChecked == true;
+            s.CompressBackups = CompressBackupsCheck.IsChecked == true;
+            s.KeepDetectedChangesLog = KeepChangesLogCheck.IsChecked == true;
 
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;

@@ -830,9 +830,15 @@ public partial class UninstallWizardWindow : Window
         // apagado" — e o Uninstall Tool grava o mesmo.
         try
         {
-            _removalLogPath = RemovalLog.Save(_report, name);
-            _summary += Environment.NewLine + Environment.NewLine
-                + Loc.Get("Wizard.RemovalLogSaved", _removalLogPath);
+            // O log das mudancas detectadas pode ser desligado nas
+            // preferencias (o "Don't use detected changes log" do Total
+            // Uninstall). A REGRA esta na preferencia; aqui e so a consulta.
+            if (AppSettingsStore.Current.KeepDetectedChangesLog)
+            {
+                _removalLogPath = RemovalLog.Save(_report, name);
+                _summary += Environment.NewLine + Environment.NewLine
+                    + Loc.Get("Wizard.RemovalLogSaved", _removalLogPath);
+            }
         }
         catch (Exception ex)
         {

@@ -212,6 +212,39 @@ public sealed class ProgramFilterSet
     public const string RegexPrefix = "regex:";
 
     /// <summary>
+    /// Os nomes dos programas que o usuario selecionou, quando a selecao
+    /// foi transformada em filtro.
+    ///
+    /// Vazio = o filtro de selecao esta desligado.
+    /// </summary>
+    public ISet<string> SelectedNames { get; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>True quando a selecao virou filtro.</summary>
+    public bool HasSelectionFilter => SelectedNames.Count > 0;
+
+    /// <summary>
+    /// Transforma a selecao atual em filtro: a lista passa a mostrar so os
+    /// programas escolhidos.
+    ///
+    /// E o "Add the selected as filter" do BCU: a escolha deixa de ser uma
+    /// marcacao e passa a ser um criterio.
+    /// </summary>
+    /// <param name="names">Os nomes dos programas escolhidos.</param>
+    public void UseSelectionAsFilter(IEnumerable<string>? names)
+    {
+        SelectedNames.Clear();
+
+        foreach (var nome in names ?? Enumerable.Empty<string>())
+        {
+            if (string.IsNullOrWhiteSpace(nome)) continue;
+            SelectedNames.Add(nome.Trim());
+        }
+    }
+
+    /// <summary>Desliga o filtro de selecao.</summary>
+    public void ClearSelectionFilter() => SelectedNames.Clear();
+
+    /// <summary>
     /// Termos de exclusao (negacoes): um programa que casa com um deles
     /// fica fora da lista, mesmo que case com a busca.
     ///
@@ -432,6 +465,11 @@ public sealed class ProgramFilterSet
         if (OnlyWithGroups && (anotacao is null || anotacao.Groups.Count == 0)) return false;
 
         if (!MatchesRareUsage(program)) return false;
+
+        // O filtro de selecao vem por ultimo: ele e a escolha do usuario
+        // sobre a propria lista, e vale acima dos demais criterios.
+        if (SelectedNames.Count > 0 && !SelectedNames.Contains(program.DisplayName ?? string.Empty))
+            return false;
 
         return true;
     }

@@ -243,6 +243,31 @@ public partial class MainWindow : Window
         _scanCancellation?.Cancel();
     }
 
+    /// <summary>
+    /// Transforma a selecao atual em filtro: a lista passa a mostrar so os
+    /// programas escolhidos.
+    /// </summary>
+    private void UseSelectionAsFilter()
+    {
+        var nomes = ProgramsList.SelectedItems
+            .Cast<ProgramRow>()
+            .Select(r => r.Program.DisplayName)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .ToList();
+
+        if (nomes.Count == 0)
+        {
+            StatusText.Text = Loc.Get("Status.NoSelection");
+            return;
+        }
+
+        _filters.UseSelectionAsFilter(nomes);
+        ApplyFilter();
+        UpdateStatus();
+
+        StatusText.Text = Loc.Get("Cmd.UseSelectionAsFilterDone", nomes.Count);
+    }
+
     private void UpdateStatus()
     {
         // A coluna "Inicializacao" so responde depois que a varredura de
@@ -813,6 +838,10 @@ public partial class MainWindow : Window
         // Parar a varredura (Wise: o botao "Stop").
         var parar = CommandItem(Loc.Get("Cmd.StopScan"), "CmdStopScan", () => StopScan());
         menu.Items.Add(parar);
+
+        // A selecao vira filtro (BCU: "Add the selected as filter").
+        var usarSelecao = CommandItem(Loc.Get("Cmd.UseSelectionAsFilter"), "CmdUseSelectionAsFilter", () => UseSelectionAsFilter());
+        menu.Items.Add(usarSelecao);
 
         var uninstall = CommandItem(Loc.Get("Cmd.Uninstall"), "CmdUninstall", () => StartUninstall(quick: false));
         menu.Items.Add(uninstall);

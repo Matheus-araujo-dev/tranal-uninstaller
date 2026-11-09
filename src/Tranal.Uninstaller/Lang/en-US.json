@@ -1285,4 +1285,12 @@
     "Cmd.StopScan": "Stop scan"
 ,
     "Status.ScanStopped": "Scan stopped — {0} program(s) read before the stop."
+,
+    "Cmd.UseSelectionAsFilter": "Use the selection as filter"
+,
+    "Cmd.UseSelectionAsFilterDone": "Filtered by selection: {0} program(s)."
+,
+    "Options.CompressBackups": "Compress the backups (Brotli)"
+,
+    "Options.KeepDetectedChangesLog": "Keep the detected changes log"
 }

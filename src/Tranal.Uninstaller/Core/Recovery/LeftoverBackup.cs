@@ -1,7 +1,9 @@
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
+using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Core.Recovery;
 
@@ -152,6 +154,11 @@ public static class LeftoverBackup
             var json = JsonSerializer.Serialize(manifesto, JsonOptions);
             File.WriteAllText(Path.Combine(pasta, "manifest.json"), json, EncodingUtf8);
 
+            // O limite da pasta de snapshots: o Total Uninstall tem
+            // "Limits for Snapshots folder". A REGRA mora no modulo de
+            // limites; aqui e so a chamada, depois do backup gravado.
+            SnapshotLimits.Enforce();
+
             return new LeftoverBackupResult
             {
                 Ok = true,
@@ -237,15 +244,89 @@ public static class LeftoverBackup
             if (!File.Exists(caminho)) return null;
 
             var nome = $"{indice:D4}-{Path.GetFileName(caminho)}";
-            var destino = Path.Combine(pasta, "files", nome);
+            var sub = Path.Combine(pasta, "files");
+            Directory.CreateDirectory(sub);
+
+            // A compressao Brotli (BCU) reduz bastante o backup do que
+            // sobra de programa: arquivos de texto e de configuracao.
+            // O sufixo ".br" no arquivo guardado e o que diz, na hora de
+            // devolver, que ele precisa ser descomprimido.
+            var comprimir = AppSettingsStore.Current.CompressBackups;
+            var destino = Path.Combine(sub, comprimir ? nome + ".br" : nome);
+
+            if (comprimir)
+            {
+                using var entrada = File.OpenRead(caminho);
+                using var saida = File.Create(destino);
+                using var brotli = new BrotliStream(saida, CompressionLevel.Optimal, leaveOpen: true);
+                entrada.CopyTo(brotli);
+            }
+            else
+            {
+                File.Copy(caminho, destino, overwrite: true);
+            }
+
+            return Path.GetFileName(destino);
+        }
+        catch (Exception) { return null; }
+    }
+
+    /// <summary>
+    /// Devolve um arquivo guardado ao lugar original, descomprimindo quando
+    /// ele foi guardado comprimido.
+    ///
+    /// A REGRA mora aqui, em um lugar so: quem devolve um arquivo do backup
+    /// chama este metodo. Antes, cada restaurador copiava o arquivo do
+    /// backup por conta propria — e o que sabia comprimir nao era o que
+    /// sabia descomprimir.
+    /// </summary>
+    /// <param name="pasta">A pasta do backup.</param>
+    /// <param name="guardado">O nome do arquivo dentro do backup.</param>
+    /// <param name="destino">Onde o arquivo vai.</param>
+    public static bool ExtractStored(string pasta, string guardado, string destino)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(pasta) || string.IsNullOrWhiteSpace(guardado)) return false;
+
+            var origem = Path.Combine(pasta, "files", guardado);
+            if (!File.Exists(origem)) return false;
 
             var sub = Path.GetDirectoryName(destino);
             if (!string.IsNullOrEmpty(sub)) Directory.CreateDirectory(sub);
 
-            File.Copy(caminho, destino, overwrite: true);
-            return nome;
+            if (guardado.EndsWith(".br", StringComparison.OrdinalIgnoreCase))
+            {
+                using var entrada = File.OpenRead(origem);
+                using var saida = File.Create(destino);
+                using var brotli = new BrotliStream(entrada, CompressionMode.Decompress);
+                brotli.CopyTo(saida);
+                return true;
+            }
+
+            File.Copy(origem, destino, overwrite: true);
+            return true;
         }
-        catch (Exception) { return null; }
+        catch (Exception) { return false; }
+    }
+
+    /// <summary>
+    /// O nome original do arquivo, a partir do nome com que ele foi guardado.
+    ///
+    /// O nome guardado tem o indice e o sufixo ".br" da compressao; nenhum
+    /// dos dois faz parte do nome do arquivo do usuario.
+    /// </summary>
+    /// <param name="guardado">O nome do arquivo dentro do backup.</param>
+    public static string OriginalNameOf(string guardado)
+    {
+        var nome = Path.GetFileName(guardado ?? string.Empty);
+        var indice = nome.IndexOf('-');
+        var original = indice > 0 ? nome[(indice + 1)..] : nome;
+
+        if (original.EndsWith(".br", StringComparison.OrdinalIgnoreCase))
+            original = original[..^3];
+
+        return original;
     }
 
     /// <summary>
@@ -308,33 +389,17 @@ public static class LeftoverBackup
             {
                 if (string.Equals(item.Kind, "Arquivo", StringComparison.OrdinalIgnoreCase))
                 {
-                    var origem = Path.Combine(pasta, "files", item.StoredPath ?? string.Empty);
-                    if (!File.Exists(origem)) { falhas++; continue; }
-
-                    var destino = item.Path;
-                    var sub = Path.GetDirectoryName(destino);
-                    if (!string.IsNullOrEmpty(sub)) Directory.CreateDirectory(sub);
-
-                    File.Copy(origem, destino, overwrite: true);
-                    devolvidos++;
+                    if (ExtractStored(pasta, item.StoredPath ?? string.Empty, item.Path)) devolvidos++;
+                    else falhas++;
                 }
                 else if (string.Equals(item.Kind, "Pasta", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var guardado in (item.StoredPath ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries))
                     {
-                        var origem = Path.Combine(pasta, "files", guardado);
-                        if (!File.Exists(origem)) { falhas++; continue; }
+                        var destino = Path.Combine(item.Path, OriginalNameOf(guardado));
 
-                        var nome = Path.GetFileName(guardado);
-                        var indice = nome.IndexOf('-');
-                        var original = indice > 0 ? nome[(indice + 1)..] : nome;
-                        var destino = Path.Combine(item.Path, original);
-
-                        var sub = Path.GetDirectoryName(destino);
-                        if (!string.IsNullOrEmpty(sub)) Directory.CreateDirectory(sub);
-
-                        File.Copy(origem, destino, overwrite: true);
-                        devolvidos++;
+                        if (ExtractStored(pasta, guardado, destino)) devolvidos++;
+                        else falhas++;
                     }
                 }
                 else if (string.Equals(item.Kind, "Registro", StringComparison.OrdinalIgnoreCase))

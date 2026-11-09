@@ -318,32 +318,19 @@ public static class ProgramBackup
             {
                 if (string.Equals(item.Kind, "Arquivo", StringComparison.OrdinalIgnoreCase))
                 {
-                    var origem = Path.Combine(operacao.BackupFolder, "files", item.StoredPath ?? string.Empty);
-                    if (!File.Exists(origem)) continue;
-
-                    var sub = Path.GetDirectoryName(item.Path);
-                    if (!string.IsNullOrEmpty(sub)) Directory.CreateDirectory(sub);
-
-                    File.Copy(origem, item.Path, overwrite: true);
-                    devolvidos++;
+                    // A extracao mora no backup: e ele que sabe se o
+                    // arquivo foi guardado comprimido.
+                    if (LeftoverBackup.ExtractStored(operacao.BackupFolder, item.StoredPath ?? string.Empty, item.Path))
+                        devolvidos++;
                 }
                 else if (string.Equals(item.Kind, "Pasta", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (var guardado in (item.StoredPath ?? string.Empty).Split(';', StringSplitOptions.RemoveEmptyEntries))
                     {
-                        var origem = Path.Combine(operacao.BackupFolder, "files", guardado);
-                        if (!File.Exists(origem)) continue;
+                        var destino = Path.Combine(item.Path, LeftoverBackup.OriginalNameOf(guardado));
 
-                        var nome = Path.GetFileName(guardado);
-                        var indice = nome.IndexOf('-');
-                        var original = indice > 0 ? nome[(indice + 1)..] : nome;
-                        var destino = Path.Combine(item.Path, original);
-
-                        var sub = Path.GetDirectoryName(destino);
-                        if (!string.IsNullOrEmpty(sub)) Directory.CreateDirectory(sub);
-
-                        File.Copy(origem, destino, overwrite: true);
-                        devolvidos++;
+                        if (LeftoverBackup.ExtractStored(operacao.BackupFolder, guardado, destino))
+                            devolvidos++;
                     }
                 }
                 else if (string.Equals(item.Kind, "Registro", StringComparison.OrdinalIgnoreCase))

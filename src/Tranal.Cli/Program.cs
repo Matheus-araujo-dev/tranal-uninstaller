@@ -124,6 +124,10 @@ public static class Program
         var energia = PowerCommands.TryRun(effective, flags);
         if (energia.HasValue) return energia.Value;
 
+        // A pasta de snapshots: o que existe e o limite dela.
+        var snapshots = SnapshotCommands.TryRun(effective, flags);
+        if (snapshots.HasValue) return snapshots.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

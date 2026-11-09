@@ -1285,4 +1285,12 @@
     "Cmd.StopScan": "Parar varredura"
 ,
     "Status.ScanStopped": "Varredura interrompida — {0} programa(s) lido(s) ate a parada."
+,
+    "Cmd.UseSelectionAsFilter": "Usar a selecao como filtro"
+,
+    "Cmd.UseSelectionAsFilterDone": "Filtro pela selecao: {0} programa(s)."
+,
+    "Options.CompressBackups": "Comprimir os backups (Brotli)"
+,
+    "Options.KeepDetectedChangesLog": "Manter o log das mudancas detectadas"
 }
