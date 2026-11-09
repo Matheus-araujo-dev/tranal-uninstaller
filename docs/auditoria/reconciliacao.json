@@ -689,15 +689,6 @@
                                             "motivo":  ""
                                         },
                                         {
-                                            "recon":  37,
-                                            "catalogo":  37,
-                                            "catalogoId":  "T6#37",
-                                            "estado":  "PARCIAL",
-                                            "evidencia":  "Itens compartilhados: contadores de referência em registro e diálogo \"Remove shared file\"|`src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:52` (`public static class SharedReferenceCounter`) `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:60` (`public static class SharedDllCatalog`) `src/Tranal.Cli/RegistryCommands.cs:258` (`SharedReferenceCounter`) **Nota**: o contador de referencia e canonico e tem saida na CLI e no painel; o dialogo \"Remove shared file?\" nao existe como acao de interface.",
-                                            "via":  "id",
-                                            "motivo":  ""
-                                        },
-                                        {
                                             "recon":  67,
                                             "catalogo":  67,
                                             "catalogoId":  "T7#67",
@@ -775,6 +766,15 @@
                                             "catalogoId":  "T7#93",
                                             "estado":  "PARCIAL",
                                             "evidencia":  "**Acompanhar o tema do Explorer**|`src/Tranal.Uninstaller/Theming/ThemeManager.cs:41` (`public static class ThemeManager`) **Nota**: o Tranal tem temas proprios trocados pelo usuario; nao segue o tema do Explorer.",
+                                            "via":  "id",
+                                            "motivo":  ""
+                                        },
+                                        {
+                                            "recon":  37,
+                                            "catalogo":  37,
+                                            "catalogoId":  "T6#37",
+                                            "estado":  "PARCIAL",
+                                            "evidencia":  "O **contador de referencia** existe e esta ligado: lido do registro `SharedDLLs` em `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:97` e `:108`, quem depende de cada item em `UsersOf` `:126`, o catalogo canonico em `src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:60` e `:121` (`IsShared` em `:27`), o painel na tela (`src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:542`, contador exibido em `:552` e `:580`) e as saidas na CLI (`src/Tranal.Cli/CleanupCommands.cs:272` e `src/Tranal.Cli/RegistryCommands.cs:258-268`). **Nota**: o **dialogo \"Remove shared file?\"** nao existe - a frase so aparece em **comentarios** (`src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:25` e `:42`, `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:50`); a remocao pela tela (`src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:594-605`) apaga direto, sem a confirmacao de item compartilhado. Binario do concorrente: confirmado em binario (`strings.txt:51011`, `recursos.txt:143`, `TDLGRMVSHARED`)",
                                             "via":  "id",
                                             "motivo":  ""
                                         }
@@ -1233,6 +1233,69 @@
                          ],
                  "ASHAMPOO":  [
                                   {
+                                      "recon":  34,
+                                      "catalogo":  66,
+                                      "catalogoId":  "T1#66",
+                                      "estado":  "OK",
+                                      "evidencia":  "`grep UninstallDisplayName\\|UninstallDisplayIcon` -\u003e `tranal.iss:93-94`; o Inno Setup grava a chave `Uninstall` no registro",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  44,
+                                      "catalogo":  8,
+                                      "catalogoId":  "T2#8",
+                                      "estado":  "OK",
+                                      "evidencia":  "`ToText` lista os arquivos com caminho, tamanho e data (`TraceLogExporter.cs:58-64`)",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  48,
+                                      "catalogo":  23,
+                                      "catalogoId":  "T1#23",
+                                      "estado":  "OK",
+                                      "evidencia":  "A busca textual e a ocultacao de categorias comuns existem (`MainWindow.xaml.cs:264` `HiddenFilterCheck` liga/desliga `ShowSystemComponents`)",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  49,
+                                      "catalogo":  29,
+                                      "catalogoId":  "T1#29",
+                                      "estado":  "OK",
+                                      "evidencia":  "Os modulos sao paineis com botao proprio na tela principal (`MainWindow.xaml.cs:588`)",
+                                      "via":  1,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  50,
+                                      "catalogo":  35,
+                                      "catalogoId":  "T3#35",
+                                      "estado":  "OK",
+                                      "evidencia":  "Captura e comparacao estao na mesma tela (`TracingWindow.xaml.cs:361` e `:373`), com o diff A x B descrito em `:571-583`",
+                                      "via":  0.94,
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  55,
+                                      "catalogo":  65,
+                                      "catalogoId":  "T5#65",
+                                      "estado":  "FORA POR DECISAO",
+                                      "evidencia":  "Decisao de produto registrada no catalogo canonico: \"decisao de produto: o Tranal e distribuido por instalador proprio (`installer/tranal.iss`), sem loja de aplicativos\" - `docs/auditoria/ASHAMPOO.md:175` (item 65 do catalogo)",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"Instalacao via Ashampoo App (loja de aplicativos propria)\" = CAT T5#65 \"Instalacao via Ashampoo App\"."
+                                  },
+                                  {
+                                      "recon":  56,
+                                      "catalogo":  67,
+                                      "catalogoId":  "T7#67",
+                                      "estado":  "OK",
+                                      "evidencia":  "O empacotamento ja e Inno Setup: `installer/tranal.iss:63` `#define AppName`, `:73` `AppVerName`, secoes `[Setup]`/`[Languages]`/`[Tasks]`/`[Icons]`",
+                                      "via":  "ancora",
+                                      "motivo":  "RECON \"Instalador Inno Setup 7.0.0.3 como tecnologia de empacotamento\" = CAT T7#67 \"Instalador Inno Setup 7.0.0.3 com mensagens em ingles\"."
+                                  },
+                                  {
                                       "recon":  1,
                                       "catalogo":  14,
                                       "catalogoId":  "T2#14",
@@ -1341,69 +1404,6 @@
                                       "motivo":  ""
                                   },
                                   {
-                                      "recon":  34,
-                                      "catalogo":  66,
-                                      "catalogoId":  "T1#66",
-                                      "estado":  "OK",
-                                      "evidencia":  "`grep UninstallDisplayName\\|UninstallDisplayIcon` -\u003e `tranal.iss:93-94`; o Inno Setup grava a chave `Uninstall` no registro",
-                                      "via":  1,
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  44,
-                                      "catalogo":  8,
-                                      "catalogoId":  "T2#8",
-                                      "estado":  "OK",
-                                      "evidencia":  "`ToText` lista os arquivos com caminho, tamanho e data (`TraceLogExporter.cs:58-64`)",
-                                      "via":  1,
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  48,
-                                      "catalogo":  23,
-                                      "catalogoId":  "T1#23",
-                                      "estado":  "OK",
-                                      "evidencia":  "A busca textual e a ocultacao de categorias comuns existem (`MainWindow.xaml.cs:264` `HiddenFilterCheck` liga/desliga `ShowSystemComponents`)",
-                                      "via":  1,
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  49,
-                                      "catalogo":  29,
-                                      "catalogoId":  "T1#29",
-                                      "estado":  "OK",
-                                      "evidencia":  "Os modulos sao paineis com botao proprio na tela principal (`MainWindow.xaml.cs:588`)",
-                                      "via":  1,
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  50,
-                                      "catalogo":  35,
-                                      "catalogoId":  "T3#35",
-                                      "estado":  "OK",
-                                      "evidencia":  "Captura e comparacao estao na mesma tela (`TracingWindow.xaml.cs:361` e `:373`), com o diff A x B descrito em `:571-583`",
-                                      "via":  0.94,
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  55,
-                                      "catalogo":  65,
-                                      "catalogoId":  "T5#65",
-                                      "estado":  "FORA POR DECISAO",
-                                      "evidencia":  "Decisao de produto registrada no catalogo canonico: \"decisao de produto: o Tranal e distribuido por instalador proprio (`installer/tranal.iss`), sem loja de aplicativos\" - `docs/auditoria/ASHAMPOO.md:175` (item 65 do catalogo)",
-                                      "via":  "ancora",
-                                      "motivo":  "RECON \"Instalacao via Ashampoo App (loja de aplicativos propria)\" = CAT T5#65 \"Instalacao via Ashampoo App\"."
-                                  },
-                                  {
-                                      "recon":  56,
-                                      "catalogo":  67,
-                                      "catalogoId":  "T7#67",
-                                      "estado":  "OK",
-                                      "evidencia":  "O empacotamento ja e Inno Setup: `installer/tranal.iss:63` `#define AppName`, `:73` `AppVerName`, secoes `[Setup]`/`[Languages]`/`[Tasks]`/`[Icons]`",
-                                      "via":  "ancora",
-                                      "motivo":  "RECON \"Instalador Inno Setup 7.0.0.3 como tecnologia de empacotamento\" = CAT T7#67 \"Instalador Inno Setup 7.0.0.3 com mensagens em ingles\"."
-                                  },
-                                  {
                                       "recon":  22,
                                       "catalogo":  22,
                                       "catalogoId":  "T1#22",
@@ -1427,15 +1427,6 @@
                                       "catalogoId":  "T1#63",
                                       "estado":  "AUSENTE",
                                       "evidencia":  "Categoria automática expandida + reset para \"Unsorted\"|grep \"Unsorted\" em src/ -\u003e 0 hits o agrupamento por coluna existe (`Core/ProgramColumns.cs`), mas nao ha a categoria \"Unsorted\" nem o reset para ela",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  64,
-                                      "catalogo":  64,
-                                      "catalogoId":  "T1#64",
-                                      "estado":  "OK",
-                                      "evidencia":  "País do editor com bandeira e nome|`src/Tranal.Uninstaller/Core/Appearance/CountryDetector.cs:43` (`public static class CountryDetector`) `src/Tranal.Uninstaller/Core/Localization/CountryNames.cs:26` (`public static class CountryNames`) `src/Tranal.Uninstaller/Core/ProgramColumns.cs:283` (`CountryOf`) o nome vem da tabela unica no idioma do app (`CountryNames.Nome`), nunca do `DisplayName` da cultura do Windows.",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1485,24 +1476,6 @@
                                       "motivo":  ""
                                   },
                                   {
-                                      "recon":  41,
-                                      "catalogo":  41,
-                                      "catalogoId":  "T4#41",
-                                      "estado":  "OK",
-                                      "evidencia":  "Drive Cleaner (arquivos desnecessários, com seleção por categoria e relatório)|`src/Tranal.Uninstaller/Core/Tools/DriveCleaner.cs:69` (`public static class DriveCleaner`) `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:322` (`DriveCleaner.Scan`) `src/Tranal.Cli/CleanupCommands.cs:143` (`DriveCleaner.Scan`) o relatorio HTML e gravado por `DriveCleaner.WriteReport`.",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  42,
-                                      "catalogo":  42,
-                                      "catalogoId":  "T4#42",
-                                      "estado":  "OK",
-                                      "evidencia":  "Internet Cleaner (cookies, histórico, exceções e \"cookies seguros\" / whitelist)|`src/Tranal.Uninstaller/Core/Tools/InternetCleaner.cs:75` (`public static class InternetCleaner`) `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:214` (`InternetCleaner.Scan`) `src/Tranal.Cli/CleanupCommands.cs:103` (`InternetCleaner.AddException`) a whitelist existe: `AddException`, `RemoveException` e `IsExcepted` (`InternetCleaner.cs`).",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
                                       "recon":  44,
                                       "catalogo":  44,
                                       "catalogoId":  "T4#44",
@@ -1521,24 +1494,6 @@
                                       "motivo":  ""
                                   },
                                   {
-                                      "recon":  50,
-                                      "catalogo":  50,
-                                      "catalogoId":  "T4#50",
-                                      "estado":  "OK",
-                                      "evidencia":  "**Unlocker**: desbloquear arquivos em uso, reiniciar o Explorer, desregistrar DLL, encerrar processo|`src/Tranal.Uninstaller/Core/Automation/Unlocker.cs:73` (`public static class Unlocker`) `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:109` (`Unlocker.Unlock`) `src/Tranal.Cli/CleanupCommands.cs:82` (`Unlocker.Unlock`) as quatro capacidades estao no modulo: `Scan`, `TerminateLockers`, `RestartExplorer` e `UnregisterDll`.",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  51,
-                                      "catalogo":  51,
-                                      "catalogoId":  "T4#51",
-                                      "estado":  "PARCIAL",
-                                      "evidencia":  "**Crash Analyzer**: relatórios de falha do Windows Event Log, agrupados por programa, com export e busca online|`src/Tranal.Uninstaller/Core/Tools/CrashAnalyzer.cs:55` (`public static class CrashAnalyzer`) `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:201` (`CrashAnalyzer.Scan`) **Nota**: a leitura do Event Log e o agrupamento por programa existem; faltam **export** e **busca online** — a tela so tem \"Atualizar\".",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
                                       "recon":  53,
                                       "catalogo":  53,
                                       "catalogoId":  "T4#53",
@@ -1553,33 +1508,6 @@
                                       "catalogoId":  "T4#54",
                                       "estado":  "AUSENTE",
                                       "evidencia":  "**Hibernation**: colocar um programa para dormir (desabilita autostart e serviços) e acordá-lo depois|grep \"Hibernat\" em src/ -\u003e 0 hits o Tranal desabilita o autorun e os servicos de um programa (`Core/Management/AppPermissionManager.cs`), mas nao existe a operacao de suspender e acordar.",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  55,
-                                      "catalogo":  55,
-                                      "catalogoId":  "T4#55",
-                                      "estado":  "OK",
-                                      "evidencia":  "**Impact**: programas com maior impacto na performance (CPU e memória)|`src/Tranal.Uninstaller/Core/Modules/ProgramImpactAnalyzer.cs:56` (`public static class ProgramImpactAnalyzer`) `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:143` (`ProgramImpactAnalyzer.Rank`)",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  56,
-                                      "catalogo":  56,
-                                      "catalogoId":  "T4#56",
-                                      "estado":  "OK",
-                                      "evidencia":  "**Move**: mover um programa para outro local, recriando o atalho no lugar original|`src/Tranal.Uninstaller/Core/Management/RelocationManager.cs:81` (`public static Result Move`) `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:327` (`RelocationManager.Move`)",
-                                      "via":  "id",
-                                      "motivo":  ""
-                                  },
-                                  {
-                                      "recon":  57,
-                                      "catalogo":  57,
-                                      "catalogoId":  "T4#57",
-                                      "estado":  "OK",
-                                      "evidencia":  "**Revert relocation**: devolver o programa movido à posição original|`src/Tranal.Uninstaller/Core/Management/RelocationManager.cs:149` (`public static Result Revert`) `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:342` (`RelocationManager.Revert`)",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1789,6 +1717,78 @@
                                       "evidencia":  "Fechamento automático de aplicações que travam a instalação (e reinício delas)|`installer/tranal.iss` tem `CloseApplications=yes`, mas `RestartApplications=no` — o instalador fecha e nao reinicia.",
                                       "via":  "id",
                                       "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  64,
+                                      "catalogo":  64,
+                                      "catalogoId":  "T1#64",
+                                      "estado":  "OK",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Appearance/CountryDetector.cs:51` (`Detect`) le o recurso de versao do executavel e devolve codigo, nome e bandeira; `FromCode` em `:77`, bandeira em `BandeiraDe` `:133`, nome pela tabela unica `CountryNames.Nome` (`src/Tranal.Uninstaller/Core/Localization/CountryNames.cs:113`, chamada em `CountryDetector.cs:125`). Coluna na grade: `src/Tranal.Uninstaller/Core/ProgramColumns.cs:105` (enum), `:215` (definicao), `:283` e `:314-321` (render e `CountryOf`); `src/Tranal.Uninstaller/Ui/ProgramRow.cs:76`; `src/Tranal.Uninstaller/Ui/ProgramColumnLayout.cs:45` e `:77`. Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  41,
+                                      "catalogo":  41,
+                                      "catalogoId":  "T4#41",
+                                      "estado":  "OK",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Tools/DriveCleaner.cs:74` (`BuildCategories`, 7 categorias em `:74-144`), `:149` (`Categories`), `:154` (`Scan`, itens ja marcados por categoria), `:180` (`Summary`), `:193` (`Clear`), `:236` (`WriteReport`, HTML). Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:280`, com `DriveScan` `:296`, `DriveClean` `:297` e `DriveReport` `:298` (gravacao do HTML em `SaveFileDialog` `:353-363`). CLI `src/Tranal.Cli/CleanupCommands.cs:38`, relatorio em `:147` e limpeza em `:165` (`tranal /drive`). Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  42,
+                                      "catalogo":  42,
+                                      "catalogoId":  "T4#42",
+                                      "estado":  "OK",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Tools/InternetCleaner.cs:75` (classe), 5 grupos (cookies `:81`, historico `:84`, cache `:87`, sessoes `:90`, formularios `:93`), `:176` e `:200` (`Scan`), `:213` (`Clear`); whitelist em `LoadExceptions` `:261`, `AddException` `:292`, `RemoveException` `:309`, `IsExcepted` `:326`, aplicada aos cookies em `ExceptedHostsIn` `:470`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:185`, com `InternetScan` `:201`, `InternetClean` `:202` e `InternetException` `:203` (entrada do dominio em `:258-268`). CLI `src/Tranal.Cli/CleanupCommands.cs:37` e `:103` (`tranal /internet /exception`). Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  50,
+                                      "catalogo":  50,
+                                      "catalogoId":  "T4#50",
+                                      "estado":  "OK",
+                                      "evidencia":  "As quatro capacidades estao no modulo `src/Tranal.Uninstaller/Core/Automation/Unlocker.cs`: `Scan` `:80` e `IsLocked` `:136` (descobrir quem segura), `TerminateLockers` `:194` (encerrar processo), `RestartExplorer` `:237` (reiniciar o Explorer), `UnregisterDll` `:262` (`regsvr32 /u /s`); a acao entra por `Unlock` `:147`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:92` (`CreateUnlocker`), chamada em `:171` (`Unlocker.Unlock(caminho, reiniciarExplorer, reiniciarExplorer)`): o botao \"Destravar\" `:109` nao desregistra DLL e o botao \"Destravar e reiniciar Explorer\" `:110` desregistra e reinicia; a CLI repete a mesma combinacao em `src/Tranal.Cli/CleanupCommands.cs:82` (`tranal /unlock ... /explorer`). Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  51,
+                                      "catalogo":  51,
+                                      "catalogoId":  "T4#51",
+                                      "estado":  "PARCIAL",
+                                      "evidencia":  "A leitura e o agrupamento existem: `src/Tranal.Uninstaller/Core/Tools/CrashAnalyzer.cs:62` (`Scan` do Event Log \"Application\"), `:134` (`Converter` do evento) e agrupamento por `ProgramName` em `:109-113` (nome em `:154`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:171`, carga em `:201`, barra lateral em `src/Tranal.Uninstaller/MainWindow.xaml:371`. **Nota**: faltam **export** e **busca online** - a tela tem um unico comando, \"Atualizar\" (`InsightViews.cs:187-192`), e em `CrashAnalyzer.cs` nao ha gravacao de relatorio (a busca por `Export` e `ToolReportWriter` no arquivo nao retorna hits; o `ToolReportWriter` so e usado em `src/Tranal.Cli/RegistryCommands.cs:105`). Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  55,
+                                      "catalogo":  55,
+                                      "catalogoId":  "T4#55",
+                                      "estado":  "OK",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProgramImpactAnalyzer.cs:56` (classe), `:64` (`Rank`, mede memoria e CPU de cada programa instalado e ordena por impacto), `:113` (`CalcularNota`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:107`, carga em `:143`, colunas de score, memoria e CPU em `:117-119`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:363`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:63`. Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  56,
+                                      "catalogo":  56,
+                                      "catalogoId":  "T4#56",
+                                      "estado":  "OK",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Management/RelocationManager.cs:81` (`Move`: move a pasta de instalacao para o destino escolhido), `:131` chamando `AtualizarEntradaDeRegistro` (implementacao em `:192`) e `:133` chamando `RecriarAtalhoNoDestinoAntigo` (implementacao em `:252`); historico em `Historico` `:186`. Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:231`, escolha de programa e destino em `:304-325` e a chamada em `:327`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:379`. Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
+                                  },
+                                  {
+                                      "recon":  57,
+                                      "catalogo":  57,
+                                      "catalogoId":  "T4#57",
+                                      "estado":  "OK",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Management/RelocationManager.cs:149` (`Revert`, devolve o programa a posicao original a partir do historico gravado em `:186`); tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:231`, lista do historico em `:273` e a chamada do revert em `:342`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:379`. Binario do concorrente: nao confirmado no binario",
+                                      "via":  "id",
+                                      "motivo":  ""
                                   }
                               ],
                  "IOBIT":  [
@@ -1883,24 +1883,6 @@
                                    "motivo":  ""
                                },
                                {
-                                   "recon":  29,
-                                   "catalogo":  29,
-                                   "catalogoId":  "T6#29",
-                                   "estado":  "OK",
-                                   "evidencia":  "`Core/Management/WindowsUpdateManager.cs` (`Remove`, `RemoveMany`) — remocao de KB por `wusa.exe /uninstall`, com o codigo de saida traduzido (0 ok, 3010 reiniciar, 2359302 nao instalado); linha de comando `tranal /updates`",
-                                   "via":  1,
-                                   "motivo":  ""
-                               },
-                               {
-                                   "recon":  3,
-                                   "catalogo":  3,
-                                   "catalogoId":  "T1#3",
-                                   "estado":  "PARCIAL",
-                                   "evidencia":  "**Limpeza de navegador / reset de padrões** (página inicial e motor de busca)|`src/Tranal.Uninstaller/Core/Tools/BrowserCleanup.cs:162` (`public static BrowserCleanupResult ResetDefaults`) `src/Tranal.Uninstaller/Ui/Tools/MaintenanceViews.cs:423` (`BrowserCleanup.ResetDefaults(null)`) `src/Tranal.Cli/MaintenanceCommands.cs:99` (`BrowserCleanup.ResetDefaults(null)`) **Nota**: o reset de padrões nunca roda — os dois chamadores de produção passam `null`, e `ResetDefaults` sai cedo com navegador vazio. A limpeza de dados e de extensões orfas existe e funciona; o que falta é o reset de página inicial e motor de busca.",
-                                   "via":  "id",
-                                   "motivo":  ""
-                               },
-                               {
                                    "recon":  4,
                                    "catalogo":  4,
                                    "catalogoId":  "T1#4",
@@ -1960,15 +1942,6 @@
                                    "catalogoId":  "T6#23",
                                    "estado":  "AUSENTE",
                                    "evidencia":  "Botão de destruição irreversível no Explorer|o menu de contexto do Explorer do Tranal e o de desinstalar (`Core/Topmost/ExplorerContextMenu.cs`); nao ha entrada de destruicao",
-                                   "via":  "id",
-                                   "motivo":  ""
-                               },
-                               {
-                                   "recon":  24,
-                                   "catalogo":  24,
-                                   "catalogoId":  "T6#24",
-                                   "estado":  "OK",
-                                   "evidencia":  "**Software Relocator**: mover software instalado entre discos|`src/Tranal.Uninstaller/Core/Management/RelocationManager.cs:81` (`public static Result Move`) `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:25` (`RelocationManager`) `src/Tranal.Uninstaller/MainWindow.xaml:380` (`AutomationProperties.AutomationId=\"ToolRelocation\"`)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2096,6 +2069,33 @@
                                    "estado":  "PARCIAL",
                                    "evidencia":  "Gerência de **tarefas agendadas** via COM Task Scheduler|`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/AppPermissionManager.cs:134` (`ScheduledTaskManager.ListFor`) **Nota**: a gerencia existe, mas por `schtasks` e nao pela COM do Task Scheduler 1.0.",
                                    "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  3,
+                                   "catalogo":  3,
+                                   "catalogoId":  "T1#3",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "A limpeza de navegador existe e esta ligada: `src/Tranal.Uninstaller/Core/Tools/BrowserCleanup.cs:63` (classe), `FindOrphanExtensions` `:68`, remocao das extensoes em `:109` e `CleanData` `:223` (que reaproveita o `InternetCleaner`). Tela `src/Tranal.Uninstaller/Ui/Tools/MaintenanceViews.cs:351`, com `BrowserScan` `:367`, `BrowserRemove` `:368` e `BrowserReset` `:369`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:511`; CLI `src/Tranal.Cli/MaintenanceCommands.cs:80` (`tranal /browser-clean`). **Nota**: o **reset de padroes nao funciona** - `ResetDefaults` (`BrowserCleanup.cs:162`) devolve cedo com \"Navegador nao informado\" quando o navegador vem vazio (`:164-165`), e **os dois unicos chamadores passam `null`**: a tela (`src/Tranal.Uninstaller/Ui/Tools/MaintenanceViews.cs:423`) e a CLI (`src/Tranal.Cli/MaintenanceCommands.cs:99`); alem disso o reset so apaga valores de **politica** do navegador (`:172-208`), sem tocar nas preferencias do perfil. Binario do concorrente: confirmado em binario (`iobit.recursos.txt:147`, `TFRABROWSERCLEANER/0`)",
+                                   "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  24,
+                                   "catalogo":  24,
+                                   "catalogoId":  "T6#24",
+                                   "estado":  "OK",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Management/RelocationManager.cs:81` (`Move`: move a pasta de instalacao para a pasta de destino escolhida, `:96-100`), corrige a entrada de desinstalacao (`:131` e `:192`), recria o atalho (`:133` e `:252`); `Revert` `:149` e o historico `Historico` `:186`. Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:231`, escolha do destino por pasta em `:324` e a chamada em `:327`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:379`. Binario do concorrente: confirmado em binario (`iobit.strings.txt:13482`, `Frame_SoftRelocator`)",
+                                   "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  29,
+                                   "catalogo":  29,
+                                   "catalogoId":  "T6#29",
+                                   "estado":  "OK",
+                                   "evidencia":  "`Core/Management/WindowsUpdateManager.cs` (`Remove`, `RemoveMany`) — remocao de KB por `wusa.exe /uninstall`, com o codigo de saida traduzido (0 ok, 3010 reiniciar, 2359302 nao instalado); linha de comando `tranal /updates`",
+                                   "via":  1,
                                    "motivo":  ""
                                }
                            ],
@@ -2488,15 +2488,6 @@
                                    "motivo":  ""
                                },
                                {
-                                   "recon":  60,
-                                   "catalogo":  60,
-                                   "catalogoId":  "T3#60",
-                                   "estado":  "PARCIAL",
-                                   "evidencia":  "A coleta e completa: `src/Tranal.Uninstaller/Core/Modules/SystemInfoPanel.cs:47` (`Collect`) com SO (`:78`), CPU (`:98`), RAM (`:118`), disco (`:149`), GPU (`:178`) e tempo de atividade (`:69`); consumida em `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:81`. **Nota**: o painel e uma **tela do modulo \"Insights\"** (`InsightViews.cs:60`), **nao o banner da janela principal**. Binario do concorrente: nao confirmado no binario (`hibit.inventario.md:13431` registra ausencia de token equivalente, e ausencia nao prova)",
-                                   "via":  "id",
-                                   "motivo":  ""
-                               },
-                               {
                                    "recon":  61,
                                    "catalogo":  61,
                                    "catalogoId":  "T3#61",
@@ -2511,15 +2502,6 @@
                                    "catalogoId":  "T3#62",
                                    "estado":  "AUSENTE",
                                    "evidencia":  "`grep \"Doar/Donate/Doacao\" em src/` -\u003e **0 hits**. Funcao sem equivalente; irrelevante para paridade funcional. Binario do concorrente: nao confirmado no binario",
-                                   "via":  "id",
-                                   "motivo":  ""
-                               },
-                               {
-                                   "recon":  63,
-                                   "catalogo":  63,
-                                   "catalogoId":  "T3#63",
-                                   "estado":  "OK",
-                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:28` (`Format`: \"Hoje\", \"Ontem\", \"1 semana atras\", \"1 mes atras\", \"1 ano atras\") e `:57` (`FormatFromText`); a coluna existe no catalogo (`src/Tranal.Uninstaller/Core/ProgramColumns.cs:112`, `:216`) e o valor vem do mesmo metodo (`ProgramColumns.cs:284`); linha da grade em `src/Tranal.Uninstaller/Ui/ProgramRow.cs:82` (`RelativeDateText`). Binario do concorrente: nao confirmado no binario (captura de tela, nao string do binario)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2551,15 +2533,6 @@
                                    "motivo":  ""
                                },
                                {
-                                   "recon":  72,
-                                   "catalogo":  72,
-                                   "catalogoId":  "T4#72",
-                                   "estado":  "OK",
-                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:60` (catalogo), `:77` (`List`) e `:190` (`Remove`, com guarda de biblioteca em uso); painel na tela em `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:584` (lista) e `:616` (remocao); a CLI expoe em `src/Tranal.Cli/CleanupCommands.cs:272`. Binario do concorrente: `hibit.recursos.txt:180` (`TPROGRAMCOMPONENTSFORM/0`)",
-                                   "via":  "id",
-                                   "motivo":  ""
-                               },
-                               {
                                    "recon":  76,
                                    "catalogo":  76,
                                    "catalogoId":  "T4#76",
@@ -2574,15 +2547,6 @@
                                    "catalogoId":  "T4#78",
                                    "estado":  "PARCIAL",
                                    "evidencia":  "`src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:55` (`Scan`) e `:91` (limpa). **Nota**: as categorias do limpador sao **8** — \"temp-user\", \"temp-windows\", \"wucache\", \"browser-cache\", \"logs\", \"prefetch\", \"thumbnails\", \"recyclebin\" (`src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:30-32`) — **8, nao 17**; os complements estao em modulos separados (`src/Tranal.Uninstaller/Core/Tools/HistoryCleaner.cs:55`, `TrackCleaner.cs:42`, `ChkdskFragmentCleaner.cs:49`, `PrivacyTraceCleaner.cs:90`). Binario do concorrente: `hibit.recursos.txt:174` (`TJFCLEANERFORM/0`)",
-                                   "via":  "id",
-                                   "motivo":  ""
-                               },
-                               {
-                                   "recon":  80,
-                                   "catalogo":  80,
-                                   "catalogoId":  "T4#80",
-                                   "estado":  "OK",
-                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ShortcutFixer.cs:70` (catalogo), `:116` (`Scan`) e `:152` (`Repair`, reescreve o alvo do `.lnk`); painel na tela em `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:389` (`CreateShortcutFixer`), `:419` (varredura) e `:456` (reparo); CLI em `src/Tranal.Cli/CleanupCommands.cs:186` e `:210`. Binario do concorrente: `hibit.recursos.txt:187` (`TSHORTCUTFIXERFORM/0`)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2691,6 +2655,42 @@
                                    "catalogoId":  "T5#100",
                                    "estado":  "AUSENTE",
                                    "evidencia":  "`grep \"LOCALDB/Sqlite/Microsoft.Data.Sqlite\" em src/` -\u003e **0 hits**. O estado e JSON: `src/Tranal.Uninstaller/Core/Settings/ProgramCache.cs:154` (`ProgramCacheStore`), `:188` (salva), `:252` (carrega); o log de instalacao vive em `src/Tranal.Uninstaller/Core/Modules/TraceStore.cs:68`. **Nao ha banco local**. Binario do concorrente: `hibit.recursos.txt:127` (`LOCALDB/1033`)",
+                                   "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  60,
+                                   "catalogo":  60,
+                                   "catalogoId":  "T3#60",
+                                   "estado":  "PARCIAL",
+                                   "evidencia":  "A coleta e a tela existem: `src/Tranal.Uninstaller/Core/Modules/SystemInfoPanel.cs:41` (classe), `Collect` `:47`, CPU `:54`, RAM via WMI `Win32_OperatingSystem` `:122`, disco, GPU `:65` e tempo de atividade (`UptimeInfo` `:200`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:52`, carga em `:81`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:355`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:62`. **Nota**: o painel **nao esta no banner** - e uma tela da barra lateral; no banner da `MainWindow` so existe a barra de status (`src/Tranal.Uninstaller/MainWindow.xaml:638-640`), sem CPU, GPU, RAM ou SO. Binario do concorrente: nao confirmado no binario",
+                                   "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  63,
+                                   "catalogo":  63,
+                                   "catalogoId":  "T3#63",
+                                   "estado":  "OK",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:20` (classe), `Format` `:28` (com \"Ontem\" em `:42`), `FormatFromText` `:57`, `TryParse` `:69`. A coluna da data usa `RelativeDate.Format(program.InstallDateValue)` em `src/Tranal.Uninstaller/Core/ProgramColumns.cs:284`, com a coluna declarada em `:112` e `:216`; `src/Tranal.Uninstaller/Ui/ProgramRow.cs:82`; `src/Tranal.Uninstaller/Ui/ProgramColumnLayout.cs:46` e `:78`. Binario do concorrente: nao confirmado no binario",
+                                   "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  72,
+                                   "catalogo":  72,
+                                   "catalogoId":  "T4#72",
+                                   "estado":  "OK",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:60` (classe), `CatalogKeys` `:65-69` (`SharedDLLs` de 64 e 32 bits), `List` `:77`, contador de referencia lido do registro em `:97` e `:108`, quem usa cada biblioteca em `UsersOf` `:126` e `ProgramUses` `:152`, remocao com decremento do contador em `Remove` `:190` e `:214`. Painel na tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:542`, com a coluna de contador em `:552` e `:580`, `SharedScan` `:558` e `SharedRemove` `:559`; CLI `src/Tranal.Cli/CleanupCommands.cs:41` e `:272` (`tranal /shared-dlls`); contador canonico em `src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:60` e `:121`, exposto na CLI em `src/Tranal.Cli/RegistryCommands.cs:258`. Binario do concorrente: confirmado em binario (`hibit.recursos.txt:180`, `TPROGRAMCOMPONENTSFORM/0`)",
+                                   "via":  "id",
+                                   "motivo":  ""
+                               },
+                               {
+                                   "recon":  80,
+                                   "catalogo":  80,
+                                   "catalogoId":  "T4#80",
+                                   "estado":  "OK",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ShortcutFixer.cs:110` (`Scan`), os tipos de problema em `KindMissingTarget` `:73`, `KindMissingFolder` `:76` e `KindEmptyTarget` `:79`, `Analyze` `:330`, `Repair` `:152` (aponta o atalho para o alvo candidato, `FindCandidate` `:372`), remocao do atalho em `Remove` `:220`, `WriteTarget` `:295`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:376`, com `ShortcutScan` em `:392`; CLI `src/Tranal.Cli/CleanupCommands.cs:39`, reparo em `:210` e remocao em `:217` (`tranal /shortcuts /repair`). Binario do concorrente: confirmado em binario (`hibit.recursos.txt:187`, `TSHORTCUTFIXERFORM/0`)",
                                    "via":  "id",
                                    "motivo":  ""
                                }
@@ -3383,15 +3383,6 @@
                                   "motivo":  ""
                               },
                               {
-                                  "recon":  35,
-                                  "catalogo":  35,
-                                  "catalogoId":  "T2#35",
-                                  "estado":  "PARCIAL",
-                                  "evidencia":  "**Limpeza do cache MRU do Windows**|`src/Tranal.Uninstaller/Core/Tools/MruCleaner.cs:41` (`public static class MruCleaner`) `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:34` (`MruCleaner`) `src/Tranal.Cli/CleanupCommands.cs:234` (`MruCleaner`) **Nota**: a limpeza do MRU existe (11 chaves), mas a chave `Software\\Classes\\Local Settings\\MrtCache` do Geek nao e limpa — a busca por \"MrtCache\" em `src/` nao retorna hits.",
-                                  "via":  "id",
-                                  "motivo":  ""
-                              },
-                              {
                                   "recon":  39,
                                   "catalogo":  39,
                                   "catalogoId":  "T2#39",
@@ -3473,15 +3464,6 @@
                                   "motivo":  ""
                               },
                               {
-                                  "recon":  34,
-                                  "catalogo":  34,
-                                  "catalogoId":  "T2#34",
-                                  "estado":  "PARCIAL",
-                                  "evidencia":  "**Varredura de atalhos do Menu Iniciar e da Área de Trabalho** para achar ícone e localização|`src/Tranal.Uninstaller/Core/Discovery/ShortcutDiscovery.cs:44` (`public static class ShortcutDiscovery`) `src/Tranal.Uninstaller/Core/Modules/ShortcutFixer.cs:70` (`public static class ShortcutFixer`) `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:33` (`ShortcutFixer`) **Nota**: a varredura dos quatro lugares (Menu Iniciar do usuario e de todos, Area de Trabalho do usuario e publica) e o conserto de atalho quebrado existem; falta a leitura do `IconLocation` e o `ShortcutDiscovery` ainda nao tem consumidor.",
-                                  "via":  "id",
-                                  "motivo":  ""
-                              },
-                              {
                                   "recon":  37,
                                   "catalogo":  37,
                                   "catalogoId":  "T2#37",
@@ -3496,6 +3478,24 @@
                                   "catalogoId":  "T2#44",
                                   "estado":  "PARCIAL",
                                   "evidencia":  "**\"Nenhum programa nesta categoria\"**|`src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:17` (`public static class ModuleViews`) **Nota**: e um texto de estado, nao uma feature — a categoria vazia simplesmente nao mostra linhas; nao ha string dedicada de \"nenhum programa nesta categoria\".",
+                                  "via":  "id",
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  34,
+                                  "catalogo":  34,
+                                  "catalogoId":  "T2#34",
+                                  "estado":  "PARCIAL",
+                                  "evidencia":  "A varredura existe e cobre os quatro lugares: `src/Tranal.Uninstaller/Core/Modules/ShortcutFixer.cs:84` (`Locations`: Menu Iniciar do usuario e de todos, Area de Trabalho do usuario e publica, em `:94-100`), enumerando os `.lnk` em `Scan` `:110` e lendo o alvo em `ReadTarget` `:262`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:376`, com `ShortcutScan` em `:392`; CLI `src/Tranal.Cli/CleanupCommands.cs:39` e `:186`. **Nota**: o item **icone** nao e lido - a busca por `IconLocation` em `src/` nao retorna hits, e `ReadTarget` (`:262-288`) so le o `TargetPath`; o `src/Tranal.Uninstaller/Core/Discovery/ShortcutDiscovery.cs:44`, que descobre programas pelos atalhos, **nao tem consumidor** (a busca por `ShortcutDiscovery` em `src/` so encontra a propria declaracao). Binario do concorrente: confirmado em binario (`geek.strings.txt:1194`, `:1317`, `:1320`)",
+                                  "via":  "id",
+                                  "motivo":  ""
+                              },
+                              {
+                                  "recon":  35,
+                                  "catalogo":  35,
+                                  "catalogoId":  "T2#35",
+                                  "estado":  "PARCIAL",
+                                  "evidencia":  "A limpeza de MRU existe: `src/Tranal.Uninstaller/Core/Tools/MruCleaner.cs:41` (classe), 11 chaves em `MruKeys` `:46-59` (`RecentDocs` em `:51`, `BagMRU` em `:55`), `Scan` `:64` e `Clear` `:105`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:467`, com `MruScan` em `:482`; CLI `src/Tranal.Cli/CleanupCommands.cs:40` e `:234` (`tranal /mru /clean`). **Nota**: a chave citada pelo Geek, `Software\\Classes\\Local Settings\\MrtCache`, **nao e limpa** - a busca por `MrtCache` em `src/` nao retorna hits. Binario do concorrente: confirmado em binario (`geek.strings.txt:12749`)",
                                   "via":  "id",
                                   "motivo":  ""
                               }
