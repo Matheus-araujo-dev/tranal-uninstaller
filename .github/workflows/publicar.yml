@@ -62,6 +62,17 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-cold-start.ps1 `
             -Exe publish\preview\TranalUninstaller.exe
 
+      # O painel ancoravel (o "push pin" do Uninstall Tool): o botao que
+      # fixa abre o painel na lateral e o botao que fecha solta. A suite de
+      # testes cobre o nucleo; este passo cobre a ligacao com a interface,
+      # que a suite nao alcanca (ela nao referencia o projeto WPF).
+      - name: Painel ancoravel (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-painel-ancorado.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe
+
       - name: Publicar a CLI (arquivo unico, com o .NET embutido)
         shell: pwsh
         run: |
