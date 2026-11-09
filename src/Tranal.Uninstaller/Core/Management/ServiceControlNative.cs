@@ -47,7 +47,7 @@ internal static class ServiceControlNative
     internal static extern IntPtr OpenSCManager(string? machineName, string? databaseName, uint desiredAccess);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    internal static extern IntPtr CreateService(
+    internal static extern bool CreateService(
         IntPtr scManager,
         string serviceName,
         string displayName,
@@ -55,21 +55,30 @@ internal static class ServiceControlNative
         uint serviceType,
         uint startType,
         string binaryPathName,
-        uint loadOrderGroup,
+        string? loadOrderGroup,
         IntPtr tagId,
         string? dependencies,
         string? serviceStartName,
         string? password,
-        string? passwordSize,
-        uint lpServiceStartTimeout,
-        IntPtr lpServiceDependencies);
+        uint passwordSize,
+        uint serviceStartTimeout,
+        out IntPtr serviceHandle);
 
     [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     internal static extern bool ChangeServiceConfig2(
         IntPtr service,
         int infoLevel,
-        IntPtr lpInfo,
-        [MarshalAs(UnmanagedType.LPWStr)] string description);
+        IntPtr lpInfo);
+
+    /// <summary>
+    /// A descricao do servico — o que <c>ChangeServiceConfig2</c> espera
+    /// quando o nivel e <see cref="SERVICE_CONFIG_DESCRIPTION"/>.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ServiceDescription
+    {
+        public IntPtr lpDescription;
+    }
 
     [DllImport("advapi32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]

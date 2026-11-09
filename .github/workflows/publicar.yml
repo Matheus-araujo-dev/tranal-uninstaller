@@ -99,6 +99,9 @@ jobs:
           # secret do repositorio: ela nunca entra no codigo.
           TRANAL_CERT_PFX: ${{ secrets.TRANAL_CERT_PFX }}
           TRANAL_CERT_PASSWORD: ${{ secrets.TRANAL_CERT_PASSWORD }}
+          # Senha do instalador. Sem ela o setup e publicado sem criptografia;
+          # com ela, o conteudo do instalador so abre com a senha.
+          TRANAL_SETUP_PASSWORD: ${{ secrets.TRANAL_SETUP_PASSWORD }}
         run: |
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup
 

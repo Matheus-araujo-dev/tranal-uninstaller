@@ -60,12 +60,12 @@
   #error "LicenseFile nao definido"
 #endif
 
-; A senha do instalador e opcional e vem da linha de comando do publicador
-; (/DSetupPassword=...). Quando ela vem, o setup e criptografado — o motor do
-; Inno Setup 6 usa ChaCha20 — e so abre com a senha.
-#ifndef SetupPassword
-  #define SetupPassword ""
-#endif
+; A senha do instalador e opcional e vem do ambiente (TRANAL_SETUP_PASSWORD).
+; Do ambiente e nao da linha de comando: a linha de comando de qualquer
+; processo e visivel para todo mundo da maquina, e uma senha nao pode ficar
+; ali. Quando ela vem, o setup e criptografado (XChaCha20 no motor do Inno
+; Setup 6) e a instalacao so abre com a senha.
+#define SetupPassword GetEnv("TRANAL_SETUP_PASSWORD")
 
 #define AppName "Tranal Uninstaller Pro"
 #define AppPublisher "Tranal"
@@ -106,12 +106,16 @@ CloseApplications=yes
 RestartApplications=no
 SetupLogging=yes
 VersionInfoVersion={#AppVersion}
-; Instalador protegido por senha: quando a senha vem na linha de comando, o
-; setup e criptografado (ChaCha20, no motor do Inno Setup 6) e so abre com a
-; senha. Sem senha, o instalador fica como esta.
-#ifdef SetupPassword
+; Instalador protegido por senha: quando a senha vem do ambiente, o conteudo
+; do setup e criptografado (Encryption=yes, XChaCha20 no motor do Inno Setup
+; 6) e a instalacao pede a senha no comeco. Sem senha, o instalador fica
+; como esta.
+;
+; O valor aceito por Encryption e yes, no ou full — "password" nunca foi um
+; valor valido, e o instalador nao compilava.
+#if SetupPassword != ""
   Password={#SetupPassword}
-  Encryption=Password
+  Encryption=yes
 #endif
 
 [Languages]

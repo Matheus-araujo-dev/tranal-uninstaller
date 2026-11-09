@@ -1237,7 +1237,7 @@
                                       "catalogo":  66,
                                       "catalogoId":  "T1#66",
                                       "estado":  "OK",
-                                      "evidencia":  "`grep UninstallDisplayName\\|UninstallDisplayIcon` -\u003e `tranal.iss:93-94`; o Inno Setup grava a chave `Uninstall` no registro",
+                                      "evidencia":  "`grep UninstallDisplayName\\|UninstallDisplayIcon` -\u003e `tranal.iss:100-101`; o Inno Setup grava a chave `Uninstall` no registro",
                                       "via":  1,
                                       "motivo":  ""
                                   },
@@ -1291,7 +1291,7 @@
                                       "catalogo":  67,
                                       "catalogoId":  "T7#67",
                                       "estado":  "OK",
-                                      "evidencia":  "O empacotamento ja e Inno Setup: `installer/tranal.iss:63` `#define AppName`, `:73` `AppVerName`, secoes `[Setup]`/`[Languages]`/`[Tasks]`/`[Icons]`",
+                                      "evidencia":  "O empacotamento ja e Inno Setup: `installer/tranal.iss:70` `#define AppName`, `:80` `AppVerName`, secoes `[Setup]`/`[Languages]`/`[Tasks]`/`[Icons]`",
                                       "via":  "ancora",
                                       "motivo":  "RECON \"Instalador Inno Setup 7.0.0.3 como tecnologia de empacotamento\" = CAT T7#67 \"Instalador Inno Setup 7.0.0.3 com mensagens em ingles\"."
                                   },
@@ -1525,7 +1525,7 @@
                                       "catalogo":  73,
                                       "catalogoId":  "T7#73",
                                       "estado":  "OK",
-                                      "evidencia":  "Instalador protegido por senha (criptografia ChaCha20 do setup)|a criptografia do setup `installer/tranal.iss:114`; a senha vinda da linha de comando do publicador `installer/tranal.iss:64`",
+                                      "evidencia":  "Instalador protegido por senha (criptografia ChaCha20 do setup)|a criptografia do setup `installer/tranal.iss:118` (`Encryption=yes`); a senha vinda do ambiente do publicador `installer/tranal.iss:68` (`SetupPassword`) e `installer/tranal.iss:117` (`Password=`)",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1669,7 +1669,7 @@
                                       "catalogo":  68,
                                       "catalogoId":  "T7#68",
                                       "estado":  "PARCIAL",
-                                      "evidencia":  "Instalador silencioso (`/SILENT`, `/VERYSILENT`), com log (`/LOG`), tarefas (`/TASKS`), senha (`/PASSWORD`), save/load de settings (`/LOADINF`, `/SAVEINF`)|`installer/tranal.iss` tem `SetupLogging=yes` e a tarefa `desktopicon` (switch `/LOG` e `/TASKS` do Inno Setup); **senha** nao e **save/load de settings** tambem nao",
+                                      "evidencia":  "Instalador silencioso (`/SILENT`, `/VERYSILENT`), com log (`/LOG`), tarefas (`/TASKS`), senha (`/PASSWORD`), save/load de settings (`/LOADINF`, `/SAVEINF`)|`installer/tranal.iss:107` `SetupLogging=yes` (switch `/LOG`), `:135-136` a tarefa `desktopicon` (switch `/TASKS`) e `:117` `Password={#SetupPassword}` (switch `/PASSWORD` do Inno Setup); **save/load de settings** nao - `installer/tranal.iss` nao tem `SaveSettings`",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1678,7 +1678,7 @@
                                       "catalogo":  69,
                                       "catalogoId":  "T7#69",
                                       "estado":  "PARCIAL",
-                                      "evidencia":  "Registro do produto para desinstalação pelo Windows|`installer/tranal.iss` grava as duas chaves pedidas (`UninstallFilesDir` e a chave `Uninstall`) — o `UninstallFilesDir` e gerado pelo Inno Setup, nao declarado",
+                                      "evidencia":  "Registro do produto para desinstalação pelo Windows|`installer/tranal.iss:100` `UninstallDisplayName` e `:101` `UninstallDisplayIcon` sao declarados; o `UninstallFilesDir` e gerado pelo Inno Setup, nao declarado",
                                       "via":  "id",
                                       "motivo":  ""
                                   },

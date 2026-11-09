@@ -201,6 +201,26 @@ try {
             $versao = (Select-String -Path (Join-Path $proj 'Tranal.Uninstaller.csproj') `
                 -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
 
+            # A senha do instalador vem do ambiente (e nao da linha de
+            # comando: a linha de comando de qualquer processo e visivel).
+            # O .iss le a mesma variavel — a regra fica em um lugar so.
+            $senha = $env:TRANAL_SETUP_PASSWORD
+            if ($senha) {
+                if ($senha.Contains('"')) {
+                    throw 'A senha do instalador nao pode conter aspas duplas.'
+                }
+                if ($senha -match "[`r`n]") {
+                    throw 'A senha do instalador nao pode conter quebra de linha.'
+                }
+                if ($senha.Length -lt 6) {
+                    throw 'A senha do instalador precisa de pelo menos 6 caracteres.'
+                }
+                Write-Host 'instalador: com senha (o conteudo do setup sera criptografado)'
+            }
+            else {
+                Write-Host 'instalador: sem senha (TRANAL_SETUP_PASSWORD nao definida)'
+            }
+
             $iss = Join-Path $repoRoot 'installer\tranal.iss'
             $defines = @(
                 "/DAppPayloadDir=$repoRoot\publish\setup-payload",

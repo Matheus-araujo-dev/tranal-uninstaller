@@ -141,7 +141,7 @@
                                                          "funcionalidade":  "Desinstalar o próprio produto pelo Windows \"Apps \u0026 Features\"",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-pro27.txt:513-521`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - `grep UninstallDisplayName/UninstallDisplayIcon` -\u003e `tranal.iss:93-94`; o Inno Setup grava a chave `Uninstall` no registro"
+                                                         "estadoTexto":  "**OK** - `grep UninstallDisplayName/UninstallDisplayIcon` -\u003e `tranal.iss:100-101`; o Inno Setup grava a chave `Uninstall` no registro"
                                                      },
                                                      {
                                                          "numero":  1,
@@ -541,7 +541,7 @@
                                                          "funcionalidade":  "Instalador Inno Setup 7.0.0.3 com mensagens em inglês",
                                                          "evidencia":  "`ashampoo-instalador.strings.txt:3467` `Inno Setup Setup Data (7.0.0.3)`; `:3468` `Inno Setup Messages (6.5.0) (u)`; `:5517` `\u003cdescription\u003eInno Setup\u003c/description\u003e`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - O empacotamento ja e Inno Setup: `installer/tranal.iss:63` `#define AppName`, `:73` `AppVerName`, secoes `[Setup]`/`[Languages]`/`[Tasks]`/`[Icons]`"
+                                                         "estadoTexto":  "**OK** - O empacotamento ja e Inno Setup: `installer/tranal.iss:70` `#define AppName`, `:80` `AppVerName`, secoes `[Setup]`/`[Languages]`/`[Tasks]`/`[Icons]`"
                                                      },
                                                      {
                                                          "numero":  68,
@@ -549,7 +549,7 @@
                                                          "funcionalidade":  "Instalador silencioso (`/SILENT`, `/VERYSILENT`), com log (`/LOG`), tarefas (`/TASKS`), senha (`/PASSWORD`), save/load de settings (`/LOADINF`, `/SAVEINF`)",
                                                          "evidencia":  "`ashampoo-instalador.inventario.md` §\"Rotulos de interface relevantes\" (`Instructs Setup to be silent or very silent.`, `Same as /LOG, except it allows you to specify a fixed path/filename to use for the log file.`, `Specifies a list of tasks that should be initially selected.`, `Please specify the password using the /PASSWORD= command-line parameter.`, `Instructs Setup to load the settings from the specified file after having checked the command line, or to save settings to it.`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Instalador silencioso (`/SILENT`, `/VERYSILENT`), com log (`/LOG`), tarefas (`/TASKS`), senha (`/PASSWORD`), save/load de settings (`/LOADINF`, `/SAVEINF`)/`installer/tranal.iss` tem `SetupLogging=yes` e a tarefa `desktopicon` (switch `/LOG` e `/TASKS` do Inno Setup); **senha** nao e **save/load de settings** tambem nao"
+                                                         "estadoTexto":  "**PARCIAL** - Instalador silencioso (`/SILENT`, `/VERYSILENT`), com log (`/LOG`), tarefas (`/TASKS`), senha (`/PASSWORD`), save/load de settings (`/LOADINF`, `/SAVEINF`)/`installer/tranal.iss:107` `SetupLogging=yes` (switch `/LOG`), `:135-136` a tarefa `desktopicon` (switch `/TASKS`) e `:117` `Password={#SetupPassword}` (switch `/PASSWORD` do Inno Setup); **save/load de settings** nao - `installer/tranal.iss` nao tem `SaveSettings`"
                                                      },
                                                      {
                                                          "numero":  69,
@@ -557,7 +557,7 @@
                                                          "funcionalidade":  "Registro do produto para desinstalação pelo Windows",
                                                          "evidencia":  "`ashampoo-instalador.strings.txt:3023` `UninstallFilesDir`; `:3024` `UninstallDisplayName`; `:3025` `UninstallDisplayIcon`; `:3034` `CreateUninstallRegKey`; `:3035` `Uninstallable`; `:3088` `UninstallLogMode`; `:3097` `UninstallDisplaySize`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Registro do produto para desinstalação pelo Windows/`installer/tranal.iss` grava as duas chaves pedidas (`UninstallFilesDir` e a chave `Uninstall`) — o `UninstallFilesDir` e gerado pelo Inno Setup, nao declarado"
+                                                         "estadoTexto":  "**PARCIAL** - Registro do produto para desinstalação pelo Windows/`installer/tranal.iss:100` `UninstallDisplayName` e `:101` `UninstallDisplayIcon` sao declarados; o `UninstallFilesDir` e gerado pelo Inno Setup, nao declarado"
                                                      },
                                                      {
                                                          "numero":  70,
@@ -589,7 +589,7 @@
                                                          "funcionalidade":  "Instalador protegido por senha (criptografia ChaCha20 do setup)",
                                                          "evidencia":  "`ashampoo-instalador.inventario.md:9` → classe RTTI `TChaCha20Context`; `ashampoo-instalador.strings.txt` → `TSetupEncryptionKey`, `The password you specified is not correct. Please try again.`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Instalador protegido por senha (criptografia ChaCha20 do setup)/a criptografia do setup `installer/tranal.iss:114`; a senha vinda da linha de comando do publicador `installer/tranal.iss:64`"
+                                                         "estadoTexto":  "**OK** - Instalador protegido por senha (criptografia ChaCha20 do setup)/a criptografia do setup `installer/tranal.iss:118` (`Encryption=yes`); a senha vinda do ambiente do publicador `installer/tranal.iss:68` (`SetupPassword`) e `installer/tranal.iss:117` (`Password=`)"
                                                      },
                                                      {
                                                          "numero":  74,

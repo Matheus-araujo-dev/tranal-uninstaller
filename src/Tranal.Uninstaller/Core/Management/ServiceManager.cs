@@ -244,7 +244,7 @@ public static class ServiceManager
             if (gerenciador == IntPtr.Zero)
                 return ManagementResult.Fail("Sem permissao para abrir o gerenciador de servicos (administrador).", Marshal.GetLastWin32Error());
 
-            servico = ServiceControlNative.CreateService(
+            if (!ServiceControlNative.CreateService(
                 gerenciador,
                 serviceName.Trim(),
                 string.IsNullOrWhiteSpace(displayName) ? serviceName.Trim() : displayName.Trim(),
@@ -252,21 +252,40 @@ public static class ServiceManager
                 ServiceControlNative.SERVICE_WIN32_OWN_PROCESS,
                 tipo,
                 linha,
-                ServiceControlNative.SERVICE_ERROR_NORMAL,
+                null,
                 IntPtr.Zero,
-                null!,
-                null!,
-                null!,
-                null!,
+                null,
+                null,
+                null,
                 0,
-                IntPtr.Zero);
+                0,
+                out servico))
 
             if (servico == IntPtr.Zero)
                 return ManagementResult.Fail("O Windows recusou criar o servico.", Marshal.GetLastWin32Error());
 
             if (!string.IsNullOrWhiteSpace(description))
             {
-                ServiceControlNative.ChangeServiceConfig2(servico, ServiceControlNative.SERVICE_CONFIG_DESCRIPTION, IntPtr.Zero, description);
+                var texto = Marshal.StringToHGlobalUni(description);
+                var informacao = Marshal.AllocHGlobal(Marshal.SizeOf<ServiceControlNative.ServiceDescription>());
+
+                try
+                {
+                    Marshal.StructureToPtr(
+                        new ServiceControlNative.ServiceDescription { lpDescription = texto },
+                        informacao,
+                        false);
+
+                    ServiceControlNative.ChangeServiceConfig2(
+                        servico,
+                        ServiceControlNative.SERVICE_CONFIG_DESCRIPTION,
+                        informacao);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(informacao);
+                    Marshal.FreeHGlobal(texto);
+                }
             }
 
             return ManagementResult.Ok($"Servico criado: {serviceName.Trim()}");

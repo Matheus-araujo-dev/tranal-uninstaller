@@ -42,7 +42,7 @@ public static class RecycleBin
         [MarshalAs(UnmanagedType.LPWStr)] public string pFrom;
         [MarshalAs(UnmanagedType.LPWStr)] public string? pTo;
         public ushort fFlags;
-        public short fAnyOperationsAborted;
+        public int fAnyOperationsAborted;
         public IntPtr hNameMappings;
         [MarshalAs(UnmanagedType.LPWStr)] public string lpszProgressTitle;
     }

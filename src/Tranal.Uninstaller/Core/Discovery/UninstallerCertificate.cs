@@ -108,6 +108,14 @@ public static class UninstallerCertificate
         new("00AAC56B-CD44-11d0-8CC2-00C04FC295EE");
 
     /// <summary>
+    /// O codigo que significa "a API de confianca nao respondeu".
+    ///
+    /// E diferente de uma raiz nao confiavel: aqui nao se sabe nada sobre a
+    /// assinatura, e o modulo precisa dizer isso.
+    /// </summary>
+    private const int CodigoVerificacaoIndisponivel = unchecked((int)0x80004005);
+
+    /// <summary>
     /// Verifica a assinatura do executavel. **Nunca lanca**: um arquivo sem
     /// assinatura (ou invalido) devolve um estado, nao uma excecao.
     /// </summary>
@@ -133,7 +141,25 @@ public static class UninstallerCertificate
             };
         }
 
+        // O PKCS#7 embutido no proprio arquivo: e ele que diz se o arquivo
+        // tem assinatura propria.
+        //
+        // Isso importa porque o Windows tambem consulta o catalogo de
+        // componentes: o veredito dele pode vir de la, e o catalogo do Windows
+        // nao e assinatura do arquivo.
+        var pkcs7 = ReadEmbeddedPkcs7(path);
+        var temAssinaturaPropria = pkcs7 is { Length: > 0 };
+
+        // O veredito do Windows vem primeiro: e a autoridade sobre a
+        // assinatura do arquivo. O certificado do signatario e um detalhe
+        // (quem assinou) — a pergunta principal (o Windows aceita esta
+        // assinatura?) e do Windows.
+        var trustCode = VerifyWithWindows(path);
+        var trustStatus = StatusFromTrustCode(trustCode);
+
         X509Certificate2? signer = null;
+        var erroDeLeitura = string.Empty;
+
         try
         {
             // O certificado do signatario vem da assinatura Authenticode do
@@ -146,24 +172,50 @@ public static class UninstallerCertificate
 #pragma warning restore SYSLIB0057
             signer = new X509Certificate2(certificate);
         }
-        catch (CryptographicException)
+        catch (CryptographicException ex)
         {
-            // Arquivo sem assinatura (ou que nao e um executavel): e um
-            // estado legitimo, nao uma falha.
-            return new UninstallerSignature
-            {
-                IsSigned = false,
-                Status = SignatureTrustStatus.NotSigned,
-                Message = "O arquivo nao tem assinatura digital.",
-            };
+            // O Windows pode aceitar a assinatura mesmo quando o certificado
+            // do signatario nao pode ser lido (assinatura aninhada, formato
+            // que o framework nao le). O veredito do Windows continua valendo
+            // — dizer "nao tem assinatura" aqui seria mentira.
+            erroDeLeitura = ex.Message;
         }
         catch (Exception ex)
         {
+            // Falha inesperada na leitura: o veredito do Windows ainda vale.
+            erroDeLeitura = ex.Message;
+        }
+
+        if (signer is null)
+        {
+            // Sem assinatura propria no arquivo, o veredito do Windows pode
+            // estar falando do catalogo de componentes — e o catalogo do
+            // Windows nao assina o arquivo. Dizer "assinado" aqui seria
+            // mentira: o arquivo nao tem assinatura digital propria.
+            if (!temAssinaturaPropria)
+            {
+                return new UninstallerSignature
+                {
+                    IsSigned = false,
+                    Status = SignatureTrustStatus.NotSigned,
+                    WinVerifyTrustCode = trustCode,
+                    Message = Describe(SignatureTrustStatus.NotSigned),
+                };
+            }
+
+            // O arquivo tem assinatura propria, mas o framework nao leu o
+            // certificado do signatario: o veredito do Windows ainda vale.
+            var assinado = trustStatus != SignatureTrustStatus.NotSigned
+                && trustStatus != SignatureTrustStatus.UnknownError;
+
             return new UninstallerSignature
             {
-                IsSigned = false,
-                Status = SignatureTrustStatus.Invalid,
-                Message = $"Nao foi possivel ler a assinatura: {ex.Message}",
+                IsSigned = assinado,
+                Status = assinado ? trustStatus : SignatureTrustStatus.Invalid,
+                WinVerifyTrustCode = trustCode,
+                Message = assinado
+                    ? Describe(trustStatus)
+                    : $"Nao foi possivel verificar a assinatura: {erroDeLeitura}",
             };
         }
 
@@ -199,14 +251,11 @@ public static class UninstallerCertificate
 
             // Os certificados embutidos no PKCS#7 completam a cadeia quando o
             // Windows nao tem o certificado intermediario instalado.
-            foreach (var subject in ReadEmbeddedCertificateSubjects(path))
+            foreach (var subject in ReadEmbeddedCertificateSubjects(pkcs7))
             {
                 if (!chainSubjects.Contains(subject, StringComparer.OrdinalIgnoreCase))
                     chainSubjects.Add(subject);
             }
-
-            var trustCode = VerifyWithWindows(path);
-            var trustStatus = StatusFromTrustCode(trustCode);
 
             // O veredito do Windows manda; a cadeia so explica.
             if (trustStatus == SignatureTrustStatus.UnknownError
@@ -303,13 +352,12 @@ public static class UninstallerCertificate
     /// Devolve lista vazia quando o arquivo nao tem assinatura ou quando o
     /// formato nao pode ser lido — a cadeia mostrada vem do Windows.
     /// </summary>
-    private static IReadOnlyList<string> ReadEmbeddedCertificateSubjects(string path)
+    private static IReadOnlyList<string> ReadEmbeddedCertificateSubjects(byte[]? blob)
     {
         var subjects = new List<string>();
 
         try
         {
-            var blob = ReadEmbeddedPkcs7(path);
             if (blob is null || blob.Length == 0) return subjects;
 
             var reader = new AsnReader(blob, AsnEncodingRules.BER);
@@ -447,10 +495,18 @@ using var embedded = X509CertificateLoader.LoadCertificate(raw);
             pgKnownSubject = IntPtr.Zero,
         };
 
+        if (!EstruturaNoTamanhoDoWindows)
+        {
+            // Estrutura com tamanho diferente do Windows: a API receberia os
+            // campos deslocados. O estado fica desconhecido.
+            return unchecked((int)0x800B0100);
+        }
+
         var data = new WinTrustData
         {
             cbStruct = (uint)Marshal.SizeOf<WinTrustData>(),
-            pwszURL = IntPtr.Zero,
+            pPolicyCallbackData = IntPtr.Zero,
+            pSIPClientData = IntPtr.Zero,
             dwUIChoice = 2,          // WTD_UI_NONE
             fdwRevocationChecks = 0, // WTD_REVOKE_NONE
             dwUnionChoice = 1,       // WTD_CHOICE_FILE
@@ -460,24 +516,28 @@ using var embedded = X509CertificateLoader.LoadCertificate(raw);
             pwszURLReference = IntPtr.Zero,
             dwProvFlags = 0,
             dwUIContext = 0,
+            pSignatureSettings = IntPtr.Zero,
         };
 
         try
         {
             Marshal.StructureToPtr(fileInfo, data.pFile, false);
 
-            var result = WinVerifyTrust(IntPtr.Zero, VerifyAction, ref data);
+            // A API recebe o ponteiro do GUID: a acao vai por referencia.
+            var acao = VerifyAction;
+
+            var result = WinVerifyTrust(IntPtr.Zero, ref acao, ref data);
 
             // Fecha o estado aberto pela verificacao.
             data.dwStateAction = 2;  // WTD_STATEACTION_CLOSE
-            WinVerifyTrust(IntPtr.Zero, VerifyAction, ref data);
+            WinVerifyTrust(IntPtr.Zero, ref acao, ref data);
 
             return result;
         }
         catch (Exception)
         {
             // A API de confianca nao respondeu: o estado fica desconhecido.
-            return unchecked((int)0x800B0100);
+            return CodigoVerificacaoIndisponivel;
         }
         finally
         {
@@ -501,11 +561,27 @@ using var embedded = X509CertificateLoader.LoadCertificate(raw);
     /// <summary>
     /// A estrutura de dados da verificacao de confianca.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    /// <summary>
+    /// O tamanho que a API do Windows espera de <c>WINTRUST_DATA</c>.
+    /// </summary>
+    private const int TamanhoWinTrustData = 88;
+
+    /// <summary>
+    /// A estrutura de dados da verificacao de confianca.
+    ///
+    /// O layout e o do Windows (documentacao da Microsoft): os dois ponteiros
+    /// do comeco — os dados da politica e os do provedor — vem antes da
+    /// escolha da uniao, e a uniao e um ponteiro para a informacao do
+    /// arquivo. Sem esses campos, todo valor depois de <c>cbStruct</c> chega
+    /// na API deslocado: a escolha da uniao vira o endereco de memoria do
+    /// array e a acao vira um ponteiro.
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     private struct WinTrustData
     {
         public uint cbStruct;
-        public IntPtr pwszURL;
+        public IntPtr pPolicyCallbackData;
+        public IntPtr pSIPClientData;
         public uint dwUIChoice;
         public uint fdwRevocationChecks;
         public uint dwUnionChoice;
@@ -515,7 +591,14 @@ using var embedded = X509CertificateLoader.LoadCertificate(raw);
         public IntPtr pwszURLReference;
         public uint dwProvFlags;
         public uint dwUIContext;
+        public IntPtr pSignatureSettings;
     }
+
+    /// <summary>
+    /// A estrutura gerenciada esta no tamanho que o Windows espera?
+    /// </summary>
+    internal static bool EstruturaNoTamanhoDoWindows =>
+        Marshal.SizeOf<WinTrustData>() == TamanhoWinTrustData;
 
     /// <summary>
     /// A API de confianca do Windows.
@@ -523,6 +606,6 @@ using var embedded = X509CertificateLoader.LoadCertificate(raw);
     [DllImport("wintrust.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
     private static extern int WinVerifyTrust(
         IntPtr window,
-        [MarshalAs(UnmanagedType.LPStruct)] Guid actionId,
+        ref Guid actionId,
         ref WinTrustData data);
 }

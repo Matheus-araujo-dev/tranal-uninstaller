@@ -46,21 +46,6 @@ public static class RestartManager
     private const int ErrorMoreData = 234;
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct RmSessionInfo
-    {
-        public RmUniqueProcess Process;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CchRmMaxAppName + 1)]
-        public string AppName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CchRmMaxSvcName + 1)]
-        public string ServiceShortName;
-        public RmAppType ApplicationType;
-        public uint AppStatus;
-        public uint TSSessionId;
-        [MarshalAs(UnmanagedType.Bool)]
-        public bool bRestartable;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
     private struct RmUniqueProcess
     {
         public uint dwProcessId;
@@ -78,7 +63,32 @@ public static class RestartManager
         Critical = 1000,
     }
 
-    [StructLayout(LayoutKind.Sequential)]
+    /// <summary>
+    /// O tamanho que a API do Windows escreve em cada <c>RM_PROCESS_INFO</c>.
+    ///
+    /// A estrutura nativa tem os nomes em UTF-16: 12 bytes do processo, 512 do
+    /// nome do aplicativo, 128 do nome do servico e 16 dos quatro campos
+    /// finais. Sao 668 bytes.
+    /// </summary>
+    private const int TamanhoRmProcessInfo = 668;
+
+    /// <summary>
+    /// O tamanho que a estrutura gerenciada ocupa hoje.
+    ///
+    /// A API do Windows escreve no tamanho dela. Se a estrutura gerenciada for
+    /// menor, a escrita passa do fim do array e corrompe a memoria do
+    /// processo. Por isso o modulo compara os dois tamanhos antes de chamar a
+    /// API — e se recusa a chamar.
+    /// </summary>
+    internal static int TamanhoDaEstrutura => Marshal.SizeOf<RmProcessInfo>();
+
+    /// <summary>
+    /// A estrutura gerenciada esta no tamanho que o Windows escreve?
+    /// </summary>
+    internal static bool EstruturaNoTamanhoDoWindows =>
+        TamanhoDaEstrutura == TamanhoRmProcessInfo;
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct RmProcessInfo
     {
         public RmUniqueProcess Process;
@@ -151,6 +161,16 @@ public static class RestartManager
 
             erro = RmGetList(session, out needed, ref count, null!, ref reasons);
             if (erro != ErrorMoreData || needed == 0) return processos;
+
+            // A API do Windows escreve a estrutura no tamanho dela (668
+            // bytes). Uma estrutura gerenciada menor faria a escrita passar
+            // do fim do array: o modulo se recusa a chamar a API.
+            if (!EstruturaNoTamanhoDoWindows)
+            {
+                ToolLog.Error(
+                    $"Restart Manager: a estrutura ocupa {TamanhoDaEstrutura} bytes e o Windows escreve {TamanhoRmProcessInfo}; a lista foi ignorada.");
+                return processos;
+            }
 
             var informacoes = new RmProcessInfo[needed];
             count = needed;
