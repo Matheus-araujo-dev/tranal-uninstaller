@@ -44,8 +44,8 @@
                                                          "id":  "T1#22",
                                                          "funcionalidade":  "Remover a entrada da lista do Windows de programas instalados, sem desinstalar",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-free.txt:114-116`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Remover a entrada da lista do Windows de programas instalados, sem desinstalar/grep \"DeleteUninstallKey\" em src/ -\u003e 0 hits a lista de exclusao do Tranal oculta o programa da lista dele (`Core/ExcludeList.cs`), mas nao remove a entrada `Uninstall` do Windows"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Remover a entrada da lista do Windows de programas instalados, sem desinstalar/modulo da lista do Windows `Core/Management/WindowsListEntry.cs:44`"
                                                      },
                                                      {
                                                          "numero":  23,
@@ -875,8 +875,8 @@
                                                          "id":  "T2#32",
                                                          "funcionalidade":  "**Tentar novamente** os silenciosos que falharam",
                                                          "evidencia":  "`checkBoxRetryQuiet` (`bcu.strings.txt:6759`), literal \"Do you want to try running quiet uninstallers that failed as loud?\" (`bcu.inventario.md:46`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"RetryQuiet/RetrySilent/TentarNovamente\" em src/` -\u003e **0 hits**. A fila registra o item que falhou (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:121`, `UninstallQueueOutcome.Failed`) e a CLI o imprime (`src/Tranal.Cli/ExtraCommands.cs:1073`), mas **nao ha politica de retry**. Binario do concorrente: `bcu.strings.txt:6759` (`checkBoxRetryQuiet`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - preferencia de repeticao `Core/Settings/AppSettings.cs:326`; a regra da repeticao `Core/Automation/UninstallQueue.cs:124`"
                                                      },
                                                      {
                                                          "numero":  33,
@@ -1147,8 +1147,8 @@
                                                          "id":  "T4#66",
                                                          "funcionalidade":  "**Assumir a propriedade** de um item",
                                                          "evidencia":  "`TakeOwnership` (`bcu.strings.txt:5859`), `takeOwnershipToolStripMenuItem` (`:5474`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"TakeOwnership\" em src/` -\u003e **1 hit**, a definicao em `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs:229` (assumir a propriedade de **chave de registro**), **sem consumidor** em `Ui/` nem na CLI e **sem suporte a arquivo/pasta**. Binario do concorrente: `bcu.strings.txt:5859` (`TakeOwnership`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - modulo de propriedade `Core/Management/FileOwnership.cs:60`; comando de linha de comando `src/Tranal.Cli/OwnershipCommands.cs:17`"
                                                      },
                                                      {
                                                          "numero":  67,
@@ -1323,8 +1323,8 @@
                                                          "id":  "T5#88",
                                                          "funcionalidade":  "**Auto-ajustar a largura de todas as colunas**",
                                                          "evidencia":  "literal \"Auto-resize all columns\" (`bcu.strings.txt:8114`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"AutoResize/AutoSizeColumns/ResizeColumns\" em src/` -\u003e **0 hits**; as larguras sao fixas por coluna (`src/Tranal.Uninstaller/Ui/ProgramColumnLayout.cs:22`, aplicadas em `src/Tranal.Uninstaller/MainWindow.xaml.cs:931`). Binario do concorrente: `bcu.strings.txt:8114` (\"Auto-resize all columns\")"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - a conta da largura `Core/ProgramColumns.cs:269`; o comando de auto-ajuste `MainWindow.xaml.cs:576`"
                                                      },
                                                      {
                                                          "numero":  89,
@@ -1442,8 +1442,8 @@
                                                          "id":  "T1#5",
                                                          "funcionalidade":  "Aviso \"No matching items, press ESC to reset\"",
                                                          "evidencia":  "literal `\u003cstaticNoItemsMatchingFilterTip\u003eNo matching items, press ESC to reset\u003c/staticNoItemsMatchingFilterTip\u003e` (`geek.strings.txt:4584`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Aviso \"No matching items, press ESC to reset\"/grep \"NoMatching\" em src/ -\u003e 0 hits a barra de status mostra a contagem (`MainWindow.xaml.cs`), mas nao existe o aviso de \"nada corresponde\" nem o atalho de reset."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Aviso \"No matching items, press ESC to reset\"/o aviso do rodape `MainWindow.xaml.cs:236`"
                                                      },
                                                      {
                                                          "numero":  6,
@@ -1714,8 +1714,8 @@
                                                          "id":  "T2#39",
                                                          "funcionalidade":  "**Painel \"Active Files\"** de arquivos em uso",
                                                          "evidencia":  "literal \"Active Files\" (`geek.strings.txt:14689`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Painel \"Active Files\"** de arquivos em uso/grep \"ActiveFiles\" em src/ -\u003e 0 hits a deteccao existe (o item em uso vira \"adiado para o proximo reinicio\": `Core/DeferredDelete.cs`), mas nao ha painel listando os arquivos em uso."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Painel \"Active Files\"** de arquivos em uso/modulo de arquivos em uso `Core/Automation/ActiveFiles.cs:37`; ferramenta na barra lateral `Core/Automation/ActiveFiles.cs:37`"
                                                      },
                                                      {
                                                          "numero":  40,
@@ -2328,8 +2328,8 @@
                                                          "id":  "T1#4",
                                                          "funcionalidade":  "Remoção de **plugins** do navegador",
                                                          "evidencia":  "`iobit.recursos.txt:110` → `PLUGIN_DEFAULT/0`; `iobit.inventario.md:9` → `TADPluginData`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Remoção de **plugins** do navegador/grep \"NPAPI\" em src/ -\u003e 0 hits a categoria ActiveX do limpador de registro (`Core/Tools/RegistryCleaner.cs:90`) e a limpeza de registro, nao a remocao de plugin do navegador"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - Remoção de **plugins** do navegador/extensoes e add-ons `Core/Modules/BrowserExtensions.cs:53`; limpador de registro (ActiveX) `Core/Automation/ComUnregister.cs:18`"
                                                      },
                                                      {
                                                          "numero":  5,
@@ -2489,7 +2489,7 @@
                                                          "funcionalidade":  "Botão **Shred no Explorer**",
                                                          "evidencia":  "`iobit.inventario.md:83` → `AllowMeesageForVistaAbove WM_ExplorerShredder Failed`; `iobit.recursos.txt:84` → `WM_MenuRightStart`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Botão de destruição irreversível no Explorer/o menu de contexto do Explorer do Tranal e o de desinstalar (`Core/Topmost/ExplorerContextMenu.cs`); nao ha entrada de destruicao"
+                                                         "estadoTexto":  "**AUSENTE** - Botão de destruição irreversível no Explorer/menu de contexto do Explorer `Core/Management/ContextMenuManager.cs:46`"
                                                      },
                                                      {
                                                          "numero":  24,
@@ -2823,8 +2823,8 @@
                                                          "id":  "T2#25",
                                                          "funcionalidade":  "Aviso \"use o Undo Changes Center para cancelar\"",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Aviso \"use o Undo Changes Center para cancelar\"/o motor de desfazer existe (`Core/Recovery/ProgramBackup.cs`), mas nao ha aviso que remeta o usuario ao centro de reversao"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - Aviso \"use o Undo Changes Center para cancelar\"/centro de mudancas `Core/Recovery/UndoChangesCenter.cs:66`"
                                                      },
                                                      {
                                                          "numero":  26,
@@ -2975,8 +2975,8 @@
                                                          "id":  "T3#44",
                                                          "funcionalidade":  "Chave de configuração \"Windows context menu commands\"",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Chave de configuração \"Windows context menu commands\"/o menu de contexto do Explorer e gerenciado por `Core/Topmost/ExplorerContextMenu.cs`; nao ha a chave de configuracao do concorrente"
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - Chave de configuração \"Windows context menu commands\"/gerenciador do menu de contexto `Core/Management/AppPermissionManager.cs:120`; registro do menu do Explorer `Core/Management/ContextMenuManager.cs:46`"
                                                      },
                                                      {
                                                          "numero":  45,
@@ -3039,8 +3039,8 @@
                                                          "id":  "T4#52",
                                                          "funcionalidade":  "Instalação silenciosa de programas",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Instalação silenciosa de programas/grep \"MsiInstallProduct\" em src/ -\u003e 0 hits existem desinstalacao e reparo MSI (`Core/Discovery/MsiProductCatalog.cs:242`), nao instalacao"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Instalação silenciosa de programas/instalador silencioso `Core/Automation/SilentInstaller.cs:46`"
                                                      },
                                                      {
                                                          "numero":  53,
@@ -3135,8 +3135,8 @@
                                                          "id":  "T5#64",
                                                          "funcionalidade":  "Consulta da **Lixeira** para reportar itens removidos",
                                                          "evidencia":  "`imports.txt:30` → `SHELL32.dll / SHQueryRecycleBinW`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Consulta da **Lixeira** para reportar itens removidos/grep \"SHQueryRecycleBin\" em src/ -\u003e 0 hits a lixeira e lida pelo modulo proprio (`Core/Tools/JunkCleaner.cs`) e esvaziada pelo removedor de evidencias; nao ha a consulta de relatorio do concorrente"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Consulta da **Lixeira** para reportar itens removidos/inspetor da lixeira `Core/Tools/RecycleBinInspector.cs:38`"
                                                      },
                                                      {
                                                          "numero":  65,
@@ -3382,8 +3382,8 @@
                                                          "id":  "T1#61",
                                                          "funcionalidade":  "Filtros de tipo de arquivo na operação de exclusão (.ico, .dll, .htm/.html, .lnk/.exe)",
                                                          "evidencia":  "`inventario.md:191` → `Executables (*.exe)|*.exe`; `inventario.md:25` → `All files (*.*)|*.*`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Filtros de tipo de arquivo na operação de exclusão (.ico, .dll, .htm/.html, .lnk/.exe)/grep \"Wildcard\" em src/ -\u003e 0 hits a lista de exclusoes trabalha por caminho (`Core/ExcludeList.cs`), nao por tipo ou curinga de arquivo"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Filtros de tipo de arquivo na operação de exclusão (.ico, .dll, .htm/.html, .lnk/.exe)/filtro de tipo de arquivo `Core/Automation/FileTypeFilter.cs:46`; a preferencia `Core/Settings/AppSettings.cs:384`; a aplicacao na remocao `Core/UninstallSupport.cs:1494`"
                                                      },
                                                      {
                                                          "numero":  64,
@@ -4125,8 +4125,8 @@
                                                          "id":  "T1#15",
                                                          "funcionalidade":  "Lote com **teto de itens** e aviso explícito",
                                                          "evidencia":  "`strings.txt:14151` → `\u003citemBatchLimitationWarning\u003eYou selected %u items but maximum number of items in a batch operation is limited to %u\u003c/itemBatchLimitationWarning\u003e`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Lote com **teto de itens** e aviso explícito/`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:66` (`public static class UninstallQueue`) a fila de desinstalacao aceita qualquer quantidade — nao ha teto de lote nem aviso."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Lote com **teto de itens** e aviso explícito/preferencia do teto `Core/Settings/AppSettings.cs:320`; a regra do teto `Ui/UninstallWizardWindow.xaml.cs:172`"
                                                      },
                                                      {
                                                          "numero":  16,
@@ -4253,16 +4253,16 @@
                                                          "id":  "T2#31",
                                                          "funcionalidade":  "Preferência: sempre rodar / nunca rodar / perguntar",
                                                          "evidencia":  "`strings.txt:4726` → `DlgPreferences/comboItemWizardOption1`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Preferência: sempre rodar / nunca rodar / perguntar/grep \"wizard\" em src/ -\u003e 0 hits as preferencias estao em `Core/Settings/AppSettings.cs` e nenhuma trata o assistente."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Preferência: sempre rodar / nunca rodar / perguntar/preferencia `Core/Settings/AppSettings.cs:368`; a regra dos modos `Core/Settings/AppSettings.cs:366`"
                                                      },
                                                      {
                                                          "numero":  32,
                                                          "id":  "T2#32",
                                                          "funcionalidade":  "O Wizard **sempre roda** para programas rastreados",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - O Wizard **sempre roda** para programas rastreados/`src/Tranal.Uninstaller/MainWindow.xaml.cs:1761` (`UninstallWizardWindow`) o assistente so e aberto por acao do usuario; nao ha execucao automatica para programas rastreados."
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - O Wizard **sempre roda** para programas rastreados/preferencia `Core/Settings/AppSettings.cs:368`"
                                                      },
                                                      {
                                                          "numero":  33,
@@ -4325,8 +4325,8 @@
                                                          "id":  "T3#40",
                                                          "funcionalidade":  "Detecção de **múltiplas entradas** de instalação",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Detecção de **múltiplas entradas** de instalação/`src/Tranal.Uninstaller/Core/Discovery/DuplicateInstallDetector.cs:97` (`public static class DuplicateInstallDetector`) a deteccao de instalacoes duplicadas existe para o mesmo programa em dois lugares, mas nao para multiplas entradas de instalacao do mesmo produto."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Detecção de **múltiplas entradas** de instalação/detector de entradas duplicadas `Core/Discovery/DuplicateInstallDetector.cs:97`"
                                                      },
                                                      {
                                                          "numero":  41,
@@ -4358,7 +4358,7 @@
                                                          "funcionalidade":  "Menu de contexto do Explorer: **\"Install and Trace\"** para `.exe`/`.msi`",
                                                          "evidencia":  "`strings.txt:14213` → `\u003ccheckShellExtension\u003eAdd \u0027Install and Trace\u0027 command for setup files (exe/msi) to the Windows Explorer context menu\u003c/checkShellExtension\u003e`",
                                                          "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Menu de contexto do Explorer: **\"Install and Trace\"** para `.exe`/`.msi`/grep \"InstallAndTrace\" em src/ -\u003e 0 hits o verb registrado e so de desinstalacao (`--uninstall-target`)."
+                                                         "estadoTexto":  "**AUSENTE** - Menu de contexto do Explorer: **\"Install and Trace\"** para `.exe`/`.msi`/gerenciador do menu de contexto do Tranal `Core/Management/AppPermissionManager.cs:120`"
                                                      },
                                                      {
                                                          "numero":  45,
@@ -4932,8 +4932,8 @@
                                                          "id":  "T1#21",
                                                          "funcionalidade":  "**Reiniciar automaticamente** para finalizar (avisa que pode reiniciar 1 ou 2 vezes)",
                                                          "evidencia":  "`RestartComputer KillAllRunningProcesses Start` (`strings-uninstalr-own.txt:9290`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Reiniciar automaticamente** para finalizar (avisa que pode reiniciar 1 ou 2 vezes)/grep \"ReiniciarAutomatico\" em src/ -\u003e 0 hits o `RestartManager` do Windows e usado para descobrir quem segura um arquivo (`Core/Automation/RestartManager.cs`), e nao para reiniciar a maquina ao fim da desinstalacao."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Reiniciar automaticamente** para finalizar (avisa que pode reiniciar 1 ou 2 vezes)/reinicio agendado com 60 s de prazo `Core/Tools/SystemActions.cs:93`; preferencia `Core/Automation/ExecutionPolicy.cs:131`; a regra de fim de tarefa `Ui/UninstallWizardWindow.xaml.cs:1011`"
                                                      },
                                                      {
                                                          "numero":  22,
@@ -4972,8 +4972,8 @@
                                                          "id":  "T1#26",
                                                          "funcionalidade":  "**Deep Analysis** sob demanda, com aviso de que pode levar minutos",
                                                          "evidencia":  "`Uninstaller.options-always-deep` (`strings-uninstalr-own.txt:9825`), `AlwaysDeep` (`:9743`), `uninstaller.button-deep-anal` (`:10199`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Deep Analysis** sob demanda, com aviso de que pode levar minutos/`src/Tranal.Uninstaller/Core/Automation/AdvancedUninstallReview.cs:56` (`public sealed class AdvancedUninstallReview`) o que existe e a revisao do que o instalador nao registrou e a desinstalacao forcada; nao ha a \"deep analysis\" sob demanda com aviso de tempo."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Deep Analysis** sob demanda, com aviso de que pode levar minutos/analise forense `Core/Tracing/ForensicAnalyzer.cs:168`; ferramenta na barra lateral `Core/ToolCatalog.cs:22`; comando de linha de comando `src/Tranal.Cli/AnalysisCommands.cs:16`"
                                                      },
                                                      {
                                                          "numero":  27,
@@ -5060,8 +5060,8 @@
                                                          "id":  "T2#37",
                                                          "funcionalidade":  "**Seleção em massa por país** (selecionar/desmarcar por país)",
                                                          "evidencia":  "`uninstaller.menu-select-by-country` (`strings-uninstalr-own.txt:10219`), `uninstaller.menu-unselect-by-country` (`:10221`), literal \"Select by country of origin ...\" (`:10294`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Seleção em massa por país** (selecionar/desmarcar por país)/grep \"SelecionarPorPais\" em src/ -\u003e 0 hits o pais e uma coluna com bandeira e nome, mas nao ha a selecao em massa por pais."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Seleção em massa por país** (selecionar/desmarcar por país)/selecao por pais `Core/Appearance/ProgramSelection.cs:18`; teste `src/Tranal.Tests/Lote2FeatureTests.cs:17`"
                                                      },
                                                      {
                                                          "numero":  38,
@@ -5156,8 +5156,8 @@
                                                          "id":  "T2#49",
                                                          "funcionalidade":  "**Fechar o próprio aplicativo** ao terminar",
                                                          "evidencia":  "`Uninstaller.options-close-oneself` (`strings-uninstalr-own.txt:9386`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Fechar o próprio aplicativo ao terminar/grep \"AutoClose\" em src/ -\u003e 0 hits nao ha a opcao de auto-fechar o aplicativo ao terminar a desinstalacao."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Fechar o próprio aplicativo ao terminar/preferencia `Core/Automation/ExecutionPolicy.cs:131`; a regra de fim de tarefa `Ui/UninstallWizardWindow.xaml.cs:1011`"
                                                      },
                                                      {
                                                          "numero":  50,
@@ -5172,8 +5172,8 @@
                                                          "id":  "T2#51",
                                                          "funcionalidade":  "**Modo de exibição do sistema** (system/always/never)",
                                                          "evidencia":  "`Uninstaller.options-ui-mode`, `-ui-system`, `-ui-always`, `-ui-never` (`strings-uninstalr-own.txt:9795-9801`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Modo de exibição do sistema (system/always/never)/grep \"SystemDisplayMode\" em src/ -\u003e 0 hits o que existe e a preferencia de incluir ou nao os componentes do sistema (`AppSettings.ShowSystemComponents`), em dois estados e nao tres."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Modo de exibição do sistema (system/always/never)/preferencia `Core/Settings/AppSettings.cs:376`; a regra dos modos `Core/Settings/AppSettings.cs:366`"
                                                      }
                                                  ]
                          },
@@ -5571,8 +5571,8 @@
                                                          "id":  "T4#49",
                                                          "funcionalidade":  "Leitura do arquivo de preferências do navegador",
                                                          "evidencia":  "`wise.strings.txt:62873` -\u003e `%LOCALAPPDATA%\\\\Yandex\\\\YandexBrowser\\\\User Data\\\\Default\\\\Preferences`; `:62878` -\u003e `%APPDATA%\\\\SogouExplorer\\\\Webkit\\\\Default\\\\Preferences`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Leitura do arquivo de preferências do navegador/`src/Tranal.Uninstaller/Core/Modules/BrowserExtensions.cs:53` (`public static class BrowserExtensions`) o Tranal le o `manifest.json` das extensoes; nao le o arquivo `Preferences` do perfil do navegador."
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - Leitura do arquivo de preferências do navegador/limpador de navegador `Core/ToolCatalog.cs:174`"
                                                      },
                                                      {
                                                          "numero":  50,
