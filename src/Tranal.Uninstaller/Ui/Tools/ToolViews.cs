@@ -99,6 +99,9 @@ public static class ToolViews
         public string Path { get; init; } = string.Empty;
         public string Size { get; init; } = string.Empty;
 
+        /// <summary>Um detalhe extra da linha (a afinidade, por exemplo).</summary>
+        public string Detail { get; init; } = string.Empty;
+
         private bool _selected = true;
 
         /// <summary>True quando o item esta marcado para remocao.</summary>
@@ -243,6 +246,7 @@ public static class ToolViews
             {
                 new CommandDef { AutomationId = "JunkScan", Text = Loc.Get("Tool.Junk.Scan"), Action = () => panel.RunAsync(() => ScanAsync(panel, rows, items)) },
                 new CommandDef { AutomationId = "JunkDelete", Text = Loc.Get("Tool.Junk.Delete"), Action = () => panel.RunAsync(() => CleanAsync(panel, rows, items)) },
+                new CommandDef { AutomationId = "JunkDiskCleanup", Text = Loc.Get("Tool.Junk.DiskCleanup"), Action = () => SystemActions.AbrirLimpezaDeDisco() },
             });
 
         panel.SetItems(rows);
@@ -597,8 +601,9 @@ public static class ToolViews
             {
                 new ColumnDef { Header = Loc.Get("Common.Name"), Width = 220, BindingPath = "Category" },
                 new ColumnDef { Header = Loc.Get("Module.ProcessOwner"), Width = 220, BindingPath = "Path" },
-                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 420, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 380, BindingPath = "Size" },
                 new ColumnDef { Header = Loc.Get("Common.Size"), Width = 110, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Tool.Processes.Affinity"), Width = 130, BindingPath = "Detail" },
             },
             new[]
             {
@@ -617,10 +622,15 @@ public static class ToolViews
                 IncludeMsiProducts = false,
             });
 
-            var processos = await Task.Run(() => ProcessInspector.List(programas));
+            var rodando = await Task.Run(() => ProcessInspector.List(programas));
+
+            // A afinidade diz quantos nucleos o Windows deixa cada
+            // programa usar: e o que explica um programa preso a um so.
+            var afinidades = await Task.Run(() => ProcessAffinity.List(rodando));
+            var porProcesso = afinidades.ToDictionary(a => a.ProcessId);
 
             rows.Clear();
-            foreach (var processo in processos)
+            foreach (var processo in rodando)
             {
                 rows.Add(new ToolRow
                 {
@@ -628,12 +638,15 @@ public static class ToolViews
                     Path = processo.InstalledProgram,
                     Size = processo.Path,
                     Kind = processo.WorkingSetText,
+                    Detail = porProcesso.TryGetValue(processo.Id, out var afinidade)
+                        ? afinidade.Text
+                        : string.Empty,
                     Source = processo,
                 });
             }
 
             panel.PanelStatus = string.Format(
-                CultureInfo.CurrentCulture, Loc.Get("Processes.Found"), processos.Count);
+                CultureInfo.CurrentCulture, Loc.Get("Processes.Found"), rodando.Count);
         }
     }
 

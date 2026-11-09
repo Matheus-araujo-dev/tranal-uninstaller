@@ -4,6 +4,7 @@ using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Tracing;
+using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Cli;
 
@@ -34,6 +35,10 @@ public static class InspectionCommands
         if (CliArgs.Has(flags, "/inspection-printers")) return ExecutarImpressoras();
         if (CliArgs.Has(flags, "/inspection-duplicates")) return ExecutarEntradasDuplicadas();
         if (CliArgs.Has(flags, "/inspection-tasks")) return ExecutarTarefasOcultas(args);
+        if (CliArgs.Has(flags, "/inspection-guards")) return ExecutarGuardas();
+        if (CliArgs.Has(flags, "/inspection-affinity")) return ExecutarAfinidade();
+        if (CliArgs.Has(flags, "/inspection-cleanmgr")) return ExecutarLimpezaDeDisco();
+        if (CliArgs.Has(flags, "/inspection-logs")) return ExecutarPastaDeLogs();
         return null;
     }
 
@@ -242,5 +247,71 @@ public static class InspectionCommands
         Console.WriteLine(resultado.Message);
 
         return resultado.Success ? 0 : 1;
+    }
+
+    /// <summary>
+    /// Os avisos que as operacoes fazem antes de comecar: quais navegadores
+    /// estao em execucao (e por isso seguram os proprios arquivos).
+    /// </summary>
+    public static int ExecutarGuardas()
+    {
+        var avisos = OperationGuards.NavegadoresRodando();
+
+        if (avisos.Count == 0)
+        {
+            Console.WriteLine("Nenhum navegador em execucao.");
+            return 0;
+        }
+
+        Console.WriteLine($"Avisos: {avisos.Count}");
+        Console.WriteLine();
+
+        foreach (var aviso in avisos)
+        {
+            Console.WriteLine($"    {aviso.Code}: {aviso.Message}");
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// A afinidade de processador dos processos que rodam agora: quantos
+    /// nucleos cada programa pode usar.
+    /// </summary>
+    public static int ExecutarAfinidade()
+    {
+        var processos = ProcessInspector.List();
+        var afinidades = ProcessAffinity.List(processos);
+
+        Console.WriteLine($"Processos: {processos.Count}");
+        Console.WriteLine();
+
+        foreach (var afinidade in afinidades)
+        {
+            var restrito = afinidade.IsRestricted ? " (restrito)" : string.Empty;
+            Console.WriteLine($"    {afinidade.ProcessName} ({afinidade.ProcessId})  nucleos: {afinidade.Text}{restrito}");
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Abre a Limpeza de Disco do Windows.
+    /// </summary>
+    public static int ExecutarLimpezaDeDisco()
+    {
+        var ok = SystemActions.AbrirLimpezaDeDisco();
+        Console.WriteLine(ok ? "Limpeza de Disco do Windows aberta." : "Nao foi possivel abrir a Limpeza de Disco.");
+        return ok ? 0 : 1;
+    }
+
+    /// <summary>
+    /// Abre a pasta dos logs de remocao no Explorer.
+    /// </summary>
+    public static int ExecutarPastaDeLogs()
+    {
+        var ok = SystemActions.AbrirPastaDeLogs();
+        Console.WriteLine(ok ? $"Pasta de logs aberta: {RemovalLog.LogDirectory}" : "Nao foi possivel abrir a pasta de logs.");
+        return ok ? 0 : 1;
     }
 }

@@ -1054,5 +1054,11 @@
     "Options.UpdateBlacklist":  "Lista negra de atualizações (um por linha)",
     "Tool.Dup.Winner":  "Copia vencedora",
     "Tool.Printer.Location":  "Local",
-    "Tool.Dump.Crashes":  "Falhas"
+    "Tool.Dump.Crashes":  "Falhas",
+    "Tool.Processes.Affinity":  "Afinidade",
+    "Tool.Junk.DiskCleanup":  "Limpeza de Disco do Windows",
+    "Guard.BrowserRunning":  "O navegador {0} esta em execucao ({1} processo(s)): os arquivos abertos por ele nao podem ser apagados agora.",
+    "Guard.ForcedBeforeSafe":  "A desinstalacao segura de '{0}' ainda nao foi tentada. A forcada remove o que o desinstalador do fabricante nao removesse.",
+    "Guard.ContinueAnyway":  "Deseja continuar mesmo assim?",
+    "Guard.Title":  "Aviso"
 }

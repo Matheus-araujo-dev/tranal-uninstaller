@@ -243,6 +243,19 @@ public static class CleanupViews
                 return;
             }
 
+            // O navegador aberto segura os proprios arquivos: quem limpa sem
+            // saber disso descobre que parte do que era para apagar ficou
+            // para tras. O aviso nao impede: quem decide e o usuario.
+            var avisos = OperationGuards.NavegadoresRodando();
+            if (avisos.Count > 0)
+            {
+                var texto = string.Join(Environment.NewLine, avisos.Select(a => a.Message));
+                if (!UserMessages.Warning(null, texto + Environment.NewLine + Environment.NewLine + Loc.Get("Guard.ContinueAnyway")))
+                {
+                    return;
+                }
+            }
+
             panel.RunAsync(async () =>
             {
                 var relatorio = await Task.Run(() => InternetCleaner.Clear(marcados));

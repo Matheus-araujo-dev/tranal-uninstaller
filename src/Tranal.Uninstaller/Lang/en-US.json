@@ -1054,5 +1054,11 @@
     "Options.UpdateBlacklist":  "Update blacklist (one per line)",
     "Tool.Dup.Winner":  "Winning copy",
     "Tool.Printer.Location":  "Location",
-    "Tool.Dump.Crashes":  "Crashes"
+    "Tool.Dump.Crashes":  "Crashes",
+    "Tool.Processes.Affinity":  "Affinity",
+    "Tool.Junk.DiskCleanup":  "Windows Disk Cleanup",
+    "Guard.BrowserRunning":  "The {0} browser is running ({1} process(es)): the files it has open cannot be deleted now.",
+    "Guard.ForcedBeforeSafe":  "The safe uninstall of '{0}' has not been tried yet. The forced one removes what the manufacturer's uninstaller would not remove.",
+    "Guard.ContinueAnyway":  "Do you want to continue anyway?",
+    "Guard.Title":  "Warning"
 }
