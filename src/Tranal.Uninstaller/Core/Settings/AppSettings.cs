@@ -466,6 +466,20 @@ public sealed class AppSettings
     /// </summary>
     public bool BackgroundAgent { get; set; }
 
+    /// <summary>
+    /// Liga o modo de acessibilidade: o leitor de tela e avisado das
+    /// mudancas, o foco visivel e desenhado e os botoes padrao ficam
+    /// destacados. Padrao: <c>false</c>.
+    /// </summary>
+    public bool AccessibilityMode { get; set; }
+
+    /// <summary>
+    /// Liga o modo rapido: as verificacoes caras (a medicao do tamanho das
+    /// pastas) sao puladas, e a interface avisa que pulou. Padrao:
+    /// <c>false</c>.
+    /// </summary>
+    public bool FastMode { get; set; }
+
     /// <summary>O modo de execucao, ja lido pela regra.</summary>
     public ExecutionPreference RunMode => ExecutionPreferences.Parse(RunPreference);
 

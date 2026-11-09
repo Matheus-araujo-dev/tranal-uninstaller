@@ -27,6 +27,7 @@ public enum NotificationKind
 /// <param name="CreatedAt">Quando ela foi criada.</param>
 /// <param name="IsRead">O usuario ja leu?</param>
 /// <param name="ScheduledFor">Quando ela deve aparecer. Nulo = ja pode aparecer.</param>
+/// <param name="Sender">Quem mandou a notificacao.</param>
 public sealed record InternalNotification(
     string Id,
     NotificationKind Kind,
@@ -34,7 +35,8 @@ public sealed record InternalNotification(
     string Message,
     DateTime CreatedAt,
     bool IsRead,
-    DateTime? ScheduledFor);
+    DateTime? ScheduledFor,
+    string Sender = "Tranal Uninstaller");
 
 /// <summary>
 /// O arquivo onde ficam as notificacoes.

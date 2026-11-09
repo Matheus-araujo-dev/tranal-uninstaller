@@ -144,6 +144,10 @@ public static class Program
         var agente = AgentCommands.TryRun(effective, flags);
         if (agente.HasValue) return agente.Value;
 
+        // O banco local, os logs antigos, as ligacoes e o rastreio.
+        var dados = DataCommands.TryRun(effective, flags);
+        if (dados.HasValue) return dados.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");

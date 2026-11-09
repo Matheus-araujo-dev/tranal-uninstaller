@@ -1555,7 +1555,8 @@ public static class ToolViews
             {
                 new ColumnDef { Header = Loc.Get("Tool.Notifications.Title"), Width = 220, BindingPath = "Category" },
                 new ColumnDef { Header = Loc.Get("Tool.Notifications.Kind"), Width = 140, BindingPath = "Size" },
-                new ColumnDef { Header = Loc.Get("Tool.Notifications.Message"), Width = 460, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.Notifications.Message"), Width = 380, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.Notifications.Sender"), Width = 180, BindingPath = "Kind" },
             },
             new[]
             {
@@ -1581,13 +1582,14 @@ public static class ToolViews
                 rows.Add(new ToolRow
                 {
                     Category = titulo,
-                    Size = notificacao.Kind switch
+                    Size = notificacao.Sender,
+                    Path = mensagem,
+                    Kind = notificacao.Kind switch
                     {
                         NotificationKind.Tip => Loc.Get("Tool.Notifications.Tip"),
                         NotificationKind.Warning => Loc.Get("Tool.Notifications.Warning"),
                         _ => Loc.Get("Tool.Notifications.Info"),
                     },
-                    Path = mensagem,
                     Source = notificacao,
                 });
             }

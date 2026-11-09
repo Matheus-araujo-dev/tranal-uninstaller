@@ -140,6 +140,8 @@ public partial class OptionsWindow : Window
         RestoreTrayCheck.IsChecked = settings.RestoreTrayOnClick;
         CompactProgramListCheck.IsChecked = settings.CompactProgramList;
         ShowNewProgramsPopupCheck.IsChecked = settings.ShowNewProgramsPopup;
+        AccessibilityModeCheck.IsChecked = settings.AccessibilityMode;
+        FastModeCheck.IsChecked = settings.FastMode;
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -444,6 +446,8 @@ public partial class OptionsWindow : Window
         s.RestoreTrayOnClick = RestoreTrayCheck.IsChecked == true;
         s.CompactProgramList = CompactProgramListCheck.IsChecked == true;
         s.ShowNewProgramsPopup = ShowNewProgramsPopupCheck.IsChecked == true;
+        s.AccessibilityMode = AccessibilityModeCheck.IsChecked == true;
+        s.FastMode = FastModeCheck.IsChecked == true;
 
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;

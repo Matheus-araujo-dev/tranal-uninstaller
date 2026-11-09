@@ -117,6 +117,33 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Abre a pagina de apoio do projeto.
+    ///
+    /// E o botao "Doar" que os concorrentes tem na janela principal. O
+    /// endereco esta no catalogo de idiomas - a interface e traduzida, e o
+    /// endereco tambem.
+    /// </summary>
+    private void Doar_Click(object sender, RoutedEventArgs e)
+    {
+        var url = Loc.Get("Cmd.DonateUrl");
+
+        try
+        {
+            if (url.Length == 0 || url == "Cmd.DonateUrl") return;
+
+            using var processo = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true,
+            });
+        }
+        catch
+        {
+            // Sem navegador, o botao nao faz nada - e nao trava o Tranal.
+        }
+    }
+
+    /// <summary>
     /// O icone na bandeja do sistema.
     ///
     /// A bandeja e o que permite ao Tranal sair da frente da tela sem sair

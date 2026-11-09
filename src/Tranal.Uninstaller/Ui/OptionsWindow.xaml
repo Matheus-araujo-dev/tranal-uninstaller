@@ -232,6 +232,13 @@
                   Content="{loc:Tr Options.ShowNewProgramsPopup}"
                   AutomationProperties.AutomationId="OptShowNewProgramsPopup" />
 
+        <CheckBox x:Name="AccessibilityModeCheck" Margin="0,8,0,2"
+                  Content="{loc:Tr Options.AccessibilityMode}"
+                  AutomationProperties.AutomationId="OptAccessibilityMode" />
+        <CheckBox x:Name="FastModeCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FastMode}"
+                  AutomationProperties.AutomationId="OptFastMode" />
+
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
         <TextBlock Text="{loc:Tr Options.PortableFolder}" Margin="0,0,0,4" />

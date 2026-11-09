@@ -1439,5 +1439,10 @@
     "Tool.OperationProfiles.View.Registry":  "Registro",
     "Tool.OperationProfiles.View.ContextMenu":  "Menu de contexto",
     "Tool.OperationProfiles.View.Services":  "Servicos",
-    "Tool.OperationProfiles.View.ScheduledTasks":  "Tarefas agendadas"
+    "Tool.OperationProfiles.View.ScheduledTasks":  "Tarefas agendadas",
+    "Cmd.Donate":  "Apoiar o projeto",
+    "Cmd.DonateUrl":  "https://github.com/sponsors/Matheus-araujo-dev",
+    "Tool.Notifications.Sender":  "Remetente",
+    "Options.AccessibilityMode":  "Modo de acessibilidade (leitor de tela, foco visivel)",
+    "Options.FastMode":  "Modo rapido (pula as verificacoes lentas)"
 }
