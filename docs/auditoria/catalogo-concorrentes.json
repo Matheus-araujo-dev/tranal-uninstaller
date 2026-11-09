@@ -372,8 +372,8 @@
                                                          "id":  "T4#44",
                                                          "funcionalidade":  "File Associator (tipos de arquivo sem programa associado, editar/undo)",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-free.txt:414-457`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - File Associator (tipos de arquivo sem programa associado, editar/undo)/grep \"FileAssoc\" em src/ -\u003e 0 hits nao ha painel de associacoes de arquivo"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - File Associator (tipos de arquivo sem programa associado, editar/undo)/modulo de associacoes de arquivo `Core/Tools/FileAssociator.cs:84`; a troca do programa `Core/Tools/FileAssociator.cs:159`; o desfazer `Core/Tools/FileAssociator.cs:216`"
                                                      },
                                                      {
                                                          "numero":  45,
@@ -404,8 +404,8 @@
                                                          "id":  "T4#48",
                                                          "funcionalidade":  "Boot Center: resumo de tempo de boot, autorun e tarefas agendadas (enable/disable/delete)",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-pro27.txt:311-343`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Boot Center: resumo de tempo de boot, autorun e tarefas agendadas (enable/disable/delete)/grep \"BootTime\" em src/ -\u003e 0 hits o Tranal gerencia o autorun (`Core/Tools/AutorunManager.cs`) e as tarefas agendadas (`Core/Management/ScheduledTaskManager.cs`), mas nao ha o resumo de tempo de boot nem a tela que junta os tres"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Boot Center: resumo de tempo de boot, autorun e tarefas agendadas (enable/disable/delete)/modulo do Boot Center `Core/Tools/BootCenter.cs:89`; habilitar e desabilitar `Core/Tools/BootCenter.cs:146`; remover `Core/Tools/BootCenter.cs:174`"
                                                      },
                                                      {
                                                          "numero":  49,
@@ -1738,8 +1738,8 @@
                                                          "id":  "T2#42",
                                                          "funcionalidade":  "**Enumeração por SID do usuário** dos pacotes MSIX",
                                                          "evidencia":  "literal `FindPackagesByUserSecurityId failed` (`geek.strings.txt:1907`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Enumeração por SID do usuário** dos pacotes MSIX/`src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs:39` (`public static class WindowsApps`) a listagem e so do usuario atual: `Get-AppxPackage` sem `-AllUsers` e sem `-PackageUserInformation`."
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - **Enumeração por SID do usuário** dos pacotes MSIX/modulo de aplicativos do Windows `Core/Modules/WindowsApps.cs:39`"
                                                      },
                                                      {
                                                          "numero":  43,
@@ -2201,8 +2201,8 @@
                                                          "id":  "T5#91",
                                                          "funcionalidade":  "**Criar item de inicialização** do zero",
                                                          "evidencia":  "`hibit.recursos.txt:145` -\u003e `TADDSTARTUPFORM/0`; `:160` -\u003e `TEDITSTARTUPFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"AutorunManager.Add\" em src/` -\u003e **1 hit**, a definicao em `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:189` (`Add`), **sem consumidor** em `Ui/` nem na CLI — o painel so expoe Refresh/Enable/Disable/Remove (`src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:145-148`) e a CLI so lista (`src/Tranal.Cli/ExtraCommands.cs:200`). Binario do concorrente: `hibit.recursos.txt:145` (`TADDSTARTUPFORM/0`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - modulo de inicializacao automatica `Core/Tools/AutorunManager.cs:72`; a criacao do item `Core/Tools/AutorunManager.cs:189`; o dialogo de entrada `Ui/Shared/InputDialog.cs:31`"
                                                      },
                                                      {
                                                          "numero":  92,
@@ -3918,8 +3918,8 @@
                                                          "id":  "T7#84",
                                                          "funcionalidade":  "**Verificação de DCOM** do produto",
                                                          "evidencia":  "`strings.txt:51107` → `DCOM not installed`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Verificação de DCOM** do produto/grep \"DCOM\" em src/ -\u003e 0 hits o que existe e o inverso: desregistrar COM do programa desinstalado (`Core/Automation/ComUnregister.cs`)."
+                                                         "estado":  "PARCIAL",
+                                                         "estadoTexto":  "**PARCIAL** - **Verificação de DCOM** do produto/modulo de COM `Core/Automation/ComUnregister.cs:28`; a lista dos DLLs registrados do produto `Core/Automation/ComUnregister.cs:118`"
                                                      },
                                                      {
                                                          "numero":  85,
@@ -4461,8 +4461,8 @@
                                                          "id":  "T4#57",
                                                          "funcionalidade":  "Tarefas criadas pela Microsoft **ocultadas** por segurança",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Tarefas criadas pela Microsoft **ocultadas** por segurança/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) a listagem traz todas as tarefas agendadas; nao ha filtro nem ocultacao das tarefas da Microsoft."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Tarefas criadas pela Microsoft **ocultadas** por segurança/modulo de tarefas ocultas `Core/Management/ScheduledTaskVisibility.cs:60`; a listagem das tarefas ocultas `Core/Management/ScheduledTaskVisibility.cs:111`"
                                                      },
                                                      {
                                                          "numero":  58,
@@ -4741,8 +4741,8 @@
                                                          "id":  "T6#92",
                                                          "funcionalidade":  "**Validação de cadeia de certificados** embarcada (CRYPTO/SSL)",
                                                          "evidencia":  "`imports.txt:48` → `CRYPT32.dll / CertVerifyCertificateChainPolicy`, `CertGetCertificateChain`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Validação de cadeia de certificados** embarcada (CRYPTO/SSL)/grep \"CertGetCertificateChain\" em src/ -\u003e 0 hits o que existe e a validacao da assinatura do desinstalador (`WinVerifyTrust` com `X509Chain`), que e outro objeto."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Validação de cadeia de certificados** embarcada (CRYPTO/SSL)/a cadeia de subjects do certificado `Core/Discovery/UninstallerCertificate.cs:64`; a verificacao do certificado `Core/Discovery/UninstallerCertificate.cs:114`"
                                                      },
                                                      {
                                                          "numero":  93,
@@ -5547,8 +5547,8 @@
                                                          "id":  "T3#46",
                                                          "funcionalidade":  "Registro de \"última análise\"",
                                                          "evidencia":  "`wise.recursos.txt:146` -\u003e `TFRMCLEANPAGE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Registro de \"última análise\"/grep \"UltimaAnalise\" em src/ -\u003e 0 hits nao ha registro da ultima analise — a busca por \"LastScan\" em `src/` nao retorna hits."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Registro de \"última análise\"/o registro da ultima varredura `Core/Settings/AppSettings.cs:350`; a gravacao da varredura `Core/Settings/AppSettings.cs:469`"
                                                      },
                                                      {
                                                          "numero":  47,

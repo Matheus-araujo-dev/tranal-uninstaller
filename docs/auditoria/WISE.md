@@ -148,7 +148,7 @@ binário).
 | 43 | Diálogo de permissões com "Action" por plug-in | `wise.identificadores.txt:74` -> `FrmPermissionsDialog.lvlist.Option` | **OK** - As permissoes por tipo (servico, inicializacao, menu de contexto, tarefa agendada) sao listadas com acao de habilitar, desabilitar e remover (`AppPermissionManager.cs:13`). |
 | 44 | Diálogo de **lixeira** com tamanho por aplicativo | `wise.recursos.txt:160` -> `TFRMTRASDIALOG/0` | **PARCIAL** - Diálogo de **lixeira** com tamanho por aplicativo/`src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:38` (`public static class JunkCleaner`) **Nota**: a lixeira e varrida por unidade, com o tamanho, mas o resultado e por unidade e nao por aplicativo. |
 | 45 | Diálogo de **notificações** com remetente e tipo | `wise.recursos.txt:149` -> `TFRMNOTIFYDIALOG/0` | **AUSENTE** - Diálogo de **notificações** com remetente e tipo/`src/Tranal.Uninstaller/Core/Management/SoftwareHealth.cs:105` (`public static class SoftwareHealth`) a categoria de notificacoes do Software Health trata do estado do programa, nao de notificacoes do sistema. |
-| 46 | Registro de "última análise" | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **AUSENTE** - Registro de "última análise"/grep "UltimaAnalise" em src/ -> 0 hits nao ha registro da ultima analise — a busca por "LastScan" em `src/` nao retorna hits. |
+| 46 | Registro de "última análise" | `wise.recursos.txt:146` -> `TFRMCLEANPAGE/0` | **OK** - Registro de "última análise"/o registro da ultima varredura `Core/Settings/AppSettings.cs:350`; a gravacao da varredura `Core/Settings/AppSettings.cs:469` |
 
 ### 2.4 Extensões de navegador
 
