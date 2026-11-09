@@ -108,8 +108,8 @@
                                                          "id":  "T1#60",
                                                          "funcionalidade":  "Busca online do programa e \"Rate online\"",
                                                          "evidencia":  "nao confirmado no binario — doc.: `manual-pro27.txt:128-137`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Busca online do programa e \"Rate online\"/`src/Tranal.Uninstaller/Core/WebSearch.cs:19` (`public static class WebSearch`) **Nota**: a busca online existe e e acionada pelo detalhe do programa; falta a acao de avaliar (\"rate online\")."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Busca online do programa e \"Rate online\"/`src/Tranal.Uninstaller/Core/WebSearch.cs:19` (`public static class WebSearch`) `src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:92` (`AvaliarOnlineUrl`) `src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:111` (`AvaliarOnline`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1717` (menu \"Avaliar on-line\") `src/Tranal.Cli/InspectionCommands.cs:477` (`ExecutarAvaliacao`, `tranal /inspection-rate`)"
                                                      },
                                                      {
                                                          "numero":  62,
@@ -1418,8 +1418,8 @@
                                                          "id":  "T1#2",
                                                          "funcionalidade":  "Total agregado no rodapé (\"%d programs of %s size in total\")",
                                                          "evidencia":  "literal `\u003cstatusTotalInfo\u003e%d programs of %s size in total\u003c/statusTotalInfo\u003e` (`geek.strings.txt:4639`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Total agregado no rodapé (\"%d programs of %s size in total\")/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:142` (`public static class ProgramTotalsCalculator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:221` (`Status.Installations`) **Nota**: o total agregado e calculado no nucleo (`ProgramTotalsCalculator.Compute`), mas so e testado — o rodape ainda mostra so a contagem."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Total agregado no rodapé (\"%d programs of %s size in total\")/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:147` (`public static class ProgramTotalsCalculator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:411` (`ProgramTotalsCalculator.Compute`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:413` (`totais.Text`) o rodapé mostra a contagem E o tamanho total;"
                                                      },
                                                      {
                                                          "numero":  3,
@@ -1570,16 +1570,16 @@
                                                          "id":  "T1#21",
                                                          "funcionalidade":  "Ir para a **chave do registro**, a **pasta de instalação**, o **site do programa**, a **Microsoft Store**",
                                                          "evidencia":  "`MainMenu/mnuActionJumpToRegistry` / `JumpToProgramFolder` / `JumpToWebSite` / `OpenWindowsStore` (`geek.strings.txt:1172-1175`), literais `\u003cmnuActionOpenWindowsStore\u003eOpen in Microsoft Store\u003c/mnuActionOpenWindowsStore\u003e` (`:4561`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Ir para a **chave do registro**, a **pasta de instalação**, o **site do programa**, a **Microsoft Store**/`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:30` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/Core/WebSearch.cs:19` (`public static class WebSearch`) **Nota**: registro, pasta e site existem; \"abrir na Microsoft Store\" nao — a busca por \"ms-windows-store\" em `src/` nao retorna hits."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Ir para a **chave do registro**, a **pasta de instalação**, o **site do programa**, a **Microsoft Store**/`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:51` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:61` (`TargetsFor`) `src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:88` (`RegistryEditor`) `src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:116` (`MicrosoftStore`) `src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:138` (`ProgramFolder`) `src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:155` (`UninstallerFolder`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1705` (menu \"Abrir no Windows\") `src/Tranal.Cli/InspectionCommands.cs:519` (`tranal /inspection-store`)"
                                                      },
                                                      {
                                                          "numero":  22,
                                                          "id":  "T1#22",
                                                          "funcionalidade":  "**Browse Location…** e **Browse Source…**",
                                                          "evidencia":  "literais `\u003cmnuActionBrowseLocation\u003eBrowse Location...\u003c/mnuActionBrowseLocation\u003e` e `\u003cmnuActionBrowseSource\u003eBrowse Source...\u003c/mnuActionBrowseSource\u003e` (`geek.strings.txt:4562-4563`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Browse Location…** e **Browse Source…**/`src/Tranal.Uninstaller/Core/ProgramColumns.cs:274` (`UninstallerLocationOf`) **Nota**: a origem e a localizacao aparecem como colunas, mas nao ha as acoes de browse."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Browse Location…** e **Browse Source…**/`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:138` (`ProgramFolder`) `src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:155` (`UninstallerFolder`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1705` (menu \"Abrir no Windows\") as duas acoes abrem a pasta do programa e a pasta do desinstalador;"
                                                      },
                                                      {
                                                          "numero":  23,
@@ -1682,8 +1682,8 @@
                                                          "id":  "T2#35",
                                                          "funcionalidade":  "**Limpeza do cache MRU do Windows**",
                                                          "evidencia":  "literal `Software\\Classes\\Local Settings\\MrtCache` (`geek.strings.txt:12749`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - A limpeza de MRU existe: `src/Tranal.Uninstaller/Core/Tools/MruCleaner.cs:41` (classe), 11 chaves em `MruKeys` `:46-59` (`RecentDocs` em `:51`, `BagMRU` em `:55`), `Scan` `:64` e `Clear` `:105`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:467`, com `MruScan` em `:482`; CLI `src/Tranal.Cli/CleanupCommands.cs:40` e `:234` (`tranal /mru /clean`). **Nota**: a chave citada pelo Geek, `Software\\Classes\\Local Settings\\MrtCache`, **nao e limpa** - a busca por `MrtCache` em `src/` nao retorna hits. Binario do concorrente: confirmado em binario (`geek.strings.txt:12749`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - A limpeza de MRU existe: `src/Tranal.Uninstaller/Core/Tools/MruCleaner.cs:41` (classe), as chaves em `MruKeys` (a `Software\\Classes\\Local Settings\\MrtCache` do Geek em `:62`), `Scan` e `Clear`; tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:34` (com `MruCleaner.Scan` em `:507`); CLI `src/Tranal.Cli/CleanupCommands.cs:234` (`tranal /mru /clean`). Binario do concorrente: confirmado em binario (`geek.strings.txt:12749`)"
                                                      },
                                                      {
                                                          "numero":  36,
@@ -1754,8 +1754,8 @@
                                                          "id":  "T2#44",
                                                          "funcionalidade":  "**\"Nenhum programa nesta categoria\"**",
                                                          "evidencia":  "literal `\u003cstaticNoProgramsInCategory\u003eSeems like no Microsoft Store apps installed\u003c/staticNoProgramsInCategory\u003e` (`geek.strings.txt:4585`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **\"Nenhum programa nesta categoria\"**/`src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:17` (`public static class ModuleViews`) **Nota**: e um texto de estado, nao uma feature — a categoria vazia simplesmente nao mostra linhas; nao ha string dedicada de \"nenhum programa nesta categoria\"."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **\"Nenhum programa nesta categoria\"**/`src/Tranal.Uninstaller/MainWindow.xaml.cs:404` (`Status.NoProgramsInCategory`) o rodapé avisa quando a lista da categoria esta vazia;"
                                                      }
                                                  ]
                          },
@@ -2368,16 +2368,16 @@
                                                          "id":  "T2#9",
                                                          "funcionalidade":  "**Quick Uninstall**: confirmar automaticamente o desinstalador original",
                                                          "evidencia":  "**não confirmado no binario** (a `.lng` não é o binário; nenhuma string de switch de confirmação automática foi localizada)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Quick Uninstall**: confirmar automaticamente o desinstalador original/`src/Tranal.Uninstaller/Core/Removal.cs:57` (`public static`) **Nota**: o desinstalador nativo roda com confirmacao propria, mas o Tranal nao tem o atalho \"confirmar e seguir\" do concorrente."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Quick Uninstall**: confirmar automaticamente o desinstalador original/`src/Tranal.Uninstaller/MainWindow.xaml.cs:1120` (menu \"Desinstalação rápida\") `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:474` (`RunQuickAsync`) `src/Tranal.Uninstaller/Core/Automation/ExecutionPolicy.cs:150` (`ItensDoModoRapido`) a acao confirma e segue: desinstalador nativo, varredura e limpeza, sem etapas no meio;"
                                                      },
                                                      {
                                                          "numero":  10,
                                                          "id":  "T2#10",
                                                          "funcionalidade":  "Aviso de que o desinstalador **vai deixar resíduo** (\"still leaves\")",
                                                          "evidencia":  "**não confirmado no binario**",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Aviso de que o desinstalador **vai deixar resíduo** (\"still leaves\")/`src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:87` (`public static`) **Nota**: existem os avisos que precedem a desinstalacao, mas nao a advertencia especifica de que o desinstalador deixara residuo."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Aviso de que o desinstalador **vai deixar resíduo** (\"still leaves\")/`src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:175` (`LeavesResidueAdvisory`) `src/Tranal.Uninstaller/Core/Localization/AdvisoryLabels.cs:80` (`LeavesResidue`) o aviso conta quantos itens o desinstalador do fabricante deixa para trás;"
                                                      },
                                                      {
                                                          "numero":  11,
@@ -5443,8 +5443,8 @@
                                                          "id":  "T2#33",
                                                          "funcionalidade":  "Botão \"Explorar\" para apagar o que for encontrado",
                                                          "evidencia":  "`wise.recursos.txt:162` -\u003e `TFRMUNLESSDEL/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Botão \"Explorar\" para apagar o que for encontrado/`src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml.cs:17` (`public partial class ForcedUninstallWindow`) **Nota**: o painel de itens tem acao de abrir a pasta no Explorer, mas nao ha o botao \"Explorar\" da desinstalacao personalizada."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Botão \"Explorar\" para apagar o que for encontrado/`src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml:28` (`ForcedBrowseButton`) `src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml.cs:57` (`BrowseButton_Click`)"
                                                      },
                                                      {
                                                          "numero":  34,

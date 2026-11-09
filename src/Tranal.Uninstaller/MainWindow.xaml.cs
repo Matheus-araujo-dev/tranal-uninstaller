@@ -397,6 +397,14 @@ public partial class MainWindow : Window
             StatusText.Text += $"   — {Loc.Get("Status.NoMatchingItems")}";
         }
 
+        else if (visible == 0)
+        {
+            // A lista esta vazia: o rodape diz por que, em vez de mostrar
+            // um "0" que parece falha da varredura.
+            StatusText.Text += $"   — {Loc.Get("Status.NoProgramsInCategory")}";
+        }
+
+
         // O total agregado: quantos programas a lista tem e quanto eles
         // ocupam. O calculo mora no nucleo (ProgramTotalsCalculator) e o
         // texto vem do catalogo — o rodape nao monta nada por conta propria.
@@ -1614,6 +1622,25 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Abre a busca de avaliacoes do programa selecionado.
+    /// </summary>
+    /// <param name="row">A linha do programa.</param>
+    private void AvaliarPrograma(ProgramRow row)
+    {
+        var programa = row.Program;
+        if (programa is null) return;
+
+        if (Core.Tools.SystemActions.AvaliarOnline(programa))
+        {
+            UserMessages.Information(this, Loc.Get("Cmd.RateProgramOpened"), Loc.Get("Cmd.RateProgram"));
+            return;
+        }
+
+        UserMessages.Information(this, Loc.Get("Cmd.RateProgramFailed"), Loc.Get("Cmd.RateProgram"));
+    }
+
+
+    /// <summary>
     /// O menu de contexto do programa: comentario, icone e grupos.
     ///
     /// Corresponde ao "Add Comment" (15216), "Edit Comment" (15217), "Change
@@ -1680,10 +1707,16 @@ public partial class MainWindow : Window
             var alvo = target;
             abrir.Items.Add(CommandItem(
                 alvo.Title,
-                "CmdOpen" + alvo.FileName.Replace(".exe", string.Empty).Replace(".cpl", string.Empty),
+                alvo.MenuId,
                 () => SystemNavigator.Open(alvo)));
         }
         menu.Items.Add(abrir);
+
+        // "Avaliar on-line": a acao que leva a pagina onde o programa pode
+        // ser avaliado. A regra (o que e aberto) mora no nucleo.
+        var avaliar = CommandItem(Loc.Get("Cmd.RateProgram"), "CmdRateProgram", () => AvaliarPrograma(row));
+        menu.Items.Add(avaliar);
+
 
         menu.Items.Add(new Separator());
 

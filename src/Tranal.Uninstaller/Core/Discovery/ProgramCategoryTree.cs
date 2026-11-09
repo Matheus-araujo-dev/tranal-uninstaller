@@ -228,33 +228,55 @@ public static class ProgramCategoryTree
     /// <param name="customization">
     /// Como achar a preferencia do usuario de cada programa. Nulo usa a loja
     /// de preferencias.
+    /// <param name="grupos">
+    /// As categorias do usuario. Entram na arvore mesmo quando ainda nao tem
+    /// programa nelas — e o que permite dizer "nenhum programa nesta
+    /// categoria" em vez de a categoria sumir. Nulo: so as categorias que os
+    /// proprios programas indicam.
     /// </param>
     public static IReadOnlyList<ProgramCategoryNode> Build(
         IReadOnlyList<InstalledProgram>? programs,
-        Func<InstalledProgram, ProgramCustomization?>? customization = null)
+        Func<InstalledProgram, ProgramCustomization?>? customization = null,
+        IReadOnlyList<string>? grupos = null)
     {
-        if (programs is null || programs.Count == 0) return Array.Empty<ProgramCategoryNode>();
-
-        var resolver = customization ?? ProgramCustomizationStore.For;
-
         var ordem = new List<string>();
         var membros = new Dictionary<string, List<InstalledProgram>>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var program in programs)
+        if (programs is not null)
         {
-            if (program is null) continue;
+            var resolver = customization ?? ProgramCustomizationStore.For;
 
-            var categoria = CategoryOf(program, resolver(program));
-            if (string.IsNullOrWhiteSpace(categoria)) categoria = UnsortedId;
-
-            if (!membros.TryGetValue(categoria, out var lista))
+            foreach (var program in programs)
             {
-                lista = new List<InstalledProgram>();
-                membros[categoria] = lista;
-                ordem.Add(categoria);
-            }
+                if (program is null) continue;
 
-            lista.Add(program);
+                var categoria = CategoryOf(program, resolver(program));
+                if (string.IsNullOrWhiteSpace(categoria)) categoria = UnsortedId;
+
+                if (!membros.TryGetValue(categoria, out var lista))
+                {
+                    lista = new List<InstalledProgram>();
+                    membros[categoria] = lista;
+                    ordem.Add(categoria);
+                }
+
+                lista.Add(program);
+            }
+        }
+
+        // As categorias do usuario entram na arvore mesmo quando ainda nao tem
+        // programa nelas: e o que permite dizer "nenhum programa nesta
+        // categoria" em vez de a categoria sumir da arvore.
+        if (grupos is not null)
+        {
+            foreach (var grupo in grupos)
+            {
+                if (string.IsNullOrWhiteSpace(grupo)) continue;
+                if (membros.ContainsKey(grupo)) continue;
+
+                ordem.Add(grupo);
+                membros[grupo] = new List<InstalledProgram>();
+            }
         }
 
         var nos = new List<ProgramCategoryNode>(ordem.Count);

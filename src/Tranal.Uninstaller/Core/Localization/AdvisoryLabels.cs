@@ -23,6 +23,7 @@ public static class AdvisoryLabels
         UninstallAdvisoryKind.RelatedPrograms => "Advisory.Title.RelatedPrograms",
         UninstallAdvisoryKind.ForcedWithoutSafe => "Advisory.Title.ForcedWithoutSafe",
         UninstallAdvisoryKind.UninstallInProgress => "Advisory.Title.UninstallInProgress",
+        UninstallAdvisoryKind.LeavesResidue => "Advisory.Title.LeavesResidue",
         _ => "Advisory.Title.UserData",
     });
 
@@ -71,6 +72,14 @@ public static class AdvisoryLabels
     /// O aviso de desinstalacao forcada sem tentar a segura antes.
     /// </summary>
     public static string ForcedWithoutSafe() => Loc.Get("Advisory.ForcedWithoutSafe");
+
+    /// <summary>
+    /// O aviso de que o desinstalador vai deixar residuo.
+    /// </summary>
+    /// <param name="quantidade">Quantos itens a varredura achou.</param>
+    public static string LeavesResidue(int quantidade) =>
+        Loc.Get("Advisory.LeavesResidue", quantidade);
+
 
     /// <summary>
     /// O aviso de desinstalacao em andamento.

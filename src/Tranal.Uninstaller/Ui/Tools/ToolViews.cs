@@ -1535,7 +1535,8 @@ public static class ToolViews
                 await Task.Run(() => ProgramCategoryTree.ResetToUnsorted());
             }
 
-            var nos = ProgramCategoryTree.Build(instalados);
+            var nos = ProgramCategoryTree.Build(
+                instalados, null, ProgramCustomizationStore.Groups);
 
             rows.Clear();
             foreach (var no in nos)
@@ -1544,7 +1545,9 @@ public static class ToolViews
                 {
                     Category = no.Name,
                     Detail = no.TotalPrograms.ToString(),
-                    Path = string.Join(", ", no.Programs.Select(p => p.DisplayName).Take(6)),
+                    Path = no.Programs.Count == 0
+                        ? Loc.Get("Status.NoProgramsInCategory")
+                        : string.Join(", ", no.Programs.Select(p => p.DisplayName).Take(6)),
                     Source = no,
                 });
             }

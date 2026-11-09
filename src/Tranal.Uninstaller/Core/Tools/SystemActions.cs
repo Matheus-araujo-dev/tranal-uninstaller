@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Core.Tools;
 
@@ -79,6 +80,44 @@ public static class SystemActions
 
         return Abrir(url);
     }
+    /// <summary>
+    /// O endereco da busca de avaliacoes do programa.
+    ///
+    /// E separado da acao de abrir por um motivo: abrir o navegador e uma
+    /// coisa que muda a maquina de quem esta usando, e um teste nao pode
+    /// fazer isso. O endereco, sim, pode ser conferido.
+    /// </summary>
+    /// <param name="programa">O programa instalado.</param>
+    /// <returns>O endereco, ou string vazia quando o programa nao tem nome.</returns>
+    public static string AvaliarOnlineUrl(InstalledProgram? programa)
+    {
+        var nome = (programa?.DisplayName ?? string.Empty).Trim();
+        if (nome.Length == 0) return string.Empty;
+
+        return WebSearch.BuildUrl($"\"{nome}\" review", AppSettingsStore.Current);
+    }
+
+
+    /// <summary>
+    /// Abre a busca de avaliacoes do programa.
+    ///
+    /// E o "Rate online" do Ashampoo: a acao que leva a pagina onde o
+    /// programa pode ser avaliado. O Tranal nao tem uma loja de avaliacoes
+    /// propria — o que ele faz e abrir a busca com o nome do programa, no
+    /// motor configurado.
+    /// </summary>
+    /// <param name="programa">O programa instalado.</param>
+    /// <returns>True quando a pagina foi aberta.</returns>
+    public static bool AvaliarOnline(InstalledProgram? programa)
+    {
+        var url = AvaliarOnlineUrl(programa);
+        if (url.Length == 0) return false;
+
+        return Abrir(url);
+    }
+
+
+
 
     /// <summary>
     /// Agenda o reinicio da maquina.

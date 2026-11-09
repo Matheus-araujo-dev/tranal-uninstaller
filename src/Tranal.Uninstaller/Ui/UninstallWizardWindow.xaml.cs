@@ -349,7 +349,9 @@ public partial class UninstallWizardWindow : Window
         SummaryText.Visibility = Visibility.Collapsed;
         MessageText.Visibility = Visibility.Visible;
         BackButton.IsEnabled = step > 0;
-        NextButton.Content = Loc.Get(step == 4 ? "Wizard.Finish" : "Wizard.Next");
+        NextButton.Content = Loc.Get(step == 4
+            ? "Wizard.Finish"
+            : (_quick ? "Wizard.QuickStart" : "Wizard.Next"));
 
         var name = string.Join(", ", _programs.Select(p => p.DisplayName));
         TitleText.Text = _programs.Count == 1
@@ -360,8 +362,14 @@ public partial class UninstallWizardWindow : Window
         {
             case 0:
                 SubtitleText.Text = Loc.Get("Wizard.StepCounter", 1, Loc.Get("Wizard.Step1.Title"));
-                MessageText.Text = Loc.Get("Wizard.AnalyzeIntro", name);
-                ModePanel.Visibility = Visibility.Visible;
+
+                // No modo rapido nao ha escolha de modo nem etapas para
+                // revisar: a mensagem diz o que vai acontecer.
+                MessageText.Text = _quick
+                    ? Loc.Get("Wizard.QuickIntro", name)
+                    : Loc.Get("Wizard.AnalyzeIntro", name);
+
+                ModePanel.Visibility = _quick ? Visibility.Collapsed : Visibility.Visible;
                 StatusText.Text = Loc.Get("Wizard.Ready");
                 break;
 
@@ -407,6 +415,15 @@ public partial class UninstallWizardWindow : Window
     {
         try
         {
+            // O modo rapido e o "confirmar e seguir" do IObit: uma
+            // confirmacao e a cadeia inteira, sem etapa no meio. Ele so
+            // comeca na primeira etapa — no fim, o botao e o "Concluir".
+            if (_quick && _step == 0)
+            {
+                await RunQuickAsync();
+                return;
+            }
+
             switch (_step)
             {
                 case 0:
@@ -441,6 +458,50 @@ public partial class UninstallWizardWindow : Window
         {
             UserMessages.Warning(this, ex.Message);
         }
+    }
+
+    /// <summary>
+    /// O modo rapido: uma confirmacao e a cadeia inteira.
+    ///
+    /// E o "Quick Uninstall" do IObit — confirmar e seguir. A diferenca para
+    /// o concorrente e que o Tranal tambem limpa o que sobrar, sem pedir que
+    /// o usuario revise a lista item por item.
+    ///
+    /// O que sai e o que a REGRA decide
+    /// (<see cref="ExecutionPolicy.ItensDoModoRapido"/>): as sobras marcadas,
+    /// menos as que podem conter dado do usuario.
+    /// </summary>
+    private async Task RunQuickAsync()
+    {
+        NextButton.IsEnabled = false;
+        BackButton.IsEnabled = false;
+
+        await AnalyzeAsync();
+
+        // A confirmacao e o "confirmar": sem ela, nada comeca.
+        if (!ConfirmPreUninstallAdvisories())
+        {
+            StatusText.Text = Loc.Get("Wizard.Ready");
+            NextButton.IsEnabled = true;
+            return;
+        }
+
+        await RunBuiltInAsync();
+        ApplyPreferenceDecision();
+
+        await ScanAsync();
+
+        // A regra do que sai mora no nucleo.
+        var itens = ExecutionPolicy.ItensDoModoRapido(_leftovers);
+        _leftovers.Clear();
+        foreach (var item in itens) _leftovers.Add(item);
+
+        await RemoveAsync();
+
+        // O resumo fica na tela: e o resultado da operacao, e o usuario
+        // precisa poder ler antes de a janela fechar. O "Concluir" fecha.
+        NextButton.IsEnabled = true;
+        ShowStep(4);
     }
 
     /// <summary>

@@ -3,6 +3,7 @@ using System.Linq;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Discovery;
+using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Core.Tools;
@@ -111,7 +112,8 @@ public static class ShellCommands
             IncludeMsiProducts = false,
         });
 
-        var nos = ProgramCategoryTree.Build(instalados);
+        var nos = ProgramCategoryTree.Build(
+            instalados, null, ProgramCustomizationStore.Groups);
 
         Console.WriteLine($"Categorias: {nos.Count}");
         Console.WriteLine();
@@ -119,6 +121,11 @@ public static class ShellCommands
         foreach (var no in nos)
         {
             Console.WriteLine($"{no.Name,-28} {no.TotalPrograms,4} programa(s)");
+
+            if (no.Programs.Count == 0)
+            {
+                Console.WriteLine($"{"",-28} {Loc.Get("Status.NoProgramsInCategory")}");
+            }
         }
 
         return 0;

@@ -1513,5 +1513,16 @@
     "Insight.Crash.Column.First":  "Primeira falha",
     "Insight.Crash.Column.Last":  "Última falha",
     "Insight.Crash.Column.Event":  "Evento",
-    "Insight.Crash.Column.Executable":  "Executável"
+    "Insight.Crash.Column.Executable":  "Executável",
+    "Cmd.OpenMicrosoftStore":  "Abrir na Microsoft Store",
+    "Cmd.OpenProgramFolder":  "Abrir a pasta do programa",
+    "Cmd.OpenUninstallerFolder":  "Abrir a pasta do desinstalador",
+    "Cmd.RateProgram":  "Avaliar on-line",
+    "Cmd.RateProgramOpened":  "A busca de avaliações foi aberta no navegador.",
+    "Cmd.RateProgramFailed":  "Não foi possível abrir a busca de avaliações.",
+    "Status.NoProgramsInCategory":  "Nenhum programa nesta categoria",
+    "Advisory.Title.LeavesResidue":  "Vai deixar resíduo",
+    "Advisory.LeavesResidue":  "O desinstalador vai deixar {0} item(ns) para trás; o Tranal limpa depois.",
+    "Wizard.QuickIntro":  "O desinstalador nativo de {0} será executado e o que sobrar será apagado. Documentos e dados do usuário não são tocados.",
+    "Wizard.QuickStart":  "Desinstalar agora"
 }

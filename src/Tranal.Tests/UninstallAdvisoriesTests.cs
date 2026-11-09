@@ -240,7 +240,7 @@ public class UninstallAdvisoriesTests
     // ---------------------------------------------------------------------
 
     [Fact]
-    public void BuildJuntaOsTresAvisos()
+    public void BuildJuntaOsTresAvisosDoRevoEOAvisoDeResiduo()
     {
         var alvo = Program("MeuApp", @"C:\Program Files\Suite", systemComponent: true,
             registryPath: @"HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\MeuApp");
@@ -252,10 +252,14 @@ public class UninstallAdvisoriesTests
             new[] { alvo, vizinho },
             new[] { Folder(@"C:\Users\Alguem\Documents\MeuApp") });
 
-        Assert.Equal(3, advisories.Count);
+        // Sao os tres avisos do Revo e, quando a varredura achou sobra, o
+        // quarto: o aviso de que o desinstalador do fabricante vai deixar
+        // residuo (o "still leaves" do IObit).
+        Assert.Equal(4, advisories.Count);
         Assert.Contains(advisories, a => a.Kind == UninstallAdvisoryKind.SharedInstallLocation);
         Assert.Contains(advisories, a => a.Kind == UninstallAdvisoryKind.SystemComponent);
         Assert.Contains(advisories, a => a.Kind == UninstallAdvisoryKind.UserData);
+        Assert.Contains(advisories, a => a.Kind == UninstallAdvisoryKind.LeavesResidue);
     }
 
     [Fact]

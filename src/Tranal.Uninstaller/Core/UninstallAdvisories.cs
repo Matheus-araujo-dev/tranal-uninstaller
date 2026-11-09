@@ -53,6 +53,12 @@ public enum UninstallAdvisoryKind
     /// <summary>
     /// Ja existe uma desinstalacao em andamento.
     /// </summary>
+    /// <summary>
+    /// O desinstalador nativo vai deixar residuo: a varredura achou itens
+    /// que so o Tranal limpa.
+    /// </summary>
+    LeavesResidue,
+
     UninstallInProgress,
 }
 
@@ -150,10 +156,36 @@ public static class UninstallAdvisories
         if (health is not null) advisories.Add(health);
 
         var related = RelatedProgramsAdvisory(program, allPrograms);
+
+        var residue = LeavesResidueAdvisory(leftovers);
+        if (residue is not null) advisories.Add(residue);
         if (related is not null) advisories.Add(related);
 
         return advisories;
     }
+
+    /// <summary>
+    /// O aviso de que o desinstalador vai deixar residuo, ou nulo quando a
+    /// varredura nao achou nada para alem do desinstalador.
+    ///
+    /// E o "still leaves" do IObit: o aviso de que o desinstalador do
+    /// fabricante nao apaga tudo. O numero e o que a varredura mediu.
+    /// </summary>
+    /// <param name="leftovers">As sobras encontradas na varredura.</param>
+    public static UninstallAdvisory? LeavesResidueAdvisory(IEnumerable<LeftoverItem>? leftovers)
+    {
+        if (leftovers is null) return null;
+
+        var lista = leftovers.Where(l => l is not null && l.Selected).ToList();
+        if (lista.Count == 0) return null;
+
+        return new UninstallAdvisory(
+            UninstallAdvisoryKind.LeavesResidue,
+            AdvisoryLabels.Title(UninstallAdvisoryKind.LeavesResidue),
+            AdvisoryLabels.LeavesResidue(lista.Count),
+            lista.Select(l => l.Path).ToList());
+    }
+
 
     /// <summary>
     /// O aviso de programas que dividem a pasta de instalacao, ou nulo quando

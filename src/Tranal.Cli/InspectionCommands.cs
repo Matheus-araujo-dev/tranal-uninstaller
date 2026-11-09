@@ -41,6 +41,8 @@ public static class InspectionCommands
         if (CliArgs.Has(flags, "/inspection-cleanmgr")) return ExecutarLimpezaDeDisco();
         if (CliArgs.Has(flags, "/inspection-logs")) return ExecutarPastaDeLogs();
         if (CliArgs.Has(flags, "/inspection-site")) return ExecutarPaginaDoFabricante(args);
+        if (CliArgs.Has(flags, "/inspection-rate")) return ExecutarAvaliacao(args);
+        if (CliArgs.Has(flags, "/inspection-store")) return ExecutarStore(args);
         if (CliArgs.Has(flags, "/inspection-leftovers")) return ExecutarExportarSobras(args);
         if (CliArgs.Has(flags, "/inspection-boot")) return ExecutarBootCenter(args, flags);
         return null;
@@ -441,15 +443,7 @@ public static class InspectionCommands
             return 1;
         }
 
-        var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
-        {
-            IncludeSystemComponents = true,
-            IncludeMsiProducts = true,
-        });
-
-        var programa = programas.FirstOrDefault(p =>
-            p.DisplayName != null
-            && p.DisplayName.IndexOf(nome, StringComparison.OrdinalIgnoreCase) >= 0);
+        var programa = LocalizarPrograma(nome);
 
         if (programa is null)
         {
@@ -470,4 +464,105 @@ public static class InspectionCommands
 
         return ok ? 0 : 1;
     }
+
+    /// <summary>
+    /// Abre a busca de avaliacoes de um programa instalado.
+    ///
+    /// E o "Rate online" do Ashampoo: o Tranal nao tem loja de avaliacoes
+    /// propria — o que ele faz e abrir a busca com o nome do programa, no
+    /// motor configurado. A regra mora no nucleo
+    /// (<see cref="SystemActions.AvaliarOnlineUrl"/>).
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    public static int ExecutarAvaliacao(string[] args)
+    {
+        var nome = CliArgs.ValueAfter(args, "/inspection-rate");
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            Console.Error.WriteLine("Informe o nome do programa.");
+            return 1;
+        }
+
+        var programa = LocalizarPrograma(nome);
+        if (programa is null)
+        {
+            Console.Error.WriteLine($"Programa nao encontrado: {nome}");
+            return 1;
+        }
+
+        var url = SystemActions.AvaliarOnlineUrl(programa);
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            Console.WriteLine($"{programa.DisplayName} nao tem nome para buscar.");
+            return 1;
+        }
+
+        Console.WriteLine($"Busca de avaliacoes: {url}");
+
+        if (!SystemActions.AvaliarOnline(programa))
+        {
+            Console.Error.WriteLine("Nao foi possivel abrir a busca de avaliacoes.");
+            return 1;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Abre o programa na Microsoft Store.
+    ///
+    /// E o "Ir para a ... Microsoft Store" do Geek: a loja e onde o programa
+    /// foi comprado — e onde ele pode ser reavaliado. A regra mora no
+    /// nucleo (<see cref="SystemNavigator.MicrosoftStore"/>).
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    public static int ExecutarStore(string[] args)
+    {
+        var nome = CliArgs.ValueAfter(args, "/inspection-store");
+        if (string.IsNullOrWhiteSpace(nome))
+        {
+            Console.Error.WriteLine("Informe o nome do programa.");
+            return 1;
+        }
+
+        var programa = LocalizarPrograma(nome);
+        if (programa is null)
+        {
+            Console.Error.WriteLine($"Programa nao encontrado: {nome}");
+            return 1;
+        }
+
+        var target = SystemNavigator.MicrosoftStore(programa);
+        if (target is null)
+        {
+            Console.WriteLine($"{programa.DisplayName} nao tem busca na Microsoft Store.");
+            return 1;
+        }
+
+        Console.WriteLine($"Microsoft Store: {target.FileName}");
+
+        return SystemNavigator.Open(target) >= 0 ? 0 : 1;
+    }
+
+    /// <summary>
+    /// Localiza o primeiro programa instalado cujo nome contem o texto pedido.
+    ///
+    /// A busca mora aqui, em um lugar so: todos os comandos que agem sobre
+    /// um programa instalado (pagina do fabricante, avaliacao on-line e
+    /// Microsoft Store) procuram do mesmo jeito.
+    /// </summary>
+    /// <param name="nome">O texto procurado no nome do programa.</param>
+    public static InstalledProgram? LocalizarPrograma(string nome)
+    {
+        var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = true,
+            IncludeMsiProducts = true,
+        });
+
+        return programas.FirstOrDefault(p =>
+            p.DisplayName != null
+            && p.DisplayName.IndexOf(nome, StringComparison.OrdinalIgnoreCase) >= 0);
+    }
+
 }

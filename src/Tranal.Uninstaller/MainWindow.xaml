@@ -142,7 +142,8 @@
                   Content="{loc:Tr Sidebar.ForcedUninstall}" Click="ForcedUninstallButton_Click" />
           <Button Grid.Column="1" x:Name="MoreCommandsButton"
                   Style="{StaticResource FlatButton}" Margin="4,0,0,0"
-                  Content="{loc:Tr Sidebar.MoreCommands}" Click="MoreCommandsButton_Click" />
+                  Content="{loc:Tr Sidebar.MoreCommands}" Click="MoreCommandsButton_Click"
+                  AutomationProperties.AutomationId="CmdMoreCommands" />
         </Grid>
 
         <TextBlock Grid.Row="4" Margin="12,6" TextWrapping="Wrap"
@@ -790,6 +791,7 @@
         <!-- Todos os Programas -->
         <Grid x:Name="ProgramsView">
           <ListView x:Name="ProgramsList" BorderThickness="0"
+                    AutomationProperties.AutomationId="ProgramsList"
                     Background="{DynamicResource PanelBrush}"
                     AlternationCount="2"
                     SelectionMode="Extended"
@@ -849,7 +851,7 @@
       <!-- barra de status -->
       <Border Grid.Row="3" x:Name="StatusBarBorder" MinHeight="24" Background="{DynamicResource StatusBarBrush}"
               BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
-        <TextBlock x:Name="StatusText" Margin="8,0" VerticalAlignment="Center" FontSize="11" />
+        <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="ProgramStatusText" Margin="8,0" VerticalAlignment="Center" FontSize="11" />
       </Border>
     </Grid>
 

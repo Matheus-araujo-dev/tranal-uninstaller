@@ -130,4 +130,32 @@ public static class ExecutionPolicy
 
         return Completion(settings.RestartWhenFinished, settings.CloseAppWhenFinished, pendente);
     }
+
+    /// <summary>
+    /// As sobras que o modo rapido remove.
+    ///
+    /// O modo rapido e o "confirmar e seguir" do IObit: uma confirmacao e a
+    /// cadeia inteira, sem etapas para o usuario revisar. Por isso a lista
+    /// mostrada na tela nao pode ser a unica protecao do que fica de fora.
+    ///
+    /// A regra: sai tudo que a varredura marcou, MENOS o que pode conter
+    /// dado do usuario (documento, foto, trabalho). O que fica de fora nao e
+    /// "sobra" — e conteudo de quem esta usando o computador, e no modo
+    /// rapido ninguem olhou item por item antes de apagar.
+    ///
+    /// A regra mora aqui, em um lugar so: a interface grafica consome esta
+    /// lista e nunca monta a dela.
+    /// </summary>
+    /// <param name="leftovers">As sobras encontradas na varredura.</param>
+    public static IReadOnlyList<LeftoverItem> ItensDoModoRapido(
+        IEnumerable<LeftoverItem>? leftovers)
+    {
+        if (leftovers is null) return Array.Empty<LeftoverItem>();
+
+        return leftovers
+            .Where(i => i is not null && i.Selected)
+            .Where(i => !i.MayContainUserData && !UninstallAdvisories.IsUserDataFolder(i.Path))
+            .ToList();
+    }
+
 }

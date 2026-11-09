@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(73,0% — 725 funcionalidades, 499 OK, 195 PARCIAL, 1 AUSENTE, 30 FORA por
+(74,2% — 725 funcionalidades, 508 OK, 186 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -157,6 +157,40 @@ do valor), desativar (o valor ganha o prefixo do estado), ativar (volta ao
 nome normal) e remover (o valor some). A tela do Gerenciador de Autorun
 listou **62** itens de inicializacao, e o teste devolveu a maquina ao estado
 anterior: **sobrou valor de teste no registro: nao**.
+
+**GEEK T1#2, T1#21, T1#22, T2#35 e T2#44; IOBIT T2#9 e T2#10; WISE T2#33;
+ASHAMPOO T1#60 — as acoes do programa na lista.** Nove linhas de uma vez, e
+o detalhe esta em `EVIDENCIA-LOTE22-ACOES.md`:
+
+- **Microsoft Store** (o "Ir para a ... Microsoft Store" do Geek): o destino
+  e um URI de busca com o nome do programa e a editora. A regra mora em
+  `Core/Management/SystemNavigator.cs` — o mesmo lugar que ja conhecia o
+  registro e o painel do Windows;
+- **Browse Location... e Browse Source...**: a pasta do programa e a pasta do
+  desinstalador, ambas no mesmo submenu;
+- **"Avaliar on-line"**: a acao que leva a pagina onde o programa pode ser
+  avaliado. O endereco e separado da acao (abrir o navegador muda a maquina
+  de quem esta usando; o endereco pode ser conferido por teste);
+- **o aviso de residuo** (o "still leaves" do IObit): quantos itens o
+  desinstalador do fabricante deixa para tras — a contagem e a que a
+  varredura mediu;
+- **o modo rapido** (o "Quick Uninstall" do IObit): confirmar e seguir. Antes
+  era um atalho que rodava o mesmo assistente de cinco etapas; agora e uma
+  confirmacao e a cadeia inteira, com a regra do que sai no nucleo
+  (`ExecutionPolicy.ItensDoModoRapido`: as sobras marcadas, menos as que
+  podem conter dado do usuario);
+- **a categoria vazia** (o "no programs in this category" do Geek): a string
+  existia, mas nao tinha onde aparecer. Agora a categoria do usuario entra
+  na arvore mesmo sem programa, e a tela e a linha de comando dizem que
+  nao ha programa nela;
+- a linha de comando expoe os mesmos verbos: `tranal /inspection-rate`,
+  `tranal /inspection-store` e `tranal /categories`;
+- a suite tem 11 testes proprios (`Lote22FeatureTests.cs`) e um teste de
+  ponta a ponta no aplicativo de verdade (`tools/test-lote22.ps1`).
+
+Quatro das nove linhas estavam em PARCIAL porque **o RECON mediu errado**:
+o total do rodape, a chave `MrtCache` e o botao "Explorar" ja existiam no
+codigo. A correcao do registro esta no RECON, com a evidencia medida.
 
 
 ## Como fechar

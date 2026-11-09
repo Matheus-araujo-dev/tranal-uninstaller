@@ -1513,5 +1513,16 @@
     "Insight.Crash.Column.First":  "First crash",
     "Insight.Crash.Column.Last":  "Last crash",
     "Insight.Crash.Column.Event":  "Event",
-    "Insight.Crash.Column.Executable":  "Executable"
+    "Insight.Crash.Column.Executable":  "Executable",
+    "Cmd.OpenMicrosoftStore":  "Open in the Microsoft Store",
+    "Cmd.OpenProgramFolder":  "Open the program folder",
+    "Cmd.OpenUninstallerFolder":  "Open the uninstaller folder",
+    "Cmd.RateProgram":  "Rate online",
+    "Cmd.RateProgramOpened":  "The review search was opened in the browser.",
+    "Cmd.RateProgramFailed":  "The review search could not be opened.",
+    "Status.NoProgramsInCategory":  "No programs in this category",
+    "Advisory.Title.LeavesResidue":  "Will leave leftovers",
+    "Advisory.LeavesResidue":  "The uninstaller will leave {0} item(s) behind; Tranal cleans them up.",
+    "Wizard.QuickIntro":  "The native uninstaller for {0} will run and what is left will be deleted. Documents and user data are not touched.",
+    "Wizard.QuickStart":  "Uninstall now"
 }
