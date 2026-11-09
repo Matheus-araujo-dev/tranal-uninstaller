@@ -11,16 +11,16 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Concorrente | Medido | OK | PARCIAL | AUSENTE | FORA | Cobertura |
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 48 | 21 | 3 | 4 | 68.4% |
-| Bulk Cookie Uninstaller | 97 | 68 | 23 | 4 | 2 | 72.2% |
+| Bulk Cookie Uninstaller | 97 | 71 | 23 | 1 | 2 | 75.3% |
 | Geek Uninstaller | 44 | 30 | 14 | 0 | 0 | 68.2% |
 | HiBit Uninstaller | 66 | 40 | 20 | 2 | 4 | 66.7% |
-| IObit Uninstaller | 40 | 22 | 8 | 6 | 4 | 65.0% |
-| Soft Organizer | 77 | 51 | 18 | 7 | 1 | 67.5% |
-| Total Uninstall | 94 | 60 | 29 | 1 | 4 | 68.1% |
-| Uninstall Tool | 94 | 57 | 27 | 5 | 5 | 66.0% |
+| IObit Uninstaller | 40 | 24 | 8 | 4 | 4 | 70.0% |
+| Soft Organizer | 77 | 55 | 18 | 3 | 1 | 72.7% |
+| Total Uninstall | 94 | 61 | 29 | 0 | 4 | 69.1% |
+| Uninstall Tool | 94 | 58 | 27 | 4 | 5 | 67.0% |
 | Uninstalr | 51 | 34 | 12 | 2 | 3 | 72.5% |
 | Wise Program Uninstaller | 86 | 52 | 30 | 1 | 3 | 64.0% |
-| **TOTAL** | **725** | **462** | **202** | **31** | **30** | **67.9%** |
+| **TOTAL** | **725** | **473** | **202** | **20** | **30** | **69.4%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -69,11 +69,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 97 |
-| **OK** | **68** |
+| **OK** | **71** |
 | PARCIAL | 23 |
-| AUSENTE | 4 |
+| AUSENTE | 1 |
 | FORA POR DECISAO | 2 |
-| **Cobertura** | **72.2%** |
+| **Cobertura** | **75.3%** |
 
 ### O que ainda falta
 
@@ -94,7 +94,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#44 | Confiança de **pasta**: vazia, executáveis presentes, arquivos presentes, muitos arquivos, nome reconhecido, sem subdiretórios, editor reconhecido | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/FolderConfidenceEvaluator.cs:99-117` (7 criterios: pasta-vazia, executaveis, dados-do-usuario, editor-reconhecido, nome-do-programa, pasta-de-programas, pasta-do-usuario) e `:165` (`Evaluate`); o veredito entra na sobra em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1128`. **Nota**: faltam os criterios "**muitos arquivos**" e "**sem subdiretorios**" — a inspecao le so o primeiro nivel (`FolderConfidenceEvaluator.cs:323`). Binario do concorrente: chaves `Confidence_PF_*` — nao confirmado no binario (so `.resx`) |
 | T3#46 | Aviso explícito ao mexer em item de **baixa confiança** ("pode ser muito perigoso") | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:510` (`ShowLeftoverAdvisory`) e `:515` (`UninstallAdvisories.UserDataAdvisory`), avisos na etapa de sobras (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:139`). **Nota**: o aviso existe para **dados do usuario** e para os casos do `UninstallAdvisories` (`src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:9-57`), mas **nao ha aviso ligado ao nivel de confianca** ("pode ser muito perigoso"). Binario do concorrente: `bcu.strings.txt:4315` (`checkBoxHideLowConfidence`) |
 | T3#49 | **Grupos de sobras** por categoria, com scanners próprios | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/UninstallSupport.cs:49-123` (14 motivos de sobra, com justificativa por item) e `src/Tranal.Uninstaller/Core/Discovery/FolderConfidenceEvaluator.cs:96` (criterios de pasta); as ferramentas com scanner proprio tem scanner proprio: `src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:55`, `src/Tranal.Uninstaller/Core/Tools/RegistryCleaner.cs:256`, `src/Tranal.Uninstaller/Core/Tools/TrackCleaner.cs:81`, `src/Tranal.Uninstaller/Core/Tools/PrivacyTraceCleaner.cs:181`. **Nota**: a lista de sobras do assistente e uma `ListView` sem agrupamento por categoria (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:164`) e **nao ha os 17 grupos** do BCU. Binario do concorrente: painel confirmado em `bcu.inventario.md:193`; as chaves `Junk_*_GroupName` nao estao confirmadas no binario |
-| T3#52 | Instalador gerado automaticamente para **app não registrado** ("Simple Delete") | AUSENTE | **AUSENTE** - `grep "UninstallerKind.SimpleDelete" em src/` -> 3 hits, todos de classificacao (`src/Tranal.Uninstaller/Core/UninstallerKind.cs:74`, `:215`) e de legenda (`src/Tranal.Uninstaller/Core/Appearance/ColorLegend.cs:178`): **nada gera instalador** para app nao registrado. `docs/PARIDADE.md` §8 ("Fora de escopo") nao registra decisao sobre este item. Binario do concorrente: `UninstallerType_SimpleDelete` — nao confirmado no binario (so `.resx`) |
 | T4#53 | **Filtro avançado por condições**: método de comparação × propriedade alvo, com negação | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:147` (`ProgramFilterSet`: tipo, tamanho, unidade, editora, comentario, grupo, uso raro), `:212` (prefixo `regex:`) e `:221` (`ExcludedTerms`, a negacao); consumo na lista em `src/Tranal.Uninstaller/MainWindow.xaml.cs:292`. **Nota**: o filtro e por **campos fixos**, nao por condicao "**metodo de comparacao × propriedade alvo**" — o `src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:43` e motor de regra de **remocao**, nao de filtro de lista. Binario do concorrente: `bcu.strings.txt:8428` ("Based on pre-defined rules") |
 | T4#58 | **Classificação do usuário** (0 a 4 estrelas, sincronizada com servidor) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ProgramRating.cs:13` (0 a 5 estrelas, `Max = 5` em `:19`), gravada em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:463`; editor na tela em `src/Tranal.Uninstaller/Ui/Appearance/AppearanceView.xaml.cs:307`; coluna na lista em `src/Tranal.Uninstaller/Core/ProgramColumns.cs:279`. **Nota**: a classificacao e **local** (0 a 5 estrelas, nao 0 a 4) e **nao ha sincronizacao com servidor** — nenhuma chamada de rede no modulo. Binario do concorrente: `bcu.strings.txt:6373` (`BulkCrapUninstaller.Functions.Ratings`) |
 | T4#71 | Exportar dados em **XML** com cabeçalho fixo (editora, versão, data, tamanho, registro, tipo, cadeia de desinstalação, cadeia silenciosa, comentários) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Exporters.cs:157` (`ToXml`: elemento `TranalUninstaller` com atributo `exported` e um `Entry` por programa, com os elementos das colunas escolhidas); exporta pela tela (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1629`) e pela CLI (`src/Tranal.Cli/ExtraCommands.cs:258`). **Nota**: **nao ha cabecalho fixo** com os 9 campos do BCU — o XML sai com as colunas que o usuario escolheu, e `Tamanho` e `Desinstalador silencioso` ficam de fora do conjunto padrao (`src/Tranal.Uninstaller/Core/Exporters.cs:26`). Binario do concorrente: `bcu.strings.txt:5935` (`get_StrExportHeader`) |
@@ -102,9 +101,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T4#75 | **Gerenciador de desinstaladores relacionados** (`RelatedUninstallerAdder`) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/RelatedProgramFinder.cs:53` (`Find`) e o aviso `src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:244`, exibido em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:493`. **Nota**: a correlacao e a lista existem, mas **nao ha gerenciador** para adicionar/remover desinstaladores relacionados da tarefa — o BCU tem a tela `RelatedUninstallerAdder`; aqui so ha o aviso. Binario do concorrente: `bcu.identificadores.txt:30` (tipo `RelatedUninstallerAdder.resources`) |
 | T4#76 | Atalhos de teclado e cópia de informações da entrada | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:833`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:92` (`PreviewKeyDown`) e `:1676` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep "RegisterHotKey/Hotkey/GlobalHotkey" em src/` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`) |
 | T4#80 | Linha de comando **antes/depois** e "executar aplicativos externos" (desabilitável) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`). **Nota**: os comandos antes/depois existem e sao executados, mas **nao ha a opcao "executar aplicativos externos"** desabilitavel — `grep "External" em src/Tranal.Uninstaller/Core/Settings/AppSettings.cs` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:5310` (`checkBoxEnableExternal`) |
-| T5#83 | **Relatório de erro automático** (crash report) com envio pela web | AUSENTE | **AUSENTE** - `grep "CrashReport/NBug/EnviarRelatorio/SubmitCrash" em src/` -> **0 hits**. O Tranal grava log local (`src/Tranal.Uninstaller/FatalLog.cs:13`, escrita em `:32`) e coleta dumps do Windows (`src/Tranal.Uninstaller/Core/Modules/CrashDumpCollector.cs:116`, painel em `src/Tranal.Uninstaller/Ui/Tools/MaintenanceViews.cs:301`), mas **nao gera relatorio de erro automatico nem envia pela web**. Binario do concorrente: `bcu.strings.txt:5611` (`NBug.Core.Submission`) |
 | T5#86 | **Modificar a instalação** (reparo / alterar instalação) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:265` (`Repair`, `msiexec /fa`) e `:122` (`TryBuildRepairCommand`). **Nota**: o reparo existe no nucleo, mas **nao tem consumidor** — `grep "MsiProductCatalog.Repair" em src/` -> 1 hit (a definicao) e `TryBuildRepairCommand` -> 3 hits, todos em `src/Tranal.Tests/QueueAndStartupTests.cs:231`; a tela de Descoberta so lista os produtos MSI (`src/Tranal.Uninstaller/Ui/Discovery/DiscoveryWindow.xaml.cs:115`) sem botao de reparo. Binario do concorrente: `bcu.strings.txt:9070` ("Modify application") |
-| T5#90 | **Limpar caches** da aplicação | AUSENTE | **AUSENTE** - `grep "ClearCache/LimparCache" em src/` -> **0 hits**; ha limpeza de cache de navegador (`src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:239`, categoria `browser-cache`), mas **nenhuma acao de limpar o cache do programa que esta sendo desinstalado**. Binario do concorrente: `bcu.strings.txt:7412` ("Clear caches") |
 | T5#95 | Filtro que **esconde o que foi publicado pela Microsoft** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:189` (`PublisherFilter`, filtro por editora, consumida em `:640`). **Nota**: existe o filtro **generico por editora** (digitar "Microsoft" filtra), mas **nao ha o filtro dedicado** "esconder o publicado pela Microsoft" — nenhum `Microsoft` fixo no codigo do filtro. Binario do concorrente: `bcu.inventario.md:160` ("Hide published by Microsoft") |
 
 ## Geek Uninstaller
@@ -180,11 +177,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 40 |
-| **OK** | **22** |
+| **OK** | **24** |
 | PARCIAL | 8 |
-| AUSENTE | 6 |
+| AUSENTE | 4 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **65.0%** |
+| **Cobertura** | **70.0%** |
 
 ### O que ainda falta
 
@@ -199,22 +196,20 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T4#19 | Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas) | AUSENTE | **AUSENTE** - Log guardado em **SQLite** (`sqlite3.dll`, 37 funções importadas)/grep "sqlite3" em src/ -> 0 hits o log e JSON (`Core/Tracing/TraceLogV2.cs`); a limpeza do navegador apaga os arquivos `.sqlite` do Firefox por nome, sem motor SQLite embarcado (`Core/Tools/InternetCleaner.cs:440`) |
 | T4#21 | Monitor roda **em segundo plano no startup** | PARCIAL | **PARCIAL** - Monitor roda **em segundo plano no startup**/`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: o rastreio existe sob demanda, mas nao roda continuamente em segundo plano ao iniciar. |
 | T6#28 | Remoção de item fixado na barra de tarefas | PARCIAL | **PARCIAL** - Remoção de item fixado na barra de tarefas/`src/Tranal.Uninstaller/Core/Tools/EvidenceRemover.cs:72` (`ScanJumpLists`) **Nota**: as Jump Lists sao tratadas, mas o item fixado na barra de tarefas nao — a busca por "Taskbar" em `src/` so acha `ShowInTaskbar` das janelas. |
-| T7#33 | Aviso de **sincronização do Chrome** ao remover extensão | AUSENTE | **AUSENTE** - Aviso de **sincronização do Chrome** ao remover extensão/`src/Tranal.Uninstaller/Core/Modules/BrowserExtensions.cs:53` (`public static`) a remocao de extensao acontece sem aviso de sincronizacao; o aviso de navegador em execucao existe, mas e outro assunto (`Core/Tools/OperationGuards.cs:68`) |
 | T7#34 | Integração com a **Central de Ações do Windows** (Action Center) | AUSENTE | **AUSENTE** - Integração com a **Central de Ações do Windows** (Action Center)/grep "ActionCenter" em src/ -> 0 hits |
 | T7#35 | Gerência de **tarefas agendadas** via COM Task Scheduler | PARCIAL | **PARCIAL** - Gerência de **tarefas agendadas** via COM Task Scheduler/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/AppPermissionManager.cs:134` (`ScheduledTaskManager.ListFor`) **Nota**: a gerencia existe, mas por `schtasks` e nao pela COM do Task Scheduler 1.0. |
 | T7#36 | **Voto / avaliação** de programas e plugins pela comunidade | AUSENTE | **AUSENTE** - **Voto / avaliação** de programas e plugins pela comunidade/a avaliacao local por estrelas existe (`Core/Appearance/ProgramRating.cs`), mas nao ha coleta de votos da comunidade |
-| T7#37 | **Captura de tela** do sistema no fluxo de suporte | AUSENTE | **AUSENTE** - **Captura de tela** do sistema no fluxo de suporte/grep "screenshot" em src/ -> 0 hits o pedido de suporte monta texto e URL com os dados do programa (`Core/Appearance/SupportRequest.cs`) |
 
 ## Soft Organizer
 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 77 |
-| **OK** | **51** |
+| **OK** | **55** |
 | PARCIAL | 18 |
-| AUSENTE | 7 |
+| AUSENTE | 3 |
 | FORA POR DECISAO | 1 |
-| **Cobertura** | **67.5%** |
+| **Cobertura** | **72.7%** |
 
 ### O que ainda falta
 
@@ -229,33 +224,29 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T2#26 | Trace manager: excluir itens e editar valores antes de aplicar | PARCIAL | **PARCIAL** - Trace manager: excluir itens e editar valores antes de aplicar/`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) `src/Tranal.Uninstaller/Ui/TracedLogWindow.xaml.cs:23` (`LogOperations`) **Nota**: a edicao e sobre o log ja gravado, nao antes de aplicar a remocao. |
 | T2#29 | Aviso para melhorar a qualidade do rastreio | AUSENTE | **AUSENTE** - Aviso para melhorar a qualidade do rastreio/grep "TraceQuality" em src/ -> 0 hits |
 | T3#39 | Log de mudanças em arquivo por app (`TracedApp.changes`) | PARCIAL | **PARCIAL** - Log de mudanças em arquivo por app (`TracedApp.changes`)/ha um log por programa rastreado, em JSON, e a fusao dos logs do mesmo programa existe; nao ha o arquivo `TracedApp.changes` por aplicativo com o formato do concorrente |
-| T3#41 | **Monitor em processo separado** (app de rastreamento) | AUSENTE | **AUSENTE** - **Monitor em processo separado** (app de rastreamento)/a solucao tem apenas `Tranal.Uninstaller.csproj` (WPF), `Tranal.Cli.csproj` e `Tranal.Tests.csproj` — nao ha processo separado de rastreamento |
 | T3#42 | Rastreamento de **aplicativos adicionais** instalados junto | PARCIAL | **PARCIAL** - Rastreamento de **aplicativos adicionais** instalados junto/`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: a deteccao e por comparacao de snapshot, nao por evento, e nao ha monitor rodando em segundo plano. |
 | T3#43 | Extensão de shell COM para o menu de contexto | PARCIAL | **PARCIAL** - Extensão de shell COM para o menu de contexto/`src/Tranal.Uninstaller/Core/Topmost/ExplorerContextMenu.cs:28` (`public static class ExplorerContextMenu`) **Nota**: o menu de contexto e um verb do registro; nao ha extensao COM empacotada. |
 | T3#44 | Chave de configuração "Windows context menu commands" | PARCIAL | **PARCIAL** - Chave de configuração "Windows context menu commands"/gerenciador do menu de contexto `Core/Management/AppPermissionManager.cs:120`; registro do menu do Explorer `Core/Management/ContextMenuManager.cs:46` |
 | T4#53 | Instalação de novas versões | AUSENTE | **AUSENTE** - Instalação de novas versões/grep "MsiInstallProduct" em src/ -> 0 hits |
 | T5#56 | **Backup e restauração de chaves de registro inteiras** | PARCIAL | **PARCIAL** - **Backup e restauração de chaves de registro inteiras**/`src/Tranal.Uninstaller/Core/FullRegistryBackup.cs:42` (`public static class FullRegistryBackup`) **Nota**: o backup exporta os hives inteiros com `reg.exe` e gera o script de restauracao; nao ha backup de chave arbitraria — a busca por "RegSaveKey" em `src/` nao retorna hits. |
-| T5#57 | **Carga e descarregamento de chaves** e substituição de chave | AUSENTE | **AUSENTE** - **Carga e descarregamento de chaves** e substituição de chave/grep "RegLoadKey" em src/ -> 0 hits |
 | T5#59 | **Verificação de assinatura digital** de executáveis | PARCIAL | **PARCIAL** - **Verificação de assinatura digital** de executáveis/`src/Tranal.Uninstaller/Core/Discovery/UninstallerCertificate.cs:104` (`public static class UninstallerCertificate`) **Nota**: a verificacao existe (`WinVerifyTrust` com `X509Chain`), mas so e chamada pelos testes — a interface nao mostra o resultado. |
 | T5#61 | **Descoberta de dispositivos Bluetooth LE** | AUSENTE | **AUSENTE** - Descoberta de dispositivos Bluetooth LE/grep "Bluetooth" em src/ -> 0 hits |
-| T5#63 | Informações de **usuário e estação de rede** | AUSENTE | **AUSENTE** - Informações de **usuário e estação de rede**/grep "NetUserGetInfo" em src/ -> 0 hits |
 | T5#65 | **Configuração completa de MSI** (instalar, modificar, reparar) | PARCIAL | **PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`) **Nota**: o reparo e a desinstalacao MSI sao montados, mas a interface nao os aciona (`TryBuildRepairCommand` so aparece nos testes) e nao ha a configuracao do Windows Installer. |
 | T5#67 | **Tarefas de segundo plano** executadas pelo app | PARCIAL | **PARCIAL** - **Tarefas de segundo plano** executadas pelo app/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) **Nota**: o Tranal gerencia as tarefas do Windows; nao ha registro das tarefas internas do proprio Tranal. |
 | T5#68 | **Itens compartilhados e dependentes** entre programas | PARCIAL | **PARCIAL** - **Itens compartilhados e dependentes** entre programas/`src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:52` (`public static class SharedReferenceCounter`) `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:102` (`UsersOf`) **Nota**: o contador de referencia e os avisos de pasta compartilhada existem; falta a deteccao de dependencia entre programas. |
 | T5#70 | Formulário de **notações do log** de rastreamento | PARCIAL | **PARCIAL** - Formulário de **notações do log** de rastreamento/`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) **Nota**: o log aceita edicao, remocao, renomear e entrada nova; nao ha formulario de notacoes separado. |
 | T5#71 | Formulário do **resultado da reversão do log** | PARCIAL | **PARCIAL** - Formulário do **resultado da reversão do log**/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` (`public static (bool Ok, string Message) Undo`) **Nota**: o modelo da operacao reversivel existe, mas nao ha tela de resultado da reversao. |
-| T5#76 | **Impersonação de token** e verificação de privilégios | AUSENTE | **AUSENTE** - **Impersonação de token** e verificação de privilégios/grep "ImpersonateLoggedOnUser" em src/ -> 0 hits |
 
 ## Total Uninstall
 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **60** |
+| **OK** | **61** |
 | PARCIAL | 29 |
-| AUSENTE | 1 |
+| AUSENTE | 0 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **68.1%** |
+| **Cobertura** | **69.1%** |
 
 ### O que ainda falta
 
@@ -271,7 +262,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#43 | **Cleaner com 6 categorias de regras** (Windows, System, Browser, Windows Explorer, Programs, Invalid entries), cada uma com Include/Exclude | PARCIAL | **PARCIAL** - **Cleaner com 6 categorias de regras** (Windows, System, Browser, Windows Explorer, Programs, Invalid entries), cada uma com Include/Exclude/`src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:43` (`public sealed class RuleEngine`) `src/Tranal.Uninstaller/Core/Tools/RegistryCleaner.cs:99` (`public static class RegistryCleaner`) **Nota**: o motor de regras com Include/Exclude existe e o limpador tem 16 categorias com selecao; nao ha a habilitacao por modulo do Cleaner. |
 | T3#45 | Classificação por extensão de arquivo ("File extensions with version information") | PARCIAL | **PARCIAL** - Classificação por extensão de arquivo ("File extensions with version information")/`src/Tranal.Uninstaller/Core/Tracing/InstallChecksum.cs:41` (`public static class InstallChecksum`) `src/Tranal.Uninstaller/Core/Discovery/ExecutableMetadata.cs:47` (`public static class ExecutableMetadataReader`) **Nota**: a versao de arquivo e lida pelo leitor de metadados e pelo calculo de soma de verificacao, mas nao entra na classificacao das sobras. |
 | T3#46 | Remoção de **serviços e dispositivos** instalados por programas | PARCIAL | **PARCIAL** - Remoção de **serviços e dispositivos** instalados por programas/`src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:89` (`public static class ServiceManager`) `src/Tranal.Uninstaller/Core/Management/DriverManager.cs:54` (`public static class DriverManager`) **Nota**: a remocao de servicos e de drivers existe e e acionada pelo painel de gerenciamento; nao ha remocao de dispositivos no sentido do binario — o driver e gerenciado por `pnputil.exe`. |
-| T5#50 | **Agente autônomo** de baixo consumo para notificar instalações em andamento | AUSENTE | **AUSENTE** - **Agente autônomo** de baixo consumo para notificar instalações em andamento/grep "Unfinished" em src/ -> 0 hits o rastreio roda no processo do aplicativo (`Core/Modules/InstallMonitor.cs`) e morre com ele; nao ha agente nem daemon. |
 | T5#54 | Exportar para arquivo ou **imprimir** as alterações detectadas | PARCIAL | **PARCIAL** - Exportar para arquivo ou **imprimir** as alterações detectadas/`src/Tranal.Uninstaller/Core/Reporting/PrintLayout.cs:42` (`public sealed class PrintLayout`) `src/Tranal.Uninstaller/Core/Reporting/TraceLogExporter.cs:37` (`public static class TraceLogExporter`) **Nota**: a impressao e a exportacao do log existem; falta a impressao da arvore de mudancas. |
 | T5#62 | Importar logs de versões anteriores | PARCIAL | **PARCIAL** - Importar logs de versões anteriores/`src/Tranal.Uninstaller/Core/Reporting/PortableArchive.cs:93` (`public static class PortableArchive`) **Nota**: o arquivo portable exporta e importa; falta importar o log vindo de outra maquina. |
 | T6#28 | **Backup do programa desinstalado** ("Create a backup for the program") | PARCIAL | **PARCIAL** - **Backup do programa desinstalado** ("Create a backup for the program")/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) **Nota**: o backup do programa existe; falta o backup no formato do log de instalacao. |
@@ -297,11 +287,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **57** |
+| **OK** | **58** |
 | PARCIAL | 27 |
-| AUSENTE | 5 |
+| AUSENTE | 4 |
 | FORA POR DECISAO | 5 |
-| **Cobertura** | **66.0%** |
+| **Cobertura** | **67.0%** |
 
 ### O que ainda falta
 
@@ -338,7 +328,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T6#80 | **Criar item personalizado na lista** | PARCIAL | **PARCIAL** - **Criar item personalizado na lista**/`src/Tranal.Uninstaller/Core/Automation/AdvancedUninstallReview.cs:89` (`public static class AdvancedUninstallReview`) **Nota**: existe a criacao assistida de item para quando o instalador nao deixou registro, mas ela nao entra na lista de programas. |
 | T6#84 | **Limpar o cache** da aplicação | PARCIAL | **PARCIAL** - **Limpar o cache** da aplicação/`src/Tranal.Uninstaller/Core/Settings/ProgramCache.cs:154` (`public static class ProgramCache`) **Nota**: o cache e invalidado e reconstruido na varredura seguinte; nao ha "limpar cache" como acao sobre o cache do aplicativo. |
 | T6#85 | **Painéis ancoráveis** ("push pin") com pré-visualização | AUSENTE | **AUSENTE** - **Painéis ancoráveis** ("push pin") com pré-visualização/grep "PushPin" em src/ -> 0 hits |
-| T6#86 | **Execução de processo 32 bits** (`CreateX86Process`) | AUSENTE | **AUSENTE** - **Execução de processo 32 bits** (`CreateX86Process`)/grep "CreateX86Process" em src/ -> 0 hits o Tranal so le o `WOW6432Node` do registro (`Core/Modules/SystemSnapshot.cs`). |
 
 ## Uninstalr
 

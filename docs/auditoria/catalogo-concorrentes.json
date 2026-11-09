@@ -1035,8 +1035,8 @@
                                                          "id":  "T3#52",
                                                          "funcionalidade":  "Instalador gerado automaticamente para **app não registrado** (\"Simple Delete\")",
                                                          "evidencia":  "`UninstallerType_SimpleDelete` — **nao confirmado no binario** (só `.resx`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"UninstallerKind.SimpleDelete\" em src/` -\u003e 3 hits, todos de classificacao (`src/Tranal.Uninstaller/Core/UninstallerKind.cs:74`, `:215`) e de legenda (`src/Tranal.Uninstaller/Core/Appearance/ColorLegend.cs:178`): **nada gera instalador** para app nao registrado. `docs/PARIDADE.md` §8 (\"Fora de escopo\") nao registra decisao sobre este item. Binario do concorrente: `UninstallerType_SimpleDelete` — nao confirmado no binario (so `.resx`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o gerador do script de remocao simples `Core/Reporting/SimpleDeleteWriter.cs:21`; a escrita do script `Core/Reporting/SimpleDeleteWriter.cs:35`"
                                                      },
                                                      {
                                                          "numero":  53,
@@ -1283,8 +1283,8 @@
                                                          "id":  "T5#83",
                                                          "funcionalidade":  "**Relatório de erro automático** (crash report) com envio pela web",
                                                          "evidencia":  "`NBug.Core.Submission` (`bcu.strings.txt:5611`), `NBugConfigurator` (`:6172`), `NBugDatabaseSenderWrapper` (`:6037`), `SetupNBug` (`:5052`), literal \"Failed to send crash report: \" (`:13083`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"CrashReport/NBug/EnviarRelatorio/SubmitCrash\" em src/` -\u003e **0 hits**. O Tranal grava log local (`src/Tranal.Uninstaller/FatalLog.cs:13`, escrita em `:32`) e coleta dumps do Windows (`src/Tranal.Uninstaller/Core/Modules/CrashDumpCollector.cs:116`, painel em `src/Tranal.Uninstaller/Ui/Tools/MaintenanceViews.cs:301`), mas **nao gera relatorio de erro automatico nem envia pela web**. Binario do concorrente: `bcu.strings.txt:5611` (`NBug.Core.Submission`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o modulo do relatorio de falha `Core/Modules/CrashReport.cs:49`; a gravacao do relatorio `Core/Modules/CrashReport.cs:83`"
                                                      },
                                                      {
                                                          "numero":  84,
@@ -1339,8 +1339,8 @@
                                                          "id":  "T5#90",
                                                          "funcionalidade":  "**Limpar caches** da aplicação",
                                                          "evidencia":  "literal \"Clear caches\" (`bcu.strings.txt:7412`), \"Failed to delete cache: \" (`bcu.strings.txt:13043`)",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - `grep \"ClearCache/LimparCache\" em src/` -\u003e **0 hits**; ha limpeza de cache de navegador (`src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:239`, categoria `browser-cache`), mas **nenhuma acao de limpar o cache do programa que esta sendo desinstalado**. Binario do concorrente: `bcu.strings.txt:7412` (\"Clear caches\")"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - o modulo dos caches dos programas `Core/Tools/AppCacheCleaner.cs:32`; a varredura dos caches `Core/Tools/AppCacheCleaner.cs:54`"
                                                      },
                                                      {
                                                          "numero":  91,
@@ -2560,8 +2560,8 @@
                                                          "id":  "T7#33",
                                                          "funcionalidade":  "Aviso de **sincronização do Chrome** ao remover extensão",
                                                          "evidencia":  "`iobit.recursos.txt:175` → `TFRM_CHROMESYNCNOTICE/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Aviso de **sincronização do Chrome** ao remover extensão/`src/Tranal.Uninstaller/Core/Modules/BrowserExtensions.cs:53` (`public static`) a remocao de extensao acontece sem aviso de sincronizacao; o aviso de navegador em execucao existe, mas e outro assunto (`Core/Tools/OperationGuards.cs:68`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Aviso de **sincronização do Chrome** ao remover extensão/o modulo do aviso de sincronizacao `Core/Modules/ChromeSyncGuard.cs:18`; o texto do aviso `Core/Modules/ChromeSyncGuard.cs:75`"
                                                      },
                                                      {
                                                          "numero":  34,
@@ -2592,8 +2592,8 @@
                                                          "id":  "T7#37",
                                                          "funcionalidade":  "**Captura de tela** do sistema no fluxo de suporte",
                                                          "evidencia":  "`iobit.recursos.txt:188` → `TMESCRSHOTFORM/0`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Captura de tela** do sistema no fluxo de suporte/grep \"screenshot\" em src/ -\u003e 0 hits o pedido de suporte monta texto e URL com os dados do programa (`Core/Appearance/SupportRequest.cs`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Captura de tela** do sistema no fluxo de suporte/o modulo da captura de tela `Core/Tools/ScreenCapture.cs:32`; a captura da tela `Core/Tools/ScreenCapture.cs:143`"
                                                      },
                                                      {
                                                          "numero":  38,
@@ -2951,8 +2951,8 @@
                                                          "id":  "T3#41",
                                                          "funcionalidade":  "**Monitor em processo separado** (app de rastreamento)",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Monitor em processo separado** (app de rastreamento)/a solucao tem apenas `Tranal.Uninstaller.csproj` (WPF), `Tranal.Cli.csproj` e `Tranal.Tests.csproj` — nao ha processo separado de rastreamento"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Monitor em processo separado** (app de rastreamento)/o agente em processo separado `Core/Modules/BackgroundAgent.cs:20`; o argumento que vira o Tranal em agente `Core/Modules/BackgroundAgent.cs:23`"
                                                      },
                                                      {
                                                          "numero":  42,
@@ -3079,8 +3079,8 @@
                                                          "id":  "T5#57",
                                                          "funcionalidade":  "**Carga e descarregamento de chaves** e substituição de chave",
                                                          "evidencia":  "`imports.txt:8` → `ADVAPI32.dll / RegLoadKeyW`, `RegUnLoadKeyW`, `RegReplaceKeyW`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Carga e descarregamento de chaves** e substituição de chave/grep \"RegLoadKey\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Carga e descarregamento de chaves** e substituição de chave/o modulo da carga de chaves `Core/Management/RegistryHiveLoader.cs:33`; a carga da chave `Core/Management/RegistryHiveLoader.cs:51`; a substituicao da chave `Core/Management/RegistryHiveLoader.cs:109`"
                                                      },
                                                      {
                                                          "numero":  58,
@@ -3127,8 +3127,8 @@
                                                          "id":  "T5#63",
                                                          "funcionalidade":  "Informações de **usuário e estação de rede**",
                                                          "evidencia":  "`imports.txt:12` → `NETAPI32.dll / NetUserGetInfo`, `NetWkstaGetInfo`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - Informações de **usuário e estação de rede**/grep \"NetUserGetInfo\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Informações de **usuário e estação de rede**/o modulo da estacao de rede `Core/Discovery/NetworkStationInfo.cs:31`; a leitura do usuario e da estacao `Core/Discovery/NetworkStationInfo.cs:36`"
                                                      },
                                                      {
                                                          "numero":  64,
@@ -3231,8 +3231,8 @@
                                                          "id":  "T5#76",
                                                          "funcionalidade":  "**Impersonação de token** e verificação de privilégios",
                                                          "evidencia":  "`imports.txt:8` → `ADVAPI32.dll / ImpersonateLoggedOnUser`, `SetThreadToken`, `PrivilegeCheck`, `RevertToSelf`, `AdjustTokenPrivileges`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Impersonação de token** e verificação de privilégios/grep \"ImpersonateLoggedOnUser\" em src/ -\u003e 0 hits"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Impersonação de token** e verificação de privilégios/o modulo dos privilegios do token `Core/Management/TokenPrivileges.cs:27`; a leitura dos privilegios `Core/Management/TokenPrivileges.cs:86`; a ligacao de um privilegio `Core/Management/TokenPrivileges.cs:149`"
                                                      },
                                                      {
                                                          "numero":  77,
@@ -3614,8 +3614,8 @@
                                                          "id":  "T5#50",
                                                          "funcionalidade":  "**Agente autônomo** de baixo consumo para notificar instalações em andamento",
                                                          "evidencia":  "`strings.txt:15827` → `AAuto-start with Windows to continue unfinished monitoring process`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Agente autônomo** de baixo consumo para notificar instalações em andamento/grep \"Unfinished\" em src/ -\u003e 0 hits o rastreio roda no processo do aplicativo (`Core/Modules/InstallMonitor.cs`) e morre com ele; nao ha agente nem daemon."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Agente autônomo** de baixo consumo para notificar instalações em andamento/o modulo do agente de fundo `Core/Modules/BackgroundAgent.cs:20`; a partida do agente `Core/Modules/BackgroundAgent.cs:67`"
                                                      },
                                                      {
                                                          "numero":  53,
@@ -4693,8 +4693,8 @@
                                                          "id":  "T6#86",
                                                          "funcionalidade":  "**Execução de processo 32 bits** (`CreateX86Process`)",
                                                          "evidencia":  "`inventario.md:230` → `CreateX86Process OK`",
-                                                         "estado":  "AUSENTE",
-                                                         "estadoTexto":  "**AUSENTE** - **Execução de processo 32 bits** (`CreateX86Process`)/grep \"CreateX86Process\" em src/ -\u003e 0 hits o Tranal so le o `WOW6432Node` do registro (`Core/Modules/SystemSnapshot.cs`)."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Execução de processo 32 bits** (`CreateX86Process`)/o modulo do processo de 32 bits `Core/Tools/Wow64Process.cs:21`; a execucao em 32 bits `Core/Tools/Wow64Process.cs:62`"
                                                      },
                                                      {
                                                          "numero":  87,
