@@ -159,23 +159,56 @@ public static class BrowserCleanup
     /// politicas que os forcam.
     /// </summary>
     /// <param name="browser">O navegador (Chrome, Edge...).</param>
+    /// <summary>
+    /// As chaves de politica do navegador cujas preferencias o reset apaga.
+    ///
+    /// O navegador informado filtra (Chrome, Edge); sem ele, valem todas —
+    /// e o que o botao "Redefinir padroes" da tela precisa. Antes, o metodo
+    /// saia cedo com o navegador vazio e o botao nunca fazia nada.
+    ///
+    /// A regra mora aqui, em um lugar so: quem chama consome a lista.
+    /// </summary>
+    /// <param name="navegador">O nome do navegador (vazio = todos).</param>
+    public static IReadOnlyList<string> ChavesDePolitica(string? navegador)
+    {
+        var nome = (navegador ?? string.Empty).Trim();
+
+        var todas = new (string Chave, string Marca)[]
+        {
+            (@"HKEY_CURRENT_USER\Software\Policies\Google\Chrome", "chrome"),
+            (@"HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge", "edge"),
+            (@"HKEY_LOCAL_MACHINE\Software\Policies\Google\Chrome", "chrome"),
+            (@"HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Edge", "edge"),
+        };
+
+        var chaves = new List<string>();
+        foreach (var (chave, marca) in todas)
+        {
+            if (nome.Length > 0 && nome.IndexOf(marca, StringComparison.OrdinalIgnoreCase) < 0) continue;
+            chaves.Add(chave);
+        }
+
+        return chaves;
+    }
+
+    /// <summary>
+    /// Reseta os padroes do navegador: pagina inicial, motor de busca e as
+    /// politicas que os forcam.
+    /// </summary>
+    /// <param name="browser">O navegador (Chrome, Edge...).</param>
     public static BrowserCleanupResult ResetDefaults(string? browser)
     {
         var nome = (browser ?? string.Empty).Trim();
-        if (nome.Length == 0) return new BrowserCleanupResult { Message = "Navegador nao informado." };
 
         var removidas = 0;
         var falhas = 0;
 
         // As politicas ficam na chave do navegador; e ela que forca a pagina
         // inicial e o motor de busca, e nao as preferencias do perfil.
-        var chaves = new[]
-        {
-            @"HKEY_CURRENT_USER\Software\Policies\Google\Chrome",
-            @"HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge",
-            @"HKEY_LOCAL_MACHINE\Software\Policies\Google\Chrome",
-            @"HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Edge",
-        };
+        var chaves = ChavesDePolitica(nome);
+
+        if (chaves.Count == 0)
+            return new BrowserCleanupResult { Message = "Navegador nao reconhecido." };
 
         foreach (var chave in chaves)
         {

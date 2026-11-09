@@ -56,7 +56,19 @@ public static class MruCleaner
         @"HKEY_CURRENT_USER\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags",
         @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run",
         @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder",
+        // O cache MRU do proprio Windows (a chave que o Geek tambem limpa):
+        // e onde ficam os caminhos usados no "Executar" e na caixa de
+        // dialogo, varridos a cada uso.
+        @"HKEY_CURRENT_USER\Software\Classes\Local Settings\MrtCache",
     };
+
+    /// <summary>
+    /// As chaves de MRU que o limpador apaga.
+    ///
+    /// A lista e publica para que a regra seja conferivel: quem decide o
+    /// que e "uso recente" esta aqui, e nao espalhado por quem apaga.
+    /// </summary>
+    public static IReadOnlyList<string> KnownKeys => MruKeys;
 
     /// <summary>
     /// Varre as chaves de MRU e devolve os valores encontrados.

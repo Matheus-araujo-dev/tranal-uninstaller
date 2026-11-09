@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Tranal.Uninstaller.Core.Localization;
 using System.Globalization;
 using System.Linq;
 
@@ -125,8 +126,12 @@ public sealed class ProgramTotals
     /// <summary>
     /// O texto do total, no formato do Geek ("%d programs of %s size in
     /// total").
+    ///
+    /// O texto vem do catalogo de idioma: a tela e traduzida, e um texto
+    /// fixo em portugues deixaria a barra de status em portugues dentro de
+    /// uma interface em ingles.
     /// </summary>
-    public string Text => $"{Count} programa(s) ocupam {ByteFormatter.Format(SizeBytes)} no total";
+    public string Text => Loc.Get("Status.ProgramsTotal", Count, ByteFormatter.Format(SizeBytes));
 }
 
 /// <summary>

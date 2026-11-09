@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Localization;
@@ -220,6 +221,13 @@ public partial class MainWindow : Window
         var visible = _view.Cast<ProgramRow>().Count();
         StatusText.Text = $"{Loc.Get("Status.Installations")}: {total}";
         if (visible != total) StatusText.Text += $"   ({Loc.Get("Status.Showing")} {visible})";
+
+        // O total agregado: quantos programas a lista tem e quanto eles
+        // ocupam. O calculo mora no nucleo (ProgramTotalsCalculator) e o
+        // texto vem do catalogo — o rodape nao monta nada por conta propria.
+        var totais = Core.Modules.ProgramTotalsCalculator.Compute(
+            _all.Select(r => r.Program).Where(p => p is not null)!);
+        StatusText.Text += $"   — {totais.Text}";
         if (_avisoPreferencias.Length > 0) StatusText.Text += $"   — {_avisoPreferencias}";
     }
 
@@ -1218,6 +1226,12 @@ public partial class MainWindow : Window
         // Renomear o programa na lista (paridade com o "Rename" do Revo Pro).
         var rename = CommandItem(Loc.Get("Cmd.RenameProgram"), "CmdRenameProgram", () => RenameProgram(row));
         menu.Items.Add(rename);
+
+        // "Modificar": reaproveita o instalador do programa. So existe para
+        // o que foi instalado pelo Windows Installer — para o resto, o
+        // caminho e o desinstalador do fabricante.
+        var modify = CommandItem(Loc.Get("Cmd.ModifyProgram"), "CmdModifyProgram", () => ModifyProgram(row));
+        menu.Items.Add(modify);
         var comment = CommandItem(
             Loc.Get(temComentario ? "Cmd.EditComment" : "Cmd.AddComment"),
             "CmdAddComment",
@@ -1790,6 +1804,34 @@ public partial class MainWindow : Window
         };
         wizard.ShowDialog();
         _ = ReloadAsync();
+    }
+
+    /// <summary>
+    /// Repara a instalacao do programa pelo Windows Installer.
+    ///
+    /// E a acao "Modificar" do Revo e do Uninstall Tool: em vez de
+    /// desinstalar, o Tranal devolve o programa para o estado em que o
+    /// Windows espera que ele esteja.
+    /// </summary>
+    /// <param name="row">A linha do programa.</param>
+    private void ModifyProgram(ProgramRow row)
+    {
+        var programa = row.Program;
+        var codigo = programa?.ProductCode ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(codigo))
+        {
+            UserMessages.Information(this, Loc.Get("Cmd.ModifyProgramUnavailable"), Loc.Get("Cmd.ModifyProgram"));
+            return;
+        }
+
+        // Silencioso: o Tranal ja mostrou o que a acao faz, e a interface
+        // do Windows Installer nao acrescenta nada aqui.
+        var resultado = MsiProductCatalog.Repair(codigo, silent: true);
+
+        UserMessages.Information(this,
+            resultado.Success ? resultado.Message : Loc.Get("Cmd.ModifyProgramFailed"),
+            Loc.Get("Cmd.ModifyProgram"));
     }
 
     private void ForcedUninstallButton_Click(object sender, RoutedEventArgs e) => ShowForcedUninstall();

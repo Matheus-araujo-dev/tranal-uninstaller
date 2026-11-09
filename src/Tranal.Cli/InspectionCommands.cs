@@ -4,6 +4,7 @@ using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Tracing;
+using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Cli;
@@ -40,6 +41,7 @@ public static class InspectionCommands
         if (CliArgs.Has(flags, "/inspection-cleanmgr")) return ExecutarLimpezaDeDisco();
         if (CliArgs.Has(flags, "/inspection-logs")) return ExecutarPastaDeLogs();
         if (CliArgs.Has(flags, "/inspection-site")) return ExecutarPaginaDoFabricante(args);
+        if (CliArgs.Has(flags, "/inspection-leftovers")) return ExecutarExportarSobras(args);
         return null;
     }
 
@@ -314,6 +316,60 @@ public static class InspectionCommands
         var ok = SystemActions.AbrirPastaDeLogs();
         Console.WriteLine(ok ? $"Pasta de logs aberta: {RemovalLog.LogDirectory}" : "Nao foi possivel abrir a pasta de logs.");
         return ok ? 0 : 1;
+    }
+
+    /// <summary>
+    /// Exporta as sobras de um programa em XML.
+    ///
+    /// O exportador existia (<see cref="LeftoverReportExporter"/>) e nao tinha
+    /// consumidor: o resultado era gerado e nunca guardado. Aqui ele vira
+    /// arquivo, que e o que da para abrir em outra ferramenta.
+    /// </summary>
+    /// <param name="args">Os argumentos da linha de comando.</param>
+    public static int ExecutarExportarSobras(string[] args)
+    {
+        var destino = CliArgs.ValueAfter(args, "/inspection-leftovers");
+        if (string.IsNullOrWhiteSpace(destino))
+        {
+            Console.Error.WriteLine("Informe o caminho do arquivo XML.");
+            return 1;
+        }
+
+        var nome = CliArgs.ValueAfter(args, "/program");
+        var programas = ProgramScanner.Scan(new ProgramScanner.ScanOptions
+        {
+            IncludeSystemComponents = true,
+            IncludeMsiProducts = true,
+        });
+
+        var alvo = string.IsNullOrWhiteSpace(nome)
+            ? programas.FirstOrDefault()
+            : programas.FirstOrDefault(p =>
+                p.DisplayName != null
+                && p.DisplayName.IndexOf(nome, StringComparison.OrdinalIgnoreCase) >= 0);
+
+        if (alvo is null)
+        {
+            Console.Error.WriteLine($"Programa nao encontrado: {nome}");
+            return 1;
+        }
+
+        var sobras = LeftoverScanner.Scan(alvo, new LeftoverScanOptions
+        {
+            Mode = UninstallMode.Advanced,
+            CheckAllLeftovers = true,
+        });
+
+        // O exportador devolve o caminho gravado, ou vazio quando falhou.
+        var gravado = LeftoverReportExporter.WriteXml(destino, sobras);
+        if (string.IsNullOrWhiteSpace(gravado))
+        {
+            Console.Error.WriteLine($"Nao foi possivel exportar para '{destino}'.");
+            return 1;
+        }
+
+        Console.WriteLine($"Sobras exportadas: {gravado} ({sobras.Count} item(ns))");
+        return 0;
     }
 
     /// <summary>

@@ -1073,5 +1073,11 @@
     "Tool.History.Count":  "{0} uninstall(s) in the history.",
     "Tool.History.Recovered":  "Recovered: {0} | Failed: {1}",
     "Tool.History.ConfirmRecover":  "Do you want to recover the leftovers of {0} uninstall(s)?",
-    "Tool.History.ConfirmClear":  "Do you want to erase the whole uninstall history?"
+    "Tool.History.ConfirmClear":  "Do you want to erase the whole uninstall history?",
+    "Status.ProgramsTotal":  "{0} program(s) take up {1} in total",
+    "Tool.Shared.ConfirmRemove":  "\"{0}\" is shared by {1} program(s). Removing it may break whatever still depends on it. Remove anyway?",
+    "Cmd.ModifyProgram":  "Modify",
+    "Cmd.ModifyProgramUnavailable":  "This program was not installed by Windows Installer, so there is nothing to repair. Use the vendor installer.",
+    "Cmd.ModifyProgramFailed":  "Could not repair the program installation.",
+    "Wizard.NoSilentUninstall":  "\"{0}\" does not accept a silent uninstall: its uninstaller will be opened on screen."
 }

@@ -1073,5 +1073,11 @@
     "Tool.History.Count":  "{0} desinstalação(ões) no histórico.",
     "Tool.History.Recovered":  "Recuperadas: {0} | Falhas: {1}",
     "Tool.History.ConfirmRecover":  "Deseja recuperar as sobras de {0} desinstalação(ões)?",
-    "Tool.History.ConfirmClear":  "Deseja apagar o histórico de desinstalações inteiro?"
+    "Tool.History.ConfirmClear":  "Deseja apagar o histórico de desinstalações inteiro?",
+    "Status.ProgramsTotal":  "{0} programa(s) ocupam {1} no total",
+    "Tool.Shared.ConfirmRemove":  "\"{0}\" e compartilhado por {1} programa(s). Remover pode quebrar o que ainda depende dele. Deseja remover mesmo assim?",
+    "Cmd.ModifyProgram":  "Modificar",
+    "Cmd.ModifyProgramUnavailable":  "Este programa não foi instalado pelo Windows Installer, e não há reparo a fazer. Use o instalador do fabricante.",
+    "Cmd.ModifyProgramFailed":  "Não foi possível reparar a instalação do programa.",
+    "Wizard.NoSilentUninstall":  "\"{0}\" não aceita desinstalação silenciosa: o desinstalador será aberto na tela dele."
 }

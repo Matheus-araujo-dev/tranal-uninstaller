@@ -498,6 +498,22 @@ public partial class UninstallWizardWindow : Window
             break;
         }
 
+        // O aviso de desinstalacao silenciosa: um programa que tem
+        // desinstalador mas nao aceita o modo silencioso vai abrir a
+        // interface dele — e o usuario precisa saber disso antes de
+        // confirmar.
+        foreach (var program in _programs)
+        {
+            if (string.IsNullOrWhiteSpace(program.UninstallString)) continue;
+            if (QuietUninstall.Supports(program)) continue;
+
+            UserMessages.Information(this,
+                string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                    Loc.Get("Wizard.NoSilentUninstall"), program.DisplayName),
+                Loc.Get("Guard.Title"));
+            break;
+        }
+
         var advisories = new List<UninstallAdvisory>();
 
         foreach (var program in _programs)

@@ -613,7 +613,23 @@ public static class CleanupViews
                 return;
             }
 
-            var resultado = SharedDllCatalog.Remove((SharedDllEntry)entrada.Source);
+            var compartilhado = (SharedDllEntry)entrada.Source;
+
+            // O item compartilhado e usado por outros programas: a pergunta
+            // vem antes, porque remover o compartilhado pode quebrar o
+            // programa que ainda depende dele.
+            if (compartilhado.ReferenceCount > 1)
+            {
+                var pergunta = string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    Loc.Get("Tool.Shared.ConfirmRemove"),
+                    compartilhado.Name,
+                    compartilhado.ReferenceCount);
+
+                if (!UserMessages.Confirm(null, pergunta, Loc.Get("Module.SharedDlls"))) return;
+            }
+
+            var resultado = SharedDllCatalog.Remove(compartilhado);
             panel.PanelStatus = resultado.Message;
         }
     }
