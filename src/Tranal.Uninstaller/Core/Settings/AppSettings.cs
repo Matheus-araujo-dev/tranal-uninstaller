@@ -291,6 +291,24 @@ public sealed class AppSettings
     /// uninstall" do Revo.
     /// </summary>
     public bool CreateFullRegistryBackupBeforeUninstall { get; set; }
+
+    /// <summary>
+    /// Endereco do feed de atualizacoes do proprio Tranal. Vazio usa o
+    /// endereco padrao (<see cref="Updates.UpdateService.FeedDoTranalPadrao"/>).
+    /// </summary>
+    public string UpdateFeedUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Endereco do feed de atualizacoes dos programas instalados. Vazio usa o
+    /// endereco padrao (<see cref="Updates.UpdateService.FeedDeProgramasPadrao"/>).
+    /// </summary>
+    public string SoftwareUpdateFeedUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// A lista negra de atualizacoes: chaves do feed ou nomes de programa que
+    /// nunca podem ser atualizados.
+    /// </summary>
+    public List<string> UpdateBlacklist { get; set; } = new();
 }
 
 /// <summary>Leitura e gravacao das <see cref="AppSettings"/>.</summary>

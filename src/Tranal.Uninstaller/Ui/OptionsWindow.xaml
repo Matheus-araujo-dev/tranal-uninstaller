@@ -165,6 +165,18 @@
         <TextBox x:Name="WebSearchBox" Margin="0,0,0,8"
                  AutomationProperties.AutomationId="OptWebSearch" />
 
+        <!-- Atualizacoes: feeds e lista negra. -->
+        <TextBlock Text="{loc:Tr Options.UpdateFeed}" Margin="0,0,0,4" />
+        <TextBox x:Name="UpdateFeedBox" Margin="0,0,0,8"
+                 AutomationProperties.AutomationId="OptUpdateFeed" />
+        <TextBlock Text="{loc:Tr Options.SoftwareUpdateFeed}" Margin="0,0,0,4" />
+        <TextBox x:Name="SoftwareUpdateFeedBox" Margin="0,0,0,8"
+                 AutomationProperties.AutomationId="OptSoftwareUpdateFeed" />
+        <TextBlock Text="{loc:Tr Options.UpdateBlacklist}" Margin="0,0,0,4" />
+        <TextBox x:Name="UpdateBlacklistBox" Height="72" Margin="0,0,0,8"
+                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                 AutomationProperties.AutomationId="OptUpdateBlacklist" />
+
         <!-- Preferencias, cache e exportacao das configuracoes -->
         <TextBlock x:Name="PreferencesSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
         <TextBlock Text="{loc:Tr Options.WebSearchEngines}" Margin="0,0,0,4" />

@@ -124,6 +124,41 @@ jobs:
             --target $env:GITHUB_SHA --latest `
             --title "Tranal Uninstaller Pro (versao mais recente)" --notes-file NOVIDADES.md
 
+      # O feed de atualizacao do proprio Tranal.
+      #
+      # A release "latest" e uma tag MOVEL: o nome dela e "latest", sem
+      # numero de versao. Uma tag sem numero nao diz qual versao foi
+      # publicada, e por isso a versao mora em um arquivo do repositorio,
+      # reescrito aqui com o que a publicacao acabou de montar.
+      #
+      # O arquivo so e gravado quando o conteudo muda de verdade: o
+      # endereco do instalador e fixo (a tag movel) e a versao so muda
+      # quando o projeto muda de versao. Sem isso, cada push faria um
+      # commit e o proprio commit dispararia outro push.
+      - name: Atualizar o feed de atualizacao
+        if: startsWith(github.ref, 'refs/heads/')
+        shell: pwsh
+        run: |
+          $versao = (Select-String -Path src\Tranal.Uninstaller\Tranal.Uninstaller.csproj `
+            -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+          $conteudo = @"
+          {
+            "latestVersion": "$versao",
+            "downloadUrl": "https://github.com/Matheus-araujo-dev/tranal-uninstaller/releases/download/latest/TranalUninstaller-Setup.exe",
+            "releaseNotes": "https://github.com/Matheus-araujo-dev/tranal-uninstaller/releases/tag/latest"
+          }
+          "@
+          $arquivo = "feed/tranal.json"
+          $atual = if (Test-Path $arquivo) { (Get-Content $arquivo -Raw) } else { "" }
+          if ($atual.Trim() -ne $conteudo.Trim()) {
+            [System.IO.File]::WriteAllText((Join-Path (Get-Location) $arquivo), $conteudo + "`n", (New-Object System.Text.UTF8Encoding($false)))
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add $arquivo
+            git commit -m "Atualiza o feed de atualizacao (versao $versao)"
+            git push
+          }
+
       - name: Release da versao (tag)
         if: startsWith(github.ref, 'refs/tags/')
         shell: pwsh

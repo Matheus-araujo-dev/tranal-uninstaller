@@ -38,8 +38,12 @@ public static class VersionComparer
 
         // Sem nenhuma informacao util dos dois lados: sao iguais.
         if (!a.TemNumero && !b.TemNumero) return 0;
-        if (!a.TemNumero) return -1;
-        if (!b.TemNumero) return 1;
+
+        // Um dos lados sem informacao util tambem e igualdade: nao ha como
+        // dizer que um e mais novo que o outro. Tratar "desconhecido" como
+        // "mais antigo" faria o Tranal oferecer atualizacao para todo
+        // programa cuja versao o Windows nao grava.
+        if (!a.TemNumero || !b.TemNumero) return 0;
 
         var tamanho = Math.Max(a.Numeros.Count, b.Numeros.Count);
         for (var i = 0; i < tamanho; i++)
@@ -76,8 +80,13 @@ public static class VersionComparer
         /// <summary>O sufixo de pre-lancamento ("beta", "rc1") ou string vazia.</summary>
         public string PreRelease { get; set; } = string.Empty;
 
-        /// <summary>True quando a versao tem ao menos um numero utilizavel.</summary>
-        public bool TemNumero => Numeros.Count > 0;
+        /// <summary>
+        /// True quando algum componente tem digitos de verdade.
+        ///
+        /// Nao e o mesmo que "tem componentes": "desconhecida" vira o
+        /// componente zero, mas nao e uma versao - e nao pode ser comparada.
+        /// </summary>
+        public bool TemNumero { get; set; }
     }
 
     /// <summary>
@@ -109,11 +118,18 @@ public static class VersionComparer
             var digitos = 0;
             while (digitos < parte.Length && char.IsDigit(parte[digitos])) digitos++;
 
-            // Um componente que nao comeca com digito ("1.x") vale zero: a
-            // comparacao continua valendo e nao estoura.
-            result.Numeros.Add(digitos > 0 && int.TryParse(parte[..digitos], out var valor)
-                ? valor
-                : 0);
+            // Um componente com digitos e uma versao; um componente sem
+            // digitos ("1.x", "desconhecida") vale zero na comparacao, mas
+            // nao torna a versao comparavel.
+            if (digitos > 0)
+            {
+                result.TemNumero = true;
+                result.Numeros.Add(int.TryParse(parte[..digitos], out var valor) ? valor : 0);
+            }
+            else
+            {
+                result.Numeros.Add(0);
+            }
         }
 
         return result;

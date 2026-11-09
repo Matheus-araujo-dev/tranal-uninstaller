@@ -1,4 +1,5 @@
 using System.Management;
+using Microsoft.Win32;
 using Tranal.Uninstaller.Core.Tools;
 
 namespace Tranal.Uninstaller.Core.Discovery;
@@ -6,7 +7,7 @@ namespace Tranal.Uninstaller.Core.Discovery;
 /// <summary>
 /// Uma impressora instalada.
 /// </summary>
-public sealed class PrinterInfo
+public sealed record PrinterInfo
 {
     /// <summary>O nome da impressora.</summary>
     public string Name { get; init; } = string.Empty;
@@ -36,7 +37,7 @@ public sealed class PrinterInfo
 /// <summary>
 /// Um trabalho de impressao na fila.
 /// </summary>
-public sealed class PrintJobInfo
+public sealed record PrintJobInfo
 {
     /// <summary>O nome do documento.</summary>
     public string Document { get; init; } = string.Empty;
@@ -63,6 +64,9 @@ public sealed class PrintJobInfo
 /// A REGRA mora aqui, em um lugar so: a consulta das impressoras e da fila
 /// fica aqui, lendo o WMI do Windows (a mesma interface que ja e usada pelo
 /// painel de sistema). Quem mostra consome o veredito.
+///
+/// Quando o WMI nao responde (servico bloqueado, politica de grupo), a
+/// lista fica vazia — a enumeração nunca derruba o chamador.
 ///
 /// Remover a fila e uma acao do Windows, nao do Tranal: quem precisa pode
 /// usar a propria ferramenta do sistema.
@@ -111,7 +115,7 @@ public static class PrinterEnumerator
     /// <summary>
     /// Os trabalhos que estao na fila de impressao.
     /// </summary>
-    public static IReadOnlyList<PrintJobInfo> ListQueue()
+    public static IReadOnlyList<PrintJobInfo> ListJobs()
     {
         var trabalhos = new List<PrintJobInfo>();
 
@@ -150,7 +154,7 @@ public static class PrinterEnumerator
     /// </summary>
     public static IReadOnlyList<PrinterInfo> ListWithQueue()
     {
-        var fila = ListQueue();
+        var fila = ListJobs();
         var porNome = fila
             .GroupBy(t => t.Printer, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(g => g.Key, g => g.Count(), StringComparer.OrdinalIgnoreCase);
@@ -168,6 +172,72 @@ public static class PrinterEnumerator
                 QueuedJobs = porNome.TryGetValue(p.Name, out var total) ? total : 0,
             })
             .ToList();
+    }
+
+    /// <summary>
+    /// O driver de uma impressora.
+    ///
+    /// O WMI diz o nome do driver; quando ele nao vem, o registro de
+    /// impressoras tem a mesma informacao (a chave da impressora, o valor
+    /// "Driver"). Devolve string vazia quando a impressora nao existe.
+    /// </summary>
+    /// <param name="printerName">O nome da impressora.</param>
+    public static string FindDriver(string? printerName)
+    {
+        var nome = (printerName ?? string.Empty).Trim();
+        if (nome.Length == 0) return string.Empty;
+
+        var driver = DriverFromWmi(nome);
+        if (driver.Length > 0) return driver;
+
+        return DriverFromRegistry(nome);
+    }
+
+    /// <summary>
+    /// O driver pela consulta ao WMI.
+    /// </summary>
+    private static string DriverFromWmi(string nome)
+    {
+        try
+        {
+            var consulta = new ManagementObjectSearcher(
+                $"SELECT DriverName FROM Win32_Printer WHERE Name = '{nome.Replace("'", "''")}'");
+
+            using var resultados = consulta.Get();
+            foreach (var item in resultados)
+            {
+                using var objeto = item;
+
+                var driver = ReadString(objeto, "DriverName");
+                if (driver.Length > 0) return driver;
+            }
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao ler o driver de '{nome}': {ex.Message}");
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// O driver pelo registro de impressoras.
+    /// </summary>
+    private static string DriverFromRegistry(string nome)
+    {
+        try
+        {
+            using var chave = Registry.LocalMachine.OpenSubKey(
+                $@"SYSTEM\CurrentControlSet\Control\Print\Printers\{nome}");
+
+            var driver = chave?.GetValue("Driver")?.ToString() ?? string.Empty;
+            return driver.Trim();
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao ler o driver de '{nome}' no registro: {ex.Message}");
+            return string.Empty;
+        }
     }
 
     /// <summary>

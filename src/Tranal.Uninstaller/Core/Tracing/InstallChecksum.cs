@@ -6,7 +6,7 @@ namespace Tranal.Uninstaller.Core.Tracing;
 /// <summary>
 /// A soma de verificacao de um arquivo instalado.
 /// </summary>
-public sealed class FileChecksum
+public sealed record FileChecksum
 {
     /// <summary>O caminho do arquivo.</summary>
     public string Path { get; init; } = string.Empty;
@@ -31,9 +31,9 @@ public sealed class FileChecksum
 /// mostra a "soma MD5 dos arquivos novos" — a soma serve para conferir se o
 /// arquivo que esta no disco e o mesmo que o instalador trouxe.
 ///
-/// A REGRA mora aqui, em um lugar so: o calculo do hash fica aqui (o mesmo
-/// leitor de metadados do executavel calcula o hash do arquivo inteiro) e
-/// quem compara consome o veredito.
+/// A REGRA mora aqui, em um lugar so: o calculo do hash fica no
+/// <see cref="Tools.HexViewer"/> (que le o arquivo em blocos) e quem compara
+/// consome o veredito.
 ///
 /// O calculo e feito em partes: um instalador grande tem milhares de
 /// arquivos, e a API do Windows so entrega o hash do arquivo fechado.
@@ -111,6 +111,104 @@ public static class InstallChecksum
         catch (Exception ex)
         {
             ToolLog.Error($"Falha ao somar os arquivos de '{pasta}': {ex.Message}");
+        }
+
+        return resultado;
+    }
+
+    /// <summary>
+    /// As somas de verificacao de uma lista de arquivos.
+    ///
+    /// E o caminho do "antes e depois" de uma instalacao: a mesma lista de
+    /// arquivos, calculada nas duas momentos.
+    /// </summary>
+    /// <param name="paths">Os caminhos dos arquivos.</param>
+    /// <param name="limit">O numero maximo de arquivos.</param>
+    public static IReadOnlyList<FileChecksum> Compute(IEnumerable<string>? paths, int limit = 5000)
+    {
+        var resultado = new List<FileChecksum>();
+        if (paths is null) return resultado;
+
+        foreach (var caminho in paths)
+        {
+            if (resultado.Count >= limit) break;
+
+            var soma = Of(caminho);
+            if (soma is not null) resultado.Add(soma);
+        }
+
+        return resultado;
+    }
+
+    /// <summary>
+    /// As somas de verificacao de todos os arquivos de uma pasta.
+    /// </summary>
+    /// <param name="folder">A pasta da instalacao.</param>
+    /// <param name="limit">O numero maximo de arquivos.</param>
+    public static IReadOnlyList<FileChecksum> ComputeOfFolder(string? folder, int limit = 5000)
+    {
+        var resultado = new List<FileChecksum>();
+        var pasta = PathUtil.Normalize(folder);
+        if (pasta.Length == 0) return resultado;
+
+        try
+        {
+            if (!Directory.Exists(pasta)) return resultado;
+
+            foreach (var arquivo in Directory.EnumerateFiles(pasta, "*", SearchOption.AllDirectories))
+            {
+                if (resultado.Count >= limit) break;
+
+                var soma = Of(arquivo);
+                if (soma is not null) resultado.Add(soma);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao somar os arquivos de '{pasta}': {ex.Message}");
+        }
+
+        return resultado;
+    }
+
+    /// <summary>
+    /// Os arquivos novos: os que estao no "depois" e nao estavam no "antes".
+    ///
+    /// E a "soma MD5 dos arquivos novos" do Total Uninstall — o que o
+    /// instalador trouxe e que ainda esta no disco. O caminho do arquivo e a
+    /// identidade: o mesmo caminho com soma diferente e um arquivo alterado,
+    /// nao um arquivo novo.
+    /// </summary>
+    /// <param name="antes">As somas antes da instalacao.</param>
+    /// <param name="depois">As somas depois da instalacao.</param>
+    public static IReadOnlyList<FileChecksum> Compare(
+        IEnumerable<FileChecksum>? antes,
+        IEnumerable<FileChecksum>? depois)
+    {
+        var resultado = new List<FileChecksum>();
+        if (depois is null) return resultado;
+
+        var anteriores = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (antes is not null)
+        {
+            foreach (var soma in antes)
+            {
+                if (soma is null) continue;
+
+                var caminho = PathUtil.Normalize(soma.Path);
+                if (caminho.Length > 0) anteriores.Add(caminho);
+            }
+        }
+
+        foreach (var soma in depois)
+        {
+            if (soma is null) continue;
+
+            var caminho = PathUtil.Normalize(soma.Path);
+            if (caminho.Length == 0) continue;
+            if (anteriores.Contains(caminho)) continue;
+
+            resultado.Add(soma);
         }
 
         return resultado;

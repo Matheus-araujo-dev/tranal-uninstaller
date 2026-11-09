@@ -99,6 +99,10 @@ public static class HexViewer
 
     /// <summary>
     /// A soma MD5 de um arquivo, em hexadecimal maiusculo.
+    ///
+    /// A leitura e feita em blocos: um instalador grande tem milhares de
+    /// arquivos, e somar o arquivo inteiro de uma vez carrega tudo na
+    /// memoria. O valor e o mesmo MD5 do arquivo.
     /// </summary>
     /// <param name="path">O caminho do arquivo.</param>
     public static string Md5Of(string? path)
@@ -113,8 +117,17 @@ public static class HexViewer
             using var stream = new FileStream(arquivo, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var md5 = MD5.Create();
 
-            var hash = md5.ComputeHash(stream);
-            return System.Convert.ToHexString(hash);
+            var buffer = new byte[64 * 1024];
+            int lidos;
+
+            while ((lidos = stream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                md5.TransformBlock(buffer, 0, lidos, null, 0);
+            }
+
+            md5.TransformFinalBlock(buffer, 0, 0);
+
+            return System.Convert.ToHexString(md5.Hash ?? Array.Empty<byte>());
         }
         catch (Exception ex)
         {

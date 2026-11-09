@@ -52,6 +52,13 @@ namespace Tranal.Cli;
 ///   tranal /browser-clean [/clean]     - lista (ou limpa) as extensoes orfas
 ///   tranal /checksum "arquivo"         - mostra o MD5 e o SHA256 do arquivo
 ///   tranal /tasks                      - lista as tarefas agendadas
+///   tranal /updates                    - lista as atualizacoes dos programas instalados
+///   tranal /update-check               - verifica se ha versao nova do Tranal
+///   tranal /inspection-checksums "caminho" [/against "pasta"] - somas de verificacao
+///   tranal /inspection-dumps [/clean]  - os dumps de falha, por programa
+///   tranal /inspection-printers        - impressoras, fila e driver
+///   tranal /inspection-duplicates      - as instalacoes duplicadas
+///   tranal /inspection-tasks [/unhide "tarefa"] - as tarefas agendadas ocultas
 /// </summary>
 public static class ExtraCommands
 {
@@ -82,6 +89,8 @@ public static class ExtraCommands
         if (ResumeCommands.TryRun(args, flags) is int resumeResult) return resumeResult;
         if (CleanupCommands.TryRun(args, flags) is int cleanupResult) return cleanupResult;
         if (MaintenanceCommands.TryRun(args, flags) is int maintenanceResult) return maintenanceResult;
+        if (InspectionCommands.TryRun(args, flags) is int inspectionResult) return inspectionResult;
+        if (UpdateCommands.TryRun(args, flags) is int updateResult) return updateResult;
         return null;
     }
 

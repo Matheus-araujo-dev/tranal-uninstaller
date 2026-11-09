@@ -42,6 +42,12 @@ public sealed class ScheduledTask
     /// <summary>True quando a tarefa esta habilitada no Agendador.</summary>
     public bool Enabled { get; init; } = true;
 
+    /// <summary>
+    /// True quando o Windows marca a tarefa como oculta (o elemento
+    /// <c>Hidden</c> do XML da definicao).
+    /// </summary>
+    public bool IsHidden { get; init; }
+
     /// <summary>Descricao da tarefa, quando o XML traz.</summary>
     public string Description { get; init; } = string.Empty;
 
@@ -302,6 +308,10 @@ public static class ScheduledTaskManager
         var enabledElement = document.Descendants().FirstOrDefault(e => e.Name.LocalName == "Enabled");
         var enabled = enabledElement is null || !string.Equals(enabledElement.Value, "false", StringComparison.OrdinalIgnoreCase);
 
+        var hiddenElement = document.Descendants().FirstOrDefault(e => e.Name.LocalName == "Hidden");
+        var hidden = hiddenElement is not null
+            && string.Equals(hiddenElement.Value, "true", StringComparison.OrdinalIgnoreCase);
+
         var state = document.Descendants().FirstOrDefault(e => e.Name.LocalName == "State")?.Value ?? string.Empty;
 
         var description = document.Descendants().FirstOrDefault(e => e.Name.LocalName == "Description")?.Value ?? string.Empty;
@@ -315,6 +325,7 @@ public static class ScheduledTaskManager
             Arguments = arguments,
             State = state,
             Enabled = enabled,
+            IsHidden = hidden,
             Description = description,
         };
     }

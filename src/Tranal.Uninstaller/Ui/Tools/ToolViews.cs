@@ -53,6 +53,8 @@ public static class ToolViews
         ToolCatalog.Printers => MaintenanceViews.Create(toolId),
         ToolCatalog.CrashDumps => MaintenanceViews.Create(toolId),
         ToolCatalog.BrowserCleanup => MaintenanceViews.Create(toolId),
+        ToolCatalog.SoftwareUpdates => UpdateViews.Create(toolId),
+        ToolCatalog.AppUpdate => UpdateViews.Create(toolId),
         ToolCatalog.CustomTools => CreateCustomTools(),
         ToolCatalog.Processes => CreateProcessPanel(),
         ToolCatalog.SystemManagement => new Management.ManagementView(),

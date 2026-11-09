@@ -167,6 +167,17 @@ public static class ToolCatalog
     /// </summary>
     public const string BrowserCleanup = "BrowserCleanup";
 
+    /// <summary>
+    /// Atualizacoes dos programas instalados: versoes novas publicadas pelos
+    /// fabricantes, com lista negra.
+    /// </summary>
+    public const string SoftwareUpdates = "SoftwareUpdates";
+
+    /// <summary>
+    /// Atualizacao do proprio Tranal.
+    /// </summary>
+    public const string AppUpdate = "AppUpdate";
+
     /// <summary>Tracks Cleaner: todos os modulos de uma vez.</summary>
     public const string HistoryCleaner = "HistoryCleaner";
 
@@ -212,6 +223,8 @@ public static class ToolCatalog
         Printers,
         CrashDumps,
         BrowserCleanup,
+        SoftwareUpdates,
+        AppUpdate,
         CustomTools,
         Processes,
         SystemManagement,

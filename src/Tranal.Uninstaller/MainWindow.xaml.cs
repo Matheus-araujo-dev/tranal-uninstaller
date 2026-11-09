@@ -14,6 +14,7 @@ using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Core.Settings;
+using Tranal.Uninstaller.Core.Updates;
 using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui;
 using Tranal.Uninstaller.Ui.Appearance;
@@ -109,7 +110,51 @@ public partial class MainWindow : Window
         {
             await ReloadAsync();
             FocusStartupModule();
+            _ = CheckForUpdateOnStartup();
         };
+    }
+
+    /// <summary>
+    /// Verifica, ao iniciar, se ha versao nova do Tranal.
+    ///
+    /// Corresponde a opcao "Verificar por atualizacoes ao iniciar" do Revo
+    /// (e a "Atualizar automaticamente em segundo plano", que baixa o pacote
+    /// sem atrapalhar). A verificacao roda em segundo plano e nao bloqueia a
+    /// janela: o resultado aparece na barra de status.
+    ///
+    /// A regra de "o que e versao nova" e do nucleo
+    /// (<see cref="UpdateService.TemVersaoNova"/>), a mesma que a tela de
+    /// atualizacao usa.
+    /// </summary>
+    private async Task CheckForUpdateOnStartup()
+    {
+        var settings = AppSettingsStore.Current;
+        if (!settings.CheckForUpdateOnStartup) return;
+
+        try
+        {
+            var resultado = await UpdateService.VerificarTranalAsync();
+            if (!resultado.Success) return;
+
+            var atual = UpdateService.VersaoAtual();
+            if (!UpdateService.TemVersaoNova(atual, resultado.LatestVersion)) return;
+
+            StatusText.Text = $"{Loc.Get("Update.LatestVersion")} {resultado.LatestVersion}";
+
+            // "Atualizar automaticamente em segundo plano": o pacote e baixado
+            // sem abrir nada. O usuario decide quando executa.
+            if (!settings.UpdateAutomatically) return;
+            if (string.IsNullOrWhiteSpace(resultado.DownloadUrl)) return;
+
+            var destino = UpdateService.CaminhoDoPacote(resultado.DownloadUrl);
+            var ok = await AutoUpdateClient.DownloadAsync(resultado.DownloadUrl!, destino, null, default);
+            if (ok) StatusText.Text += " — " + Loc.Get("Update.Done");
+        }
+        catch
+        {
+            // Sem rede, a verificacao silenciosa falha e o Tranal continua
+            // funcionando: a opcao e um extra, nunca um bloqueio.
+        }
     }
 
     /// <summary>

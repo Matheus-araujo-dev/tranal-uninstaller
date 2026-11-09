@@ -143,10 +143,11 @@ public static class MaintenanceViews
             Loc.Get("Module.Duplicates"),
             new[]
             {
-                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 260, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 240, BindingPath = "Category" },
                 new ColumnDef { Header = Loc.Get("Tool.Dup.Count"), Width = 90, BindingPath = "Kind" },
-                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 480, BindingPath = "Path" },
-                new ColumnDef { Header = Loc.Get("Common.Size"), Width = 110, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 380, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Tool.Dup.Winner"), Width = 260, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Common.Reason"), Width = 200, BindingPath = "Detail" },
             },
             new[]
             {
@@ -173,14 +174,17 @@ public static class MaintenanceViews
 
                 foreach (var grupo in grupos)
                 {
-                    foreach (var programa in grupo.Programs)
+                    var vencedora = grupo.Winner?.InstallLocation ?? string.Empty;
+
+                    foreach (var programa in grupo.Entries)
                     {
                         rows.Add(new MaintenanceRow
                         {
                             Category = grupo.Name,
                             Kind = grupo.Count.ToString(),
                             Path = programa.InstallLocation,
-                            Size = programa.SizeBytes > 0 ? ByteFormatter.Format(programa.SizeBytes) : string.Empty,
+                            Size = vencedora,
+                            Detail = grupo.Reason,
                             Source = programa,
                         });
                     }
@@ -209,10 +213,11 @@ public static class MaintenanceViews
             Loc.Get("Module.Printers"),
             new[]
             {
-                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 260, BindingPath = "Category" },
-                new ColumnDef { Header = Loc.Get("Tool.Printer.Port"), Width = 140, BindingPath = "Kind" },
-                new ColumnDef { Header = Loc.Get("Tool.Printer.Driver"), Width = 300, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 240, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.Printer.Port"), Width = 130, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Tool.Printer.Driver"), Width = 280, BindingPath = "Path" },
                 new ColumnDef { Header = Loc.Get("Tool.Printer.Queue"), Width = 100, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.Printer.Location"), Width = 220, BindingPath = "Detail" },
             },
             new[]
             {
@@ -233,12 +238,19 @@ public static class MaintenanceViews
 
                 foreach (var impressora in impressoras)
                 {
+                    // A impressora pode vir sem driver: o proprio Windows
+                    // sabe qual e o driver dela.
+                    var driver = impressora.Driver.Length > 0
+                        ? impressora.Driver
+                        : PrinterEnumerator.FindDriver(impressora.Name);
+
                     rows.Add(new MaintenanceRow
                     {
                         Category = impressora.Name + (impressora.IsDefault ? " *" : string.Empty),
                         Kind = impressora.Port,
-                        Path = impressora.Driver,
+                        Path = driver,
                         Size = impressora.QueuedJobs.ToString(),
+                        Detail = impressora.Location,
                         Source = impressora,
                     });
                 }
@@ -266,10 +278,11 @@ public static class MaintenanceViews
             Loc.Get("Module.CrashDumps"),
             new[]
             {
-                new ColumnDef { Header = Loc.Get("Common.Name"), Width = 260, BindingPath = "Category" },
-                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 480, BindingPath = "Path" },
+                new ColumnDef { Header = Loc.Get("Common.Program"), Width = 190, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.Dump.Crashes"), Width = 90, BindingPath = "Kind" },
+                new ColumnDef { Header = Loc.Get("Common.Path"), Width = 420, BindingPath = "Path" },
                 new ColumnDef { Header = Loc.Get("Common.Size"), Width = 110, BindingPath = "Size" },
-                new ColumnDef { Header = Loc.Get("Common.Date"), Width = 150, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Common.Date"), Width = 140, BindingPath = "Detail" },
             },
             new[]
             {
@@ -285,7 +298,7 @@ public static class MaintenanceViews
         {
             panel.RunAsync(async () =>
             {
-                var dumps = await Task.Run(() => CrashDumpCollector.List());
+                var dumps = await Task.Run(() => CrashDumpCollector.Collect());
 
                 rows.Clear();
 
@@ -293,7 +306,8 @@ public static class MaintenanceViews
                 {
                     rows.Add(new MaintenanceRow
                     {
-                        Category = dump.Name,
+                        Category = dump.Suspect,
+                        Kind = dump.CrashCount > 0 ? dump.CrashCount.ToString() : string.Empty,
                         Path = dump.Path,
                         Size = ByteFormatter.Format(dump.SizeBytes),
                         Detail = dump.CreatedAt.ToString("d", System.Globalization.CultureInfo.CurrentCulture),

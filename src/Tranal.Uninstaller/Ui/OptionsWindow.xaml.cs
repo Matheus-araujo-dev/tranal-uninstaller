@@ -115,6 +115,9 @@ public partial class OptionsWindow : Window
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
         WebSearchEnginesBox.Text = string.Join(Environment.NewLine, settings.WebSearchEngines ?? new List<string>());
+        UpdateFeedBox.Text = settings.UpdateFeedUrl;
+        SoftwareUpdateFeedBox.Text = settings.SoftwareUpdateFeedUrl;
+        UpdateBlacklistBox.Text = string.Join(Environment.NewLine, settings.UpdateBlacklist ?? new List<string>());
         ExcelInstalledCheck.IsChecked = settings.ExportToExcelInstalled;
     }
 
@@ -132,6 +135,9 @@ public partial class OptionsWindow : Window
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
         WebSearchEnginesBox.Text = string.Join(Environment.NewLine, settings.WebSearchEngines ?? new List<string>());
+        UpdateFeedBox.Text = settings.UpdateFeedUrl;
+        SoftwareUpdateFeedBox.Text = settings.SoftwareUpdateFeedUrl;
+        UpdateBlacklistBox.Text = string.Join(Environment.NewLine, settings.UpdateBlacklist ?? new List<string>());
         ExcelInstalledCheck.IsChecked = settings.ExportToExcelInstalled;
     }
 
@@ -338,6 +344,9 @@ public partial class OptionsWindow : Window
             s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();
             s.WebSearchEngines = ReadWebSearchEngines();
+            s.UpdateFeedUrl = UpdateFeedBox.Text.Trim();
+            s.SoftwareUpdateFeedUrl = SoftwareUpdateFeedBox.Text.Trim();
+            s.UpdateBlacklist = ReadUpdateBlacklist();
             s.ExportToExcelInstalled = ExcelInstalledCheck.IsChecked == true;
         });
 
@@ -407,6 +416,27 @@ public partial class OptionsWindow : Window
         var lista = new List<string>();
 
         foreach (var linha in WebSearchEnginesBox.Text.Split('\n'))
+        {
+            var texto = linha.Trim();
+            if (texto.Length == 0) continue;
+            lista.Add(texto);
+        }
+
+        return lista;
+    }
+
+    /// <summary>
+    /// A lista negra de atualizacoes, uma entrada por linha.
+    ///
+    /// Cada linha e uma chave do feed ou o nome de um programa que nunca pode
+    /// ser atualizado. A comparacao ignora a caixa (e o nucleo e quem
+    /// compara).
+    /// </summary>
+    private List<string> ReadUpdateBlacklist()
+    {
+        var lista = new List<string>();
+
+        foreach (var linha in UpdateBlacklistBox.Text.Split('\n'))
         {
             var texto = linha.Trim();
             if (texto.Length == 0) continue;

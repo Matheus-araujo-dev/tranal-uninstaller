@@ -168,7 +168,7 @@ public class MaintenanceFeatureTests : IDisposable
     [Fact]
     public void DumpsDeFalhaSaoListadosSemQuebrar()
     {
-        var dumps = CrashDumpCollector.List();
+        var dumps = CrashDumpCollector.Collect();
 
         Assert.NotNull(dumps);
         Assert.All(dumps, d => Assert.False(string.IsNullOrWhiteSpace(d.Name)));
@@ -196,7 +196,7 @@ public class MaintenanceFeatureTests : IDisposable
     [Fact]
     public void FilaDeImpressaoEEnumeradaSemQuebrar()
     {
-        var fila = PrinterEnumerator.ListQueue();
+        var fila = PrinterEnumerator.ListJobs();
 
         Assert.NotNull(fila);
     }

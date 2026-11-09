@@ -64,79 +64,17 @@ public static class MaintenanceCommands
 
     private static int RunDuplicates()
     {
-        var instalados = ProgramScanner.Scan(new ProgramScanner.ScanOptions
-        {
-            IncludeSystemComponents = false,
-            IncludeMsiProducts = false,
-        });
-
-        var grupos = DuplicateInstallDetector.Detect(instalados);
-
-        Console.WriteLine($"Grupos de instalacao duplicada: {grupos.Count}");
-        Console.WriteLine();
-
-        foreach (var grupo in grupos)
-        {
-            Console.WriteLine($"    {grupo.Name} ({grupo.Count} copias)");
-            foreach (var programa in grupo.Programs)
-            {
-                Console.WriteLine($"        {programa.InstallLocation}");
-            }
-        }
-
-        return 0;
+        return InspectionCommands.ExecutarEntradasDuplicadas();
     }
 
     private static int RunPrinters()
     {
-        var impressoras = PrinterEnumerator.ListWithQueue();
-
-        Console.WriteLine($"Impressoras: {impressoras.Count}");
-        Console.WriteLine();
-
-        foreach (var impressora in impressoras)
-        {
-            var fila = impressora.QueuedJobs > 0 ? $"  fila: {impressora.QueuedJobs}" : string.Empty;
-            Console.WriteLine($"    {impressora.Name}  [{impressora.Port}]{fila}");
-        }
-
-        var trabalhos = PrinterEnumerator.ListQueue();
-        if (trabalhos.Count > 0)
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Trabalhos na fila: {trabalhos.Count}");
-            foreach (var trabalho in trabalhos)
-            {
-                Console.WriteLine($"    {trabalho.Document}  ({trabalho.Owner})");
-            }
-        }
-
-        return 0;
+        return InspectionCommands.ExecutarImpressoras();
     }
 
     private static int RunDumps(HashSet<string> flags)
     {
-        var dumps = CrashDumpCollector.List();
-
-        if (!CliArgs.Has(flags, "/clean"))
-        {
-            Console.WriteLine($"Dumps de falha: {dumps.Count}");
-            Console.WriteLine();
-
-            foreach (var dump in dumps)
-            {
-                Console.WriteLine($"    {dump.Name,-46} {ByteFormatter.Format(dump.SizeBytes),10}  {dump.CreatedAt:yyyy-MM-dd}");
-            }
-
-            return 0;
-        }
-
-        var relatorio = CrashDumpCollector.Clear(dumps);
-
-        Console.WriteLine($"Removidos: {relatorio.Outcomes.Count(o => o.Removed)}");
-        Console.WriteLine($"Adiados para o proximo reinicio: {relatorio.Outcomes.Count(o => o.Status == RemovalStatus.Deferred)}");
-
-        return 0;
+        return InspectionCommands.ExecutarDumps(Array.Empty<string>(), flags);
     }
 
     private static int RunBrowserClean(HashSet<string> flags)
@@ -192,19 +130,7 @@ public static class MaintenanceCommands
 
     private static int RunTasks()
     {
-        var tarefas = ScheduledTaskVisibility.List(includeMicrosoft: false);
-
-        Console.WriteLine($"Tarefas agendadas: {tarefas.Count}");
-        Console.WriteLine($"(ocultas da Microsoft: {ScheduledTaskVisibility.HiddenCount()})");
-        Console.WriteLine();
-
-        foreach (var tarefa in tarefas)
-        {
-            Console.WriteLine($"    {tarefa.Name}");
-            if (tarefa.Command.Length > 0) Console.WriteLine($"        {tarefa.Command} {tarefa.Arguments}");
-        }
-
-        return 0;
+        return InspectionCommands.ExecutarTarefasOcultas(Array.Empty<string>());
     }
 
     private static int RunInstall(string[] args)
