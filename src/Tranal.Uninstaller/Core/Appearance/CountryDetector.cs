@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Resources;
+using Tranal.Uninstaller.Core.Localization;
 
 namespace Tranal.Uninstaller.Core.Appearance;
 
@@ -80,15 +81,15 @@ public static class CountryDetector
         var limpo = codigo.Trim().ToUpperInvariant();
         if (limpo.Length != 2) return null;
 
-        if (Cache.TryGetValue($"__code__{limpo}", out var emCache)) return emCache;
+        if (Cache.TryGetValue($"__code__{IdiomaAtual()}__{limpo}", out var emCache)) return emCache;
 
         // O codigo de PAIS nao e o codigo de IDIOMA: "BR" e pais, e nao uma
-        // cultura valida por si so. A cultura neutra ("pt") com a regiao
-        // ("BR") e o que produz o nome certo.
+        // cultura valida por si so. O nome vem da tabela de paises, no
+        // idioma do aplicativo.
         var nome = NomeDoPais(limpo);
         if (nome is null)
         {
-            Cache[$"__code__{limpo}"] = null!;
+            Cache[$"__code__{IdiomaAtual()}__{limpo}"] = null!;
             return null;
         }
 
@@ -99,43 +100,30 @@ public static class CountryDetector
             Flag = BandeiraDe(limpo),
         };
 
-        Cache[$"__code__{limpo}"] = info;
+        Cache[$"__code__{IdiomaAtual()}__{limpo}"] = info;
         return info;
     }
 
     /// <summary>
+    /// O idioma que o aplicativo esta falando.
+    ///
+    /// O nome do pais acompanha o idioma do Tranal - e nao o do Windows.
+    /// Em uma maquina em ingles dos EUA o Tranal continua em portugues, e
+    /// por isso mostra "Brasil" (e nao "Brazil" nem "Spanish (Brazil)").
+    /// </summary>
+    private static string IdiomaAtual() => Loc.Current;
+
+    /// <summary>
     /// O nome do pais a partir do codigo ISO de duas letras.
     ///
-    /// O codigo de pais e procurado em todas as culturas conhecidas: a que
-    /// tem a regiao correspondente e a que tem o nome. E o que faz "BR"
-    /// virar "Brasil" em vez de "bretão".
+    /// O nome vem da tabela de paises, no idioma do aplicativo: e a
+    /// unica fonte, para o nome nao depender da maquina onde o Tranal
+    /// roda.
     /// </summary>
     private static string? NomeDoPais(string codigoPais)
     {
-        try
-        {
-            foreach (var cultura in CultureInfo.GetCultures(CultureTypes.SpecificCultures))
-            {
-                // A regiao vem do proprio nome da cultura: a ultima parte
-                // depois do "-" (ou "_"). Uma cultura neutra ("pt") nao tem
-                // regiao e por isso e ignorada.
-                var partes = cultura.Name.Split('-', '_');
-                if (partes.Length < 2) continue;
-
-                var regiao = partes[^1];
-                if (!string.Equals(regiao, codigoPais, StringComparison.OrdinalIgnoreCase)) continue;
-
-                // O nome vem do recurso de idioma da propria cultura, e por
-                // isso e "Brasil" e nao "bretao".
-                return cultura.DisplayName;
-            }
-        }
-        catch
-        {
-            return null;
-        }
-
-        return null;
+        var nome = CountryNames.Nome(codigoPais, IdiomaAtual());
+        return string.IsNullOrWhiteSpace(nome) ? null : nome;
     }
 
     /// <summary>
@@ -198,17 +186,13 @@ public static class CountryDetector
     {
         if (string.IsNullOrWhiteSpace(texto)) return null;
 
-        foreach (var cultura in CultureInfo.GetCultures(CultureTypes.SpecificCultures))
-        {
-            var nome = cultura.DisplayName;
-            if (nome.Length < 4) continue;
-            if (texto.Contains(nome, StringComparison.OrdinalIgnoreCase))
-            {
-                return FromCode(cultura.TwoLetterISOLanguageName) ?? new CountryInfo { Name = nome };
-            }
-        }
+        // O pais por extenso ("7-Zip, Brasil") e procurado na tabela de
+        // paises: a busca olha pt-BR e en-US, porque o recurso do
+        // arquivo pode estar em qualquer um dos dois idiomas.
+        var codigo = CountryNames.CodigoNoTexto(texto);
+        if (codigo is null) return null;
 
-        return null;
+        return FromCode(codigo);
     }
 
     /// <summary>
