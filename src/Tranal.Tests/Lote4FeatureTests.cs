@@ -176,7 +176,7 @@ public class Lote4ActiveFilesTests : IDisposable
                 trava = "o arquivo esta travado (" + ex.GetType().Name + ")";
             }
 
-            Assert.True(false, "o outro processo deveria estar segurando o arquivo: " + erro + " | " + trava);
+            Assert.Fail("o outro processo deveria estar segurando o arquivo: " + erro + " | " + trava);
         }
 
         var processes = ActiveFiles.ProcessesHolding(caminho);

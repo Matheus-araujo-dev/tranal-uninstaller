@@ -178,6 +178,32 @@
                   AutomationProperties.AutomationId="OptCloseAppWhenFinished" />
         <TextBlock x:Name="LastScanText" Margin="0,8,0,2" TextWrapping="Wrap" />
 
+        <!-- Modos de execucao e de exibicao, e o filtro de tipo de arquivo
+             que decide o que a remocao preserva. -->
+        <TextBlock x:Name="ModesSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
+        <TextBlock Text="{loc:Tr Options.RunPreference}" Margin="0,0,0,2" />
+        <ComboBox x:Name="RunPreferenceCombo" Margin="0,0,0,8"
+                  AutomationProperties.AutomationId="OptRunPreference" />
+        <TextBlock Text="{loc:Tr Options.DisplayPreference}" Margin="0,0,0,2" />
+        <ComboBox x:Name="DisplayPreferenceCombo" Margin="0,0,0,8"
+                  AutomationProperties.AutomationId="OptDisplayPreference" />
+        <TextBlock Text="{loc:Tr Options.FileTypeFilter}" Margin="0,4,0,2" TextWrapping="Wrap" />
+        <CheckBox x:Name="PreserveIconsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FileKind.Icon}"
+                  AutomationProperties.AutomationId="OptPreserveIcons" />
+        <CheckBox x:Name="PreserveLibrariesCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FileKind.Library}"
+                  AutomationProperties.AutomationId="OptPreserveLibraries" />
+        <CheckBox x:Name="PreserveWebPagesCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FileKind.WebPage}"
+                  AutomationProperties.AutomationId="OptPreserveWebPages" />
+        <CheckBox x:Name="PreserveShortcutsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FileKind.Shortcut}"
+                  AutomationProperties.AutomationId="OptPreserveShortcuts" />
+        <CheckBox x:Name="PreserveExecutablesCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.FileKind.Executable}"
+                  AutomationProperties.AutomationId="OptPreserveExecutables" />
+
         <!-- Armazenamento -->
         <TextBlock x:Name="StorageSectionText" FontWeight="SemiBold" Margin="0,16,0,4" />
         <TextBlock Text="{loc:Tr Options.PortableFolder}" Margin="0,0,0,4" />

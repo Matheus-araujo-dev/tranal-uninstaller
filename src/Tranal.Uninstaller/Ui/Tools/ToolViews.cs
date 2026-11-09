@@ -11,6 +11,7 @@ using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
+using Tranal.Uninstaller.Core.Recovery;
 using Tranal.Uninstaller.Core.Tools;
 using Tranal.Uninstaller.Ui.Shared;
 
@@ -29,6 +30,8 @@ public static class ToolViews
         ToolCatalog.AutorunManager => CreateAutorun(),
         ToolCatalog.BootCenter => CreateBootCenter(),
         ToolCatalog.ActiveFiles => CreateActiveFiles(),
+        ToolCatalog.FileAssociator => CreateFileAssociator(),
+        ToolCatalog.UndoCenter => CreateUndoCenter(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -376,6 +379,188 @@ public static class ToolViews
             panel.PanelStatus = locked.Count == 0
                 ? Loc.Get("Common.Empty")
                 : Loc.Get("Tool.ActiveFiles.Found", locked.Count);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // File Associator: os tipos de arquivo e o programa que os abre
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateFileAssociator()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.FileAssociator"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.FileAssociator.Extension"), Width = 90, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.FileAssociator.Description"), Width = 240, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.FileAssociator.Program"), Width = 240, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.FileAssociator.Path"), Width = 380, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "FileAssocScan", Text = Loc.Get("Common.Scan"), Action = () => panel.RunAsync(() => ReloadAsync(panel, rows)) },
+                new CommandDef { AutomationId = "FileAssocSet", Text = Loc.Get("Tool.FileAssociator.Set"), Action = () => Definir(panel, rows) },
+                new CommandDef { AutomationId = "FileAssocUndo", Text = Loc.Get("Tool.FileAssociator.Undo"), Action = () => panel.RunAsync(() => DesfazerAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ReloadAsync(panel, rows));
+        return panel;
+
+        static async Task ReloadAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var report = await Task.Run(FileAssociator.Scan);
+
+            rows.Clear();
+            foreach (var item in report.Items)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = item.Extension,
+                    Detail = item.Description,
+                    Size = item.HasProgram ? item.ProgramName : Loc.Get("Tool.FileAssociator.None"),
+                    Path = item.ProgramPath,
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.FileAssociator.Status",
+                report.Items.Count,
+                report.UnassociatedCount,
+                report.BrokenCount);
+        }
+
+        void Definir(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var dialog = new OpenFileDialog
+            {
+                Title = Loc.Get("Tool.FileAssociator.Pick"),
+                Filter = Loc.Get("Tool.FileAssociator.PickFilter"),
+                CheckFileExists = true,
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            var (ok, mensagem) = FileAssociator.SetDefault(alvo.Extension, dialog.FileName);
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Tool.FileAssociator.Error", mensagem);
+            panel.RunAsync(() => ReloadAsync(panel, rows));
+        }
+
+        static async Task DesfazerAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = await Task.Run(() => FileAssociator.Undo(alvo.Extension));
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Tool.FileAssociator.Error", mensagem);
+            await ReloadAsync(panel, rows);
+        }
+
+        static FileAssociationItem? Primeiro(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is FileAssociationItem associacao) return associacao;
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Centro de mudancas: o que o Tranal mudou e como voltar atras
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateUndoCenter()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+
+        panel.Configure(
+            Loc.Get("Module.UndoCenter"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.UndoCenter.When"), Width = 150, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.UndoCenter.Program"), Width = 240, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.UndoCenter.What"), Width = 260, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.UndoCenter.Items"), Width = 80, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "UndoCenterRefresh", Text = Loc.Get("Common.Refresh"), Action = () => panel.RunAsync(() => ReloadAsync(panel, rows)) },
+                new CommandDef { AutomationId = "UndoCenterUndo", Text = Loc.Get("Tool.UndoCenter.Undo"), Action = () => panel.RunAsync(() => DesfazerAsync(panel, rows)) },
+                new CommandDef { AutomationId = "UndoCenterRedo", Text = Loc.Get("Tool.UndoCenter.Redo"), Action = () => panel.RunAsync(() => RefazerAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.RunAsync(() => ReloadAsync(panel, rows));
+        return panel;
+
+        static async Task ReloadAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var report = await Task.Run(UndoChangesCenter.Scan);
+
+            rows.Clear();
+            foreach (var item in report.Items)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = item.Timestamp.ToString("g"),
+                    Size = item.ProgramName,
+                    Detail = item.Description,
+                    Path = item.ItemCount.ToString(),
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = report.Total == 0
+                ? Loc.Get("Tool.UndoCenter.Empty")
+                : Loc.Get("Tool.UndoCenter.Status", report.Total, report.UndoneCount);
+        }
+
+        static async Task DesfazerAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = await Task.Run(() => UndoChangesCenter.Undo(alvo.Id));
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Status.Error");
+            await ReloadAsync(panel, rows);
+        }
+
+        static async Task RefazerAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = await Task.Run(() => UndoChangesCenter.Redo(alvo.Id));
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Status.Error");
+            await ReloadAsync(panel, rows);
+        }
+
+        static UndoChangeItem? Primeiro(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is UndoChangeItem mudanca) return mudanca;
+            return null;
         }
     }
 

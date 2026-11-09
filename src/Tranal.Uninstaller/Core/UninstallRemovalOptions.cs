@@ -52,6 +52,13 @@ public sealed class UninstallRemovalOptions
     /// </summary>
     public bool KeepPreferences { get; init; } = true;
 
+    /// <summary>
+    /// O filtro de tipo de arquivo: as familias que a operacao PRESERVA.
+    ///
+    /// Nulo = sem filtro (o padrao): tudo o que esta marcado e removido.
+    /// </summary>
+    public Automation.FileTypeFilter? FileTypeFilter { get; init; }
+
     /// <summary>Nome exibido do ponto de restauracao criado.</summary>
     public string? RestorePointName { get; init; }
 
@@ -81,6 +88,7 @@ public sealed class UninstallRemovalOptions
             FullRegistryBackup = settings.CreateFullRegistryBackupBeforeUninstall,
             KeepPreferences = keepPreferences ?? settings.KeepPreferencesOnUninstall,
             RestorePointName = restorePointName,
+            FileTypeFilter = Automation.FileTypeFilter.FromNames(settings.PreservedFileKinds),
         };
     }
 }

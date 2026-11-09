@@ -16,6 +16,8 @@ public static class ToolCatalog
     public const string AutorunManager = "AutorunManager";
     public const string BootCenter = "BootCenter";
     public const string ActiveFiles = "ActiveFiles";
+    public const string FileAssociator = "FileAssociator";
+    public const string UndoCenter = "UndoCenter";
 
     /// <summary>Limpeza de arquivos temporarios.</summary>
     public const string JunkCleaner = "JunkCleaner";
@@ -207,6 +209,8 @@ public static class ToolCatalog
         AutorunManager,
         BootCenter,
         ActiveFiles,
+        FileAssociator,
+        UndoCenter,
         JunkCleaner,
         WindowsTools,
         EvidenceRemover,

@@ -353,6 +353,41 @@ public sealed class AppSettings
     /// Quantos programas a ultima varredura encontrou.
     /// </summary>
     public int LastScanCount { get; set; }
+
+    /// <summary>
+    /// O modo de execucao: como o Tranal age quando a desinstalacao comeca.
+    ///
+    /// "system" (o padrao), "always", "never" ou "ask". Medido no
+    /// Uninstall Tool 3.8.2 ("sempre rodar / nunca rodar / perguntar").
+    ///
+    /// O valor e texto, e nao enumerado: e assim que a preferencia gravada
+    /// continua legivel no arquivo e nao depende da ordem do enumerado. A
+    /// regra de leitura esta em
+    /// <see cref="ExecutionPreferences.Parse"/>.
+    /// </summary>
+    public string RunPreference { get; set; } = "system";
+
+    /// <summary>
+    /// O modo de exibicao: "system", "always" ou "never".
+    ///
+    /// Medido no Uninstalr ("modo de exibicao do sistema"). O padrao e o
+    /// sistema: o Tranal nao muda o que o Windows decide.
+    /// </summary>
+    public string DisplayPreference { get; set; } = "system";
+
+    /// <summary>
+    /// As familias de arquivo que a remocao PRESERVA (o filtro de tipo).
+    ///
+    /// Vazio = preserva nada, que e o comportamento de sempre. Os nomes sao
+    /// os do enumerado <see cref="Automation.RemovalFileKind"/>.
+    /// </summary>
+    public List<string> PreservedFileKinds { get; set; } = new();
+
+    /// <summary>O modo de execucao, ja lido pela regra.</summary>
+    public ExecutionPreference RunMode => ExecutionPreferences.Parse(RunPreference);
+
+    /// <summary>O modo de exibicao, ja lido pela regra.</summary>
+    public ExecutionPreference DisplayMode => ExecutionPreferences.Parse(DisplayPreference);
 }
 
 /// <summary>Leitura e gravacao das <see cref="AppSettings"/>.</summary>
@@ -461,6 +496,13 @@ public static class AppSettingsStore
         settings.WebSearchEngines ??= new List<string>();
         if (settings.BatchItemLimit < 0) settings.BatchItemLimit = 0;
         if (settings.RetryFailedAttempts < 1) settings.RetryFailedAttempts = 1;
+
+        // Os modos passam pela regra: um texto desconhecido (ou de uma
+        // versao futura) vira o padrao do sistema, e nao um valor invalido.
+        settings.RunPreference = ExecutionPreferences.Normalize(settings.RunPreference);
+        settings.DisplayPreference = ExecutionPreferences.Normalize(settings.DisplayPreference);
+        settings.PreservedFileKinds ??= new List<string>();
+
         return settings;
     }
 }
@@ -484,5 +526,6 @@ public static class SettingsFileFormat
         + "showScanAllAccountsOption, scanAllWindowsAccounts, uninstallFromAllWindowsAccounts, "
         + "forciblyStopRunningExecutables, createFullRegistryBackupBeforeUninstall, "
         + "batchItemLimit, retryFailedAttempts, restartWhenFinished, closeAppWhenFinished, "
-        + "lastScanAt, lastScanCount";
+        + "lastScanAt, lastScanCount, "
+        + "runPreference, displayPreference, preservedFileKinds[]";
 }

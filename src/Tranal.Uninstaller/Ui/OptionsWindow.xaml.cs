@@ -11,6 +11,8 @@ using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Theming;
 using Tranal.Uninstaller.Ui.Tools;
 
+using Tranal.Uninstaller.Core.Automation;
+
 namespace Tranal.Uninstaller.Ui;
 
 /// <summary>
@@ -46,6 +48,7 @@ public partial class OptionsWindow : Window
         LayoutSectionText.Text = LayoutSection;
         PreferencesSectionText.Text = PreferencesSection;
         BatchSectionText.Text = Loc.Get("Options.BatchSection");
+        ModesSectionText.Text = Loc.Get("Options.ModesSection");
         ShortcutsSectionText.Text = Loc.Get("Shortcut.Title");
 
         // O modo de visao de cores e as ferramentas novas tambem tem texto
@@ -64,6 +67,8 @@ public partial class OptionsWindow : Window
         BuildThemeCombo();
         BuildColorRows();
         BuildColorVisionCombo();
+        BuildRunPreferenceCombo();
+        BuildDisplayPreferenceCombo();
 
         foreach (var language in LanguageCatalog.All)
         {
@@ -118,6 +123,14 @@ public partial class OptionsWindow : Window
         RestartWhenFinishedCheck.IsChecked = settings.RestartWhenFinished;
         CloseAppWhenFinishedCheck.IsChecked = settings.CloseAppWhenFinished;
         LastScanText.Text = DescribeLastScan(settings);
+
+        SelectByTag(RunPreferenceCombo, settings.RunPreference);
+        SelectByTag(DisplayPreferenceCombo, settings.DisplayPreference);
+        PreserveIconsCheck.IsChecked = Preserved(settings, RemovalFileKind.Icon);
+        PreserveLibrariesCheck.IsChecked = Preserved(settings, RemovalFileKind.Library);
+        PreserveWebPagesCheck.IsChecked = Preserved(settings, RemovalFileKind.WebPage);
+        PreserveShortcutsCheck.IsChecked = Preserved(settings, RemovalFileKind.Shortcut);
+        PreserveExecutablesCheck.IsChecked = Preserved(settings, RemovalFileKind.Executable);
 
         PortableFolderBox.Text = settings.PortableDataFolder;
         WebSearchBox.Text = settings.WebSearchEngine;
@@ -300,6 +313,65 @@ public partial class OptionsWindow : Window
         if (combo.Items.Count > 0) combo.SelectedIndex = 0;
     }
 
+    /// <summary>
+    /// Monta o seletor do modo de execucao.
+    ///
+    /// A lista vem da regra (<see cref="ExecutionPreferences.All"/>) e o texto
+    /// vem do catalogo de idioma: o seletor nao monta a lista por conta
+    /// propria, senao a interface e a preferencia divergiriam.
+    /// </summary>
+    private void BuildRunPreferenceCombo()
+    {
+        foreach (var mode in ExecutionPreferences.All)
+        {
+            RunPreferenceCombo.Items.Add(new ComboBoxItem
+            {
+                Content = Loc.Get("Options.Mode." + mode),
+                Tag = ExecutionPreferences.Text(mode),
+            });
+        }
+    }
+
+    /// <summary>
+    /// Monta o seletor do modo de exibicao. O modo "perguntar" nao faz
+    /// sentido aqui: exibicao nao se pergunta, se decide.
+    /// </summary>
+    private void BuildDisplayPreferenceCombo()
+    {
+        foreach (var mode in ExecutionPreferences.All)
+        {
+            if (mode == ExecutionPreference.Ask) continue;
+
+            DisplayPreferenceCombo.Items.Add(new ComboBoxItem
+            {
+                Content = Loc.Get("Options.Mode." + mode),
+                Tag = ExecutionPreferences.Text(mode),
+            });
+        }
+    }
+
+    /// <summary>
+    /// True quando a familia de arquivo esta preservada na preferencia.
+    /// </summary>
+    private static bool Preserved(AppSettings settings, RemovalFileKind kind) =>
+        settings.PreservedFileKinds?.Contains(kind.ToString(), StringComparer.OrdinalIgnoreCase) == true;
+
+    /// <summary>
+    /// As familias de arquivo que a remocao vai preservar.
+    /// </summary>
+    private List<string> ReadPreservedKinds()
+    {
+        var kinds = new List<string>();
+
+        if (PreserveIconsCheck.IsChecked == true) kinds.Add(RemovalFileKind.Icon.ToString());
+        if (PreserveLibrariesCheck.IsChecked == true) kinds.Add(RemovalFileKind.Library.ToString());
+        if (PreserveWebPagesCheck.IsChecked == true) kinds.Add(RemovalFileKind.WebPage.ToString());
+        if (PreserveShortcutsCheck.IsChecked == true) kinds.Add(RemovalFileKind.Shortcut.ToString());
+        if (PreserveExecutablesCheck.IsChecked == true) kinds.Add(RemovalFileKind.Executable.ToString());
+
+        return kinds;
+    }
+
     /// <summary>Grava as preferencias escolhidas e aplica tema e idioma.</summary>
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
@@ -348,6 +420,12 @@ public partial class OptionsWindow : Window
                 : 1;
             s.RestartWhenFinished = RestartWhenFinishedCheck.IsChecked == true;
             s.CloseAppWhenFinished = CloseAppWhenFinishedCheck.IsChecked == true;
+
+            s.RunPreference = ExecutionPreferences.Normalize(
+                (RunPreferenceCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString());
+            s.DisplayPreference = ExecutionPreferences.Normalize(
+                (DisplayPreferenceCombo.SelectedItem as ComboBoxItem)?.Tag?.ToString());
+            s.PreservedFileKinds = ReadPreservedKinds();
 
             s.CustomThemeColors = ReadCustomColors();
             s.DisableTextAnimations = DisableTextAnimationsCheck.IsChecked == true;

@@ -1486,6 +1486,16 @@ public static class UninstallEngine
     {
         var opts = options ?? UninstallRemovalOptions.Default;
         var selected = items.Where(i => i.Selected).ToList();
+
+        // O filtro de tipo de arquivo: o que o usuario mandou preservar
+        // deixa de estar marcado. A REGRA esta no filtro; aqui so e a
+        // aplicacao, e a lista e refeita para que o que ficou de fora nao
+        // entre na remocao nem no backup.
+        if (opts.FileTypeFilter is not null && opts.FileTypeFilter.Apply(selected) > 0)
+        {
+            selected = selected.Where(i => i.Selected).ToList();
+        }
+
         var outcomes = new List<RemovalOutcome>();
 
         // O backup e feito ANTES de qualquer remocao: e o que permite devolver

@@ -103,6 +103,11 @@ public static class Program
         var extra = ExtraCommands.TryRun(effective, flags);
         if (extra.HasValue) return extra.Value;
 
+        // As associacoes de arquivo e o centro de mudancas: o que da para
+        // consertar depois de mexer.
+        var associacoes = AssociationCommands.TryRun(effective, flags);
+        if (associacoes.HasValue) return associacoes.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");
