@@ -1079,5 +1079,10 @@
     "Cmd.ModifyProgram":  "Modify",
     "Cmd.ModifyProgramUnavailable":  "This program was not installed by Windows Installer, so there is nothing to repair. Use the vendor installer.",
     "Cmd.ModifyProgramFailed":  "Could not repair the program installation.",
-    "Wizard.NoSilentUninstall":  "\"{0}\" does not accept a silent uninstall: its uninstaller will be opened on screen."
+    "Wizard.NoSilentUninstall":  "\"{0}\" does not accept a silent uninstall: its uninstaller will be opened on screen.",
+    "Cmd.MarkByCountry":  "Mark the programs from {0}",
+    "Cmd.UnmarkByCountry":  "Unmark the programs from {0}",
+    "Cmd.MarkedByCountry":  "{0} program(s) from {1} marked.",
+    "Cmd.UnmarkedByCountry":  "{0} program(s) from {1} unmarked.",
+    "Shortcut.CopySelection":  "Copies the selection to the clipboard."
 }

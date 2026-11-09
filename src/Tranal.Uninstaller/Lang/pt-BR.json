@@ -1079,5 +1079,10 @@
     "Cmd.ModifyProgram":  "Modificar",
     "Cmd.ModifyProgramUnavailable":  "Este programa não foi instalado pelo Windows Installer, e não há reparo a fazer. Use o instalador do fabricante.",
     "Cmd.ModifyProgramFailed":  "Não foi possível reparar a instalação do programa.",
-    "Wizard.NoSilentUninstall":  "\"{0}\" não aceita desinstalação silenciosa: o desinstalador será aberto na tela dele."
+    "Wizard.NoSilentUninstall":  "\"{0}\" não aceita desinstalação silenciosa: o desinstalador será aberto na tela dele.",
+    "Cmd.MarkByCountry":  "Marcar os programas de {0}",
+    "Cmd.UnmarkByCountry":  "Desmarcar os programas de {0}",
+    "Cmd.MarkedByCountry":  "{0} programa(s) de {1} marcados.",
+    "Cmd.UnmarkedByCountry":  "{0} programa(s) de {1} desmarcados.",
+    "Shortcut.CopySelection":  "Copia a seleção para a área de transferência."
 }

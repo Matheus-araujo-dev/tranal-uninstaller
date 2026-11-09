@@ -38,6 +38,9 @@ public enum ShortcutAction
 
     /// <summary>Limpa a busca e o filtro.</summary>
     ClearFilter,
+
+    /// <summary>Copia a selecao para a area de transferencia.</summary>
+    CopySelection,
 }
 
 /// <summary>
@@ -73,6 +76,7 @@ public static class ShortcutMap
         new ShortcutBinding("Ctrl+D", ShortcutAction.Discovery, "Shortcut.Discovery"),
         new ShortcutBinding("F1", ShortcutAction.Support, "Shortcut.Support"),
         new ShortcutBinding("Escape", ShortcutAction.ClearFilter, "Shortcut.ClearFilter"),
+        new ShortcutBinding("Ctrl+C", ShortcutAction.CopySelection, "Shortcut.CopySelection"),
     };
 
     /// <summary>

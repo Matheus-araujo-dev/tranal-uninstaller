@@ -1241,6 +1241,25 @@ public partial class MainWindow : Window
         var icon = CommandItem(Loc.Get("Cmd.ChangeIcon"), "CmdChangeIcon", () => ChangeIcon(row));
         menu.Items.Add(icon);
 
+        // Selecao em massa por pais: marcar (ou desmarcar) todos os
+        // programas de um mesmo pais de uma vez. O pais vem da tabela
+        // unica no idioma da interface.
+        var pais = ProgramColumns.CountryOf(row.Program);
+        if (!string.IsNullOrWhiteSpace(pais))
+        {
+            var marcar = CommandItem(
+                string.Format(System.Globalization.CultureInfo.CurrentCulture, Loc.Get("Cmd.MarkByCountry"), pais),
+                "CmdMarkByCountry",
+                () => MarcarPorPais(pais, marcado: true));
+            menu.Items.Add(marcar);
+
+            var desmarcar = CommandItem(
+                string.Format(System.Globalization.CultureInfo.CurrentCulture, Loc.Get("Cmd.UnmarkByCountry"), pais),
+                "CmdUnmarkByCountry",
+                () => MarcarPorPais(pais, marcado: false));
+            menu.Items.Add(desmarcar);
+        }
+
         var commands = CommandItem(Loc.Get("Cmd.EditCommands"), "CmdEditCommands", () => EditCommands(row));
         menu.Items.Add(commands);
 
@@ -1750,6 +1769,13 @@ public partial class MainWindow : Window
                 SettingsSidebarPanel.ClearAll();
                 e.Handled = true;
                 break;
+
+            case ShortcutAction.CopySelection:
+                // Ctrl+C: a copia da selecao para a area de transferencia, no
+                // mesmo formato de texto simples do menu.
+                CopySelectionToClipboard(Core.Appearance.ClipboardFormat.PlainText);
+                e.Handled = true;
+                break;
         }
     }
     private void StartUninstall(bool quick)
@@ -1832,6 +1858,34 @@ public partial class MainWindow : Window
         UserMessages.Information(this,
             resultado.Success ? resultado.Message : Loc.Get("Cmd.ModifyProgramFailed"),
             Loc.Get("Cmd.ModifyProgram"));
+    }
+
+    /// <summary>
+    /// Marca (ou desmarca) todos os programas de um mesmo pais.
+    ///
+    /// A regra do que e "o mesmo pais" mora no nucleo
+    /// (<see cref="Core.Appearance.ProgramSelection"/>); aqui so se marca a
+    /// lista.
+    /// </summary>
+    /// <param name="pais">O pais.</param>
+    /// <param name="marcado">True para marcar, false para desmarcar.</param>
+    private void MarcarPorPais(string pais, bool marcado)
+    {
+        var alvos = Core.Appearance.ProgramSelection.ByCountry(
+            _all.Select(r => r.Program).Where(p => p is not null)!, pais);
+
+        var quantos = 0;
+        foreach (var row in _all)
+        {
+            if (!alvos.Contains(row.Program)) continue;
+            row.IsChecked = marcado;
+            quantos++;
+        }
+
+        StatusText.Text = string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            marcado ? Loc.Get("Cmd.MarkedByCountry") : Loc.Get("Cmd.UnmarkedByCountry"),
+            quantos, pais);
     }
 
     private void ForcedUninstallButton_Click(object sender, RoutedEventArgs e) => ShowForcedUninstall();
