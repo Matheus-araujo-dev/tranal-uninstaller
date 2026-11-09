@@ -228,6 +228,14 @@ public partial class MainWindow : Window
         StatusText.Text = $"{Loc.Get("Status.Installations")}: {total}";
         if (visible != total) StatusText.Text += $"   ({Loc.Get("Status.Showing")} {visible})";
 
+        // O filtro apagou tudo: o rodape diz isso, porque uma lista vazia
+        // sem explicacao parece que a varredura falhou. E o aviso do Geek
+        // ("no matching items, press ESC to reset").
+        if (visible == 0 && total > 0)
+        {
+            StatusText.Text += $"   — {Loc.Get("Status.NoMatchingItems")}";
+        }
+
         // O total agregado: quantos programas a lista tem e quanto eles
         // ocupam. O calculo mora no nucleo (ProgramTotalsCalculator) e o
         // texto vem do catalogo — o rodape nao monta nada por conta propria.

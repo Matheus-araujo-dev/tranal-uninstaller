@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Discovery;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Management;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Recovery;
 using Tranal.Uninstaller.Core.Tools;
@@ -32,6 +33,7 @@ public static class ToolViews
         ToolCatalog.ActiveFiles => CreateActiveFiles(),
         ToolCatalog.FileAssociator => CreateFileAssociator(),
         ToolCatalog.UndoCenter => CreateUndoCenter(),
+        ToolCatalog.FileOwnership => CreateFileOwnership(),
         ToolCatalog.JunkCleaner => CreateJunk(),
         ToolCatalog.WindowsTools => CreateWindowsTools(),
         ToolCatalog.HistoryCleaner => CreateHistory(),
@@ -245,6 +247,7 @@ public static class ToolViews
                 new CommandDef { AutomationId = "BootCenterEnable", Text = Loc.Get("Common.Enable"), Action = () => panel.RunAsync(() => SetEnabledAsync(panel, rows, true)) },
                 new CommandDef { AutomationId = "BootCenterDisable", Text = Loc.Get("Common.Disable"), Action = () => panel.RunAsync(() => SetEnabledAsync(panel, rows, false)) },
                 new CommandDef { AutomationId = "BootCenterRemove", Text = Loc.Get("Common.Remove"), Action = () => panel.RunAsync(() => RemoveAsync(panel, rows)) },
+                new CommandDef { AutomationId = "BootCenterCreate", Text = Loc.Get("Tool.BootCenter.Create"), Action = () => Criar(panel, rows) },
             });
 
         panel.SetItems(rows);
@@ -304,6 +307,44 @@ public static class ToolViews
             var ok = await Task.Run(() => BootCenter.Remove(target));
             panel.PanelStatus = ok ? Loc.Get("Status.Done") : Loc.Get("Status.Error");
             await ReloadAsync(panel, rows);
+        }
+
+        void Criar(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var dialog = new InputDialog(
+                Loc.Get("Tool.BootCenter.Create"),
+                (Loc.Get("Tool.BootCenter.CreateName"), string.Empty),
+                (Loc.Get("Tool.BootCenter.CreateCommand"), string.Empty));
+
+            if (dialog.ShowDialog() != true) return;
+
+            var valores = dialog.Values;
+            if (valores.Count < 2) return;
+
+            var nome = valores[0].Trim();
+            var comando = valores[1].Trim();
+
+            if (nome.Length == 0 || comando.Length == 0)
+            {
+                panel.PanelStatus = Loc.Get("Tool.BootCenter.CreateMissing");
+                return;
+            }
+
+            // A regra de gravacao continua sendo a do modulo de
+            // inicializacao automatica: o Boot Center nao escreve no
+            // registro por conta propria.
+            var criado = AutorunManager.Add(new AutorunItem
+            {
+                Kind = AutorunItemKind.RunKey,
+                Name = nome,
+                Command = comando,
+            });
+
+            panel.PanelStatus = criado
+                ? Loc.Get("Tool.BootCenter.Created", nome)
+                : Loc.Get("Status.Error");
+
+            if (criado) panel.RunAsync(() => ReloadAsync(panel, rows));
         }
 
         static BootCenterItem? FirstBootItem(ItemListPanel panel)
@@ -560,6 +601,126 @@ public static class ToolViews
         {
             foreach (var item in panel.SelectedItems)
                 if (item is ToolRow row && row.Source is UndoChangeItem mudanca) return mudanca;
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Propriedade dos arquivos: quando o Windows recusa a remocao
+    // ------------------------------------------------------------------
+    private static FrameworkElement CreateFileOwnership()
+    {
+        var panel = new ItemListPanel();
+        var rows = new ObservableCollection<ToolRow>();
+        var caminhos = new List<string>();
+
+        panel.Configure(
+            Loc.Get("Module.FileOwnership"),
+            new[]
+            {
+                new ColumnDef { Header = Loc.Get("Tool.FileOwnership.Name"), Width = 220, BindingPath = "Category" },
+                new ColumnDef { Header = Loc.Get("Tool.FileOwnership.Type"), Width = 100, BindingPath = "Detail" },
+                new ColumnDef { Header = Loc.Get("Tool.FileOwnership.State"), Width = 160, BindingPath = "Size" },
+                new ColumnDef { Header = Loc.Get("Tool.FileOwnership.Path"), Width = 460, BindingPath = "Path" },
+            },
+            new[]
+            {
+                new CommandDef { AutomationId = "OwnershipPickFiles", Text = Loc.Get("Tool.FileOwnership.Pick"), Action = () => EscolherArquivos(panel, rows, caminhos) },
+                new CommandDef { AutomationId = "OwnershipPickFolder", Text = Loc.Get("Tool.FileOwnership.PickFolder"), Action = () => EscolherPasta(panel, rows, caminhos) },
+                new CommandDef { AutomationId = "OwnershipTake", Text = Loc.Get("Tool.FileOwnership.Take"), Action = () => panel.RunAsync(() => AssumirAsync(panel, rows)) },
+                new CommandDef { AutomationId = "OwnershipGrant", Text = Loc.Get("Tool.FileOwnership.Grant"), Action = () => panel.RunAsync(() => ConcederAsync(panel, rows)) },
+            });
+
+        panel.SetItems(rows);
+        panel.PanelStatus = Loc.Get("Tool.FileOwnership.Start");
+        return panel;
+
+        void EscolherArquivos(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<string> caminhos)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = Loc.Get("Tool.FileOwnership.Pick"),
+                Multiselect = true,
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            caminhos.Clear();
+            caminhos.AddRange(dialog.FileNames);
+            Recarregar(panel, rows, caminhos);
+        }
+
+        void EscolherPasta(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<string> caminhos)
+        {
+            var dialog = new OpenFolderDialog
+            {
+                Title = Loc.Get("Tool.FileOwnership.PickFolder"),
+                Multiselect = false,
+            };
+
+            if (dialog.ShowDialog() != true) return;
+
+            caminhos.Clear();
+            caminhos.Add(dialog.FolderName);
+            Recarregar(panel, rows, caminhos);
+        }
+
+        static void Recarregar(ItemListPanel panel, ObservableCollection<ToolRow> rows, List<string> caminhos)
+        {
+            var itens = FileOwnership.Scan(caminhos);
+
+            rows.Clear();
+            foreach (var item in itens)
+            {
+                rows.Add(new ToolRow
+                {
+                    Category = item.Name,
+                    Detail = item.IsDirectory
+                        ? Loc.Get("Tool.FileOwnership.Directory")
+                        : Loc.Get("Tool.FileOwnership.File"),
+                    Size = item.CanWrite
+                        ? Loc.Get("Tool.FileOwnership.CanWrite")
+                        : Loc.Get("Tool.FileOwnership.CannotWrite"),
+                    Path = item.Path,
+                    Source = item,
+                });
+            }
+
+            panel.PanelStatus = Loc.Get("Tool.FileOwnership.Status",
+                itens.Count,
+                itens.Count(i => !i.CanWrite));
+        }
+
+        static async Task AssumirAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = await Task.Run(() => FileOwnership.TakeOwnership(alvo.Path));
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Tool.FileOwnership.Error", mensagem);
+        }
+
+        static async Task ConcederAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)
+        {
+            var alvo = Primeiro(panel);
+            if (alvo is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var (ok, mensagem) = await Task.Run(() => FileOwnership.GrantFullControl(alvo.Path));
+            panel.PanelStatus = ok ? mensagem : Loc.Get("Tool.FileOwnership.Error", mensagem);
+        }
+
+        static OwnershipItem? Primeiro(ItemListPanel panel)
+        {
+            foreach (var item in panel.SelectedItems)
+                if (item is ToolRow row && row.Source is OwnershipItem ownership) return ownership;
             return null;
         }
     }

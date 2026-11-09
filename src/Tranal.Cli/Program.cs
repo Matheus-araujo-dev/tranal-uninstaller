@@ -108,6 +108,10 @@ public static class Program
         var associacoes = AssociationCommands.TryRun(effective, flags);
         if (associacoes.HasValue) return associacoes.Value;
 
+        // A propriedade dos arquivos: quando o Windows recusa a remocao.
+        var propriedade = OwnershipCommands.TryRun(effective, flags);
+        if (propriedade.HasValue) return propriedade.Value;
+
         var includeLocation = flags.Contains("/i");
         var includeUninstall = flags.Contains("/u");
         var asTable = flags.Contains("/t");
