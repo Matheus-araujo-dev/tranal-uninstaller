@@ -117,19 +117,14 @@ public sealed class ProgramRow : INotifyPropertyChanged
     public static int NewProgramsDays =>
         Math.Max(1, Core.Settings.AppSettingsStore.Current.NewProgramsDays);
 
-    /// <summary>"Novos Programas" (instalados na janela de 7 dias) ou "Outros Programas".</summary>
-    public string Group => Program.InstallDateValue is { } date && date >= NewProgramsCutoff
+    /// <summary>"Novos Programas" (instalados na janela) ou "Outros Programas".</summary>
+    ///
+    /// A REGRA da janela mora no nucleo (<see cref="Core.Discovery.NewInstallsTracker"/>):
+    /// a coluna do grupo e o realce do programa novo consomem a mesma
+    /// resposta, e nunca discordam sobre o que e "novo".
+    public string Group => Core.Discovery.NewInstallsTracker.IsRecent(Program)
         ? Core.Localization.Loc.Get("Group.New")
         : Core.Localization.Loc.Get("Group.Other");
-
-    private static DateTime NewProgramsCutoff
-    {
-        get
-        {
-            var cutoff = DateTime.Now.AddDays(-NewProgramsDays);
-            return new DateTime(cutoff.Year, cutoff.Month, cutoff.Day);
-        }
-    }
 
     private bool _isChecked = true;
 

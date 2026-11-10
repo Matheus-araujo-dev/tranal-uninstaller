@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -91,9 +91,26 @@ public partial class MainWindow : Window
         _view.SortDescriptions.Add(new SortDescription(nameof(ProgramRow.DisplayName),
             ListSortDirection.Ascending));
 
+        // A memoria da grade: a largura que a pessoa deixou da ultima vez.
+        // Ela e lida antes da grade, porque a grade ja nasce com ela.
+        foreach (var par in ProgramColumnMemory.Read(AppSettingsStore.Current.ColumnWidths))
+            _columnWidths[par.Key] = par.Value;
+
         // A grade nasce do catalogo de colunas: e o usuario que escolhe
         // quais colunas quer ver.
         BuildProgramColumns();
+
+        // A ordenacao que a pessoa deixou vale tambem: a lista abre como
+        // ela deixou, e nao sempre pelo nome.
+        ApplySavedSort();
+
+        // A memoria da grade e gravada quando a janela fecha: e assim que
+        // a largura arrastada e a coluna movida sobrevivem ao programa.
+        Closed += (_, _) =>
+        {
+            RememberColumnWidths();
+            SaveColumnMemory();
+        };
 
         // O painel lateral de configuracoes edita o mesmo conjunto de filtros
         // que o popup e a caixa de busca: e o que impede a lista e o painel de
@@ -628,17 +645,23 @@ public partial class MainWindow : Window
     {
         // O formato da lista mora em um lugar so (ProgramListLayout): a
         // grade nasce dele e a preference do modo compacto vale.
-        var visiveis = ProgramListLayout.VisibleColumns();
+        // A ordem que a pessoa deixou vale; as colunas novas vao para o fim.
+        var visiveis = ProgramColumnMemory.Order(
+            ProgramListLayout.VisibleColumns(),
+            AppSettingsStore.Current.ColumnOrder);
+
+        _visibleColumns.Clear();
+        _visibleColumns.AddRange(visiveis);
 
         var template = (DataTemplate)Resources["ProgramNameTemplate"];
 
         // A coluna das caixas de selecao e a "Show check boxes in Details
         // view" do Revo (15334): ela so entra quando a preferencia manda.
         DataTemplate? checkTemplate = null;
-        if (AppSettingsStore.Current.ShowCheckBoxesInDetailsView)
+        if (ProgramListLayout.ShowCheckBoxes)
             checkTemplate = (DataTemplate)Resources["ProgramCheckTemplate"];
 
-        var grid = ProgramColumnLayout.Build(visiveis, template, checkTemplate);
+        var grid = ProgramColumnLayout.Build(visiveis, template, checkTemplate, _columnWidths);
 
         // A coluna das caixas e sempre a primeira: e por isso que ela pode
         // ser reconhecida sem mapa.
@@ -649,8 +672,17 @@ public partial class MainWindow : Window
         _columnIds.Clear();
         _columnProperties.Clear();
 
-        for (var i = 0; i < grid.Columns.Count && i < visiveis.Count; i++)
-            _columnIds[grid.Columns[i]] = visiveis[i];
+        // O mapa comeca depois das colunas de comando: a coluna das caixas
+        // de selecao nao e uma coluna do catalogo. Sem esta conta, cada
+        // cabecalho mostra o nome da coluna seguinte - e a largura de cada
+        // coluna e guardada com o nome da outra.
+        for (var i = 0; i < grid.Columns.Count; i++)
+        {
+            var id = ProgramColumnMemory.IdAt(i, visiveis, ProgramListLayout.CommandColumns);
+            if (id is null) continue;
+
+            _columnIds[grid.Columns[i]] = id.Value;
+        }
 
         ProgramsList.View = grid;
 
@@ -689,6 +721,15 @@ public partial class MainWindow : Window
             var header = new GridViewColumnHeader { Content = column.Header, Tag = column };
             header.Style = (Style)FindResource("ListViewHeaderStyle");
             header.Click += ColumnHeader_Click;
+
+            // A largura muda quando a pessoa arrasta a borda do cabecalho. O
+            // evento e tratado aqui mesmo quando o WPF ja o consumiu: e o
+            // unico lugar onde a largura real da coluna pode ser lida.
+            header.AddHandler(
+                UIElement.MouseLeftButtonUpEvent,
+                new MouseButtonEventHandler(ColumnHeader_MouseLeftButtonUp),
+                handledEventsToo: true);
+
             header.ContextMenu = BuildColumnMenu();
             column.Header = header;
         }
@@ -705,9 +746,39 @@ public partial class MainWindow : Window
         var ascending = existing.PropertyName == property
             && existing.Direction == ListSortDirection.Ascending;
 
+        var direcao = ascending ? ListSortDirection.Descending : ListSortDirection.Ascending;
+
+        _view.SortDescriptions.Clear();
+        _view.SortDescriptions.Add(new SortDescription(property, direcao));
+
+        // A ordenacao tambem e lembrada: a lista abre como a pessoa deixou.
+        var id = ColumnIdOf(column);
+        AppSettingsStore.Update(s =>
+        {
+            s.SortColumn = id.ToString();
+            s.SortAscending = direcao == ListSortDirection.Ascending;
+        });
+    }
+
+    /// <summary>
+    /// Aplica a ordenacao guardada (a coluna e a direcao).
+    ///
+    /// Uma coluna que nao existe mais nao trava a lista: a ordenacao padrao
+    /// (pelo nome) continua valendo.
+    /// </summary>
+    private void ApplySavedSort()
+    {
+        var settings = AppSettingsStore.Current;
+
+        if (string.IsNullOrWhiteSpace(settings.SortColumn)) return;
+        if (!Enum.TryParse<ProgramColumn>(settings.SortColumn, true, out var id)) return;
+
+        var property = ProgramColumnLayout.SortPropertyOf(id);
+        if (property is null) return;
+
         _view.SortDescriptions.Clear();
         _view.SortDescriptions.Add(new SortDescription(property,
-            ascending ? ListSortDirection.Descending : ListSortDirection.Ascending));
+            settings.SortAscending ? ListSortDirection.Ascending : ListSortDirection.Descending));
     }
 
     private ContextMenu? _columnMenu;
@@ -748,6 +819,16 @@ public partial class MainWindow : Window
         menu.Items.Add(remove);
 
         menu.Items.Add(new Separator());
+
+        // Mover a coluna: e assim que a pessoa escolhe a ordem. A posicao
+        // escolhida e lembrada (a regra mora no nucleo).
+        var mover = new MenuItem { Header = Loc.Get("Cmd.MoveColumn") };
+        AutomationProperties.SetAutomationId(mover, "CmdMoveColumn");
+        mover.Items.Add(MenuItemFor(Loc.Get("Cmd.MoveColumnLeft"), "MoveColumnLeft",
+            () => MoveColumn(id, -1)));
+        mover.Items.Add(MenuItemFor(Loc.Get("Cmd.MoveColumnRight"), "MoveColumnRight",
+            () => MoveColumn(id, 1)));
+        menu.Items.Add(mover);
 
         // O auto-ajuste de todas as colunas: um comando, e nao um por coluna.
         var ajustarTodas = CommandItem(Loc.Get("Cmd.BestFitAll"), "CmdBestFitAll", BestFitAll);
@@ -845,6 +926,105 @@ public partial class MainWindow : Window
             column.Width = largura;
             _columnWidths[id] = largura;
         }
+    }
+
+    /// <summary>
+    /// Move a coluna para a esquerda ou para a direita.
+    ///
+    /// A posicao nova e lembrada: e a largura e a posicao que o Uninstall
+    /// Tool guarda, e e o que a pessoa espera encontrar quando o programa
+    /// abre de novo.
+    /// </summary>
+    /// <param name="id">A coluna que vai mudar de lugar.</param>
+    /// <param name="passo">-1 para a esquerda, 1 para a direita.</param>
+    private void MoveColumn(ProgramColumn id, int passo)
+    {
+        var posicao = _visibleColumns.IndexOf(id);
+        if (posicao < 0) return;
+
+        var destino = posicao + passo;
+        if (destino < 0 || destino >= _visibleColumns.Count) return;
+
+        _visibleColumns.RemoveAt(posicao);
+        _visibleColumns.Insert(destino, id);
+
+        // A coluna muda de lugar DENTRO da grade que ja esta na tela: e o
+        // que faz o cabecalho e as linhas andarem juntos. Trocar a grade
+        // inteira deixaria as linhas com o desenho antigo.
+        MoverColunaNaGrade(id, passo);
+
+        SaveColumnMemory();
+    }
+
+    /// <summary>
+    /// Move a coluna dentro da grade que esta na tela.
+    ///
+    /// A coluna das caixas de selecao e um comando: ela fica onde esta.
+    /// </summary>
+    /// <param name="id">A coluna que vai mudar de lugar.</param>
+    /// <param name="passo">-1 para a esquerda, 1 para a direita.</param>
+    private void MoverColunaNaGrade(ProgramColumn id, int passo)
+    {
+        if (ProgramsList.View is not GridView grid) return;
+
+        var coluna = grid.Columns.FirstOrDefault(c => ColumnIdOf(c) == id);
+        if (coluna is null) return;
+
+        var atual = grid.Columns.IndexOf(coluna);
+        var novo = atual + passo;
+
+        // As colunas de comando ficam antes das colunas do catalogo: a
+        // coluna que se move nunca entra no lugar delas.
+        var primeira = ProgramListLayout.CommandColumns;
+        if (novo < primeira || novo >= grid.Columns.Count) return;
+
+        grid.Columns.Remove(coluna);
+        grid.Columns.Insert(novo, coluna);
+    }
+
+    /// <summary>
+    /// Le a largura real das colunas da grade.
+    ///
+    /// A largura que a pessoa arrastou mora no cabecalho, e nao em um
+    /// lugar do codigo: ela e lida do proprio cabecalho, que e a unica
+    /// fonte da verdade do que esta na tela.
+    /// </summary>
+    private void RememberColumnWidths()
+    {
+        if (ProgramsList.View is not GridView grid) return;
+
+        foreach (var column in grid.Columns)
+        {
+            // A coluna das caixas de selecao nao tem texto: e um comando,
+            // nao um dado.
+            if (ReferenceEquals(column, _checkColumn)) continue;
+
+            var largura = column.ActualWidth;
+            if (largura < ProgramColumnMemory.MinWidth || largura > ProgramColumnMemory.MaxWidth) continue;
+
+            _columnWidths[ColumnIdOf(column)] = largura;
+        }
+    }
+
+    /// <summary>
+    /// Grava a memoria da grade: a ordem das colunas e a largura de cada uma.
+    /// </summary>
+    private void SaveColumnMemory()
+    {
+        AppSettingsStore.Update(s =>
+        {
+            s.ColumnOrder = ProgramColumnMemory.NamesOf(_visibleColumns);
+            s.ColumnWidths = ProgramColumnMemory.WidthsOf(_columnWidths);
+        });
+    }
+
+    /// <summary>
+    /// O mouse foi solto sobre o cabecalho: a largura pode ter mudado.
+    /// </summary>
+    private void ColumnHeader_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        RememberColumnWidths();
+        SaveColumnMemory();
     }
 
     private void SetAlignment(HorizontalAlignment alignment)
@@ -1331,6 +1511,14 @@ public partial class MainWindow : Window
     /// modo de visualizacao: vale enquanto a janela estiver aberta.
     /// </summary>
     private readonly Dictionary<ProgramColumn, double> _columnWidths = new();
+
+    /// <summary>
+    /// As colunas visiveis, na ordem em que a pessoa deixou.
+    ///
+    /// A lista nasce do catalogo (<c>ProgramListLayout</c>) e a ordem guardada
+    /// entra por cima; e aqui que a ordem vive enquanto a janela esta aberta.
+    /// </summary>
+    private readonly List<ProgramColumn> _visibleColumns = new();
 
     /// <summary>
     /// Aplica o modo de visualizacao.

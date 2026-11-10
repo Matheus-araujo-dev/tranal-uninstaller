@@ -1691,5 +1691,9 @@
     "Manual.ExportXmlTitle":  "Salvar a lista de sobras em XML", 
     "Manual.ExportXmlFilter":  "Lista de sobras (*.xml)|*.xml|Todos os arquivos (*.*)|*.*", 
     "Manual.ExportedXml":  "Lista exportada em XML para {0}.", 
-    "Manual.ExportXmlFailed":  "Não foi possível gravar a lista em XML em {0}." 
+    "Manual.ExportXmlFailed":  "Não foi possível gravar a lista em XML em {0}.", 
+    "Cmd.MoveColumn":  "Mover coluna", 
+    "Cmd.MoveColumnLeft":  "Mover para a esquerda", 
+    "Cmd.MoveColumnRight":  "Mover para a direita", 
+    "Sidebar.Filter.HighlightNewPrograms":  "Destacar programas novos" 
 }

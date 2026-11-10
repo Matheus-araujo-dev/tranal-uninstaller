@@ -1691,5 +1691,9 @@
     "Manual.ExportXmlTitle":  "Save the leftovers list as XML", 
     "Manual.ExportXmlFilter":  "Leftovers list (*.xml)|*.xml|All files (*.*)|*.*", 
     "Manual.ExportedXml":  "Leftovers list exported as XML to {0}.", 
-    "Manual.ExportXmlFailed":  "Could not write the XML list to {0}." 
+    "Manual.ExportXmlFailed":  "Could not write the XML list to {0}.", 
+    "Cmd.MoveColumn":  "Move column", 
+    "Cmd.MoveColumnLeft":  "Move left", 
+    "Cmd.MoveColumnRight":  "Move right", 
+    "Sidebar.Filter.HighlightNewPrograms":  "Highlight new programs" 
 }

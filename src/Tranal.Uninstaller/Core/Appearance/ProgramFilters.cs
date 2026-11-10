@@ -204,6 +204,14 @@ public sealed class ProgramFilterSet
     public bool OnlyRarelyUsed { get; set; }
 
     /// <summary>
+    /// Realca os programas instalados dentro da janela de "Novos Programas".
+    ///
+    /// A regra do que e "novo" mora no nucleo
+    /// (<see cref="Discovery.NewInstallsTracker"/>); aqui so se pergunta.
+    /// </summary>
+    public bool HighlightNewPrograms { get; set; }
+
+    /// <summary>
     /// O prefixo que marca o texto de busca como expressao regular.
     ///
     /// O texto "regex:^Steam" filtra por expressao regular; sem o prefixo,
@@ -516,6 +524,12 @@ public sealed class ProgramFilterSet
             return regra.ColorKey;
         }
 
+        // O realce do programa novo vem depois das regras: uma regra que a
+        // pessoa escreveu tem a palavra final. A REGRA do que e "novo" mora
+        // no nucleo (Discovery.NewInstallsTracker.IsRecent).
+        if (HighlightNewPrograms && Discovery.NewInstallsTracker.IsRecent(program))
+            return HighlightPalette.Accent;
+
         return null;
     }
 
@@ -529,6 +543,7 @@ public sealed class ProgramFilterSet
         && !OnlyWithComments
         && !OnlyWithGroups
         && !OnlyRarelyUsed
+        && !HighlightNewPrograms
         && ExcludedTerms.Count == 0
         && Highlights.Count == 0;
 
@@ -543,6 +558,7 @@ public sealed class ProgramFilterSet
         OnlyWithComments = false;
         OnlyWithGroups = false;
         OnlyRarelyUsed = false;
+        HighlightNewPrograms = false;
         ExcludedTerms.Clear();
         Highlights.Clear();
         InvalidateQuery();

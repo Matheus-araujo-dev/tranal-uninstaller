@@ -131,10 +131,12 @@ public partial class SettingsSidebar : UserControl
             OnlyCommentsCheck.IsChecked = _filters.OnlyWithComments;
             OnlyGroupsCheck.IsChecked = _filters.OnlyWithGroups;
             OnlyRarelyUsedCheck.IsChecked = _filters.OnlyRarelyUsed;
+        HighlightNewProgramsCheck.IsChecked = _filters.HighlightNewPrograms;
 
             // Os rotulos com chave nova no catalogo vem do codigo, para que
             // a troca de idioma tambem os atualize.
             OnlyRarelyUsedCheck.Content = Loc.Get("Sidebar.Filter.OnlyRarelyUsed");
+        HighlightNewProgramsCheck.Content = Loc.Get("Sidebar.Filter.HighlightNewPrograms");
             CustomToolsButton.Content = Loc.Get("Options.ManageCustomTools");
 
             _swatches.Clear();
@@ -283,6 +285,21 @@ public partial class SettingsSidebar : UserControl
     /// A tela mora em <see cref="ToolViews"/>; o painel e so a porta de
     /// entrada.
     /// </summary>
+    /// <summary>
+    /// Realca os programas recem-instalados.
+    ///
+    /// A regra do que e "novo" mora no nucleo
+    /// (<see cref="Core.Discovery.NewInstallsTracker"/>); o painel so
+    /// entrega o pedido.
+    /// </summary>
+    private void HighlightNewProgramsCheck_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+
+        _filters.HighlightNewPrograms = HighlightNewProgramsCheck.IsChecked == true;
+        RaiseChanged();
+    }
+
     private void CustomToolsButton_Click(object sender, RoutedEventArgs e)
     {
         ToolViews.ShowTool(Window.GetWindow(this),

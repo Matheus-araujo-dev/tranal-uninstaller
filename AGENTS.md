@@ -713,6 +713,42 @@ precisaram, e uma delas era um **bug de verdade**.
   do catalogo. Um RECON novo nao apaga o historico dos outros — ele mede de
   novo, com a data dele.
 
+## A memória da grade e a coluna de comando (regra do núcleo)
+
+Este lote tem um tema só: **a lista que a pessoa usa todo dia**. Duas
+funcionalidades do Uninstall Tool foram fechadas, e a medição da lista na tela
+encontrou um defeito que era **anterior** ao lote.
+
+- **A memória da grade mora em um lugar só**:
+  `Core/Appearance/ProgramColumnMemory.cs` — `Order` (`:48`), `Read` (`:107`),
+  `WidthOf` (`:130`), `NamesOf` (`:141`), `WidthsOf` (`:151`). Quem aplica a
+  memória na tela e quem grava o que a pessoa mudou consomem este módulo; a
+  lista de colunas continua vindo do catálogo (`ProgramListLayout`), e o que a
+  pessoa ajustou é uma camada por cima, nunca uma segunda lista de colunas.
+- **A coluna de comando não é uma coluna do catálogo**: a coluna das caixas de
+  seleção (o "Show check boxes in Details view", Revo 15334) entra na grade
+  antes de todas, mas não conta no mapa das colunas. A regra está no núcleo:
+  `ProgramListLayout.CommandColumns` (`:48`) e `ProgramColumnMemory.IdAt`
+  (`:87`). MEDIDO: o mapa contava essa coluna, e por isso cada cabeçalho
+  mostrava o nome da coluna seguinte (o cabeçalho "Tamanho" ficava sobre o nome
+  do programa) e cada coluna recebia a largura da outra — o que também
+  contaminava a memória de larguras que este lote gravava.
+- **A coluna muda de lugar dentro da grade que está na tela**
+  (`MainWindow.xaml.cs` — `MoveColumn`, `:940`, e `MoverColunaNaGrade`, `:966`):
+  trocar a grade inteira deixaria as linhas com o desenho antigo.
+- **A ordenação também é lembrada**: o clique no cabeçalho grava a coluna e o
+  sentido (`ColumnHeader_Click`, `:738`) e o arranque reaplica
+  (`ApplySavedSort`, `:769`).
+- **"Programa novo" são duas regras nomeadas, no mesmo módulo**:
+  `Core/Discovery/NewInstallsTracker.cs` — `Cutoff` (`:183`) e `IsRecent`
+  (`:204`): a janela de dias, com a meia-noite (o dia inteiro conta). O grupo
+  da lista (`Ui/ProgramRow.cs` — `Group`, `:125`) e o realce
+  (`Core/Appearance/ProgramFilters.cs` — `HighlightColorOf`, `:515`) consomem a
+  **mesma** regra: é o que impede que o grupo e o realce discordem.
+- **A rodada do lote tem RECON próprio**:
+  `docs/auditoria/RECON-LOTE35-2026-11-10.md`, no fim da cadeia
+  (`tools/auditoria/rodar-cadeia.ps1`).
+
 ## A assinatura do desinstalador e o comando do usuário (regra do núcleo)
 
 - **A regra do executável do desinstalador mora em um lugar só**:

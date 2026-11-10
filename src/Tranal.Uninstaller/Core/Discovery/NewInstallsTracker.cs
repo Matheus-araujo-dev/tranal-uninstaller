@@ -144,8 +144,7 @@ public static class NewInstallsTracker
                 .ToList();
         }
 
-        var janela = Math.Max(1, days ?? Settings.AppSettingsStore.Current.NewProgramsDays);
-        var corte = DateTime.Now.AddDays(-janela);
+        var corte = Cutoff(days);
 
         return lista
             .Where(p => p.InstallDateValue is { } data && data >= corte)
@@ -156,22 +155,57 @@ public static class NewInstallsTracker
     /// <summary>
     /// O programa e novo? Mesma regra de <see cref="Detect"/>, para um
     /// programa so.
+    ///
+    /// O sinal e a **linha de base**: o que apareceu depois da ultima vez que
+    /// o Tranal olhou. E o sinal mais forte que existe — mas ele e do
+    /// rastreio de instalacoes, nao da lista.
     /// </summary>
     /// <param name="program">O programa.</param>
     public static bool IsNew(InstalledProgram? program)
     {
         if (program is null) return false;
 
-        var baseline = ReadBaseline();
-        if (baseline is not null)
-        {
-            var conhecidos = new HashSet<string>(baseline.Keys, StringComparer.OrdinalIgnoreCase);
-            return !conhecidos.Contains(KeyOf(program));
-        }
+        var conhecidos = KnownKeys();
+        if (conhecidos is not null) return !conhecidos.Contains(KeyOf(program));
 
-        var janela = Math.Max(1, Settings.AppSettingsStore.Current.NewProgramsDays);
+        return IsRecent(program);
+    }
+
+    /// <summary>
+    /// O corte da janela de "Novos Programas": a meia-noite de (hoje - janela).
+    ///
+    /// O dia inteiro conta: um programa instalado ontem continua novo hoje
+    /// de manha. E a mesma janela que o Revo usa (medido).
+    /// </summary>
+    /// <param name="days">
+    /// A janela em dias. Nulo usa a janela das preferencias.
+    /// </param>
+    public static DateTime Cutoff(int? days = null)
+    {
+        var janela = Math.Max(1, days ?? Settings.AppSettingsStore.Current.NewProgramsDays);
         var corte = DateTime.Now.AddDays(-janela);
-        return program.InstallDateValue is { } data && data >= corte;
+        return new DateTime(corte.Year, corte.Month, corte.Day);
+    }
+
+    /// <summary>
+    /// O programa foi instalado dentro da janela de "Novos Programas"?
+    ///
+    /// E a REGRA da janela, em um lugar so: a coluna "Grupo" da lista e o
+    /// realce do programa novo consomem esta resposta, e nunca discordam
+    /// sobre o que e "novo".
+    ///
+    /// A linha de base (<see cref="IsNew"/>) e um sinal mais forte, do
+    /// rastreio de instalacoes; a janela e o que a lista mostra.
+    /// </summary>
+    /// <param name="program">O programa.</param>
+    /// <param name="days">
+    /// A janela em dias. Nulo usa a janela das preferencias.
+    /// </param>
+    public static bool IsRecent(InstalledProgram? program, int? days = null)
+    {
+        if (program is null) return false;
+
+        return program.InstallDateValue is { } data && data >= Cutoff(days);
     }
 
     /// <summary>Apaga a linha de base: depois disso, o sinal volta a ser a data.</summary>
@@ -180,6 +214,10 @@ public static class NewInstallsTracker
         try
         {
             if (File.Exists(BaselineFilePath)) File.Delete(BaselineFilePath);
+
+            _baseline = null;
+            _baselineKeys = null;
+
             return true;
         }
         catch
@@ -208,17 +246,53 @@ public static class NewInstallsTracker
         program.InstallDateValue,
         fromBaseline);
 
+    /// <summary>
+    /// A linha de base em memoria, e a hora em que o arquivo foi escrito.
+    ///
+    /// A lista pergunta o sinal do "programa novo" para cada linha: reler o
+    /// arquivo a cada linha travaria a janela. O cache e invalidado quando
+    /// o arquivo muda.
+    /// </summary>
+    private static InstallBaseline? _baseline;
+
+    private static DateTime _baselineWrite;
+
+    private static HashSet<string>? _baselineKeys;
+
+    /// <summary>
+    /// As chaves conhecidas da linha de base (null quando nao ha linha de
+    /// base).
+    /// </summary>
+    private static HashSet<string>? KnownKeys()
+    {
+        ReadBaseline();
+        return _baselineKeys;
+    }
+
     private static InstallBaseline? ReadBaseline()
     {
         try
         {
-            if (!File.Exists(BaselineFilePath)) return null;
+            if (!File.Exists(BaselineFilePath))
+            {
+                _baseline = null;
+                _baselineKeys = null;
+                return null;
+            }
+
+            var escrita = File.GetLastWriteTimeUtc(BaselineFilePath);
+            if (_baseline is not null && escrita == _baselineWrite) return _baseline;
 
             var json = File.ReadAllText(BaselineFilePath);
             var loaded = JsonSerializer.Deserialize<InstallBaseline>(json);
             if (loaded is null) return null;
 
             loaded.Keys ??= new List<string>();
+
+            _baseline = loaded;
+            _baselineWrite = escrita;
+            _baselineKeys = new HashSet<string>(loaded.Keys, StringComparer.OrdinalIgnoreCase);
+
             return loaded;
         }
         catch

@@ -1228,7 +1228,7 @@
                                                          "funcionalidade":  "Atalhos de teclado e cópia de informações da entrada",
                                                          "evidencia":  "`fullInformationCopyContextMenuStripItem` (`bcu.strings.txt:5429`), `GlobalHotkeys` (`:6715`), `GetHotkeyList` (`:6918`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:832`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:107` (`PreviewKeyDown`) e `:1702` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep \"RegisterHotKey/Hotkey/GlobalHotkey\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`)"
+                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:831`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:124` (`PreviewKeyDown`) e `:1702` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep \"RegisterHotKey/Hotkey/GlobalHotkey\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`)"
                                                      },
                                                      {
                                                          "numero":  77,
@@ -1260,7 +1260,7 @@
                                                          "funcionalidade":  "Linha de comando **antes/depois** e \"executar aplicativos externos\" (desabilitável)",
                                                          "evidencia":  "`checkBoxEnableExternal` (`bcu.strings.txt:5310`), `groupBoxExternal` (`:5311`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`); executar o comando do usuario pela propria tela: `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:67` (`RunButton_Click`), com a saida em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml:38` (`CommandsOutput`); a opcao desabilitavel: `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:123` (`AllowRunningUserCommands`), marcada em `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml:139` (`OptAllowUserCommands`) e aplicada em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:49`. Medido: `tools/test-lote30.ps1` -\u003e o botao de executar existe na tela real."
+                                                         "estadoTexto":  "**OK** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`); executar o comando do usuario pela propria tela: `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:67` (`RunButton_Click`), com a saida em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml:38` (`CommandsOutput`); a opcao desabilitavel: `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:150` (`AllowRunningUserCommands`), marcada em `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml:139` (`OptAllowUserCommands`) e aplicada em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:49`. Medido: `tools/test-lote30.ps1` -\u003e o botao de executar existe na tela real."
                                                      },
                                                      {
                                                          "numero":  81,
@@ -1308,7 +1308,7 @@
                                                          "funcionalidade":  "**Modificar a instalação** (reparo / alterar instalação)",
                                                          "evidencia":  "literal \"Modify application\" (`bcu.strings.txt:9070`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Modificar a instalação** (reparo / alterar instalação)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1724` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
+                                                         "estadoTexto":  "**OK** - **Modificar a instalação** (reparo / alterar instalação)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1912` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
                                                      },
                                                      {
                                                          "numero":  87,
@@ -1419,7 +1419,7 @@
                                                          "funcionalidade":  "Total agregado no rodapé (\"%d programs of %s size in total\")",
                                                          "evidencia":  "literal `\u003cstatusTotalInfo\u003e%d programs of %s size in total\u003c/statusTotalInfo\u003e` (`geek.strings.txt:4639`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Total agregado no rodapé (\"%d programs of %s size in total\")/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:147` (`public static class ProgramTotalsCalculator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:411` (`ProgramTotalsCalculator.Compute`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:413` (`totais.Text`) o rodapé mostra a contagem E o tamanho total;"
+                                                         "estadoTexto":  "**OK** - Total agregado no rodapé (\"%d programs of %s size in total\")/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:147` (`public static class ProgramTotalsCalculator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:428` (`ProgramTotalsCalculator.Compute`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:414` (`totais.Text`) o rodapé mostra a contagem E o tamanho total;"
                                                      },
                                                      {
                                                          "numero":  3,
@@ -1467,7 +1467,7 @@
                                                          "funcionalidade":  "**Force Removal** — remoção sem executar o desinstalador, com confirmação",
                                                          "evidencia":  "`MainMenu/mnuActionDelete` (`geek.strings.txt:1170`), literal `\u003cmnuActionDelete\u003e\u0026amp;Force Removal\u003c/mnuActionDelete\u003e` (`:4554`), `\u003cmsgForceRemovalQuestion\u003e` (`:4611`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - `Ui/ForcedUninstallWindow.xaml.cs` + `Core/Automation/ForcedRemovalOptions.cs`; acao na UI em `MainWindow.xaml.cs:1135` (`Cmd.ForcedUninstall`), confirmacao em `:1736`"
+                                                         "estadoTexto":  "**OK** - `Ui/ForcedUninstallWindow.xaml.cs` + `Core/Automation/ForcedRemovalOptions.cs`; acao na UI em `MainWindow.xaml.cs:1315` (`Cmd.ForcedUninstall`), confirmacao em `:1736`"
                                                      },
                                                      {
                                                          "numero":  9,
@@ -1539,7 +1539,7 @@
                                                          "funcionalidade":  "**Reset Columns**",
                                                          "evidencia":  "`MainMenu/mnuViewListColumnsReset` (`geek.strings.txt:1085`), literal `\u003cmnuViewListColumnsReset\u003eReset Columns\u003c/mnuViewListColumnsReset\u003e` (`:4569`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - `Ui/ColumnsWindow.xaml.cs:78` monta a lista de colunas; acao na UI em `MainWindow.xaml.cs:1400` (`CmdColumns`)"
+                                                         "estadoTexto":  "**OK** - `Ui/ColumnsWindow.xaml.cs:78` monta a lista de colunas; acao na UI em `MainWindow.xaml.cs:1366` (`CmdColumns`)"
                                                      },
                                                      {
                                                          "numero":  18,
@@ -1563,7 +1563,7 @@
                                                          "funcionalidade":  "**Exportação em HTML** (\"Generated by %s on %s\", \"Installed Programs (%s)\")",
                                                          "evidencia":  "`HTMLReport/installedPrograms` (`geek.strings.txt:1257`), literal `\u003cinstalledPrograms\u003eInstalled Programs (%s)\u003c/installedPrograms\u003e` (`:4632`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - `Core/Exporters.cs:63` gera o HTML da lista; `Core/Reporting/ReportFormats.cs:86` e o formato de relatorio; UI em `MainWindow.xaml.cs:2165` (`Cmd.ExportHtml`)"
+                                                         "estadoTexto":  "**OK** - `Core/Exporters.cs:63` gera o HTML da lista; `Core/Reporting/ReportFormats.cs:86` e o formato de relatorio; UI em `MainWindow.xaml.cs:2353` (`Cmd.ExportHtml`)"
                                                      },
                                                      {
                                                          "numero":  21,
@@ -1667,7 +1667,7 @@
                                                          "funcionalidade":  "**Correspondência aproximada (Levenshtein)** de caminho de instalação",
                                                          "evidencia":  "literal `GetInstallLocationFromPathLevinshtein ({})` (`geek.strings.txt:12640`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Correspondência aproximada (Levenshtein)** de caminho de instalação/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:593` (`FuzzyMatch.IsMatch`) **Nota**: a distancia de edicao existe e e usada na busca por nome do programa, mas nao na comparacao de caminho de instalacao."
+                                                         "estadoTexto":  "**PARCIAL** - **Correspondência aproximada (Levenshtein)** de caminho de instalação/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:609` (`FuzzyMatch.IsMatch`) **Nota**: a distancia de edicao existe e e usada na busca por nome do programa, mas nao na comparacao de caminho de instalacao."
                                                      },
                                                      {
                                                          "numero":  34,
@@ -1755,7 +1755,7 @@
                                                          "funcionalidade":  "**\"Nenhum programa nesta categoria\"**",
                                                          "evidencia":  "literal `\u003cstaticNoProgramsInCategory\u003eSeems like no Microsoft Store apps installed\u003c/staticNoProgramsInCategory\u003e` (`geek.strings.txt:4585`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **\"Nenhum programa nesta categoria\"**/`src/Tranal.Uninstaller/MainWindow.xaml.cs:404` (`Status.NoProgramsInCategory`) o rodapé avisa quando a lista da categoria esta vazia;"
+                                                         "estadoTexto":  "**OK** - **\"Nenhum programa nesta categoria\"**/`src/Tranal.Uninstaller/MainWindow.xaml.cs:421` (`Status.NoProgramsInCategory`) o rodapé avisa quando a lista da categoria esta vazia;"
                                                      }
                                                  ]
                          },
@@ -1770,7 +1770,7 @@
                                                          "funcionalidade":  "Lista com colunas: Nome, Versão, Editor, Data, Tamanho, Tipo, Comentários, String de desinstalação, Pasta de instalação, Site, Entrada de registro",
                                                          "evidencia":  "`hibit.recursos.txt:191` -\u003e `TUNINSTALLER/0` (formulário principal); `hibit.recursos.txt:192` -\u003e `TUNINSTALLFORM/0`; `hibit.recursos.txt:159` -\u003e `TEDITINFOFORM/0`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Core/ProgramColumns.cs:9-120` (24 colunas no catalogo) e `:187-218` (o catalogo de colunas), `:253` (`Value`, a mesma interpretacao da tela e da exportacao); grade montada em `src/Tranal.Uninstaller/MainWindow.xaml.cs:583`. **Nota**: **a \"Pasta de instalacao\" nao e coluna da grade** — nao existe `ProgramColumn` para a pasta do programa (o catalogo tem `UninstallerLocation`, que e o caminho do desinstalador, em `:57`); a pasta do programa vive no formatador de texto, no filtro e no detalhe. Binario do concorrente: `hibit.recursos.txt:191`"
+                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Core/ProgramColumns.cs:9-120` (24 colunas no catalogo) e `:187-218` (o catalogo de colunas), `:253` (`Value`, a mesma interpretacao da tela e da exportacao); grade montada em `src/Tranal.Uninstaller/MainWindow.xaml.cs:582`. **Nota**: **a \"Pasta de instalacao\" nao e coluna da grade** — nao existe `ProgramColumn` para a pasta do programa (o catalogo tem `UninstallerLocation`, que e o caminho do desinstalador, em `:57`); a pasta do programa vive no formatador de texto, no filtro e no detalhe. Binario do concorrente: `hibit.recursos.txt:191`"
                                                      },
                                                      {
                                                          "numero":  2,
@@ -1842,7 +1842,7 @@
                                                          "funcionalidade":  "**Deletar entrada** do registro do programa",
                                                          "evidencia":  "`hibit.recursos.txt:192` -\u003e `TUNINSTALLFORM/0`; `hibit.inventario.md:13432` -\u003e `RegDeleteKey` - Remove chaves de registro",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Deletar entrada** do registro do programa/`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1171` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:26` (`/remove-entries`). A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`:109`) delega para a acao em lote (`:136`), e as duas passam pela mesma remocao (`RegistryBatchRemover`, `:121`), que respeita a chave protegida e a visao do registro do programa (`:85`). **Nao desinstala nada**: o programa continua instalado, e a confirmacao da tela e o aviso da linha de comando dizem isso. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa e o menu \"Mais comandos\" mostra a acao."
+                                                         "estadoTexto":  "**OK** - **Deletar entrada** do registro do programa/`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1351` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:26` (`/remove-entries`). A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`:109`) delega para a acao em lote (`:136`), e as duas passam pela mesma remocao (`RegistryBatchRemover`, `:121`), que respeita a chave protegida e a visao do registro do programa (`:85`). **Nao desinstala nada**: o programa continua instalado, e a confirmacao da tela e o aviso da linha de comando dizem isso. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa e o menu \"Mais comandos\" mostra a acao."
                                                      },
                                                      {
                                                          "numero":  11,
@@ -1970,7 +1970,7 @@
                                                          "funcionalidade":  "Botão **Doar** (adicionado na 4.0.10)",
                                                          "evidencia":  "**não confirmado no binario**",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - o botao de apoio na janela principal `MainWindow.xaml.cs:125`"
+                                                         "estadoTexto":  "**OK** - o botao de apoio na janela principal `MainWindow.xaml.cs:124`"
                                                      },
                                                      {
                                                          "numero":  63,
@@ -1994,7 +1994,7 @@
                                                          "funcionalidade":  "Contadores na barra de status: total de programas **e tamanho total ocupado** (\"Total: 79 Unidade\", \"Tamanho: 610 GB\")",
                                                          "evidencia":  "`hibit.inventario.md:13485` -\u003e `Size` - Mede tamanho em disco",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - A barra de status existe e mostra a **contagem**: `src/Tranal.Uninstaller/MainWindow.xaml.cs:339` (`UpdateStatus`) e `:221` (`Status.Installations`), com o filtro aplicado em `:222`. **Nota**: o **tamanho total** foi implementado no nucleo (`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:148` `ProgramTotalsCalculator.Compute` e `:129` `ProgramTotals.Text`), mas esse calculo **so tem consumidor de teste** (`src/Tranal.Tests/InsightsAndRelocationTests.cs:101`): `grep \"ProgramTotalsCalculator\" em src/` -\u003e 3 hits, todos no nucleo ou no teste — **a barra de status nao mostra o tamanho**. Binario do concorrente: `hibit.inventario.md:13485`"
+                                                         "estadoTexto":  "**PARCIAL** - A barra de status existe e mostra a **contagem**: `src/Tranal.Uninstaller/MainWindow.xaml.cs:356` (`UpdateStatus`) e `:221` (`Status.Installations`), com o filtro aplicado em `:222`. **Nota**: o **tamanho total** foi implementado no nucleo (`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:148` `ProgramTotalsCalculator.Compute` e `:129` `ProgramTotals.Text`), mas esse calculo **so tem consumidor de teste** (`src/Tranal.Tests/InsightsAndRelocationTests.cs:101`): `grep \"ProgramTotalsCalculator\" em src/` -\u003e 3 hits, todos no nucleo ou no teste — **a barra de status nao mostra o tamanho**. Binario do concorrente: `hibit.inventario.md:13485`"
                                                      },
                                                      {
                                                          "numero":  66,
@@ -2074,7 +2074,7 @@
                                                          "funcionalidade":  "**Backups \u0026 Reports**",
                                                          "evidencia":  "`hibit.recursos.txt:149` -\u003e `TBACKUPFORM/0`; `:148` -\u003e `TBACKUPDETAILSFORM/0`; `:164` -\u003e `TEXPORTFORM/0`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Painel de backup em `Ui/BackupManagerWindow.xaml.cs`; painel de relatorio em `Ui/Reporting/ReportingWindow.xaml.cs`; atalhos de menu em `MainWindow.xaml.cs:750` e `:914`"
+                                                         "estadoTexto":  "**OK** - Painel de backup em `Ui/BackupManagerWindow.xaml.cs`; painel de relatorio em `Ui/Reporting/ReportingWindow.xaml.cs`; atalhos de menu em `MainWindow.xaml.cs:749` e `:914`"
                                                      },
                                                      {
                                                          "numero":  76,
@@ -3144,7 +3144,7 @@
                                                          "funcionalidade":  "**Configuração completa de MSI** (instalar, modificar, reparar)",
                                                          "evidencia":  "`imports.txt:74` → `msi.dll / MsiConfigureProductW`, `MsiSetExternalUIW`, `MsiSetInternalUI`, `MsiEnumProductsExW`, `MsiQueryProductStateW`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1724` (`CmdModifyProgram`), `:2366` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao \"Modificar\" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por \"MsiConfigureProduct\" nao encontra em `src/`."
+                                                         "estadoTexto":  "**PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1912` (`CmdModifyProgram`), `:2366` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao \"Modificar\" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por \"MsiConfigureProduct\" nao encontra em `src/`."
                                                      },
                                                      {
                                                          "numero":  66,
@@ -3495,7 +3495,7 @@
                                                          "funcionalidade":  "Opção de **não usar o log de mudanças detectadas** (\"Don\u0027t use detected changes log\")",
                                                          "evidencia":  "`inventario.md:167` → `Don\u0027t use detected changes log`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Opção de **não usar o log de mudanças detectadas** (\"Don\u0027t use detected changes log\")/a preferencia do log `Core/Settings/AppSettings.cs:424`"
+                                                         "estadoTexto":  "**OK** - Opção de **não usar o log de mudanças detectadas** (\"Don\u0027t use detected changes log\")/a preferencia do log `Core/Settings/AppSettings.cs:423`"
                                                      },
                                                      {
                                                          "numero":  63,
@@ -3719,7 +3719,7 @@
                                                          "funcionalidade":  "Limite de tamanho da pasta de backup (\"Backup folder limit (MB)\")",
                                                          "evidencia":  "`inventario.md:55` → `Backup folder limit (MB)`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Limite de tamanho da pasta de backup (\"Backup folder limit (MB)\")/`src/Tranal.Uninstaller/Core/Recovery/SnapshotLimits.cs:49` (`Enforce`), `:113` (`FolderSize`), `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:419` (`MaxSnapshotSizeMb`), `src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:160` (a chamada depois de cada backup gravado)"
+                                                         "estadoTexto":  "**OK** - Limite de tamanho da pasta de backup (\"Backup folder limit (MB)\")/`src/Tranal.Uninstaller/Core/Recovery/SnapshotLimits.cs:49` (`Enforce`), `:113` (`FolderSize`), `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:446` (`MaxSnapshotSizeMb`), `src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:160` (a chamada depois de cada backup gravado)"
                                                      },
                                                      {
                                                          "numero":  35,
@@ -3879,7 +3879,7 @@
                                                          "funcionalidade":  "**Customização dos botões da barra** e legendas dos botões",
                                                          "evidencia":  "`strings.txt:16594` → `Add or Remove Buttons`; `strings.txt:16995` → `Button caption`; `strings.txt:16996` → `(Show or hide the toolbar button captions`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Customização dos botões da barra** e legendas dos botões/`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:500` (`public static class AppSettings`) **Nota**: existe mostrar/ocultar as duas barras; nao ha adicionar/remover botao nem editar legenda."
+                                                         "estadoTexto":  "**PARCIAL** - **Customização dos botões da barra** e legendas dos botões/`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:527` (`public static class AppSettings`) **Nota**: existe mostrar/ocultar as duas barras; nao ha adicionar/remover botao nem editar legenda."
                                                      },
                                                      {
                                                          "numero":  80,
@@ -4037,8 +4037,8 @@
                                                          "id":  "T1#4",
                                                          "funcionalidade":  "Ordenação por qualquer coluna, com largura e posição **memorizadas**",
                                                          "evidencia":  "nao confirmado no binario",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Ordenação por qualquer coluna, com largura e posição **memorizadas**/`src/Tranal.Uninstaller/MainWindow.xaml.cs:87` (`ProgramsList`) **Nota**: a ordenacao por qualquer coluna existe; a largura e a posicao nao sao memorizadas — so as colunas escondidas vao para `AppSettings`."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Ordenacao por qualquer coluna, com largura e posicao **memorizadas**/A memoria da grade mora no nucleo, em um lugar so: `src/Tranal.Uninstaller/Core/Appearance/ProgramColumnMemory.cs:48` (`Order`) - a ordem que a pessoa deixou vale e as colunas que apareceram depois vao para o fim; `src/Tranal.Uninstaller/Core/Appearance/ProgramColumnMemory.cs:107` (`Read`) - a largura guardada, com a invalida descartada; `src/Tranal.Uninstaller/Core/Appearance/ProgramColumnMemory.cs:130` (`WidthOf`) - a largura final. O arquivo de preferencias guarda a memoria: `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:102` (`ColumnOrder`) e `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:110` (`ColumnWidths`); a ordenacao escolhida tambem: `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:116` (`SortColumn`) e `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:119` (`SortAscending`). A janela aplica a memoria ao montar a grade, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:644` (`BuildProgramColumns`), ordena por qualquer coluna no clique do cabecalho, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:738` (`ColumnHeader_Click`), e reaplica a ordenacao guardada, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:769` (`ApplySavedSort`). A coluna muda de lugar pelo menu do cabecalho, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:940` (`MoveColumn`) e `src/Tranal.Uninstaller/MainWindow.xaml.cs:966` (`MoverColunaNaGrade`), e a largura real e a posicao sao gravadas, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:992` (`RememberColumnWidths`) e `src/Tranal.Uninstaller/MainWindow.xaml.cs:1012` (`SaveColumnMemory`). MEDIDO: o mapa das colunas contava a coluna das caixas de selecao, que e um comando e nao uma coluna do catalogo; por isso cada cabecalho mostrava o nome da coluna seguinte e cada coluna recebia a largura da outra. A regra do mapa esta no nucleo, em `src/Tranal.Uninstaller/Core/Appearance/ProgramColumnMemory.cs:87` (`IdAt`) e `src/Tranal.Uninstaller/Core/Appearance/ProgramListLayout.cs:48` (`CommandColumns`)."
                                                      },
                                                      {
                                                          "numero":  5,
@@ -4069,8 +4069,8 @@
                                                          "id":  "T1#8",
                                                          "funcionalidade":  "Data de instalação por item, com destaque para \"recentemente instalado\"",
                                                          "evidencia":  "`strings.txt:14234` → `\u003ccheckHighlighRecent\u003eHighlight recently installed programs\u003c/checkHighlighRecent\u003e`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Data de instalação por item, com destaque para \"recentemente instalado\"/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:21` (`public static class RelativeDate`) **Nota**: a data em tempo relativo existe; o realce dos recem-instalados nao."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Data de instalacao por item, com destaque para \"recentemente instalado\"/A janela de dias e uma regra so, no nucleo: `src/Tranal.Uninstaller/Core/Discovery/NewInstallsTracker.cs:183` (`Cutoff`) - a meia-noite, o dia inteiro conta; `src/Tranal.Uninstaller/Core/Discovery/NewInstallsTracker.cs:204` (`IsRecent`) - o que e recente. O realce consome a MESMA regra, em `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:212` (`HighlightNewPrograms`) e `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:515` (`HighlightColorOf`); o grupo da lista também, em `src/Tranal.Uninstaller/Ui/ProgramRow.cs:125` (`Group`). A tela liga o botao do realce, em `src/Tranal.Uninstaller/Ui/Appearance/SettingsSidebar.xaml.cs:295` (`HighlightNewProgramsCheck_Click`). MEDIDO: o grupo e o realce nao podem discordar - eles consomem a mesma regra do nucleo."
                                                      },
                                                      {
                                                          "numero":  9,
@@ -4086,7 +4086,7 @@
                                                          "funcionalidade":  "**Modify** — tela de modificação de componentes",
                                                          "evidencia":  "`strings.txt:4953` → `MainMenu/mnuActionModify`; `:14050` → `\u003cmnuActionModify\u003e\u0026amp;Modify...\u003c/mnuActionModify\u003e`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1724` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
+                                                         "estadoTexto":  "**OK** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1912` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
                                                      },
                                                      {
                                                          "numero":  11,
@@ -4254,7 +4254,7 @@
                                                          "funcionalidade":  "Preferência: sempre rodar / nunca rodar / perguntar",
                                                          "evidencia":  "`strings.txt:4726` → `DlgPreferences/comboItemWizardOption1`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Preferência: sempre rodar / nunca rodar / perguntar/preferencia `Core/Settings/AppSettings.cs:382`; a regra dos modos `Core/Settings/AppSettings.cs:366`"
+                                                         "estadoTexto":  "**OK** - Preferência: sempre rodar / nunca rodar / perguntar/preferencia `Core/Settings/AppSettings.cs:381`; a regra dos modos `Core/Settings/AppSettings.cs:366`"
                                                      },
                                                      {
                                                          "numero":  32,
@@ -4262,7 +4262,7 @@
                                                          "funcionalidade":  "O Wizard **sempre roda** para programas rastreados",
                                                          "evidencia":  "nao confirmado no binario",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - O Wizard **sempre roda** para programas rastreados/preferencia `Core/Settings/AppSettings.cs:382`"
+                                                         "estadoTexto":  "**PARCIAL** - O Wizard **sempre roda** para programas rastreados/preferencia `Core/Settings/AppSettings.cs:381`"
                                                      },
                                                      {
                                                          "numero":  33,
@@ -4574,7 +4574,7 @@
                                                          "funcionalidade":  "**Realce dos programas recém-instalados**",
                                                          "evidencia":  "`strings.txt:14234` → `\u003ccheckHighlighRecent\u003eHighlight recently installed programs\u003c/checkHighlighRecent\u003e`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Realce dos programas recém-instalados**/a marca de programa novo `Core/Discovery/NewInstallsTracker.cs:161`"
+                                                         "estadoTexto":  "**OK** - **Realce dos programas recem-instalados**/O realce do programa recem-instalado usa a regra do nucleo, em um lugar so: `src/Tranal.Uninstaller/Core/Discovery/NewInstallsTracker.cs:204` (`IsRecent`) - a janela de dias. O filtro pinta o programa, em `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:515` (`HighlightColorOf`), e a tela liga o botao, em `src/Tranal.Uninstaller/Ui/Appearance/SettingsSidebar.xaml.cs:295` (`HighlightNewProgramsCheck_Click`)."
                                                      },
                                                      {
                                                          "numero":  72,
@@ -4606,7 +4606,7 @@
                                                          "funcionalidade":  "**Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável",
                                                          "evidencia":  "`strings.txt:18030` → `CCustomize application appearance, toolbars, and menus`; `:17811` → `Display toolbar buttons captions`; `:14217` → `\u003ccheckToolBarCaptions\u003e...`; `inventario.md:237` → `Customize Status Bar4(%s) was pressed...`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável/`src/Tranal.Uninstaller/Theming/ThemeManager.cs:41` (`public static class ThemeManager`) `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:500` (`public static class AppSettings`) **Nota**: a visibilidade das barras e os quatro temas existem; faltam as legendas nos botoes e a barra de status editavel."
+                                                         "estadoTexto":  "**PARCIAL** - **Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável/`src/Tranal.Uninstaller/Theming/ThemeManager.cs:41` (`public static class ThemeManager`) `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:527` (`public static class AppSettings`) **Nota**: a visibilidade das barras e os quatro temas existem; faltam as legendas nos botoes e a barra de status editavel."
                                                      },
                                                      {
                                                          "numero":  76,
@@ -4662,7 +4662,7 @@
                                                          "funcionalidade":  "**Lista compacta de aplicativos**",
                                                          "evidencia":  "`strings.txt:14219` → `\u003ccheckSmallIcons\u003eCompact list with apps\u003c/checkSmallIcons\u003e`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Lista compacta de aplicativos**/o modulo do formato da lista `Core/Appearance/ProgramListLayout.cs:16`; as colunas da lista compacta `Core/Appearance/ProgramListLayout.cs:22`; a fonte unica das colunas visiveis `Core/Appearance/ProgramListLayout.cs:59`; o consumo na grade `src/Tranal.Uninstaller/MainWindow.xaml.cs:631` e na impressao `src/Tranal.Uninstaller/MainWindow.xaml.cs:1480`"
+                                                         "estadoTexto":  "**OK** - **Lista compacta de aplicativos**/o modulo do formato da lista `Core/Appearance/ProgramListLayout.cs:16`; as colunas da lista compacta `Core/Appearance/ProgramListLayout.cs:22`; a fonte unica das colunas visiveis `Core/Appearance/ProgramListLayout.cs:59`; o consumo na grade `src/Tranal.Uninstaller/MainWindow.xaml.cs:630` e na impressao `src/Tranal.Uninstaller/MainWindow.xaml.cs:1480`"
                                                      },
                                                      {
                                                          "numero":  83,
@@ -4686,7 +4686,7 @@
                                                          "funcionalidade":  "**Painéis ancoráveis** (\"push pin\") com pré-visualização",
                                                          "evidencia":  "`inventario.md:169` → `Click push pin to keep open`; `:201` → `Close Preview`; `:203` → `Close Window`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Painéis ancoráveis** (\"push pin\") com pré-visualização/o modulo do painel ancorado `src/Tranal.Uninstaller/Core/Appearance/DockedPanel.cs:37` (`Toggle`); a pre-visualizacao `src/Tranal.Uninstaller/Core/Appearance/PanelPreview.cs:47` (`Publish`) e `src/Tranal.Uninstaller/Core/Appearance/PanelPreview.cs:65` (`Forget`); a janela `src/Tranal.Uninstaller/MainWindow.xaml:845` (`DockPanelBorder`) e `src/Tranal.Uninstaller/MainWindow.xaml.cs:1009` (`RefreshDock`); a linha de comando `src/Tranal.Cli/ExtraCommands.cs:116` (`/painel`); os testes `src/Tranal.Tests/Lote17FeatureTests.cs` e o teste de ponta a ponta `tools/test-painel-ancorado.ps1`. Binario do concorrente: `Click push pin to keep open`, `Close Preview`, `Close Window`."
+                                                         "estadoTexto":  "**OK** - **Painéis ancoráveis** (\"push pin\") com pré-visualização/o modulo do painel ancorado `src/Tranal.Uninstaller/Core/Appearance/DockedPanel.cs:37` (`Toggle`); a pre-visualizacao `src/Tranal.Uninstaller/Core/Appearance/PanelPreview.cs:47` (`Publish`) e `src/Tranal.Uninstaller/Core/Appearance/PanelPreview.cs:65` (`Forget`); a janela `src/Tranal.Uninstaller/MainWindow.xaml:845` (`DockPanelBorder`) e `src/Tranal.Uninstaller/MainWindow.xaml.cs:1089` (`RefreshDock`); a linha de comando `src/Tranal.Cli/ExtraCommands.cs:116` (`/painel`); os testes `src/Tranal.Tests/Lote17FeatureTests.cs` e o teste de ponta a ponta `tools/test-painel-ancorado.ps1`. Binario do concorrente: `Click push pin to keep open`, `Close Preview`, `Close Window`."
                                                      },
                                                      {
                                                          "numero":  86,
@@ -5045,7 +5045,7 @@
                                                          "funcionalidade":  "**Correspondência difusa (fuzzy)** de elementos e de termos de busca",
                                                          "evidencia":  "`GLOB_FuzzyElemsList` / `GLOB_FuzzyElemsBad` (`strings-uninstalr-own.txt:3932-3933`), `ExpandData_Files_Fuzzy` (`:6211`), `TApp.FFuzzyTermsAll` (`:6488`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - **Correspondência difusa (fuzzy)** de elementos e de termos de busca/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:593` (`FuzzyMatch.IsMatch`) a normalizacao sem acento, a distancia de edicao e a similaridade vivem em um lugar so, e o filtro da lista consome o veredito."
+                                                         "estadoTexto":  "**OK** - **Correspondência difusa (fuzzy)** de elementos e de termos de busca/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:609` (`FuzzyMatch.IsMatch`) a normalizacao sem acento, a distancia de edicao e a similaridade vivem em um lugar so, e o filtro da lista consome o veredito."
                                                      },
                                                      {
                                                          "numero":  36,
@@ -5133,7 +5133,7 @@
                                                          "funcionalidade":  "**Salvar posição da janela** e **filtros** entre sessões",
                                                          "evidencia":  "`Uninstaller.options-save-winpos`, `Uninstaller.options-save-filters` (`strings-uninstalr-own.txt:9805-9807`)",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Salvar posição da janela** e **filtros** entre sessões/`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:500` (`public static class AppSettings`) **Nota**: filtros e preferencias sao gravados em `settings.json`; a posicao e o tamanho da janela nao sao gravados — `AppSettings` nao tem campo de posicao."
+                                                         "estadoTexto":  "**PARCIAL** - **Salvar posição da janela** e **filtros** entre sessões/`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:527` (`public static class AppSettings`) **Nota**: filtros e preferencias sao gravados em `settings.json`; a posicao e o tamanho da janela nao sao gravados — `AppSettings` nao tem campo de posicao."
                                                      },
                                                      {
                                                          "numero":  47,
@@ -5212,7 +5212,7 @@
                                                          "funcionalidade":  "Lista separada de \"Componentes do Sistema\"",
                                                          "evidencia":  "`wise.recursos.txt:167` -\u003e `TMPTYPES/2052`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Lista separada de \"Componentes do Sistema\"/`src/Tranal.Uninstaller/Core/ProgramScanner.cs:33` (`IncludeSystemComponents`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:500` (`HiddenFilterCheck`) **Nota**: os componentes do sistema tem coluna propria e podem ser ocultados pela preferencia; nao ha lista separada."
+                                                         "estadoTexto":  "**PARCIAL** - Lista separada de \"Componentes do Sistema\"/`src/Tranal.Uninstaller/Core/ProgramScanner.cs:33` (`IncludeSystemComponents`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:517` (`HiddenFilterCheck`) **Nota**: os componentes do sistema tem coluna propria e podem ser ocultados pela preferencia; nao ha lista separada."
                                                      },
                                                      {
                                                          "numero":  5,
@@ -5236,7 +5236,7 @@
                                                          "funcionalidade":  "\"Modificar\" — reaproveita o instalador do programa",
                                                          "evidencia":  "`wise.recursos.txt:144` -\u003e `TFRMBEFOREUNISTALL/0`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - \"Modificar\" — reaproveita o instalador do programa/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1724` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
+                                                         "estadoTexto":  "**OK** - \"Modificar\" — reaproveita o instalador do programa/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1912` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
                                                      },
                                                      {
                                                          "numero":  8,
@@ -5244,7 +5244,7 @@
                                                          "funcionalidade":  "\"Remover Entradas\" — tira o programa da lista **sem** desinstalar",
                                                          "evidencia":  "`wise.recursos.txt:144` -\u003e `TFRMBEFOREUNISTALL/0`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - \"Remover Entradas\" — tira o programa da lista **sem** desinstalar/`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1171` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:26` (`/remove-entries`). A acao existe avulsa (menu de contexto) e em lote (menu \"Mais comandos\"), com a confirmacao que diz que o programa **nao** e desinstalado. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao."
+                                                         "estadoTexto":  "**OK** - \"Remover Entradas\" — tira o programa da lista **sem** desinstalar/`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1351` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:26` (`/remove-entries`). A acao existe avulsa (menu de contexto) e em lote (menu \"Mais comandos\"), com a confirmacao que diz que o programa **nao** e desinstalado. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao."
                                                      },
                                                      {
                                                          "numero":  9,
@@ -5380,7 +5380,7 @@
                                                          "funcionalidade":  "Tela de **Restauração do Sistema**, com \"Restaurar\" e \"Apagar\"",
                                                          "evidencia":  "`wise.recursos.txt:158` -\u003e `TFRMRESTORE/0`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Tela de **Restauração do Sistema**, com \"Restaurar\" e \"Apagar\"/`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:51` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1769` (`SystemNavigator`) **Nota**: a Recuperacao do Sistema do Windows e aberta pelo menu de contexto e a tela de backups restaura e apaga os pontos do Tranal; falta \"Apagar\" de ponto de restauracao do Windows."
+                                                         "estadoTexto":  "**PARCIAL** - Tela de **Restauração do Sistema**, com \"Restaurar\" e \"Apagar\"/`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:51` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1957` (`SystemNavigator`) **Nota**: a Recuperacao do Sistema do Windows e aberta pelo menu de contexto e a tela de backups restaura e apaga os pontos do Tranal; falta \"Apagar\" de ponto de restauracao do Windows."
                                                      },
                                                      {
                                                          "numero":  26,
@@ -5548,7 +5548,7 @@
                                                          "funcionalidade":  "Registro de \"última análise\"",
                                                          "evidencia":  "`wise.recursos.txt:146` -\u003e `TFRMCLEANPAGE/0`",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Registro de \"última análise\"/o registro da ultima varredura `Core/Settings/AppSettings.cs:354` (`LastScanAt`); a gravacao da varredura `Core/Settings/AppSettings.cs:586` (`RecordScan`)"
+                                                         "estadoTexto":  "**OK** - Registro de \"última análise\"/o registro da ultima varredura `Core/Settings/AppSettings.cs:381` (`LastScanAt`); a gravacao da varredura `Core/Settings/AppSettings.cs:613` (`RecordScan`)"
                                                      },
                                                      {
                                                          "numero":  47,
@@ -5652,7 +5652,7 @@
                                                          "funcionalidade":  "Contagem e **tamanho total** dos programas",
                                                          "evidencia":  "`wise.recursos.txt:165` -\u003e `TFRMWPUMAIN/0`; `wise.inventario.md:1244` -\u003e `Size` - Mede tamanho em disco",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "**OK** - Contagem e **tamanho total** dos programas/O rodape mostra a contagem e o tamanho total dos programas. O calculo mora no nucleo, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:411` (`ProgramTotalsCalculator`), e o texto entra na barra de status em `src/Tranal.Uninstaller/MainWindow.xaml.cs:413` (`StatusText`); a mesma contagem aparece em `src/Tranal.Uninstaller/MainWindow.xaml.cs:389` (`StatusText`)."
+                                                         "estadoTexto":  "**OK** - Contagem e **tamanho total** dos programas/O rodape mostra a contagem e o tamanho total dos programas. O calculo mora no nucleo, em `src/Tranal.Uninstaller/MainWindow.xaml.cs:426` (`ProgramTotalsCalculator`), e o texto entra na barra de status em `src/Tranal.Uninstaller/MainWindow.xaml.cs:414` (`StatusText`); a mesma contagem aparece em `src/Tranal.Uninstaller/MainWindow.xaml.cs:386` (`StatusText`)."
                                                      },
                                                      {
                                                          "numero":  60,

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Tranal.Uninstaller.Core.Appearance;
 
 namespace Tranal.Uninstaller.Core.Settings;
 
@@ -90,6 +91,32 @@ public sealed class AppSettings
     /// nunca some — sem ela a lista perde o sentido.
     /// </summary>
     public List<string> HiddenColumns { get; set; } = new();
+
+    /// <summary>
+    /// A ordem das colunas na lista, como a pessoa deixou.
+    ///
+    /// E a memoria da grade: a ordem que vale e a que esta aqui. As colunas
+    /// que apareceram depois vao para o fim (a regra esta no nucleo,
+    /// <c>Core/Appearance/ProgramColumnMemory.cs</c>).
+    /// </summary>
+    public List<string> ColumnOrder { get; set; } = new();
+
+    /// <summary>
+    /// A largura que a pessoa deixou em cada coluna.
+    ///
+    /// A largura e a posicao sao guardadas juntas porque sao a mesma coisa:
+    /// como a pessoa deixou a grade.
+    /// </summary>
+    public List<ProgramColumnWidth> ColumnWidths { get; set; } = new();
+
+    /// <summary>
+    /// A coluna pela qual a lista esta ordenada (o nome fixo da coluna).
+    /// Vazio = a ordem padrao, pelo nome do programa.
+    /// </summary>
+    public string SortColumn { get; set; } = string.Empty;
+
+    /// <summary>True quando a ordenacao da lista e crescente.</summary>
+    public bool SortAscending { get; set; } = true;
 
     /// <summary>Ultimos programas desinstalados (menu de acesso rapido).</summary>
     public List<string> RecentPrograms { get; set; } = new();
@@ -630,7 +657,8 @@ public static class SettingsFileFormat
     public static string Describe() =>
         "settings.json (JSON UTF-8): theme, language, showSystemComponents, "
         + "colorVisionMode, "
-        + "showWindowsApps, newProgramsDays, hiddenColumns[], recentPrograms[], "
+        + "showWindowsApps, newProgramsDays, hiddenColumns[], columnOrder[], columnWidths[], "
+        + "sortColumn, sortAscending, recentPrograms[], "
         + "firstRunCompleted, "
         + "createRestorePointBeforeUninstall, onlyRunBuiltInUninstaller, disableUninstallHistory, "
         + "showWebPageShortcuts, advancedMode, checkForUpdateOnStartup, updateAutomatically, "

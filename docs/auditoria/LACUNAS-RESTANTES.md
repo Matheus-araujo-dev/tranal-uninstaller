@@ -8,8 +8,8 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(79,3% — 725 funcionalidades, 545 OK, 149 PARCIAL, 1 AUSENTE, 30 FORA por
-decisao; com o Revo Pro dentro, 81,1% — 795 funcionalidades, 613 OK).
+(79,6% — 725 funcionalidades, 547 OK, 147 PARCIAL, 1 AUSENTE, 30 FORA por
+decisao; com o Revo Pro dentro, 81,4% — 795 funcionalidades, 615 OK).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
 
@@ -38,6 +38,42 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**UNINSTALLTOOL T1#4 — a largura e a posicao das colunas sao memorizadas.**
+A ordenacao por qualquer coluna ja existia (o clique no cabecalho); o que
+sumia era a **memoria** da grade: a largura arrastada e a posicao escolhida
+nao voltavam quando o programa fechava. O detalhe esta em
+`EVIDENCIA-LOTE35-LISTA-MEMORIA.md`:
+
+- a memoria mora no nucleo, em um lugar so (`Core/Appearance/ProgramColumnMemory.cs`);
+- a pessoa move a coluna pelo menu do cabecalho, e a mudanca acontece
+  **dentro** da grade que esta na tela — trocar a grade inteira deixaria as
+  linhas com o desenho antigo;
+- a ordem e a largura sao gravadas nas preferencias
+  (`Core/Settings/AppSettings.cs`), e o arranque aplica a memoria antes de
+  montar a grade;
+- MEDIDO: a lista tinha um defeito anterior a este lote. O mapa das colunas
+  contava a coluna das caixas de selecao, que e um comando e nao uma coluna do
+  catalogo: por isso cada cabecalho mostrava o nome da coluna seguinte (o
+  cabecalho "Tamanho" ficava sobre o nome do programa) e cada coluna recebia a
+  largura da outra. A correcao esta no nucleo (`ProgramColumnMemory.IdAt` e
+  `ProgramListLayout.CommandColumns`), e o teste de ponta a ponta prova, no
+  aplicativo de verdade, que o cabecalho e o conteudo da linha falam da mesma
+  coluna.
+
+**UNINSTALLTOOL T1#8 — o realce dos programas recem-instalados.** A data em
+tempo relativo existia; o **destaque** nao. Agora o programa recem-instalado
+se destaca na lista, e o destaque usa a **mesma** regra do grupo — e o que
+impede que os dois discordem:
+
+- a janela de dias e uma regra so, no nucleo
+  (`Core/Discovery/NewInstallsTracker.cs`), com a meia-noite: o dia inteiro
+  conta;
+- o grupo da lista e o realce consomem essa regra; o botao esta no painel
+  lateral, ao lado dos outros filtros e realces;
+- MEDIDO: o programa novo marcado no grupo e o programa novo realcado sao o
+  mesmo conjunto — o teste de ponta a ponta mede os dois no aplicativo de
+  verdade.
 
 **SOFTORGANIZER #26 — o gerenciador do log de rastreio.** O log de
 instalacao e a fonte do que o instalador gravou no computador, e e ele que a

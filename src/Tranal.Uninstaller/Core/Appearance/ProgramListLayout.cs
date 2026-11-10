@@ -31,6 +31,23 @@ public static class ProgramListLayout
     public static bool IsCompact => AppSettingsStore.Current.CompactProgramList;
 
     /// <summary>
+    /// A lista mostra as caixas de selecao?
+    ///
+    /// E o "Show check boxes in Details view" do Revo (15334).
+    /// </summary>
+    public static bool ShowCheckBoxes => AppSettingsStore.Current.ShowCheckBoxesInDetailsView;
+
+    /// <summary>
+    /// Quantas colunas da grade vem antes das colunas do catalogo.
+    ///
+    /// A coluna das caixas de selecao e um comando, nao uma coluna do
+    /// catalogo: ela esta na grade, mas nao conta no mapa das colunas.
+    /// Sem esta conta, cada cabecalho mostra o nome da coluna seguinte - e a
+    /// largura de cada coluna e guardada com o nome da outra.
+    /// </summary>
+    public static int CommandColumns => ShowCheckBoxes ? 1 : 0;
+
+    /// <summary>
     /// As colunas do formato pedido.
     ///
     /// No completo, sao as colunas do catalogo menos as que o usuario

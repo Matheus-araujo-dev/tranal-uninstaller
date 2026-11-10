@@ -1,4 +1,4 @@
-﻿param(
+param(
     # Roda a cadeia completa da auditoria: RECON -> catalogo -> mapa.
     #
     # A ORDEM IMPORTA e nao e preferencia estetica: o mapa de reconciliacao
@@ -56,7 +56,11 @@ $pairs = @(
     # a medicao mais recente vence por linha do catalogo.
     @('RECON-LOTE34-2026-11-10.md', 'UNINSTALLTOOL.md', 'UNINSTALLTOOL'),
     @('RECON-LOTE34-2026-11-10.md', 'GEEK.md', 'GEEK'),
-    @('RECON-LOTE34-2026-11-10.md', 'WISE.md', 'WISE')
+    @('RECON-LOTE34-2026-11-10.md', 'WISE.md', 'WISE'),
+
+    # O RECON da rodada do lote 35 vem DEPOIS de todos os outros: a medicao
+    # mais recente vence por linha do catalogo.
+    @('RECON-LOTE35-2026-11-10.md', 'UNINSTALLTOOL.md', 'UNINSTALLTOOL')
 
 )
 

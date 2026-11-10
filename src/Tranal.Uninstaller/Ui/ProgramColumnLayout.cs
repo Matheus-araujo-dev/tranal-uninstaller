@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Tranal.Uninstaller.Core;
+using Tranal.Uninstaller.Core.Appearance;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -103,10 +105,16 @@ public static class ProgramColumnLayout
     /// O template da coluna das caixas de selecao. Nulo quando o usuario
     /// nao quer essa coluna.
     /// </param>
+    /// <param name="widths">
+    /// A largura que a pessoa deixou em cada coluna. A regra do que vale
+    /// mora no nucleo (<see cref="ProgramColumnMemory"/>); aqui a largura
+    /// padrao e o fallback.
+    /// </param>
     public static GridView Build(
         IReadOnlyList<ProgramColumn> columns,
         DataTemplate nameTemplate,
-        DataTemplate? checkTemplate = null)
+        DataTemplate? checkTemplate = null,
+        IReadOnlyDictionary<ProgramColumn, double>? widths = null)
     {
         var grid = new GridView();
 
@@ -125,7 +133,7 @@ public static class ProgramColumnLayout
             var gridColumn = new GridViewColumn
             {
                 Header = ProgramColumns.Label(column),
-                Width = WidthOf(column),
+                Width = ProgramColumnMemory.WidthOf(column, widths, WidthOf(column)),
             };
 
             if (column == ProgramColumn.Name)
