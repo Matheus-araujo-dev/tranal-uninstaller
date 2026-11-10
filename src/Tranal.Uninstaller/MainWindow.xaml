@@ -139,7 +139,8 @@
           </Grid.ColumnDefinitions>
           <Button Grid.Column="0" x:Name="ForcedUninstallButton"
                   Style="{StaticResource FlatButton}" Margin="0,0,4,0"
-                  Content="{loc:Tr Sidebar.ForcedUninstall}" Click="ForcedUninstallButton_Click" />
+                  Content="{loc:Tr Sidebar.ForcedUninstall}" Click="ForcedUninstallButton_Click"
+                  AutomationProperties.AutomationId="CmdForcedUninstall" />
           <Button Grid.Column="1" x:Name="MoreCommandsButton"
                   Style="{StaticResource FlatButton}" Margin="4,0,0,0"
                   Content="{loc:Tr Sidebar.MoreCommands}" Click="MoreCommandsButton_Click"

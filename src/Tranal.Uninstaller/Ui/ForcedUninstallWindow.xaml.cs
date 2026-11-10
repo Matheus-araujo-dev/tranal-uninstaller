@@ -22,15 +22,10 @@ public partial class ForcedUninstallWindow : Window
     {
         InitializeComponent();
 
-        // Window.Title e GridViewColumn.Header nao aceitam binding: texto via codigo.
+        // Window.Title nao aceita binding: texto via codigo.
         Title = Loc.Get("Forced.Title");
-        if (LeftoversList.View is GridView grid && grid.Columns.Count >= 2)
-        {
-            grid.Columns[0].Header = Loc.Get("Common.Type");
-            grid.Columns[1].Header = Loc.Get("Common.Path");
-        }
 
-        LeftoversList.ItemsSource = _leftovers;
+        LeftoversTreeControl.SetItems(_leftovers);
     }
 
     /// <summary>Caminho informado pelo usuario (vazio quando nada foi analisado).</summary>
@@ -86,6 +81,7 @@ public partial class ForcedUninstallWindow : Window
 
         _leftovers.Clear();
         foreach (var item in items) _leftovers.Add(item);
+        LeftoversTreeControl.SetItems(_leftovers);
 
         RemoveButton.IsEnabled = _leftovers.Count > 0;
         StatusText.Text = Loc.Get("Forced.Found", _leftovers.Count);

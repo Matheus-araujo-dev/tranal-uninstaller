@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(74,2% — 725 funcionalidades, 508 OK, 186 PARCIAL, 1 AUSENTE, 30 FORA por
+(74,5% — 725 funcionalidades, 510 OK, 184 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -191,6 +191,32 @@ o detalhe esta em `EVIDENCIA-LOTE22-ACOES.md`:
 Quatro das nove linhas estavam em PARCIAL porque **o RECON mediu errado**:
 o total do rodape, a chave `MrtCache` e o botao "Explorar" ja existiam no
 codigo. A correcao do registro esta no RECON, com a evidencia medida.
+
+
+**GEEK T1#11 e T1#15 — as sobras em arvore, com categorias, contagem, busca e
+navegacao.** O Geek mostra as sobras em **arvore**, com dois nos ("File System
+(%d items)" e "Registry (%d items)") e um comando "Browse..." dentro delas. O
+Tranal tinha a categoria por coluna, em uma lista. Agora a arvore existe, e o
+detalhe esta em `EVIDENCIA-LOTE23-SOBRAS.md`:
+
+- a regra do agrupamento mora no nucleo, em um lugar so
+  (`Core/LeftoverGroups.cs`): as chaves das duas categorias, a contagem, a
+  ordem do Geek e a busca que filtra as sobras;
+- a arvore e um **controle compartilhado** (`Ui/Shared/LeftoversTree.xaml`),
+  usado pelas duas telas que mostram sobras — o assistente de desinstalacao e
+  a desinstalacao forcada;
+- cada folha mostra a caixa de marcacao, o caminho (em negrito quando a
+  confianca e alta) e o detalhe, com o motivo do julgamento;
+- o comando "Explorar" abre a pasta do item no Explorer e a chave de registro
+  no editor de registro;
+- a suite tem 15 testes proprios (`Lote23FeatureTests.cs`) e um teste de
+  ponta a ponta no aplicativo de verdade (`tools/test-lote23.ps1`, 9
+  verificacoes), que **nao remove nada** — fecha a tela sem clicar em "Remover".
+
+Continua de fora, e continua honesto: a **busca textual nas alteracoes
+detectadas** do Total Uninstall (T2#11). A busca deste lote e a das sobras; a
+das alteracoes e outra tela (a comparacao de snapshots, que ainda aparece
+como texto). Fechar aquela linha e um lote proprio.
 
 
 ## Como fechar

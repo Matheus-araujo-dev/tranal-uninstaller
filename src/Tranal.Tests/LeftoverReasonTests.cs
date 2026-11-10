@@ -32,15 +32,22 @@ public class LeftoverReasonTests
     }
 
     [Fact]
-    public void AColunaDoMotivoExisteNaInterface()
+    public void AMotivoApareceNaInterface()
     {
         // A verificacao e sobre o fonte da interface: referenciar o projeto
         // grafico na suite criaria dois tipos "Core" diferentes.
-        var code = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "UninstallWizardWindow.xaml.cs");
+        //
+        // A tela de sobras e a ARVORE (o lote 23 trocou a lista por ela): o
+        // motivo aparece no detalhe de cada folha, e a traducao continua
+        // morando no nucleo (LeftoverLabels).
+        var arvore = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "Shared", "LeftoversTree.xaml.cs");
 
-        Assert.Contains("Loc.Get(\"Common.Reason\")", code);
-        Assert.Contains("new Binding(\"Reason\") { Converter = new ReasonTextConverter() }", code);
-        Assert.Contains("public sealed class ReasonTextConverter : IValueConverter", code);
+        Assert.Contains("LeftoverLabels.Reason(item.Reason)", arvore);
+        Assert.Contains("LeftoverLabels.Confidence(item.Confidence)", arvore);
+
+        // O conversor continua existindo para quem quiser usar a coluna.
+        var wizard = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "UninstallWizardWindow.xaml.cs");
+        Assert.Contains("public sealed class ReasonTextConverter : IValueConverter", wizard);
     }
 
     [Fact]

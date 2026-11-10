@@ -1524,5 +1524,9 @@
     "Advisory.Title.LeavesResidue":  "Vai deixar resíduo",
     "Advisory.LeavesResidue":  "O desinstalador vai deixar {0} item(ns) para trás; o Tranal limpa depois.",
     "Wizard.QuickIntro":  "O desinstalador nativo de {0} será executado e o que sobrar será apagado. Documentos e dados do usuário não são tocados.",
-    "Wizard.QuickStart":  "Desinstalar agora"
+    "Wizard.QuickStart":  "Desinstalar agora",
+    "Leftovers.Group.FileSystem":  "Sistema de arquivos",
+    "Leftovers.Group.Registry":  "Registro",
+    "Wizard.Step4.Search":  "Buscar nas sobras",
+    "Wizard.Step4.Browse":  "Explorar"
 }

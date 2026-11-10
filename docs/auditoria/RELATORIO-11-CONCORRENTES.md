@@ -12,7 +12,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 54 | 18 | 0 | 4 | 76.3% |
 | Bulk Cookie Uninstaller | 97 | 72 | 23 | 0 | 2 | 76.3% |
-| Geek Uninstaller | 44 | 35 | 9 | 0 | 0 | 79.5% |
+| Geek Uninstaller | 44 | 37 | 7 | 0 | 0 | 84.1% |
 | HiBit Uninstaller | 66 | 44 | 18 | 0 | 4 | 72.7% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
@@ -20,7 +20,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Uninstall Tool | 94 | 61 | 27 | 1 | 5 | 70.2% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 54 | 29 | 0 | 3 | 66.3% |
-| **TOTAL** | **725** | **508** | **186** | **1** | **30** | **74.2%** |
+| **TOTAL** | **725** | **510** | **184** | **1** | **30** | **74.5%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -102,19 +102,17 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 44 |
-| **OK** | **35** |
-| PARCIAL | 9 |
+| **OK** | **37** |
+| PARCIAL | 7 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 0 |
-| **Cobertura** | **79.5%** |
+| **Cobertura** | **84.1%** |
 
 ### O que ainda falta
 
 | # | Funcionalidade | Estado | O que falta |
 |---|---|---|---|
 | T1#10 | **Remove Entry** + **Batch Remove Entries** | PARCIAL | **PARCIAL** - **Remove Entry** + **Batch Remove Entries**/`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:82` (`public static class RegistryBatchRemover`) `src/Tranal.Cli/RegistryCommands.cs:68` (`RegistryBatchRemover`) **Nota**: a remocao em lote de entradas existe e e exposta na CLI, mas nao ha acao na interface grafica — o editor de registro da tela continua unitario. |
-| T1#11 | **Assistente de desinstalação** com sobras em **2 categorias**: File System (%d items) e Registry (%d items), em **árvore** | PARCIAL | **PARCIAL** - **Assistente de desinstalação** com sobras em **2 categorias**: File System (%d items) e Registry (%d items), em **árvore**/`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:29` (`public partial class UninstallWizardWindow`) `src/Tranal.Uninstaller/Core/UninstallSupport.cs:49` (`public enum LeftoverReason`) **Nota**: as sobras vem separadas por categoria (pasta, registro, arquivo, processo), mas a tela e uma `ListView`, nao uma arvore com nos agrupados. |
-| T1#15 | "Browse..." dentro das sobras encontradas | PARCIAL | **PARCIAL** - "Browse..." dentro das sobras encontradas/`src/Tranal.Uninstaller/Ui/Shared/ItemListPanel.xaml.cs:50` (`public partial class ItemListPanel`) **Nota**: o painel de itens tem acao de abrir a pasta no Explorer, mas nao ha a navegacao ("Browse...") propria da tela de sobras do concorrente. |
 | T1#16 | Aba de **Microsoft Store Apps** (`Ctrl+Tab`) | PARCIAL | **PARCIAL** - Aba de **Microsoft Store Apps** (`Ctrl+Tab`)/`src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs:39` (`public static class WindowsApps`) `src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:23` (`WindowsApps`) `src/Tranal.Cli/ExtraCommands.cs:14` (`/winapps`) **Nota**: os apps Store tem modulo e painel proprios, mas nao sao uma aba da janela principal. |
 | T2#29 | **Desregistro de COM** (`regsvr32 /u`) antes de remover | PARCIAL | **PARCIAL** - **Desregistro de COM** (`regsvr32 /u`) antes de remover/`src/Tranal.Uninstaller/Core/Automation/ComUnregister.cs:28` (`public static class ComUnregister`) `src/Tranal.Cli/RegistryCommands.cs:41` (`ComUnregister`) **Nota**: o desregistro de COM existe e tem comando proprio, mas nao esta ligado ao fluxo de remocao — e uma ferramenta separada. |
 | T2#33 | **Correspondência aproximada (Levenshtein)** de caminho de instalação | PARCIAL | **PARCIAL** - **Correspondência aproximada (Levenshtein)** de caminho de instalação/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:555` (`FuzzyMatch.IsMatch`) **Nota**: a distancia de edicao existe e e usada na busca por nome do programa, mas nao na comparacao de caminho de instalacao. |

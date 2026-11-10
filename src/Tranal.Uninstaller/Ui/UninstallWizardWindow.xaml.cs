@@ -180,7 +180,7 @@ public partial class UninstallWizardWindow : Window
         _allPrograms = allPrograms;
         _quick = quick;
         StepsBar.ItemsSource = StepNames;
-        LeftoversList.ItemsSource = _leftovers;
+        LeftoversTreeControl.SetItems(_leftovers);
 
         ApplyPreferences();
 
@@ -495,6 +495,7 @@ public partial class UninstallWizardWindow : Window
         var itens = ExecutionPolicy.ItensDoModoRapido(_leftovers);
         _leftovers.Clear();
         foreach (var item in itens) _leftovers.Add(item);
+        LeftoversTreeControl.SetItems(_leftovers);
 
         await RemoveAsync();
 
@@ -843,6 +844,7 @@ public partial class UninstallWizardWindow : Window
         }
         _leftovers.Clear();
         foreach (var item in items) _leftovers.Add(item);
+        LeftoversTreeControl.SetItems(_leftovers);
 
         // O Revo lista TUDO que sobrou relacionado ao programa. O conjunto
         // analisado antes da desinstalacao serve para dizer quantos desses
@@ -1138,65 +1140,19 @@ public partial class UninstallWizardWindow : Window
 
         // LeftoverItem nao avisa mudancas de propriedade: o refresh refaz as
         // ligacoes da lista para as caixas de marcacao acompanharem a escolha.
-        LeftoversList.Items.Refresh();
+        LeftoversTreeControl.Refresh();
 
         StatusText.Text = Loc.Get("Wizard.ItemsFound", _leftovers.Count);
     }
 
     /// <summary>
-    /// Monta as colunas da lista de sobras. Os cabecalhos nao aceitam binding,
-    /// por isso o texto vem do catalogo por codigo.
+    /// Prepara a tela de sobras: o menu de contexto da arvore.
+    ///
+    /// A arvore mostra o caminho e o detalhe de cada sobra, e o agrupamento
+    /// por categoria mora no nucleo (<see cref="LeftoverGroups"/>).
     /// </summary>
     private void BuildLeftoversView()
     {
-        var grid = new GridView();
-
-        grid.Columns.Add(new GridViewColumn
-        {
-            Header = string.Empty,
-            Width = 34,
-            CellTemplate = BuildCheckTemplate(),
-        });
-
-        grid.Columns.Add(new GridViewColumn
-        {
-            Header = Loc.Get("Common.Type"),
-            Width = 90,
-            DisplayMemberBinding = new Binding("Kind"),
-        });
-
-        grid.Columns.Add(new GridViewColumn
-        {
-            Header = Loc.Get("Common.Path"),
-            Width = 430,
-            CellTemplate = BuildBoldPathTemplate(),
-        });
-
-        grid.Columns.Add(new GridViewColumn
-        {
-            Header = Loc.Get("Common.Size"),
-            Width = 90,
-            DisplayMemberBinding = new Binding("Detail"),
-        });
-
-        grid.Columns.Add(new GridViewColumn
-        {
-            Header = Loc.Get("Common.Confidence"),
-            Width = 90,
-            DisplayMemberBinding = new Binding("Confidence") { Converter = new ConfidenceTextConverter() },
-        });
-
-        // A coluna do motivo: a confianca sozinha diz o quanto o Tranal
-        // acredita no item, mas nao diz por que. O motivo acompanha sempre.
-        grid.Columns.Add(new GridViewColumn
-        {
-            Header = Loc.Get("Common.Reason"),
-            Width = 250,
-            DisplayMemberBinding = new Binding("Reason") { Converter = new ReasonTextConverter() },
-        });
-
-        ApplyHeaderStyle(grid);
-        LeftoversList.View = grid;
         BuildLeftoversContextMenu();
     }
 
@@ -1214,7 +1170,7 @@ public partial class UninstallWizardWindow : Window
         addToExclude.Click += (_, _) => AddSelectedToExcludeList();
         menu.Items.Add(addToExclude);
 
-        LeftoversList.ContextMenu = menu;
+        LeftoversTreeControl.ContextMenuSource = menu;
     }
 
     /// <summary>
@@ -1225,7 +1181,7 @@ public partial class UninstallWizardWindow : Window
     /// </summary>
     private void AddSelectedToExcludeList()
     {
-        if (LeftoversList.SelectedItem is not LeftoverItem item)
+        if (LeftoversTreeControl.SelectedItem is not LeftoverItem item)
         {
             StatusText.Text = Loc.Get("ExcludeList.NothingSelected");
             return;
@@ -1241,53 +1197,11 @@ public partial class UninstallWizardWindow : Window
         StatusText.Text = Loc.Get("ContextMenu.AddedToExcludeList");
     }
 
-    /// <summary>Aplica o cabecalho no estilo do tema (o padrao do WPF destoa).</summary>
-    private static void ApplyHeaderStyle(GridView grid)
-    {
-        foreach (var column in grid.Columns)
-        {
-            var header = new GridViewColumnHeader { Content = column.Header, Tag = column };
-            if (Application.Current.TryFindResource("ListViewHeaderStyle") is Style style)
-                header.Style = style;
-            column.Header = header;
-        }
-    }
 
-    /// <summary>Template da coluna de marcacao: a caixa liga no Selected da sobra.</summary>
-    private static DataTemplate BuildCheckTemplate()
-    {
-        var xaml =
-            "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>"
-            + "<CheckBox IsChecked='{Binding Selected, Mode=TwoWay}' VerticalAlignment='Center' />"
-            + "</DataTemplate>";
-        return (DataTemplate)XamlReader.Parse(xaml);
-    }
 
-    /// <summary>
-    /// Template da coluna de caminho: os itens de confianca alta ficam em
-    /// negrito, como no Revo (so eles vem marcados para remocao).
-    /// </summary>
-    private static DataTemplate BuildBoldPathTemplate()
-    {
-        var xaml =
-            "<DataTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>"
-            + "<TextBlock Text='{Binding Path}' TextTrimming='CharacterEllipsis' ToolTip='{Binding Path}'>"
-            + "<TextBlock.Style>"
-            + "<Style TargetType='TextBlock'>"
-            + "<Setter Property='Foreground' Value='{DynamicResource TextBrush}' />"
-            + "<Setter Property='FontFamily' Value='{DynamicResource UiFont}' />"
-            + "<Setter Property='FontSize' Value='11' />"
-            + "<Style.Triggers>"
-            + "<DataTrigger Binding='{Binding IsHighConfidence}' Value='True'>"
-            + "<Setter Property='FontWeight' Value='Bold' />"
-            + "</DataTrigger>"
-            + "</Style.Triggers>"
-            + "</Style>"
-            + "</TextBlock.Style>"
-            + "</TextBlock>"
-            + "</DataTemplate>";
-        return (DataTemplate)XamlReader.Parse(xaml);
-    }
+
+
+
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
     {
