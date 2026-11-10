@@ -68,63 +68,58 @@ public static class ChangeTreeReport
     public static IReadOnlyList<IReadOnlyList<string>> Rows(SnapshotComparison? comparison)
     {
         var linhas = new List<IReadOnlyList<string>>();
-        if (comparison is null) return linhas;
-
-        foreach (var arquivo in comparison.NewFiles)
-        {
-            linhas.Add(Linha("Arquivo", "Novo", arquivo.Path, Tamanho(arquivo.SizeBytes)));
-        }
-
-        foreach (var pasta in comparison.NewFolders)
-        {
-            linhas.Add(Linha("Pasta", "Nova", pasta.Path, string.Empty));
-        }
-
-        foreach (var chave in comparison.NewRegistryKeys)
-        {
-            linhas.Add(Linha("Registro", "Nova chave", chave, string.Empty));
-        }
-
-        foreach (var valor in comparison.NewRegistryValues)
-        {
-            linhas.Add(Linha("Valor", "Novo", ItemDoValor(valor), valor.Value));
-        }
-
-        foreach (var arquivo in comparison.ModifiedFiles)
-        {
-            linhas.Add(Linha("Arquivo", "Modificado", arquivo.Path, Tamanho(arquivo.SizeBytes)));
-        }
-
-        foreach (var mudanca in comparison.ModifiedRegistryValues)
-        {
-            linhas.Add(Linha(
-                "Valor",
-                "Modificado",
-                ItemDoValor(mudanca),
-                (mudanca.OldValue ?? string.Empty) + " -> " + (mudanca.NewValue ?? string.Empty)));
-        }
-
-        foreach (var arquivo in comparison.RemovedFiles)
-        {
-            linhas.Add(Linha("Arquivo", "Removido", arquivo.Path, Tamanho(arquivo.SizeBytes)));
-        }
-
-        foreach (var pasta in comparison.RemovedFolders)
-        {
-            linhas.Add(Linha("Pasta", "Removida", pasta.Path, string.Empty));
-        }
-
-        foreach (var chave in comparison.RemovedRegistryKeys)
-        {
-            linhas.Add(Linha("Registro", "Chave removida", chave, string.Empty));
-        }
-
-        foreach (var valor in comparison.RemovedRegistryValues)
-        {
-            linhas.Add(Linha("Valor", "Removido", ItemDoValor(valor), valor.Value));
-        }
+        foreach (var item in Items(comparison))
+            linhas.Add(Linha(item.Kind, item.ChangeText, item.Item, item.Detail));
 
         return linhas;
+    }
+
+    /// <summary>
+    /// As alteracoes, de forma estruturada.
+    ///
+    /// E a fonte unica da classificacao: a tabela (exportacao e impressao) e a
+    /// arvore (a tela) sao **as mesmas** alteracoes em duas formas. Sem isso, a
+    /// arvore teria a sua propria classificacao, e as duas poderiam divergir
+    /// — e o que a pessoa le na tela deixaria de ser o que sai no arquivo.
+    /// </summary>
+    /// <param name="comparison">A comparacao entre os dois snapshots.</param>
+    public static IReadOnlyList<ChangeTreeItem> Items(SnapshotComparison? comparison)
+    {
+        var itens = new List<ChangeTreeItem>();
+        if (comparison is null) return itens;
+
+        foreach (var arquivo in comparison.NewFiles)
+            itens.Add(Item(ChangeTreeCategory.Files, ChangeTreeChange.Added, "Arquivo", "Novo", arquivo.Path, Tamanho(arquivo.SizeBytes)));
+
+        foreach (var pasta in comparison.NewFolders)
+            itens.Add(Item(ChangeTreeCategory.Folders, ChangeTreeChange.Added, "Pasta", "Nova", pasta.Path, string.Empty));
+
+        foreach (var chave in comparison.NewRegistryKeys)
+            itens.Add(Item(ChangeTreeCategory.Registry, ChangeTreeChange.Added, "Registro", "Nova chave", chave, string.Empty));
+
+        foreach (var valor in comparison.NewRegistryValues)
+            itens.Add(Item(ChangeTreeCategory.Values, ChangeTreeChange.Added, "Valor", "Novo", ItemDoValor(valor), valor.Value));
+
+        foreach (var arquivo in comparison.ModifiedFiles)
+            itens.Add(Item(ChangeTreeCategory.Files, ChangeTreeChange.Modified, "Arquivo", "Modificado", arquivo.Path, Tamanho(arquivo.SizeBytes)));
+
+        foreach (var mudanca in comparison.ModifiedRegistryValues)
+            itens.Add(Item(ChangeTreeCategory.Values, ChangeTreeChange.Modified, "Valor", "Modificado", ItemDoValor(mudanca),
+                (mudanca.OldValue ?? string.Empty) + " -> " + (mudanca.NewValue ?? string.Empty)));
+
+        foreach (var arquivo in comparison.RemovedFiles)
+            itens.Add(Item(ChangeTreeCategory.Files, ChangeTreeChange.Removed, "Arquivo", "Removido", arquivo.Path, Tamanho(arquivo.SizeBytes)));
+
+        foreach (var pasta in comparison.RemovedFolders)
+            itens.Add(Item(ChangeTreeCategory.Folders, ChangeTreeChange.Removed, "Pasta", "Removida", pasta.Path, string.Empty));
+
+        foreach (var chave in comparison.RemovedRegistryKeys)
+            itens.Add(Item(ChangeTreeCategory.Registry, ChangeTreeChange.Removed, "Registro", "Chave removida", chave, string.Empty));
+
+        foreach (var valor in comparison.RemovedRegistryValues)
+            itens.Add(Item(ChangeTreeCategory.Values, ChangeTreeChange.Removed, "Valor", "Removido", ItemDoValor(valor), valor.Value));
+
+        return itens;
     }
 
     /// <summary>
@@ -284,6 +279,31 @@ public static class ChangeTreeReport
             return string.Empty;
         }
     }
+
+    /// <summary>
+    /// Monta um item de alteracao.
+    /// </summary>
+    /// <param name="category">A categoria.</param>
+    /// <param name="change">A mudanca.</param>
+    /// <param name="kind">O tipo, como a tabela mostra.</param>
+    /// <param name="changeText">O texto da mudanca, como a tabela mostra.</param>
+    /// <param name="item">O caminho, a chave ou o valor.</param>
+    /// <param name="detail">O detalhe.</param>
+    private static ChangeTreeItem Item(
+        ChangeTreeCategory category,
+        ChangeTreeChange change,
+        string kind,
+        string changeText,
+        string item,
+        string detail) => new()
+    {
+        Category = category,
+        Change = change,
+        Kind = kind,
+        ChangeText = changeText,
+        Item = item,
+        Detail = detail,
+    };
 
     /// <summary>Uma linha da arvore.</summary>
     /// <param name="tipo">O tipo do item.</param>

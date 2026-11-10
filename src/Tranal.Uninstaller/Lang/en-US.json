@@ -1543,5 +1543,14 @@
     "Cmd.RemoveEntriesBatch":  "Remove entries from the Windows list",
     "Cmd.RemoveEntriesBatchWithCount":  "Remove {0} entry(ies) from the Windows list",
     "Cmd.RemoveEntriesBatchConfirm":  "Remove {0} entry(ies) from the Windows list?\n\nThe programs will NOT be uninstalled: only the registry key the Windows uses to list the program will be erased. This action cannot be undone.",
-    "Cmd.RemoveEntriesBatchDone":  "{0} entry(ies) removed, {1} protected, {2} failed."
+    "Cmd.RemoveEntriesBatchDone":  "{0} entry(ies) removed, {1} protected, {2} failed.",
+    "ChangeTree.Category.Files":  "Files",
+    "ChangeTree.Category.Folders":  "Folders",
+    "ChangeTree.Category.Registry":  "Registry",
+    "ChangeTree.Category.Values":  "Registry values",
+    "ChangeTree.Change.Added":  "Added",
+    "ChangeTree.Change.Modified":  "Modified",
+    "ChangeTree.Change.Removed":  "Removed",
+    "ChangeTree.Search":  "Search the changes",
+    "ChangeTree.SearchHint":  "Type to filter the detected changes." 
 }

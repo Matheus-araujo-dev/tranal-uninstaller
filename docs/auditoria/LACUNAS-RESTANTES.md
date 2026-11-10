@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(76,0% — 725 funcionalidades, 521 OK, 173 PARCIAL, 1 AUSENTE, 30 FORA por
+(76,3% — 725 funcionalidades, 523 OK, 171 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -38,6 +38,33 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**TOTALUNINSTALL T2#22, T2#11 e #22, #69, #71 — a arvore de alteracoes
+detectadas, a busca textual dentro dela, a exportacao e a impressao.** A
+comparacao A x B tinha DUAS apresentacoes independentes (a tabela, usada na
+exportacao e na impressao, e a descricao em texto da tela), e elas podiam
+diverigir: o que se lia na tela nao era o que saia no arquivo. Alem disso, a
+apresentacao era uma tabela — nao uma arvore hierarquica — e nao havia
+busca dentro das alteracoes. O detalhe esta em
+`EVIDENCIA-LOTE27-ARVORE-BUSCA.md`:
+
+- a CLASSIFICACAO mora no nucleo, em um lugar so
+  (`Core/Reporting/ChangeTreeReport.cs:86`, `Items`): a tabela e a arvore
+  derivam dela, entao o que a pessoa le na tela e o que sai no arquivo sao as
+  mesmas alteracoes;
+- a hierarquia e a busca moram em `Core/Reporting/ChangeTreeNodes.cs`:
+  `Build` (`:86`) monta os nos (categoria, grupo de mudanca, alteracao),
+  `Filter` (`:137`) filtra **preservando a hierarquia** e diz quantas
+  alteracoes sobraram ("1 de 6");
+- a tela tem a arvore, a busca e a contagem na aba de snapshots da janela de
+  rastreio; a linha de comando tem `/arvore` e `/busca "termo"`;
+- a suite tem 17 testes proprios (`Lote27FeatureTests.cs`) e um teste de
+  ponta a ponta no aplicativo de verdade (`tools/test-lote27.ps1`, 21
+  verificacoes), com snapshots sinteticos que o proprio teste apaga.
+
+As linhas de **exportacao** (#69) e **impressao** (#71) da arvore eram
+medicao desatualizada: as duas capacidades existiam, e o RECON falava de um
+`PrintLayout.cs` que nao existe mais.
 
 **GEEK T1#10, HIBIT T1#10, WISE T1#7 e T1#8 — "Remover entradas" e "Batch
 Remove Entries", e a acao "Modificar" que media errada.** O RECON media que a

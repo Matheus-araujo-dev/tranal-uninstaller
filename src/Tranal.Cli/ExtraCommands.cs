@@ -1496,7 +1496,7 @@ public static class ExtraCommands
         var nomes = ValoresDepois(args, "/comparar");
         if (nomes.Count < 2)
         {
-            Console.WriteLine("Uso: tranal /comparar \"antes\" \"depois\" [/export \"arquivo\"] [/print]");
+            Console.WriteLine("Uso: tranal /comparar \"antes\" \"depois\" [/export \"arquivo\"] [/print] [/arvore] [/busca \"termo\"]");
             return 1;
         }
 
@@ -1549,8 +1549,52 @@ public static class ExtraCommands
             return 0;
         }
 
+        // A arvore (com a hierarquia) e a busca dentro dela. A estrutura do
+        // no — qual categoria, qual mudanca — mora no nucleo; o texto e em
+        // portugues, escrito aqui, como a CLI sempre fez.
+        var busca = CliArgs.ValueAfter(args, "/busca");
+        if (flags.Contains("/arvore") || !string.IsNullOrWhiteSpace(busca))
+        {
+            var nos = ChangeTreeNodes.Build(comparacao);
+            var filtrados = ChangeTreeNodes.Filter(nos, busca);
+
+            Console.WriteLine("Arvore de alteracoes:");
+            Console.WriteLine(ChangeTreeNodes.Describe(filtrados, TituloDoNo));
+            Console.WriteLine();
+            Console.WriteLine("Alteracoes: " + ChangeTreeNodes.Total(filtrados)
+                + " de " + ChangeTreeNodes.Total(nos));
+
+            return 0;
+        }
+
         Console.WriteLine(ChangeTreeReport.ToText(comparacao, antes.Name, depois.Name));
         return 0;
+    }
+
+    /// <summary>
+    /// O titulo de um no da arvore de alteracoes, em portugues.
+    ///
+    /// A CLI escreve o proprio texto (a decisao do projeto e que a saida da
+    /// linha de comando e em portugues, escrito no codigo). A estrutura do no
+    /// — qual categoria, qual mudanca — mora no nucleo.
+    /// </summary>
+    /// <param name="no">O no.</param>
+    private static string TituloDoNo(ChangeTreeNode no)
+    {
+        if (no.LabelKey.Length == 0) return no.Item;
+
+        var nome = no.LabelKey switch
+        {
+            "folders" => "Pastas",
+            "registry" => "Registro",
+            "values" => "Valores de registro",
+            "added" => "Novos",
+            "modified" => "Modificados",
+            "removed" => "Removidos",
+            _ => "Arquivos",
+        };
+
+        return nome + " (" + no.Count + ")";
     }
 
     /// <summary>

@@ -190,6 +190,21 @@ jobs:
             -Exe publish\preview\TranalUninstaller.exe `
             -CliExe publish\cli\tranal.exe
 
+      # A arvore de alteracoes detectadas e a busca dentro dela (lote 27):
+      # a arvore sai em hierarquia na tela e na linha de comando, e a busca
+      # filtra as duas.
+      #
+      # O teste cria dois snapshots sinteticos (no formato que o proprio
+      # Tranal grava) e apaga tudo no final: nenhum software instalado e
+      # tocado.
+      - name: Arvore de alteracoes e busca (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote27.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
 
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.

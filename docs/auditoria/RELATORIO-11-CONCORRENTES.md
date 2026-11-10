@@ -16,11 +16,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | HiBit Uninstaller | 66 | 45 | 17 | 0 | 4 | 74.2% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
-| Total Uninstall | 94 | 64 | 26 | 0 | 4 | 72.3% |
+| Total Uninstall | 94 | 66 | 24 | 0 | 4 | 74.5% |
 | Uninstall Tool | 94 | 62 | 26 | 1 | 5 | 71.3% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 56 | 27 | 0 | 3 | 68.6% |
-| **TOTAL** | **725** | **521** | **173** | **1** | **30** | **76.0%** |
+| **TOTAL** | **725** | **523** | **171** | **1** | **30** | **76.3%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -207,22 +207,20 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **64** |
-| PARCIAL | 26 |
+| **OK** | **66** |
+| PARCIAL | 24 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **72.3%** |
+| **Cobertura** | **74.5%** |
 
 ### O que ainda falta
 
 | # | Funcionalidade | Estado | O que falta |
 |---|---|---|---|
 | T1#64 | Item compartilhado preservado, com justificativa ("Not deleted. Contains only files or folders to keep.") | PARCIAL | **PARCIAL** - Item compartilhado preservado, com justificativa ("Not deleted. Contains only files or folders to keep.")/`src/Tranal.Uninstaller/Core/Tools/RegistryCleaner.cs:99` (`public static class RegistryCleaner`) `src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:52` (`public static class SharedReferenceCounter`) **Nota**: a preservacao do compartilhado esta escrita no limpador de registro e o contador e canonico, mas o motor de remocao nao consulta o contador compartilhado. |
-| T2#11 | Busca textual nas alterações detectadas | PARCIAL | **PARCIAL** - Busca textual nas alterações detectadas/`src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:147` (`ProgramFilterSet`) **Nota**: existe a busca na lista de programas; falta a busca dentro da arvore de mudancas. |
 | T2#13 | **Snapshot do sistema antes da instalação** ("Create the pre-install system snapshot") | PARCIAL | **PARCIAL** - **Snapshot do sistema antes da instalação** ("Create the pre-install system snapshot")/`src/Tranal.Uninstaller/Core/Modules/SystemSnapshot.cs:43` (`public sealed class SystemSnapshot`) `src/Tranal.Uninstaller/Core/Tracing/SnapshotLibrary.cs:60` (`public static class SnapshotLibrary`) **Nota**: o snapshot existe; falta o nome pre/post customizavel e o limite de pasta/contagem. |
 | T2#17 | **Comparar snapshots do sistema**, com perfis de comparação | PARCIAL | **PARCIAL** - **Comparar snapshots do sistema**, com perfis de comparação/`src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:235` (`public static class SnapshotComparer`) `src/Tranal.Uninstaller/Core/Reporting/ChangeTreeReport.cs` (`public static class ChangeTreeReport`) `src/Tranal.Uninstaller/Ui/Tracing/TracingWindow.xaml.cs` (`CompareSnapshotsButton_Click`)/**Nota**: comparar snapshots, incluindo modificados e removidos, existe e agora tem destino (exportacao em TXT/CSV/HTML e impressao); os perfis de comparacao nao. |
 | T2#19 | Perfil de scanning com **chaves/pastas incluídas e excluídas** | PARCIAL | **PARCIAL** - Perfil de scanning com **chaves/pastas incluídas e excluídas**/`src/Tranal.Uninstaller/Core/ExcludeList.cs:19` (`public sealed class ExcludeList`) `src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:43` (`public sealed class RuleEngine`) **Nota**: a lista de exclusao e o par Include/Exclude do motor de regras existem; nao ha lista de inclusao por perfil de scanning. |
-| T2#22 | Árvore de alterações detectadas com **arquivos, pastas, chaves e valores** de registro | PARCIAL | **PARCIAL** - Árvore de alterações detectadas com **arquivos, pastas, chaves e valores** de registro/`src/Tranal.Uninstaller/Core/Tracing/SnapshotComparer.cs:235` (`public static class SnapshotComparer`) `src/Tranal.Uninstaller/Core/Reporting/ChangeTreeReport.cs` (`public static class ChangeTreeReport`)/**Nota**: os quatro tipos de item sao classificados e mostrados (arquivo, pasta, registro e valor, com a mudanca e o detalhe), e a lista sai exportada e impressa; a apresentacao e uma tabela, nao uma arvore hierarquica. |
 | T2#63 | Exclusão de chaves/valores de registro **por perfil** ("Add to compare ignore list") | PARCIAL | **PARCIAL** - Exclusão de chaves/valores de registro **por perfil** ("Add to compare ignore list")/`src/Tranal.Uninstaller/Core/ExcludeList.cs:19` (`public sealed class ExcludeList`) `src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:43` (`public sealed class RuleEngine`) **Nota**: a exclusao de chaves existe e o motor tem `Exclude`, mas a lista e global — nao ha escopo por perfil porque nao ha perfis. |
 | T3#43 | **Cleaner com 6 categorias de regras** (Windows, System, Browser, Windows Explorer, Programs, Invalid entries), cada uma com Include/Exclude | PARCIAL | **PARCIAL** - **Cleaner com 6 categorias de regras** (Windows, System, Browser, Windows Explorer, Programs, Invalid entries), cada uma com Include/Exclude/`src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:43` (`public sealed class RuleEngine`) `src/Tranal.Uninstaller/Core/Tools/RegistryCleaner.cs:99` (`public static class RegistryCleaner`) **Nota**: o motor de regras com Include/Exclude existe e o limpador tem 16 categorias com selecao; nao ha a habilitacao por modulo do Cleaner. |
 | T3#45 | Classificação por extensão de arquivo ("File extensions with version information") | PARCIAL | **PARCIAL** - Classificação por extensão de arquivo ("File extensions with version information")/`src/Tranal.Uninstaller/Core/Tracing/InstallChecksum.cs:41` (`public static class InstallChecksum`) `src/Tranal.Uninstaller/Core/Discovery/ExecutableMetadata.cs:47` (`public static class ExecutableMetadataReader`) **Nota**: a versao de arquivo e lida pelo leitor de metadados e pelo calculo de soma de verificacao, mas nao entra na classificacao das sobras. |

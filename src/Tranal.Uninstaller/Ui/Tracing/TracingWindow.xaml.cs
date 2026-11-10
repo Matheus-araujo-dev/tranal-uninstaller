@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.Win32;
-using Tranal.Uninstaller.Core.Reporting;
+using Tranal.Uninstaller.Core.Reporting;using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Tracing;
 using Tranal.Uninstaller.Ui.Reporting;
 
@@ -424,6 +424,7 @@ public partial class TracingWindow : Window
         _comparacaoDepois = depois.Name;
 
         ComparisonText.Text = DescreverComparacao(antes.Name, depois.Name, comparacao);
+        PreencherArvore();
         StatusText.Text = TracingTexts.ComparacaoPronta;
     }
 
@@ -666,6 +667,74 @@ public partial class TracingWindow : Window
 
         WatchButton.IsEnabled = true;
         StopButton.IsEnabled = false;
+    }
+
+    /// <summary>
+    /// Preenche a arvore de alteracoes com a comparacao atual.
+    ///
+    /// A arvore e a busca moram no nucleo (<see cref="ChangeTreeNodes"/>): a
+    /// tela nao sabe montar arvore nem filtrar — ela so mostra. E o que
+    /// impede a tela de contar uma alteracao diferente da que a linha de
+    /// comando exporta.
+    /// </summary>
+    private void PreencherArvore()
+    {
+        ChangeTreeView.Items.Clear();
+
+        if (_comparacao is null)
+        {
+            ChangeTreeCountText.Text = string.Empty;
+            return;
+        }
+
+        var todos = ChangeTreeNodes.Build(_comparacao);
+        var filtrados = ChangeTreeNodes.Filter(todos, ChangeTreeSearchBox.Text);
+
+        foreach (var no in filtrados)
+            ChangeTreeView.Items.Add(NoVisual(no));
+
+        var total = ChangeTreeNodes.Total(todos);
+        var visiveis = ChangeTreeNodes.Total(filtrados);
+        ChangeTreeCountText.Text = visiveis == total
+            ? $"{total} alteracao(oes)"
+            : $"{visiveis} de {total} alteracao(oes)";
+    }
+
+    /// <summary>
+    /// Filtra a arvore de alteracoes conforme o que foi digitado.
+    /// </summary>
+    /// <param name="sender">A caixa de busca.</param>
+    /// <param name="e">O evento da mudanca do texto.</param>
+    private void ChangeTreeSearchBox_TextChanged(object sender, TextChangedEventArgs e) => PreencherArvore();
+
+    /// <summary>
+    /// Converte um no do nucleo no item da arvore da tela.
+    /// </summary>
+    /// <param name="no">O no.</param>
+    private static TreeViewItem NoVisual(ChangeTreeNode no)
+    {
+        var item = new TreeViewItem
+        {
+            ToolTip = no.Detail,
+        };
+
+        if (no.IsLeaf)
+        {
+            item.Header = no.Item;
+        }
+        else if (no.Change.HasValue)
+        {
+            item.Header = ChangeTreeLabels.Change(no.Change.Value) + " (" + no.Count + ")";
+        }
+        else
+        {
+            item.Header = ChangeTreeLabels.Category(no.Category!.Value) + " (" + no.Count + ")";
+        }
+
+        foreach (var filho in no.Children)
+            item.Items.Add(NoVisual(filho));
+
+        return item;
     }
 
     /// <summary>

@@ -512,6 +512,25 @@ Consequências que precisam ser lembradas quando se mexe na lista:
 - **A tela e a linha de comando removem pelo mesmo código**: o menu "Mais
   comandos" (`CmdRemoveEntriesBatch`) e o comando `/remove-entries`.
 
+## A arvore de alteracoes detectadas e a busca (regra do núcleo)
+
+- **A classificação mora em `Core/Reporting/ChangeTreeReport.cs`**, em `Items`:
+  a lista estruturada das alterações. A **tabela** (exportação e impressão) e a
+  **árvore** (tela) derivam dela — o que se lê na tela é o que sai no arquivo.
+- **A hierarquia e a busca moram em `Core/Reporting/ChangeTreeNodes.cs`**:
+  `Build` (`:86`) monta os nós (categoria → grupo de mudança → alteração),
+  `Filter` (`:137`) busca, `Total` (`:172`) conta e `Describe` (`:209`) escreve
+  a árvore em texto.
+- **A busca preserva a hierarquia**: um nó só continua na árvore quando ele tem
+  um filho que casa, e ela diz quantas alterações sobraram ("1 de 6").
+- **A estrutura é do núcleo; o texto é de quem mostra**: a interface traduz pelo
+  catálogo (`Core/Localization/ChangeTreeLabels.cs`), a linha de comando escreve
+  em português no código (`ExtraCommands.TituloDoNo`). Um caminho, uma chave ou
+  um valor não se traduzem.
+- **A tela e a linha de comando comparam pelo mesmo código**: a janela de
+  rastreio monta os nós (`PreencherArvore`, `NoVisual`) e a linha de comando
+  imprime os mesmos (`/comparar "antes" "depois" /arvore`, `/busca "termo"`).
+
 ## O log de remoção por item (regra do núcleo)
 
 Toda operação de remoção grava um log com **uma linha por item**: tipo,

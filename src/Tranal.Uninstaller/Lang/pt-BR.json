@@ -1543,5 +1543,14 @@
     "Cmd.RemoveEntriesBatch":  "Remover entradas da lista do Windows",
     "Cmd.RemoveEntriesBatchWithCount":  "Remover {0} entrada(s) da lista do Windows",
     "Cmd.RemoveEntriesBatchConfirm":  "Remover {0} entrada(s) da lista do Windows?\n\nOs programas NÃO serão desinstalados: apenas a chave de registro que o Windows usa para listar o programa será apagada. Esta operação não pode ser desfeita.",
-    "Cmd.RemoveEntriesBatchDone":  "{0} entrada(s) removida(s), {1} protegida(s), {2} com falha."
+    "Cmd.RemoveEntriesBatchDone":  "{0} entrada(s) removida(s), {1} protegida(s), {2} com falha.",
+    "ChangeTree.Category.Files":  "Arquivos",
+    "ChangeTree.Category.Folders":  "Pastas",
+    "ChangeTree.Category.Registry":  "Registro",
+    "ChangeTree.Category.Values":  "Valores de registro",
+    "ChangeTree.Change.Added":  "Novos",
+    "ChangeTree.Change.Modified":  "Modificados",
+    "ChangeTree.Change.Removed":  "Removidos",
+    "ChangeTree.Search":  "Buscar nas alteracoes",
+    "ChangeTree.SearchHint":  "Digite para filtrar as alteracoes detectadas." 
 }
