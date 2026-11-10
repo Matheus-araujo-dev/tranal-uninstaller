@@ -6,6 +6,7 @@ using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Reporting;
 using Tranal.Uninstaller.Ui.Shared;
+using Tranal.Uninstaller.Ui.Tracing;
 
 namespace Tranal.Uninstaller.Ui.Modules;
 
@@ -275,6 +276,7 @@ public static class ModuleViews
                 new CommandDef { AutomationId = "LogsOpen", Text = Loc.Get("Mod.Logs.Open"), Action = () => OpenLog(panel, rows) },
                 new CommandDef { AutomationId = "LogsCustom", Text = Loc.Get("Mod.Logs.Custom"), Action = () => OpenCustom(panel, rows) },
                 new CommandDef { AutomationId = "LogsAdvanced", Text = Loc.Get("Mod.Logs.Advanced"), Action = () => OpenAdvanced(panel, rows) },
+                new CommandDef { AutomationId = "LogsManager", Text = Loc.Get("Mod.Logs.Manager"), Action = () => OpenManager(panel, rows) },
             });
 
         panel.SetItems(rows);
@@ -359,6 +361,28 @@ public static class ModuleViews
             }
 
             var dialog = new TracedLogWindow(target.Source);
+            var owner = Window.GetWindow(panel);
+            if (owner is not null) dialog.Owner = owner;
+            dialog.ShowDialog();
+
+            panel.RunAsync(() => ReloadAsync(panel, rows));
+        }
+
+        /// <summary>
+        /// Abre o gerenciador do log: a tela que deixa a pessoa corrigir o
+        /// log de instalacao ANTES da remocao (excluir o que nao e do
+        /// programa e acrescentar o que faltou).
+        /// </summary>
+        static void OpenManager(ItemListPanel panel, ObservableCollection<TraceRow> rows)
+        {
+            var target = Selected(rows, panel);
+            if (target is null)
+            {
+                panel.PanelStatus = Loc.Get("Status.NoSelection");
+                return;
+            }
+
+            var dialog = new TraceManagerWindow(target.Source);
             var owner = Window.GetWindow(panel);
             if (owner is not null) dialog.Owner = owner;
             dialog.ShowDialog();

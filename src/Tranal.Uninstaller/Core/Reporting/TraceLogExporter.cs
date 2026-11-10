@@ -326,20 +326,20 @@ public static class TraceLogExporter
 /// <summary>
 /// A edicao de uma entrada do log de instalacao.
 ///
-/// O <see cref="TraceStore"/> grava, importa, exporta e apaga o log inteiro
-/// — mas nao edita entrada. Aqui o usuario adiciona ou remove um caminho de
-/// arquivo, uma pasta ou uma chave de registro do log, para corrigir o que o
-/// rastreio nao viu (ou para tirar de la o que nao era do programa).
+/// O <see cref="TraceStore"/> grava, importa, exporta e apaga o log inteiro.
+/// Aqui o usuario acrescenta ou remove um caminho de arquivo, uma pasta ou uma
+/// chave de registro do log, para corrigir o que o rastreio nao viu (ou para
+/// tirar de la o que nao era do programa).
 ///
-/// A gravacao e **atomica**: o conteudo novo vai para um arquivo temporario
-/// e so entao substitui o original, deixando a versao anterior em
-/// <c>.bak</c>. Um log pela metade derrubaria a desinstalacao dirigida pelo
-/// log — e o log e a unica fonte do que o instalador gravou.
+/// <para><b>A REGRA esta em um lugar so.</b> O que muda no log e o
+/// <see cref="LogOperations"/> (que sabe o que e uma entrada, o que e
+/// ignorar, o que e acrescentar a mao); a GRAVACAO do arquivo e o
+/// <see cref="TraceStore"/>, que grava de forma atomica e deixa a versao
+/// anterior em <c>.bak</c>. Esta classe e a porta que fala "por caminho" —
+/// que e o jeito que a pessoa pensa.</para>
 ///
-/// O envelope do arquivo (o cabecalho, o id, o nome do programa) e o que
-/// estava la: so o bloco <c>payload</c> e as contagens sao reescritos, e
-/// eles sao montados pelo proprio <see cref="TraceStore"/>. Nao ha uma
-/// segunda interpretacao do formato do log.
+/// <para>Um log pela metade derrubaria a desinstalacao dirigida pelo log — e o
+/// log e a unica fonte do que o instalador gravou.</para>
 /// </summary>
 public static class TraceLogEditor
 {
@@ -356,18 +356,11 @@ public static class TraceLogEditor
         var alvo = (path ?? string.Empty).Trim();
         if (alvo.Length == 0) return null;
 
-        return Editar(install, trace =>
-        {
-            if (trace.Files.Any(f => string.Equals(f.Path, alvo, StringComparison.OrdinalIgnoreCase)))
-                return;
-
-            trace.Files.Add(new TraceStore.TraceFileEntry
-            {
-                Path = alvo,
-                SizeBytes = sizeBytes,
-                ModifiedUtc = modifiedUtc ?? default,
-            });
-        });
+        return Aplicar(install, () => LogOperations.AddEntry(
+            install,
+            new LogEntry { Kind = LogEntryKind.File, Path = alvo },
+            sizeBytes,
+            modifiedUtc));
     }
 
     /// <summary>
@@ -381,13 +374,9 @@ public static class TraceLogEditor
         var alvo = (path ?? string.Empty).Trim();
         if (alvo.Length == 0) return null;
 
-        return Editar(install, trace =>
-        {
-            if (trace.Folders.Any(f => string.Equals(f, alvo, StringComparison.OrdinalIgnoreCase)))
-                return;
-
-            trace.Folders.Add(alvo);
-        });
+        return Aplicar(install, () => LogOperations.AddEntry(
+            install,
+            new LogEntry { Kind = LogEntryKind.File, IsFolder = true, Path = alvo }));
     }
 
     /// <summary>
@@ -401,18 +390,18 @@ public static class TraceLogEditor
         var alvo = (keyPath ?? string.Empty).Trim();
         if (alvo.Length == 0) return null;
 
-        return Editar(install, trace =>
-        {
-            if (trace.RegistryKeys.Any(k => string.Equals(k, alvo, StringComparison.OrdinalIgnoreCase)))
-                return;
-
-            trace.RegistryKeys.Add(alvo);
-        });
+        return Aplicar(install, () => LogOperations.AddEntry(
+            install,
+            new LogEntry { Kind = LogEntryKind.RegistryKey, Path = alvo }));
     }
 
     /// <summary>
     /// Remove do log o item com o caminho informado — seja arquivo, pasta ou
     /// chave de registro.
+    ///
+    /// <para>Remove **todas** as entradas com aquele caminho: uma chave de
+    /// registro e os valores dentro dela compartilham o caminho da chave, e
+    /// tirar so a chave deixaria os valores no log.</para>
     /// </summary>
     /// <param name="install">O log.</param>
     /// <param name="path">O caminho do item.</param>
@@ -422,59 +411,49 @@ public static class TraceLogEditor
         var alvo = (path ?? string.Empty).Trim();
         if (alvo.Length == 0) return null;
 
-        return Editar(install, trace =>
+        return Aplicar(install, () =>
         {
-            trace.Files.RemoveAll(f => string.Equals(f.Path, alvo, StringComparison.OrdinalIgnoreCase));
-            trace.Folders.RemoveAll(f => string.Equals(f, alvo, StringComparison.OrdinalIgnoreCase));
-            trace.RegistryKeys.RemoveAll(k => string.Equals(k, alvo, StringComparison.OrdinalIgnoreCase));
+            var removido = false;
+
+            // A lista e relida a cada volta: a remocao muda o log, e a entrada
+            // seguinte so e achada no log ja gravado.
+            while (true)
+            {
+                var entrada = LogOperations.Entries(install).FirstOrDefault(e =>
+                    string.Equals(e.Path, alvo, StringComparison.OrdinalIgnoreCase));
+
+                if (entrada is null) break;
+                if (!LogOperations.RemoveEntry(install, entrada)) break;
+
+                removido = true;
+            }
+
+            return removido;
         });
     }
 
     /// <summary>
-    /// Aplica a mudanca no log e grava o arquivo de forma atomica.
+    /// Aplica a mudanca no log e devolve o log ja gravado.
+    ///
+    /// A gravacao e a do <see cref="TraceStore"/> (atomica, com copia
+    /// <c>.bak</c>); aqui so o que muda no conteudo.
     /// </summary>
     /// <param name="install">O log.</param>
     /// <param name="mudanca">A mudanca a aplicar no conteudo do log.</param>
     /// <returns>O log ja atualizado, ou nulo quando nao deu para gravar.</returns>
-    private static TracedInstall? Editar(TracedInstall install, Action<TraceStore.TracePayload> mudanca)
+    private static TracedInstall? Aplicar(TracedInstall install, Func<bool> mudanca)
     {
         try
         {
             if (install is null) return null;
+            if (!mudanca()) return null;
 
-            var caminho = ResolverCaminho(install);
-            if (caminho.Length == 0 || !File.Exists(caminho)) return null;
+            // As contagens sao relidas do log gravado: quem contou e o leitor
+            // canonico, e nao a conta que a tela fez.
+            var payload = TraceStore.LoadPayload(install);
+            if (payload is null) return null;
 
-            var texto = File.ReadAllText(caminho);
-
-            JsonNode? raiz;
-            try { raiz = JsonNode.Parse(texto); }
-            catch { return null; }
-
-            if (raiz is not JsonObject documento) return null;
-
-            JsonElement payload = default;
-            if (documento["payload"] is JsonNode noPayload)
-            {
-                try { payload = noPayload.Deserialize<JsonElement>(); }
-                catch { payload = default; }
-            }
-
-            var trace = TraceStore.ReadPayload(payload);
-            mudanca(trace);
-
-            var novoPayload = TraceStore.SerializePayload(trace);
-            documento["payload"] = JsonNode.Parse(novoPayload.GetRawText());
-
-            documento["counts"] = new JsonObject
-            {
-                ["files"] = trace.Files.Count,
-                ["folders"] = trace.Folders.Count,
-                ["registryKeys"] = trace.RegistryKeys.Count,
-            };
-
-            var saida = documento.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-            if (!GravarAtomicamente(caminho, saida)) return null;
+            var trace = TraceStore.ReadPayload(payload.Value);
 
             return new TracedInstall
             {
@@ -482,7 +461,9 @@ public static class TraceLogEditor
                 ProgramName = install.ProgramName,
                 Timestamp = install.Timestamp,
                 InstallerPath = install.InstallerPath,
-                LogPath = caminho,
+                LogPath = string.IsNullOrWhiteSpace(install.LogPath)
+                    ? TraceStore.PathForId(install.Id)
+                    : install.LogPath,
                 FileCount = trace.Files.Count,
                 FolderCount = trace.Folders.Count,
                 RegistryKeyCount = trace.RegistryKeys.Count,
@@ -491,86 +472,9 @@ public static class TraceLogEditor
         }
         catch
         {
-            // Falha ao ler ou gravar: o log fica como estava. Quem chama
-            // precisa avisar o usuario.
+            // Falha ao gravar: o log fica como estava. Quem chama precisa
+            // avisar o usuario.
             return null;
         }
-    }
-
-    /// <summary>
-    /// O arquivo do log: o caminho que o log traz, quando ele existe; senao o
-    /// caminho canonico do identificador.
-    /// </summary>
-    /// <param name="install">O log.</param>
-    private static string ResolverCaminho(TracedInstall install)
-    {
-        try
-        {
-            if (!string.IsNullOrWhiteSpace(install.LogPath))
-            {
-                var candidato = PathUtil.Normalize(install.LogPath);
-                if (candidato.Length > 0 && File.Exists(candidato)) return candidato;
-            }
-
-            if (!string.IsNullOrWhiteSpace(install.Id)) return TraceStore.PathForId(install.Id);
-            return string.Empty;
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-
-    /// <summary>
-    /// Grava o arquivo de forma atomica: o conteudo novo vai para um
-    /// temporario, o original vira <c>.bak</c> e o temporario assume o lugar.
-    /// </summary>
-    /// <param name="caminho">O caminho do arquivo.</param>
-    /// <param name="conteudo">O conteudo novo.</param>
-    private static bool GravarAtomicamente(string caminho, string conteudo)
-    {
-        var temporario = caminho + ".tmp";
-
-        try
-        {
-            File.WriteAllText(temporario, conteudo, new UTF8Encoding(false));
-
-            if (File.Exists(caminho))
-            {
-                try { File.Replace(temporario, caminho, caminho + ".bak", true); }
-                catch (PlatformNotSupportedException) { SubstituirComBackup(temporario, caminho); }
-                catch (IOException) { SubstituirComBackup(temporario, caminho); }
-            }
-            else
-            {
-                File.Move(temporario, caminho);
-            }
-
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-        finally
-        {
-            // O temporario nao pode sobrar na pasta de logs.
-            try { if (File.Exists(temporario)) File.Delete(temporario); }
-            catch { /* o temporario fica para a proxima gravacao sobrescrever */ }
-        }
-    }
-
-    /// <summary>
-    /// Substitui o arquivo quando <c>File.Replace</c> nao esta disponivel
-    /// (volume sem suporte a ReplaceFile). A copia para <c>.bak</c> vem
-    /// ANTES da substituicao: e melhor avisar do que fingir que houve
-    /// backup.
-    /// </summary>
-    /// <param name="temporario">O arquivo temporario.</param>
-    /// <param name="caminho">O arquivo original.</param>
-    private static void SubstituirComBackup(string temporario, string caminho)
-    {
-        File.Copy(caminho, caminho + ".bak", true);
-        File.Move(temporario, caminho, true);
     }
 }

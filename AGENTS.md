@@ -612,6 +612,25 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   `AllowRunningUserCommands` (`Core/Settings/AppSettings.cs:123`, ligada por
   padrão) esconde o botão "Executar" da tela de comandos.
 
+## O log de instalação e a sua edição (regra do núcleo)
+
+- **A gravação do log está em um lugar só**: `TraceStore.GravarAtomicamente`
+  (`Core/Modules/TraceStore.cs:622`). Toda escrita do arquivo de log — criar,
+  editar entrada, ignorar, remover, acrescentar, mesclar — passa por ali, e
+  a gravação é **atômica** (temporário + `File.Replace` + cópia `.bak`).
+  Antes o arquivo era escrito em dois lugares, e o `SavePayload` devolvia
+  "gravado" mesmo quando a gravação falhava.
+- **O que muda no log é do `LogOperations`** (`Core/Modules/LogOperations.cs`):
+  o que é uma entrada, o que é ignorar, o que é acrescentar à mão. O
+  `TraceLogEditor` (`Core/Reporting/TraceLogExporter.cs:344`) é a porta que
+  fala **por caminho** — e ela não escreve o arquivo por conta própria.
+- **O gerenciador do log** (`Ui/Tracing/TraceManagerWindow.xaml.cs:28`) exclui
+  um item do log e acrescenta outro, **antes** da remoção: o log é o que a
+  desinstalação dirigida pelo log lê. O item acrescentado à mão entra com
+  confiança **média** — ninguém mediu que ele pertence ao programa.
+- O texto da tela vem do catálogo (`Mod.TraceManager.*`); a tela não decide o
+  que é seguro apagar — isso é do motor, com a confiança que ele mede.
+
 ## O log de remoção por item (regra do núcleo)
 
 Toda operação de remoção grava um log com **uma linha por item**: tipo,

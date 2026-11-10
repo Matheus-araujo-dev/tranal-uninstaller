@@ -97,6 +97,7 @@ public partial class TracedLogWindow : Window
         MergeButton.Content = Loc.Get("Mod.Logs.Merge");
         CustomButton.Content = Loc.Get("Mod.Logs.Custom");
         AdvancedButton.Content = Loc.Get("Mod.Logs.Advanced");
+        ManagerButton.Content = Loc.Get("Mod.Logs.Manager");
         CloseButton.Content = Loc.Get("Common.Close");
 
         EditTitleText.Text = Loc.Get("Mod.Logs.EditPanel");
@@ -481,6 +482,19 @@ public partial class TracedLogWindow : Window
     }
 
     /// <summary>Fecha a janela.</summary>
+    /// <summary>
+    /// Abre o gerenciador do log: a tela que deixa a pessoa excluir do log
+    /// o que nao e do programa e acrescentar o que o rastreio nao viu —
+    /// antes da remocao.
+    /// </summary>
+    private void ManagerButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Tracing.TraceManagerWindow(_log) { Owner = this };
+        dialog.ShowDialog();
+
+        Reload();
+    }
+
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>Escreve a origem da entrada em edicao.</summary>

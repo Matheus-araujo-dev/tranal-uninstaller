@@ -2979,8 +2979,8 @@
                                            "recon":  26,
                                            "catalogo":  26,
                                            "catalogoId":  "T2#26",
-                                           "estado":  "PARCIAL",
-                                           "evidencia":  "Trace manager: excluir itens e editar valores antes de aplicar|`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) `src/Tranal.Uninstaller/Ui/TracedLogWindow.xaml.cs:23` (`LogOperations`) **Nota**: a edicao e sobre o log ja gravado, nao antes de aplicar a remocao.",
+                                           "estado":  "OK",
+                                           "evidencia":  "Trace manager: excluir itens e editar valores antes de aplicar|o gerenciador do log (`src/Tranal.Uninstaller/Ui/Tracing/TraceManagerWindow.xaml.cs:28`) exclui um item do log e acrescenta outro, e a edicao acontece **antes** da remocao: o log e o que a desinstalacao dirigida pelo log le. A REGRA esta no nucleo — `src/Tranal.Uninstaller/Core/Reporting/TraceLogExporter.cs:344` (`TraceLogEditor`) sobre `src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:490` (`AddEntry`) e `:424` (`RemoveEntry`) — e a gravacao do arquivo e do `src/Tranal.Uninstaller/Core/Modules/TraceStore.cs:622` (`GravarAtomicamente`), que deixa a copia anterior em `.bak`. O comando do modulo e `src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:279` (`LogsManager`) e a linha de comando responde por `/log-add` e `/log-drop` (`src/Tranal.Cli/LogCommands.cs:205` e `:247`). Medido: `tools/test-lote31.ps1` -\u003e o item acrescentado e o item excluido no log de verdade, pela tela e pela linha de comando.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2989,7 +2989,7 @@
                                            "catalogo":  39,
                                            "catalogoId":  "T3#39",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "Log de mudanças em arquivo por app (`TracedApp.changes`)|ha um log por programa rastreado, em JSON, e a fusao dos logs do mesmo programa existe; nao ha o arquivo `TracedApp.changes` por aplicativo com o formato do concorrente",
+                                           "evidencia":  "Log de mudanças em arquivo por app (`TracedApp.changes`)|ha um log por programa rastreado, em JSON (o formato `Tranal.TraceLog.v1`), e a fusao dos logs do mesmo programa existe; o log agora tem editor proprio (a tela do gerenciador e a linha de comando `/log-add` e `/log-drop`); nao ha o arquivo `TracedApp.changes` por aplicativo com o formato do concorrente",
                                            "via":  "id",
                                            "motivo":  ""
                                        },

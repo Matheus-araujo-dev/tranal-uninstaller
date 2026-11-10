@@ -4,6 +4,7 @@ using System.Linq;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Modules;
+using Tranal.Uninstaller.Core.Reporting;
 
 namespace Tranal.Cli;
 
@@ -30,6 +31,8 @@ public static class LogCommands
         if (flags.Contains("/log-merge")) return RunMerge(args);
         if (flags.Contains("/log-ignore")) return RunEntryAction(args, ignore: true);
         if (flags.Contains("/log-remove")) return RunEntryAction(args, ignore: false);
+        if (flags.Contains("/log-add")) return RunAdd(args);
+        if (flags.Contains("/log-drop")) return RunDrop(args);
         if (flags.Contains("/custom-uninstall")) return RunCustomUninstall(args);
         if (flags.Contains("/advanced-uninstall")) return RunAdvancedUninstall(args);
         return null;
@@ -189,6 +192,84 @@ public static class LogCommands
         }
 
         Console.WriteLine(ignore ? "Entrada ignorada." : "Entrada removida do log.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Acrescenta um item ao log de instalacao (arquivo, pasta ou chave).
+    ///
+    /// E o "trace manager" pela linha de comando: o item acrescentado
+    /// entra na desinstalacao dirigida pelo log, com a confianca de quem nao
+    /// foi medido (media, nao alta).
+    /// </summary>
+    private static int RunAdd(string[] args)
+    {
+        var id = CliArgs.ValueAfter(args, "/log-add");
+        var log = Find(id ?? string.Empty);
+
+        if (log is null)
+        {
+            Console.Error.WriteLine("Log nao encontrado. Use /logs para ver a lista.");
+            return 1;
+        }
+
+        var caminho = CliArgs.ValueAfter(args, "/caminho");
+        if (string.IsNullOrWhiteSpace(caminho))
+        {
+            Console.Error.WriteLine("Uso: tranal /log-add <id> /caminho \"C:\\Program Files\\App\" /tipo arquivo|pasta|chave");
+            return 1;
+        }
+
+        var tipo = (CliArgs.ValueAfter(args, "/tipo") ?? "arquivo").Trim().ToLowerInvariant();
+
+        var resultado = tipo switch
+        {
+            "pasta" => TraceLogEditor.AddFolder(log, caminho!),
+            "chave" => TraceLogEditor.AddRegistryKey(log, caminho!),
+            _ => TraceLogEditor.AddFile(log, caminho!),
+        };
+
+        if (resultado is null)
+        {
+            Console.Error.WriteLine("Nao foi possivel gravar o log.");
+            return 1;
+        }
+
+        Console.WriteLine($"Item acrescentado ao log {resultado.ProgramName}: {caminho}");
+        return 0;
+    }
+
+    /// <summary>
+    /// Exclui do log de instalacao o item com o caminho informado (arquivo,
+    /// pasta ou chave). O que sai do log nao entra na desinstalacao dirigida
+    /// pelo log.
+    /// </summary>
+    private static int RunDrop(string[] args)
+    {
+        var id = CliArgs.ValueAfter(args, "/log-drop");
+        var log = Find(id ?? string.Empty);
+
+        if (log is null)
+        {
+            Console.Error.WriteLine("Log nao encontrado. Use /logs para ver a lista.");
+            return 1;
+        }
+
+        var caminho = CliArgs.ValueAfter(args, "/caminho");
+        if (string.IsNullOrWhiteSpace(caminho))
+        {
+            Console.Error.WriteLine("Uso: tranal /log-drop <id> /caminho \"C:\\Program Files\\App\\app.exe\"");
+            return 1;
+        }
+
+        var resultado = TraceLogEditor.Remove(log, caminho!);
+        if (resultado is null)
+        {
+            Console.Error.WriteLine("Nao foi possivel gravar o log.");
+            return 1;
+        }
+
+        Console.WriteLine($"Item excluido do log {resultado.ProgramName}: {caminho}");
         return 0;
     }
 

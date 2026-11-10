@@ -242,6 +242,17 @@ jobs:
             -Exe publish\preview\TranalUninstaller.exe `
             -CliExe publish\cli\tranal.exe
 
+      # O gerenciador do log de rastreio: a tela exclui e acrescenta itens
+      # do log de instalacao, e a linha de comando responde por /log-add e
+      # /log-drop. O teste cria UM log sintetico e o apaga no fim.
+      - name: O gerenciador do log de rastreio (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote31.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
       # O teste cria snapshots sinteticos e apaga tudo no final.

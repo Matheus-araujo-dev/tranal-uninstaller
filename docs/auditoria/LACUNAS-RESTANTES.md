@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(78,1% — 725 funcionalidades, 536 OK, 158 PARCIAL, 1 AUSENTE, 30 FORA por
+(78,2% — 725 funcionalidades, 537 OK, 157 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -38,6 +38,28 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**SOFTORGANIZER #26 — o gerenciador do log de rastreio.** O log de
+instalacao e a fonte do que o instalador gravou no computador, e e ele que a
+desinstalacao dirigida pelo log remove. O nucleo ja sabia acrescentar e
+excluir um item do log (`Core/Reporting/TraceLogExporter.cs`, `TraceLogEditor`),
+mas **ninguem chamava**: a pessoa nao tinha como corrigir o log antes da
+remocao. O detalhe esta em `EVIDENCIA-LOTE31-GERENCIADOR.md`:
+
+- a **tela do gerenciador** (`Ui/Tracing/TraceManagerWindow.xaml.cs:28`) mostra
+  o log, exclui o item selecionado e acrescenta outro (tipo + caminho); o
+  comando esta na barra do modulo da base de logs (`Ui/Modules/ModuleViews.cs:279`)
+  e na janela do proprio log;
+- a **linha de comando** responde por `/log-add` e `/log-drop`
+  (`src/Tranal.Cli/LogCommands.cs:205` e `:247`);
+- o item acrescentado a mao entra com **confianca media**, nao alta: ninguem
+  mediu que ele pertence ao programa;
+- a **gravacao do log ficou em um lugar so** (`Core/Modules/TraceStore.cs:622`,
+  `GravarAtomicamente`): antes o arquivo era escrito em dois lugares, e o
+  `SavePayload` devolvia "gravado" mesmo quando a gravacao falhava;
+- a suite tem 9 testes proprios (`Lote31FeatureTests.cs`) e o teste de ponta a
+  ponta (`tools/test-lote31.ps1`) tem 13 verificacoes no aplicativo de
+  verdade (o teste cria um log sintetico e o apaga no fim).
 
 **SOFTORGANIZER #59, WISE #62 e BCU T4#80 — a assinatura do desinstalador e
 o comando do usuario.** A verificacao da assinatura digital ja existia no

@@ -173,7 +173,7 @@ public static class TraceStore
             var file = PathForId(id);
 
             var counts = CountPayload(payload);
-            WriteLogFile(file, id, install, payload, counts);
+            if (!WriteLogFile(file, id, install, payload, counts)) return string.Empty;
             return file;
         }
         catch
@@ -232,8 +232,7 @@ public static class TraceStore
                 : install.Id;
 
             var counts = CountPayload(payload);
-            WriteLogFile(path, id, install, payload, counts);
-            return true;
+            return WriteLogFile(path, id, install, payload, counts);
         }
         catch
         {
@@ -584,7 +583,7 @@ public static class TraceStore
         return dir;
     }
 
-    private static void WriteLogFile(
+    private static bool WriteLogFile(
         string path, string id, TracedInstall install, JsonElement payload, TraceCounts counts)
     {
         var document = new
@@ -605,7 +604,66 @@ public static class TraceStore
         };
 
         var json = JsonSerializer.Serialize(document, DocumentOptions);
-        File.WriteAllText(path, json, new UTF8Encoding(false));
+        return GravarAtomicamente(path, json);
+    }
+
+    /// <summary>
+    /// Grava o arquivo de log de forma atomica: o conteudo novo vai para um
+    /// temporario, o original vira <c>.bak</c> e o temporario assume o lugar.
+    ///
+    /// A GRAVACAO DO LOG ESTA AQUI, EM UM LUGAR SO: criar o log, editar uma
+    /// entrada, ignorar, remover, acrescentar e mesclar passam todos por esta
+    /// funcao. Um log pela metade derrubaria a desinstalacao dirigida pelo log
+    /// — e o log e a unica fonte do que o instalador gravou.
+    /// </summary>
+    /// <param name="caminho">O caminho do arquivo.</param>
+    /// <param name="conteudo">O conteudo novo.</param>
+    /// <returns><c>true</c> quando o arquivo foi gravado.</returns>
+    private static bool GravarAtomicamente(string caminho, string conteudo)
+    {
+        var temporario = caminho + ".tmp";
+
+        try
+        {
+            File.WriteAllText(temporario, conteudo, new UTF8Encoding(false));
+
+            if (File.Exists(caminho))
+            {
+                try { File.Replace(temporario, caminho, caminho + ".bak", true); }
+                catch (PlatformNotSupportedException) { SubstituirComBackup(temporario, caminho); }
+                catch (IOException) { SubstituirComBackup(temporario, caminho); }
+            }
+            else
+            {
+                File.Move(temporario, caminho);
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+        finally
+        {
+            // O temporario nao pode sobrar na pasta de logs.
+            try { if (File.Exists(temporario)) File.Delete(temporario); }
+            catch { /* o temporario fica para a proxima gravacao sobrescrever */ }
+        }
+    }
+
+    /// <summary>
+    /// Substitui o arquivo quando <c>File.Replace</c> nao esta disponivel
+    /// (volume sem suporte a ReplaceFile). A copia para <c>.bak</c> vem
+    /// ANTES da substituicao: e melhor avisar do que fingir que houve
+    /// backup.
+    /// </summary>
+    /// <param name="temporario">O arquivo temporario.</param>
+    /// <param name="caminho">O arquivo original.</param>
+    private static void SubstituirComBackup(string temporario, string caminho)
+    {
+        File.Copy(caminho, caminho + ".bak", true);
+        File.Move(temporario, caminho, true);
     }
 
     private static bool TryReadLogFile(string path, out TraceLogFile? log)

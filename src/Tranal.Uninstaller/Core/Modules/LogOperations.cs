@@ -487,7 +487,8 @@ public static class LogOperations
     /// <param name="install">O log a editar.</param>
     /// <param name="entry">A entrada a acrescentar.</param>
     /// <returns><c>true</c> quando a entrada foi acrescentada e gravada.</returns>
-    public static bool AddEntry(TracedInstall install, LogEntry entry)
+    public static bool AddEntry(
+        TracedInstall install, LogEntry entry, long sizeBytes = 0, DateTime? modifiedUtc = null)
     {
         try
         {
@@ -512,7 +513,7 @@ public static class LogOperations
                     break;
                 default:
                     if (entry.IsFolder) Append(root, "folders", path);
-                    else AppendFile(root, path);
+                    else AppendFile(root, path, sizeBytes, modifiedUtc);
                     break;
             }
 
@@ -817,7 +818,7 @@ public static class LogOperations
         array.Add(JsonValue.Create(path));
     }
 
-    private static void AppendFile(JsonObject root, string path)
+    private static void AppendFile(JsonObject root, string path, long sizeBytes = 0, DateTime? modifiedUtc = null)
     {
         if (root["files"] is not JsonArray array)
         {
@@ -831,7 +832,15 @@ public static class LogOperations
             if (string.Equals(atual, path, StringComparison.OrdinalIgnoreCase)) return;
         }
 
-        array.Add(new JsonObject { ["path"] = path });
+        // O tamanho e a data sao opcionais: o item acrescentado a mao pelo
+        // usuario nem sempre tem os dois, e um zero gravado como se fosse
+        // o tamanho real seria mentira.
+        var item = new JsonObject { ["path"] = path };
+        if (sizeBytes > 0) item["sizeBytes"] = sizeBytes;
+        if (modifiedUtc is not null)
+            item["modifiedUtc"] = modifiedUtc.Value.ToUniversalTime().ToString("O");
+
+        array.Add(item);
     }
 
     private static void AppendValue(JsonObject root, string path, string valueName, string value)
