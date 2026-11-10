@@ -194,6 +194,62 @@ public static class UninstallGuards
     }
 
     /// <summary>
+    /// Executa a operacao com a marca de "desinstalacao em andamento".
+    ///
+    /// A marca e o que impede que DUAS desinstalacoes rodem ao mesmo tempo
+    /// na mesma maquina: a outra janela (ou a outra instancia do Tranal) ve
+    /// a marca e recusa. Sem a marca, a guarda nunca encontra nada — e a
+    /// guarda que nunca encontra nada nao protege nada.
+    ///
+    /// A REGRA mora aqui, em um lugar so: quem desinstala chama este
+    /// metodo e nao marca nem limpa a marca por conta propria.
+    /// </summary>
+    /// <typeparam name="T">O tipo do resultado da operacao.</typeparam>
+    /// <param name="descricao">A descricao da operacao (o que esta rodando).</param>
+    /// <param name="acao">A operacao a executar.</param>
+    /// <returns>O resultado da operacao.</returns>
+    public static T RunGuarded<T>(string? descricao, Func<T> acao)
+    {
+        if (acao is null) throw new ArgumentNullException(nameof(acao));
+
+        MarkRunning(descricao);
+        try
+        {
+            return acao();
+        }
+        finally
+        {
+            ClearRunning();
+        }
+    }
+
+    /// <summary>
+    /// Executa a operacao assincrona com a marca de "desinstalacao em
+    /// andamento".
+    ///
+    /// E a mesma regra de <see cref="RunGuarded{T}(string, Func{T})"/>, para
+    /// operacao que espera.
+    /// </summary>
+    /// <typeparam name="T">O tipo do resultado da operacao.</typeparam>
+    /// <param name="descricao">A descricao da operacao (o que esta rodando).</param>
+    /// <param name="acao">A operacao a executar.</param>
+    /// <returns>O resultado da operacao.</returns>
+    public static async Task<T> RunGuardedAsync<T>(string? descricao, Func<Task<T>> acao)
+    {
+        if (acao is null) throw new ArgumentNullException(nameof(acao));
+
+        MarkRunning(descricao);
+        try
+        {
+            return await acao().ConfigureAwait(false);
+        }
+        finally
+        {
+            ClearRunning();
+        }
+    }
+
+    /// <summary>
     /// Limpa a marca de desinstalacao em andamento.
     /// </summary>
     public static bool ClearRunning()

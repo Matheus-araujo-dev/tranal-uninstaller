@@ -1289,7 +1289,35 @@ public static class RegistryBackup
             : string.Join(",", bytes.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
 }
 
-/// <summary>Execucao do desinstalador nativo e criacao de ponto de restauracao.</summary>
+/// <summary>
+/// Qual comando do desinstalador nativo roda.
+/// </summary>
+public enum NativeUninstallCommand
+{
+    /// <summary>
+    /// O comando registrado do programa, com a janela do desinstalador.
+    ///
+    /// E o que se oferece a quem nao desinstalou em silencio: a pessoa ve
+    /// o desinstalador funcionando e decide.
+    /// </summary>
+    Registered,
+
+    /// <summary>
+    /// O comando que o fabricante declara como quieto, e o comando
+    /// registrado quando nao ha nenhum.
+    /// </summary>
+    Quiet,
+
+    /// <summary>
+    /// O comando silencioso derivado do tipo do desinstalador
+    /// (<see cref="QuietUninstall"/>), e o comando registrado quando nao ha
+    /// nenhum.
+    /// </summary>
+    Silent,
+}
+
+/// <summary>
+/// Execucao do desinstalador nativo e criacao de ponto de restauracao.</summary>
 public static class UninstallEngine
 {
     /// <summary>Separa um comando de desinstalacao em executavel e argumentos.</summary>
@@ -1325,6 +1353,68 @@ public static class UninstallEngine
     }
 
     /// <summary>
+    /// True quando o programa continua instalado.
+    ///
+    /// A chave de desinstalacao no registro e a prova: enquanto ela
+    /// existe, o Windows ainda oferece o programa na lista. E o que separa
+    /// "desinstalou" de "nao desinstalou em silencio".
+    ///
+    /// A REGRA mora aqui, em um lugar so: a tela e a linha de comando
+    /// perguntam a mesma coisa ao mesmo motor.
+    /// </summary>
+    /// <param name="program">O programa a verificar.</param>
+    public static bool IsStillInstalled(InstalledProgram? program)
+    {
+        if (program is null) return false;
+
+        var path = (program.RegistryPath ?? string.Empty).Trim();
+        if (path.Length == 0) return false;
+
+        RegistryHive hive;
+        string rest;
+        if (path.StartsWith(@"HKEY_LOCAL_MACHINE\", StringComparison.OrdinalIgnoreCase))
+        {
+            hive = RegistryHive.LocalMachine;
+            rest = path[@"HKEY_LOCAL_MACHINE\".Length..];
+        }
+        else if (path.StartsWith(@"HKEY_CURRENT_USER\", StringComparison.OrdinalIgnoreCase))
+        {
+            hive = RegistryHive.CurrentUser;
+            rest = path[@"HKEY_CURRENT_USER\".Length..];
+        }
+        else if (path.StartsWith(@"HKEY_CLASSES_ROOT\", StringComparison.OrdinalIgnoreCase))
+        {
+            hive = RegistryHive.ClassesRoot;
+            rest = path[@"HKEY_CLASSES_ROOT\".Length..];
+        }
+        else
+        {
+            return false;
+        }
+
+        try
+        {
+            using (var baseKey = RegistryKey.OpenBaseKey(hive, RegistryView.Registry64))
+            using (var key = baseKey.OpenSubKey(rest))
+            {
+                if (key is not null) return true;
+            }
+
+            using (var baseKey32 = RegistryKey.OpenBaseKey(hive, RegistryView.Registry32))
+            using (var key32 = baseKey32.OpenSubKey(rest))
+            {
+                return key32 is not null;
+            }
+        }
+        catch
+        {
+            // Chave protegida ou ausente: nao da para afirmar que o programa
+            // continua instalado, e a fila nao tira ninguem por causa disso.
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Executa o comando de desinstalacao nativo e aguarda o processo.
     ///
     /// Com <paramref name="silent"/> ligado, usa o comando silencioso
@@ -1335,10 +1425,27 @@ public static class UninstallEngine
     /// </summary>
     /// <param name="program">O programa a desinstalar.</param>
     /// <param name="silent">Usar o comando silencioso derivado.</param>
+    public static Task<BuiltInUninstallResult> RunBuiltInUninstaller(
+        InstalledProgram program, bool silent = false) =>
+        RunBuiltInUninstaller(program, silent
+            ? NativeUninstallCommand.Silent
+            : NativeUninstallCommand.Quiet);
+
+    /// <summary>
+    /// Executa o comando de desinstalacao nativo e aguarda o processo.
+    ///
+    /// E a mesma operacao de
+    /// <see cref="RunBuiltInUninstaller(InstalledProgram, bool)"/>, com o
+    /// comando escolhido por nome — o que permite rodar o desinstalador
+    /// **com a janela** (o comando registrado), que e o que se oferece a
+    /// quem nao desinstala em silencio.
+    /// </summary>
+    /// <param name="program">O programa a desinstalar.</param>
+    /// <param name="command">Qual comando do desinstalador roda.</param>
     public static async Task<BuiltInUninstallResult> RunBuiltInUninstaller(
-        InstalledProgram program, bool silent = false)
+        InstalledProgram program, NativeUninstallCommand command)
     {
-        var resultado = await RunBuiltInUninstallerCore(program, silent);
+        var resultado = await RunBuiltInUninstallerCore(program, command);
 
         // A falha fica REGISTRADA: e o que permite oferecer depois a limpeza
         // da entrada do registro e dos arquivos (a opcao que o Geek
@@ -1349,15 +1456,24 @@ public static class UninstallEngine
     }
 
     private static async Task<BuiltInUninstallResult> RunBuiltInUninstallerCore(
-        InstalledProgram program, bool silent = false)
+        InstalledProgram program, NativeUninstallCommand modo)
     {
-        var command = silent
-            ? (program.QuietUninstallCommand.Length > 0
+        var command = modo switch
+        {
+            // O comando registrado: e o que abre a janela do desinstalador.
+            NativeUninstallCommand.Registered => program.UninstallString,
+
+            // O comando silencioso derivado do tipo do desinstalador.
+            NativeUninstallCommand.Silent => program.QuietUninstallCommand.Length > 0
                 ? program.QuietUninstallCommand
-                : program.UninstallString)
-            : (!string.IsNullOrWhiteSpace(program.QuietUninstallString)
+                : program.UninstallString,
+
+            // O comando que o fabricante declara como quieto; sem ele, o
+            // comando registrado.
+            _ => !string.IsNullOrWhiteSpace(program.QuietUninstallString)
                 ? program.QuietUninstallString
-                : program.UninstallString);
+                : program.UninstallString,
+        };
 
         if (string.IsNullOrWhiteSpace(command))
             return new BuiltInUninstallResult

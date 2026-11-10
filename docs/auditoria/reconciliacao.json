@@ -856,8 +856,8 @@
                                  "recon":  26,
                                  "catalogo":  26,
                                  "catalogoId":  "T2#26",
-                                 "estado":  "PARCIAL",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:71` (`Gate`, `SemaphoreSlim` de processo inteiro) e `:168` (`DetectCollisions`); a fila e consumida pela CLI em `src/Tranal.Cli/ExtraCommands.cs:1052` e a colisao e reportada em `:1068`. **Nota**: a tela nao usa a fila (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:164` so chama `SmartOrdering.Order`), e a guarda de processo cruzado nunca e marcada — `grep \"MarkRunning\" em src/` -\u003e 1 hit so em teste (`src/Tranal.Tests/SearchGuardsAndPlatformTests.cs:151`), logo `src/Tranal.Uninstaller/Core/Automation/UninstallGuards.cs:133` (`CheckRunning`) nunca encontra a chave e a segunda desinstalacao nao e recusada. Binario do concorrente: `bcu.strings.txt:6837` (`checkBoxConcurrent`)",
+                                 "estado":  "OK",
+                                 "evidencia":  "a tela usa a fila: `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:763` (`UninstallQueue.RunAsync`) dentro da marca de operacao (`:761`, `UninstallGuards.RunGuardedAsync`); a fila e a implementacao de verdade da regra (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:153`, `RunAsync`; `:107`, `Run`, que delega para a assincrona), com a trava de processo inteiro (`:87`, `Gate`) e a colisao declarada (`:274`, `DetectCollisions`); a guarda de processo cruzado e marcada durante a operacao (`src/Tranal.Uninstaller/Core/Automation/UninstallGuards.cs:211`, `RunGuarded`, e `:237`, `RunGuardedAsync`, que marcam em `:173` e limpam no `finally`), e por isso a segunda desinstalacao e recusada (`:143`, `CheckRunning`). Medido: `src/Tranal.Tests/Lote25FeatureTests.cs` (a fila roda um desinstalador por vez; a guarda marca a operacao e limpa a marca no fim, mesmo quando a operacao falha).",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -902,7 +902,7 @@
                                  "catalogo":  34,
                                  "catalogoId":  "T2#34",
                                  "estado":  "PARCIAL",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs:243` (`RequestStop` -\u003e `Issue(ProgressCommand.Stop)`), botao em `src/Tranal.Uninstaller/Ui/Automation/AutomationWindow.xaml.cs:106` (janela aberta pelo assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:806`); o plano para no `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:432` (`if (progress?.StopRequested == true) break;`). **Nota**: o encerramento so e verificado **entre as etapas** — o desinstalador nativo em execucao nao e interrompido, e nao ha o \"Stop current uninstall task\" imediato do BCU. Binario do concorrente: `bcu.inventario.md:377`",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs:240` (`RequestStop` -\u003e `Issue(ProgressCommand.Stop)`), botao em `src/Tranal.Uninstaller/Ui/Automation/AutomationWindow.xaml.cs:106` (janela aberta pelo assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:414`); a fila para a TARIFA no proximo programa (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:176`, o `stopRequested` marca o que nao comecou como `Aborted`, em `:33`). **Nota**: o desinstalador nativo **em execucao** nao e interrompido — de proposito: matar o desinstalador no meio deixa o programa meio desinstalado, que e pior do que terminar a desinstalacao e parar depois. Binario do concorrente: `bcu.inventario.md`",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -910,8 +910,8 @@
                                  "recon":  36,
                                  "catalogo":  36,
                                  "catalogoId":  "T2#36",
-                                 "estado":  "PARCIAL",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:140` (`UninstallQueueOutcome.RemovedFromTask`, \"nao desinstalou em silencio: saiu da tarefa\"); a CLI usa a fila em `src/Tranal.Cli/ExtraCommands.cs:1052` e reporta a saida da tarefa em `:1070`. **Nota**: existe **remover da tarefa**, mas **nao ha a opcao de rodar em primeiro plano** para quem nao desinstala em silencio. Binario do concorrente: `bcu.inventario.md:136`",
+                                 "estado":  "OK",
+                                 "evidencia":  "os dois caminhos existem: **remover da tarefa** e a regra da fila (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:20`, `UninstallQueueOutcome.RemovedFromTask`), e **rodar em primeiro plano** e o painel do rodape do assistente (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:200`, `WizardLeftTaskText`, e `:206`, `WizardForegroundButton`), que roda o comando registrado do programa, com a janela do desinstalador (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:856`, `NativeUninstallCommand.Registered`; o modo esta no nucleo em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1295`, `NativeUninstallCommand`). A tela so mostra quem saiu: a lista vem da fila (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:795`). Medido: `src/Tranal.Tests/Lote25FeatureTests.cs`.",
                                  "via":  "id",
                                  "motivo":  ""
                              },

@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(74,9% — 725 funcionalidades, 513 OK, 181 PARCIAL, 1 AUSENTE, 30 FORA por
+(75,2% — 725 funcionalidades, 515 OK, 179 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -247,6 +247,39 @@ Continua de fora, e continua honesto: os **17 grupos de sobras** do BCU
 (T3#49). A tela de sobras e uma arvore com categorias, mas as categorias sao
 as do Tranal (sistema de arquivos, registro e as outras), e nao as 17 do
 concorrente.
+
+
+**BCU T2#26 e T2#36 — a fila de desinstalacao na tela, a colisao declarada e o
+"rodar em primeiro plano".** A fila existia no nucleo, mas so a linha de
+comando a usava: a tela rodava os desinstaladores em um laco solto, sem a
+prevencao de colisao e sem a marca de "desinstalacao em andamento". O
+detalhe esta em `EVIDENCIA-LOTE25-FILA.md`:
+
+- a **fila** tem uma unica implementacao (a assincrona), e a sincrona delega
+  para ela: um desinstalador por vez (a trava e de processo inteiro), a
+  colisao declarada, quem nao desinstala em silencio sai da tarefa e a parada
+  da tarefa no proximo programa;
+- a **marca de operacao** passou a ser tomada: e ela que impede que DUAS
+  desinstalacoes rodem ao mesmo tempo na mesma maquina. Antes a guarda
+  existia, mas ninguem marcava — e uma guarda que nunca encontra nada nao
+  protege nada;
+- o **"rodar em primeiro plano"** e o painel do rodape do assistente: quem
+  nao desinstalou em silencio aparece la, com o comando que roda o
+  desinstalador com a janela dele, um por vez;
+- a regra do "ainda instalado" subiu do programa da linha de comando para o
+  motor, e a tela e a CLI passam a perguntar ao mesmo lugar;
+- a suite tem 14 testes proprios (`Lote25FeatureTests.cs`); suite com 1491
+  testes verdes.
+
+A desinstalacao em si **nao** foi medida na maquina: ela e destrutiva, e o
+Tranal nao desinstala nada do computador de quem usa sem pedido. O que foi
+medido e a regra (por injecao, na suite) e a ligacao da tela (sobre o fonte).
+
+Continua de fora, e continua honesto: o **"Stop current uninstall task"
+imediato** do BCU (T2#34). O Tranal nao mata o desinstalador nativo em
+execucao — matar o desinstalador no meio deixa o programa meio desinstalado, e
+um programa meio desinstalado e pior do que um programa desinstalado. A
+tarefa inteira para no proximo programa, e o que ja rodou termina.
 
 
 ## Como fechar

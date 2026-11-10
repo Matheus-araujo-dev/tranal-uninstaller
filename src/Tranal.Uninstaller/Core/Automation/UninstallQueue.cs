@@ -19,8 +19,18 @@ public enum UninstallQueueOutcome
     /// </summary>
     RemovedFromTask,
 
-    /// <summary>A desinstalacao falhou.</summary>
+    /// <summary>
+    /// A desinstalacao falhou.
+    /// </summary>
     Failed,
+
+    /// <summary>
+    /// A tarefa foi encerrada pelo usuario antes deste programa comecar.
+    ///
+    /// O desinstalador que ja estava rodando NAO e morto: um programa
+    /// meio desinstalado e pior do que um programa desinstalado.
+    /// </summary>
+    Aborted,
 }
 
 /// <summary>
@@ -78,6 +88,10 @@ public static class UninstallQueue
 
     /// <summary>
     /// Executa a fila, um programa por vez.
+    ///
+    /// E a MESMA regra da variante assincrona (<see cref="RunAsync"/>), que e
+    /// a implementacao de verdade: a tela e a linha de comando consomem as
+    /// duas, e a fila tem uma unica regra.
     /// </summary>
     /// <param name="programs">Os programas da fila.</param>
     /// <param name="uninstallOne">
@@ -88,12 +102,60 @@ public static class UninstallQueue
     /// Diz se o programa continua instalado. E o que separa "desinstalou" de
     /// "nao desinstalou em silencio".
     /// </param>
+    /// <param name="maxAttempts">Quantas vezes vale tentar o que falhou.</param>
     /// <returns>O resultado de cada programa, na ordem em que rodaram.</returns>
     public static IReadOnlyList<UninstallQueueItem> Run(
         IReadOnlyList<InstalledProgram> programs,
         Func<InstalledProgram, bool> uninstallOne,
         Func<InstalledProgram, bool>? stillInstalled = null,
         int maxAttempts = 1)
+    {
+        if (uninstallOne is null) throw new ArgumentNullException(nameof(uninstallOne));
+
+        return RunAsync(
+                programs,
+                program => Task.FromResult(uninstallOne(program)),
+                stillInstalled,
+                maxAttempts)
+            .GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Executa a fila, um programa por vez, de forma assincrona.
+    ///
+    /// E a implementacao de verdade da regra da fila:
+    ///
+    ///   - **um desinstalador por vez** (a trava e de processo inteiro, e
+    ///     vale para a janela e para a linha de comando ao mesmo tempo);
+    ///   - **a colisao declarada** (dois programas que dividem a pasta de
+    ///     instalacao ou o mesmo executavel de desinstalacao);
+    ///   - **quem nao desinstala em silencio sai da tarefa**, em vez de
+    ///     travar o lote;
+    ///   - **a parada da tarefa**: quando o usuario manda encerrar, o que
+    ///     ainda nao comecou nao comeca. O desinstalador que ja esta rodando
+    ///     NAO e morto.
+    /// </summary>
+    /// <param name="programs">Os programas da fila.</param>
+    /// <param name="uninstallOne">
+    /// Executa a desinstalacao de um programa. Devolve true quando a
+    /// desinstalacao foi feita.
+    /// </param>
+    /// <param name="stillInstalled">
+    /// Diz se o programa continua instalado. E o que separa "desinstalou" de
+    /// "nao desinstalou em silencio".
+    /// </param>
+    /// <param name="maxAttempts">Quantas vezes vale tentar o que falhou.</param>
+    /// <param name="stopRequested">
+    /// Diz se o usuario mandou encerrar a tarefa. Pode ser nulo: sem ele, a
+    /// fila roda do começo ao fim.
+    /// </param>
+    /// <returns>O resultado de cada programa, na ordem em que rodaram.</returns>
+    public static async Task<IReadOnlyList<UninstallQueueItem>> RunAsync(
+        IReadOnlyList<InstalledProgram> programs,
+        Func<InstalledProgram, Task<bool>> uninstallOne,
+        Func<InstalledProgram, bool>? stillInstalled = null,
+        int maxAttempts = 1,
+        Func<bool>? stopRequested = null)
     {
         if (programs is null || programs.Count == 0) return Array.Empty<UninstallQueueItem>();
         if (uninstallOne is null) throw new ArgumentNullException(nameof(uninstallOne));
@@ -102,11 +164,26 @@ public static class UninstallQueue
         var collisions = DetectCollisions(ordered);
         var results = new List<UninstallQueueItem>(ordered.Count);
 
-        Gate.Wait();
+        await Gate.WaitAsync().ConfigureAwait(false);
         try
         {
             foreach (var program in ordered)
             {
+                // A tarefa foi encerrada: o que ainda nao comecou nao comeca.
+                // O desinstalador que ja estava rodando NAO e morto — um
+                // programa meio desinstalado e pior do que um programa
+                // desinstalado.
+                if (stopRequested is not null && stopRequested())
+                {
+                    results.Add(new UninstallQueueItem
+                    {
+                        Program = program,
+                        Outcome = UninstallQueueOutcome.Aborted,
+                        Detail = "tarefa encerrada antes de comecar",
+                    });
+                    continue;
+                }
+
                 var item = new UninstallQueueItem { Program = program };
 
                 // A tupla e valor, nao referencia: nao da para comparar com
@@ -131,7 +208,7 @@ public static class UninstallQueue
                     bool done;
                     try
                     {
-                        done = uninstallOne(program);
+                        done = await uninstallOne(program).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

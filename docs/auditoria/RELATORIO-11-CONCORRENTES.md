@@ -11,7 +11,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Concorrente | Medido | OK | PARCIAL | AUSENTE | FORA | Cobertura |
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 54 | 18 | 0 | 4 | 76.3% |
-| Bulk Cookie Uninstaller | 97 | 75 | 20 | 0 | 2 | 79.4% |
+| Bulk Cookie Uninstaller | 97 | 77 | 18 | 0 | 2 | 81.4% |
 | Geek Uninstaller | 44 | 37 | 7 | 0 | 0 | 84.1% |
 | HiBit Uninstaller | 66 | 44 | 18 | 0 | 4 | 72.7% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
@@ -20,7 +20,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Uninstall Tool | 94 | 61 | 27 | 1 | 5 | 70.2% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 54 | 29 | 0 | 3 | 66.3% |
-| **TOTAL** | **725** | **513** | **181** | **1** | **30** | **74.9%** |
+| **TOTAL** | **725** | **515** | **179** | **1** | **30** | **75.2%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -63,11 +63,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 97 |
-| **OK** | **75** |
-| PARCIAL | 20 |
+| **OK** | **77** |
+| PARCIAL | 18 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 2 |
-| **Cobertura** | **79.4%** |
+| **Cobertura** | **81.4%** |
 
 ### O que ainda falta
 
@@ -79,9 +79,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T1#15 | Marcação de **não registrado (órfão)** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/DriveScanner.cs:82` (`OrphanUninstaller`) e `:226` (varredura); tela em `src/Tranal.Uninstaller/Ui/Discovery/DiscoveryWindow.xaml.cs:170` (categoria `OrphanUninstallers`). **Nota**: os executaveis orfaos aparecem na tela de Descoberta, **nao como marcacao na lista principal**. Binario do concorrente: `bcu.strings.txt:6529` (`checkBoxOrphans`) |
 | T1#16 | Marcação de **aplicativo inválido / desinstalador corrompido** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/UninstallerHealth.cs:55` (`Evaluate`: Ok/Missing/Broken), leitura em `src/Tranal.Uninstaller/Core/ProgramScanner.cs:153`, aviso em `src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:214` (`UninstallerHealthAdvisory`), exibido em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:493`. **Nota**: o desinstalador ausente/corrompido e avisado antes da desinstalacao, mas **nao ha coluna nem filtro que marque a entrada na lista** (a coluna "Protegido" da lista e a lista de exclusoes). Binario do concorrente: `bcu.strings.txt:6893` (`checkBoxInvalidTest`) |
 | T1#17 | Pastas de instalação **personalizadas** declaradas pelo usuário + detecção automática | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/UserInstallFolders.cs:47` (`Roots`: `%LOCALAPPDATA%\Programs`, `%APPDATA%`, `%LOCALAPPDATA%`) e `:87` (`IsUserInstallPath`); CLI em `src/Tranal.Cli/ParityCommands.cs:97` (`/userapps`, flag em `:31`). **Nota**: a deteccao automatica das pastas do usuario existe, mas **nao ha pastas extra declaradas pelo usuario** (nenhuma preferencia de pasta adicional e lida). Binario do concorrente: `bcu.strings.txt:6595` (`labelProgramFolders`) / `:6745` (`checkBoxAutoInstallFolderDetect`) |
-| T2#26 | **Desinstalação simultânea** com prevenção de colisão | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:71` (`Gate`, `SemaphoreSlim` de processo inteiro) e `:168` (`DetectCollisions`); a fila e consumida pela CLI em `src/Tranal.Cli/ExtraCommands.cs:1052` e a colisao e reportada em `:1068`. **Nota**: a tela nao usa a fila (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:164` so chama `SmartOrdering.Order`), e a guarda de processo cruzado nunca e marcada — `grep "MarkRunning" em src/` -> 1 hit so em teste (`src/Tranal.Tests/SearchGuardsAndPlatformTests.cs:151`), logo `src/Tranal.Uninstaller/Core/Automation/UninstallGuards.cs:133` (`CheckRunning`) nunca encontra a chave e a segunda desinstalacao nao e recusada. Binario do concorrente: `bcu.strings.txt:6837` (`checkBoxConcurrent`) |
-| T2#34 | **Abortar a tarefa inteira**, sem matar o desinstalador em execução | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs:243` (`RequestStop` -> `Issue(ProgressCommand.Stop)`), botao em `src/Tranal.Uninstaller/Ui/Automation/AutomationWindow.xaml.cs:106` (janela aberta pelo assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:806`); o plano para no `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:432` (`if (progress?.StopRequested == true) break;`). **Nota**: o encerramento so e verificado **entre as etapas** — o desinstalador nativo em execucao nao e interrompido, e nao ha o "Stop current uninstall task" imediato do BCU. Binario do concorrente: `bcu.inventario.md:377` |
-| T2#36 | **Desinstalação silenciosa de quem não aceita silent**: oferecer rodar em primeiro plano ou remover da tarefa | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:140` (`UninstallQueueOutcome.RemovedFromTask`, "nao desinstalou em silencio: saiu da tarefa"); a CLI usa a fila em `src/Tranal.Cli/ExtraCommands.cs:1052` e reporta a saida da tarefa em `:1070`. **Nota**: existe **remover da tarefa**, mas **nao ha a opcao de rodar em primeiro plano** para quem nao desinstala em silencio. Binario do concorrente: `bcu.inventario.md:136` |
+| T2#34 | **Abortar a tarefa inteira**, sem matar o desinstalador em execução | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs:240` (`RequestStop` -> `Issue(ProgressCommand.Stop)`), botao em `src/Tranal.Uninstaller/Ui/Automation/AutomationWindow.xaml.cs:106` (janela aberta pelo assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:414`); a fila para a TARIFA no proximo programa (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:176`, o `stopRequested` marca o que nao comecou como `Aborted`, em `:33`). **Nota**: o desinstalador nativo **em execucao** nao e interrompido — de proposito: matar o desinstalador no meio deixa o programa meio desinstalado, que e pior do que terminar a desinstalacao e parar depois. Binario do concorrente: `bcu.inventario.md` |
 | T2#39 | **Assistente de desinstalação em 6 etapas**: Relacionado → Confirmação → Aplicativos em execução → Configuração → … → Final | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:72-80` (`StepNames`: 5 etapas) e `:312` (`ShowStep`, casos 0 a 4). **Nota**: sao **5 etapas, nao 6** — nao ha etapa de **Relacionado** nem de **Aplicativos em execucao** (o painel de processos em uso e a ferramenta separada `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:108`). Binario do concorrente: `bcu.identificadores.txt:18` (tipo `BeginUninstallTaskWizard.resources`) |
 | T3#49 | **Grupos de sobras** por categoria, com scanners próprios | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/UninstallSupport.cs:49-123` (14 motivos de sobra, com justificativa por item) e `src/Tranal.Uninstaller/Core/Discovery/FolderConfidenceEvaluator.cs:96` (criterios de pasta); as ferramentas com scanner proprio tem scanner proprio: `src/Tranal.Uninstaller/Core/Tools/JunkCleaner.cs:55`, `src/Tranal.Uninstaller/Core/Tools/RegistryCleaner.cs:256`, `src/Tranal.Uninstaller/Core/Tools/TrackCleaner.cs:81`, `src/Tranal.Uninstaller/Core/Tools/PrivacyTraceCleaner.cs:181`. **Nota**: a tela de sobras e uma **arvore com categorias** (o lote 23 trocou a lista), com a regra no nucleo (`src/Tranal.Uninstaller/Core/LeftoverGroups.cs:51`); mas sao as categorias do Tranal (sistema de arquivos, registro e as outras), e **nao os 17 grupos** do BCU. Binario do concorrente: painel confirmado em `bcu.inventario.md:193`; as chaves `Junk_*_GroupName` nao estao confirmadas no binario |
 | T4#53 | **Filtro avançado por condições**: método de comparação × propriedade alvo, com negação | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:147` (`ProgramFilterSet`: tipo, tamanho, unidade, editora, comentario, grupo, uso raro), `:212` (prefixo `regex:`) e `:221` (`ExcludedTerms`, a negacao); consumo na lista em `src/Tranal.Uninstaller/MainWindow.xaml.cs:292`. **Nota**: o filtro e por **campos fixos**, nao por condicao "**metodo de comparacao × propriedade alvo**" — o `src/Tranal.Uninstaller/Core/Rules/RuleEngine.cs:43` e motor de regra de **remocao**, nao de filtro de lista. Binario do concorrente: `bcu.strings.txt:8428` ("Based on pre-defined rules") |

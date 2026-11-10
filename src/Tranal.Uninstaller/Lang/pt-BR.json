@@ -1534,5 +1534,10 @@
     "Common.Rating.Doubtful":  "Duvidoso",
     "Common.Rating.Bad":  "Mau",
     "Common.Rating.Unknown":  "Desconhecido",
-    "Leftovers.Warn.Dangerous":  "Estes itens marcados têm nota duvidosa ou ruim: removê-los pode ser muito perigoso."
+    "Leftovers.Warn.Dangerous":  "Estes itens marcados têm nota duvidosa ou ruim: removê-los pode ser muito perigoso.",
+    "Wizard.LeftTask.Text":  "Estes programas não desinstalaram em silêncio e saíram da tarefa: {0}. Você pode rodar o desinstalador em primeiro plano.",
+    "Wizard.LeftTask.Foreground":  "Rodar em primeiro plano",
+    "Wizard.LeftTask.Running":  "Rodando o desinstalador de {0}...",
+    "Wizard.LeftTask.StillThere":  "{0} continua instalado.",
+    "Wizard.Collision":  "Colisões: {0}"
 }

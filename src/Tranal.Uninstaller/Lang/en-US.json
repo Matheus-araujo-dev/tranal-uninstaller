@@ -1534,5 +1534,10 @@
     "Common.Rating.Doubtful":  "Doubtful",
     "Common.Rating.Bad":  "Bad",
     "Common.Rating.Unknown":  "Unknown",
-    "Leftovers.Warn.Dangerous":  "These checked items are doubtful or bad: removing them can be very dangerous."
+    "Leftovers.Warn.Dangerous":  "These checked items are doubtful or bad: removing them can be very dangerous.",
+    "Wizard.LeftTask.Text":  "These programs did not uninstall silently and left the task: {0}. You can run the uninstaller in the foreground.",
+    "Wizard.LeftTask.Foreground":  "Run in the foreground",
+    "Wizard.LeftTask.Running":  "Running the uninstaller of {0}...",
+    "Wizard.LeftTask.StillThere":  "{0} is still installed.",
+    "Wizard.Collision":  "Collisions: {0}"
 }

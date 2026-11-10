@@ -77,6 +77,21 @@ public partial class UninstallWizardWindow : Window
     /// </summary>
     private AutomationWindow? _progressWindow;
 
+    /// <summary>
+    /// Os programas que SAIRAM DA TAREFA: nao desinstalaram em silencio e
+    /// ficam para o usuario tratar.
+    ///
+    /// A lista vem da fila (<see cref="UninstallQueue"/>): e a regra que
+    /// decide quem sai, e nao a tela.
+    /// </summary>
+    private readonly List<InstalledProgram> _leftTheTask = new();
+
+    /// <summary>
+    /// As colisoes declaradas pela fila: dois programas que dividem a pasta
+    /// de instalacao ou o mesmo executavel de desinstalacao.
+    /// </summary>
+    private readonly List<string> _collisions = new();
+
     /// <summary>Nomes das 5 etapas, no mesmo ordem do Revo.</summary>
     private static string[] StepNames => new[]
     {
@@ -733,36 +748,133 @@ public partial class UninstallWizardWindow : Window
         // nucleo (ExecutionPolicy.ShouldRetry) e so o que FALHOU volta.
         var maximo = Math.Max(1, AppSettingsStore.Current.RetryFailedAttempts);
 
-        foreach (var program in _programs)
+        // A FILA e a regra: um desinstalador por vez (dois instaladores ao
+        // mesmo tempo disputam os mesmos arquivos), a colisao declarada e
+        // quem nao desinstala em silencio sai da tarefa em vez de travar o
+        // lote. A regra mora no nucleo (UninstallQueue); a tela so mostra.
+        //
+        // A MARCA de "desinstalacao em andamento" tambem mora no nucleo
+        // (UninstallGuards): e ela que impede que outra janela do Tranal
+        // comece uma desinstalacao ao mesmo tempo.
+        var descricao = $"Desinstalacao de {string.Join(", ", _programs.Select(p => p.DisplayName))}";
+
+        var fila = await UninstallGuards.RunGuardedAsync(
+            descricao,
+            () => UninstallQueue.RunAsync(
+                _programs,
+                async program =>
+                {
+                    var tentativa = 0;
+                    BuiltInUninstallResult resultado;
+
+                    while (true)
+                    {
+                        tentativa++;
+                        resultado = await UninstallEngine.RunBuiltInUninstaller(program, silent);
+
+                        var outcome = resultado.Uninstalled
+                            ? UninstallQueueOutcome.Completed
+                            : UninstallQueueOutcome.Failed;
+
+                        if (!ExecutionPolicy.ShouldRetry(outcome, tentativa, maximo))
+                            break;
+                    }
+
+                    _builtInResults.Add(resultado);
+                    return resultado.Uninstalled;
+                },
+                UninstallEngine.IsStillInstalled,
+                maximo,
+                () => _progress?.StopRequested == true));
+
+        foreach (var item in fila)
         {
-            var tentativa = 0;
-            BuiltInUninstallResult resultado;
+            if (item.CollidesWith.Length > 0)
+                _collisions.Add($"{item.Program.DisplayName} divide recursos com {item.CollidesWith}");
 
-            while (true)
-            {
-                tentativa++;
-                resultado = await UninstallEngine.RunBuiltInUninstaller(program, silent);
-
-                var outcome = resultado.Uninstalled
-                    ? UninstallQueueOutcome.Completed
-                    : UninstallQueueOutcome.Failed;
-
-                if (!ExecutionPolicy.ShouldRetry(outcome, tentativa, maximo))
-                    break;
-            }
-
-            _builtInResults.Add(resultado);
+            if (item.Outcome == UninstallQueueOutcome.RemovedFromTask)
+                _leftTheTask.Add(item.Program);
 
             // O usuario mandou encerrar enquanto o desinstalador nativo
             // rodava. Ele NAO foi morto: matar o desinstalador no meio
             // deixa o programa meio desinstalado, que e pior do que
             // terminar a desinstalacao e parar depois. A operacao encerra
             // aqui, com o desinstalador nativo ja terminado.
-            if (_progress?.StopRequested == true)
-            {
+            if (item.Outcome == UninstallQueueOutcome.Aborted && _builtInResults.Count > 0)
                 _abortedAfterNativeUninstaller = true;
-                break;
+        }
+
+        ShowLeftTask();
+    }
+
+    /// <summary>
+    /// Mostra quem saiu da tarefa e o comando para rodar o desinstalador em
+    /// primeiro plano.
+    ///
+    /// Quem nao desinstalou em silencio nao e um erro: e um programa que
+    /// precisa da pessoa na frente da tela. O painel fica no rodape do
+    /// assistente, e some quando nao ha ninguem para tratar.
+    /// </summary>
+    private void ShowLeftTask()
+    {
+        if (_leftTheTask.Count == 0)
+        {
+            LeftTaskPanel.Visibility = Visibility.Collapsed;
+            LeftTaskText.Text = string.Empty;
+            CollisionText.Text = string.Empty;
+            return;
+        }
+
+        var nomes = string.Join(", ", _leftTheTask.Select(p => p.DisplayName));
+        LeftTaskText.Text = Loc.Get("Wizard.LeftTask.Text", nomes);
+
+        CollisionText.Text = _collisions.Count > 0
+            ? Loc.Get("Wizard.Collision", string.Join("; ", _collisions))
+            : string.Empty;
+
+        LeftTaskPanel.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>
+    /// Roda o desinstalador em primeiro plano dos programas que sairam da
+    /// tarefa: com a janela dele, um por vez, e a pessoa vendo.
+    ///
+    /// E o "run in foreground" do Bulk Crap Uninstaller, para quem nao
+    /// desinstalou em silencio.
+    /// </summary>
+    private async void ForegroundButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ForegroundButton.IsEnabled = false;
+
+            foreach (var program in _leftTheTask.ToList())
+            {
+                StatusText.Text = Loc.Get("Wizard.LeftTask.Running", program.DisplayName);
+
+                var resultado = await UninstallEngine.RunBuiltInUninstaller(
+                    program, NativeUninstallCommand.Registered);
+
+                if (resultado.Succeeded || !UninstallEngine.IsStillInstalled(program))
+                {
+                    _leftTheTask.Remove(program);
+                    continue;
+                }
+
+                // Continua instalado: o programa sai do painel e a pessoa
+                // decide o que fazer com ele.
+                StatusText.Text = Loc.Get("Wizard.LeftTask.StillThere", program.DisplayName);
             }
+
+            ShowLeftTask();
+        }
+        catch (Exception ex)
+        {
+            UserMessages.Warning(this, ex.Message);
+        }
+        finally
+        {
+            ForegroundButton.IsEnabled = true;
         }
     }
 
