@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(75,2% — 725 funcionalidades, 515 OK, 179 PARCIAL, 1 AUSENTE, 30 FORA por
+(76,0% — 725 funcionalidades, 521 OK, 173 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -38,6 +38,28 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**GEEK T1#10, HIBIT T1#10, WISE T1#7 e T1#8 — "Remover entradas" e "Batch
+Remove Entries", e a acao "Modificar" que media errada.** O RECON media que a
+interface nao tinha acao para tirar o programa da lista "Adicionar e Remover
+Programas" sem desinstalar, e que o "Modificar" nao chegava a tela. As duas
+medicoes estavam erradas. O detalhe esta em
+`EVIDENCIA-LOTE26-REMOCAO-ENTRADAS.md`:
+
+- a REGRA mora no nucleo, em um lugar so: a acao avulsa
+  (`Core/Management/WindowsListEntry.cs:109`) delega para a acao em lote
+  (`:136`, `RemoveMany`), e as duas passam pela mesma remocao
+  (`Core/RegistryEditing/RegistryBatchRemover.cs:121`), que respeita a chave
+  protegida e a visao do registro do programa;
+- a tela tem a acao em lote (menu "Mais comandos", `CmdRemoveEntriesBatch`),
+  com a confirmacao que diz, na cara do usuario, que **os programas nao serao
+  desinstalados** — remover entrada nao e desinstalar;
+- a linha de comando tem `tranal /remove-entries "programa"`;
+- a suite tem 17 testes proprios (`Lote26FeatureTests.cs`) e um teste de ponta
+  a ponta no aplicativo de verdade (`tools/test-lote26.ps1`, 7 verificacoes),
+  que cria uma entrada de teste no HKCU, apaga e limpa tudo — nenhum software
+  instalado da maquina e tocado.
+
 
 **UNINSTALLTOOL T6#85 — Paineis ancoraveis ("push pin") com pre-visualizacao.**
 Era a ultima lacuna de **codigo** entre os 11 concorrentes, e fechou com o

@@ -110,11 +110,63 @@ public static class WindowsListEntry
     {
         if (program is null) return false;
 
-        var caminho = PathUtil.Normalize(program.RegistryPath);
-        if (caminho.Length == 0) return false;
+        // A regra e a do lote: uma unica interpretacao de "remover entrada"
+        // para a acao avulsa e para a acao em lote.
+        var relatorio = RemoveMany(new[] { program });
+        return relatorio.RemovedCount > 0;
+    }
 
-        var resultado = RegistryEditor.DeleteKey(caminho);
-        return resultado.Success;
+    /// <summary>
+    /// Remove as entradas de desinstalacao de varios programas em lote.
+    ///
+    /// E a acao "Batch Remove Entries" do Geek Uninstaller e o "Remove entry"
+    /// do HiBit, do Wise e do UNINSTALLTOOL: tirar de uma vez as entradas da
+    /// lista "Adicionar e Remover Programas" do Windows.
+    ///
+    /// IMPORTANTE: isto NAO desinstala nada. O programa continua instalado;
+    /// o que some e a chave de registro que o Windows usa para listar o
+    /// programa.
+    ///
+    /// A REGRA de remocao (protecao, visao do registro, codigo de erro) mora
+    /// em <see cref="RegistryBatchRemover"/>: a operacao avulsa e a operacao
+    /// em lote passam pelo mesmo codigo, e nao podem divergir.
+    /// </summary>
+    /// <param name="programs">Os programas cujas entradas serao removidas.</param>
+    /// <returns>O relatorio canonico da operacao.</returns>
+    public static RemovalReport RemoveMany(IEnumerable<InstalledProgram>? programs)
+    {
+        var lista = programs?.Where(p => p is not null).ToList() ?? new List<InstalledProgram>();
+
+        var alvos = new List<RegistryTarget>();
+        var invalidos = new List<RemovalOutcome>();
+
+        foreach (var programa in lista)
+        {
+            var alvo = RegistryTarget.FromProgram(programa);
+            if (alvo is null)
+            {
+                invalidos.Add(new RemovalOutcome
+                {
+                    Item = new LeftoverItem
+                    {
+                        Kind = "Registro",
+                        Path = programa.DisplayName.Length > 0 ? programa.DisplayName : "(sem nome)",
+                        Detail = "Entrada de desinstalacao",
+                        Selected = true,
+                        Confidence = LeftoverConfidence.High,
+                        Reason = LeftoverReason.OrphanedRegistryEntry,
+                    },
+                    Status = RemovalStatus.Failed,
+                    Message = "A entrada nao tem chave de registro conhecida.",
+                });
+                continue;
+            }
+
+            alvos.Add(alvo);
+        }
+
+        var relatorio = RegistryBatchRemover.Remove(alvos);
+        return new RemovalReport(relatorio.Outcomes.Concat(invalidos));
     }
 
     /// <summary>

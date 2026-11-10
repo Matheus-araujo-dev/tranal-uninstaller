@@ -11,16 +11,16 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Concorrente | Medido | OK | PARCIAL | AUSENTE | FORA | Cobertura |
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 54 | 18 | 0 | 4 | 76.3% |
-| Bulk Cookie Uninstaller | 97 | 77 | 18 | 0 | 2 | 81.4% |
-| Geek Uninstaller | 44 | 37 | 7 | 0 | 0 | 84.1% |
-| HiBit Uninstaller | 66 | 44 | 18 | 0 | 4 | 72.7% |
+| Bulk Cookie Uninstaller | 97 | 78 | 17 | 0 | 2 | 82.5% |
+| Geek Uninstaller | 44 | 38 | 6 | 0 | 0 | 86.4% |
+| HiBit Uninstaller | 66 | 45 | 17 | 0 | 4 | 74.2% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
 | Total Uninstall | 94 | 64 | 26 | 0 | 4 | 72.3% |
-| Uninstall Tool | 94 | 61 | 27 | 1 | 5 | 70.2% |
+| Uninstall Tool | 94 | 62 | 26 | 1 | 5 | 71.3% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
-| Wise Program Uninstaller | 86 | 54 | 29 | 0 | 3 | 66.3% |
-| **TOTAL** | **725** | **515** | **179** | **1** | **30** | **75.2%** |
+| Wise Program Uninstaller | 86 | 56 | 27 | 0 | 3 | 68.6% |
+| **TOTAL** | **725** | **521** | **173** | **1** | **30** | **76.0%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -63,11 +63,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 97 |
-| **OK** | **77** |
-| PARCIAL | 18 |
+| **OK** | **78** |
+| PARCIAL | 17 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 2 |
-| **Cobertura** | **81.4%** |
+| **Cobertura** | **82.5%** |
 
 ### O que ainda falta
 
@@ -89,7 +89,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T4#75 | **Gerenciador de desinstaladores relacionados** (`RelatedUninstallerAdder`) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/RelatedProgramFinder.cs:53` (`Find`) e o aviso `src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:244`, exibido em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:493`. **Nota**: a correlacao e a lista existem, mas **nao ha gerenciador** para adicionar/remover desinstaladores relacionados da tarefa — o BCU tem a tela `RelatedUninstallerAdder`; aqui so ha o aviso. Binario do concorrente: `bcu.identificadores.txt:30` (tipo `RelatedUninstallerAdder.resources`) |
 | T4#76 | Atalhos de teclado e cópia de informações da entrada | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:833`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:92` (`PreviewKeyDown`) e `:1676` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep "RegisterHotKey/Hotkey/GlobalHotkey" em src/` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`) |
 | T4#80 | Linha de comando **antes/depois** e "executar aplicativos externos" (desabilitável) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`). **Nota**: os comandos antes/depois existem e sao executados, mas **nao ha a opcao "executar aplicativos externos"** desabilitavel — `grep "External" em src/Tranal.Uninstaller/Core/Settings/AppSettings.cs` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:5310` (`checkBoxEnableExternal`) |
-| T5#86 | **Modificar a instalação** (reparo / alterar instalação) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:265` (`Repair`, `msiexec /fa`) e `:122` (`TryBuildRepairCommand`). **Nota**: o reparo existe no nucleo, mas **nao tem consumidor** — `grep "MsiProductCatalog.Repair" em src/` -> 1 hit (a definicao) e `TryBuildRepairCommand` -> 3 hits, todos em `src/Tranal.Tests/QueueAndStartupTests.cs:231`; a tela de Descoberta so lista os produtos MSI (`src/Tranal.Uninstaller/Ui/Discovery/DiscoveryWindow.xaml.cs:115`) sem botao de reparo. Binario do concorrente: `bcu.strings.txt:9070` ("Modify application") |
 | T5#95 | Filtro que **esconde o que foi publicado pela Microsoft** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:189` (`PublisherFilter`, filtro por editora, consumida em `:640`). **Nota**: existe o filtro **generico por editora** (digitar "Microsoft" filtra), mas **nao ha o filtro dedicado** "esconder o publicado pela Microsoft" — nenhum `Microsoft` fixo no codigo do filtro. Binario do concorrente: `bcu.inventario.md:160` ("Hide published by Microsoft") |
 
 ## Geek Uninstaller
@@ -97,17 +96,16 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 44 |
-| **OK** | **37** |
-| PARCIAL | 7 |
+| **OK** | **38** |
+| PARCIAL | 6 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 0 |
-| **Cobertura** | **84.1%** |
+| **Cobertura** | **86.4%** |
 
 ### O que ainda falta
 
 | # | Funcionalidade | Estado | O que falta |
 |---|---|---|---|
-| T1#10 | **Remove Entry** + **Batch Remove Entries** | PARCIAL | **PARCIAL** - **Remove Entry** + **Batch Remove Entries**/`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:82` (`public static class RegistryBatchRemover`) `src/Tranal.Cli/RegistryCommands.cs:68` (`RegistryBatchRemover`) **Nota**: a remocao em lote de entradas existe e e exposta na CLI, mas nao ha acao na interface grafica — o editor de registro da tela continua unitario. |
 | T1#16 | Aba de **Microsoft Store Apps** (`Ctrl+Tab`) | PARCIAL | **PARCIAL** - Aba de **Microsoft Store Apps** (`Ctrl+Tab`)/`src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs:39` (`public static class WindowsApps`) `src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:23` (`WindowsApps`) `src/Tranal.Cli/ExtraCommands.cs:14` (`/winapps`) **Nota**: os apps Store tem modulo e painel proprios, mas nao sao uma aba da janela principal. |
 | T2#29 | **Desregistro de COM** (`regsvr32 /u`) antes de remover | PARCIAL | **PARCIAL** - **Desregistro de COM** (`regsvr32 /u`) antes de remover/`src/Tranal.Uninstaller/Core/Automation/ComUnregister.cs:28` (`public static class ComUnregister`) `src/Tranal.Cli/RegistryCommands.cs:41` (`ComUnregister`) **Nota**: o desregistro de COM existe e tem comando proprio, mas nao esta ligado ao fluxo de remocao — e uma ferramenta separada. |
 | T2#33 | **Correspondência aproximada (Levenshtein)** de caminho de instalação | PARCIAL | **PARCIAL** - **Correspondência aproximada (Levenshtein)** de caminho de instalação/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:555` (`FuzzyMatch.IsMatch`) **Nota**: a distancia de edicao existe e e usada na busca por nome do programa, mas nao na comparacao de caminho de instalacao. |
@@ -120,11 +118,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 66 |
-| **OK** | **44** |
-| PARCIAL | 18 |
+| **OK** | **45** |
+| PARCIAL | 17 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **72.7%** |
+| **Cobertura** | **74.2%** |
 
 ### O que ainda falta
 
@@ -135,7 +133,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T1#5 | **Varredura de sobras** em **árvore** (TreeView), com AutoClean e RegBackup | PARCIAL | **PARCIAL** - Varredura rica em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:529` (`LeftoverScanner.Scan`), motivos em `:49-123` (14 motivos, com `ObsoleteShortcut` em `:88`, `ObsoleteStartMenu` em `:79`, `StartupEntry` em `:115`, `InstallerLog` em `:105`); backup do registro ligado a operacao (`src/Tranal.Uninstaller/Core/BackupManager.cs:165` `Create`, `:193` `AddRegistryKey`). **Nota**: a tela usa **`ListView`** (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:164`), **nao arvore**, e o gerenciador de servico/tarefa tem painel proprio (`src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:114`, `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:80`) que nao entra na arvore de sobras. Binario do concorrente: `hibit.recursos.txt:181` |
 | T1#6 | **Backup próprio `.dbh`** (Hibit Backup File): `BackupFiles.zip` + `FileList.txt` + `Registry.ini` | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/BackupManager.cs:165` (cria ponto), `:193` (chave de registro), `:225` (arquivo), `:257` (pasta), `:282` (salva), `:601` (restaura); painel em `src/Tranal.Uninstaller/Ui/BackupManagerWindow.xaml.cs:180`. **Nota**: o formato e **JSON + arquivos** (`src/Tranal.Uninstaller/Core/BackupManager.cs:200` grava `registry/*.json`), **nao `.dbh`** com `BackupFiles.zip`/`FileList.txt`/`Registry.ini`. Binario do concorrente: `hibit.recursos.txt:149` |
 | T1#8 | **Relatórios HTML por ferramenta**: `OpReport`, `ScanLog`, `ProgramCompReport`, `WindowsStoreReport`, `ServicesReport`, `DriversReport`, `StartupReport`, `SchedulerReport`, `ContextMenuReport`, `UninstallerReport` | PARCIAL | **PARCIAL** - O **gerador de relatorio HTML por ferramenta existe**: `src/Tranal.Uninstaller/Core/Reporting/ToolReportWriter.cs:40` (monta o HTML e grava o arquivo), usado pela CLI em `src/Tranal.Cli/RegistryCommands.cs:105` (`/report-html`, flag em `:48`) e por `src/Tranal.Uninstaller/Core/Tools/DriveCleaner.cs:256`. **Nota**: o Tranal **nao tem os 10 relatorios nomeados** do HiBit — ha um relatorio por ferramenta, hoje do limpador de registro. Binario do concorrente: `hibit.recursos.txt:164` (`TEXPORTFORM/0`) |
-| T1#10 | **Deletar entrada** do registro do programa | PARCIAL | **PARCIAL** - Apagar chave e valor existe (`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs:125` e `:174`) e a remocao em lote existe em `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:82`; a CLI consome em `src/Tranal.Cli/RegistryCommands.cs:52` (`/registry-remove`, `:68`) e a remocao da chave no fluxo de desinstalacao em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:2007`. **Nota**: **nao ha botao dedicado "remover so a entrada"** na interface grafica — a remocao em lote de chaves e **CLI-only**. Binario do concorrente: `hibit.recursos.txt:192` (`TUNINSTALLFORM/0`) |
 | T2#19 | **Desabilitar handlers** de menu de contexto (`DisableCon\Directory\shellex\…`, `Folder`, `Drive`, `exefile`, `lnkfile`, `Directory\Background`, `DesktopBackground`, `CLSID\{645FF040-…}`) | PARCIAL | **PARCIAL** - Os pontos do shell que o HiBit desabilita **sao enumerados** em `src/Tranal.Uninstaller/Core/Management/ContextMenuManager.cs:58-67` (`*`, `AllFilesystemObjects`, `Directory`, `Directory\Background`, `Folder`, `Drive`, `Folder\...\Directory\Background`) e o limpador de registro os cobre (`src/Tranal.Uninstaller/Core/Tools/RegistryCleaner.cs:989-994`, categoria "Extensoes do shell"). **Nota**: **nao ha acao de "desabilitar"** — so apagamento (`ContextMenuManager.cs:148`); faltam `exefile`, `lnkfile`, `DesktopBackground` e `CLSID\{645FF040-...}`. Binario do concorrente: `hibit.recursos.txt:152` (`TCONTEXTMENUFORM/0`) |
 | T3#60 | Painel de informações do sistema no banner (CPU, GPU, RAM disponível, SO, tempo de atividade) | PARCIAL | **PARCIAL** - A coleta e a tela existem: `src/Tranal.Uninstaller/Core/Modules/SystemInfoPanel.cs:41` (classe), `Collect` `:47`, CPU `:54`, RAM via WMI `Win32_OperatingSystem` `:122`, disco, GPU `:65` e tempo de atividade (`UptimeInfo` `:200`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:52`, carga em `:81`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:355`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:62`. **Nota**: o painel **nao esta no banner** - e uma tela da barra lateral; no banner da `MainWindow` so existe a barra de status (`src/Tranal.Uninstaller/MainWindow.xaml:638-640`), sem CPU, GPU, RAM ou SO. Binario do concorrente: nao confirmado no binario |
 | T3#61 | Seletor de tema com amostras de cor na barra superior (7 amostras + botão "…") | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ThemePalette.cs:94` (`ThemeSkinCatalog.All`: **4** temas — Dark, Slate, Contrast, Light) e `:384` (`Roles`); seletor no menu principal em `src/Tranal.Uninstaller/MainWindow.xaml.cs:982-989`; tema automatico do Windows em `src/Tranal.Uninstaller/Theming/ThemeProbe.cs:11`. **Nota**: **4 temas, nao 7**, e o seletor e um item de menu — **nao ha amostras de cor na barra superior**. Binario do concorrente: `hibit.recursos.txt:6-12` (7 estilos VCL no PE) |
@@ -199,7 +196,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#44 | Chave de configuração "Windows context menu commands" | PARCIAL | **PARCIAL** - Chave de configuração "Windows context menu commands"/gerenciador do menu de contexto `Core/Management/AppPermissionManager.cs:120`; registro do menu do Explorer `Core/Management/ContextMenuManager.cs:46` |
 | T5#56 | **Backup e restauração de chaves de registro inteiras** | PARCIAL | **PARCIAL** - **Backup e restauração de chaves de registro inteiras**/`src/Tranal.Uninstaller/Core/FullRegistryBackup.cs:42` (`public static class FullRegistryBackup`) **Nota**: o backup exporta os hives inteiros com `reg.exe` e gera o script de restauracao; nao ha backup de chave arbitraria — a busca por "RegSaveKey" em `src/` nao retorna hits. |
 | T5#59 | **Verificação de assinatura digital** de executáveis | PARCIAL | **PARCIAL** - **Verificação de assinatura digital** de executáveis/`src/Tranal.Uninstaller/Core/Discovery/UninstallerCertificate.cs:104` (`public static class UninstallerCertificate`) **Nota**: a verificacao existe (`WinVerifyTrust` com `X509Chain`), mas so e chamada pelos testes — a interface nao mostra o resultado. |
-| T5#65 | **Configuração completa de MSI** (instalar, modificar, reparar) | PARCIAL | **PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`) **Nota**: o reparo e a desinstalacao MSI sao montados, mas a interface nao os aciona (`TryBuildRepairCommand` so aparece nos testes) e nao ha a configuracao do Windows Installer. |
+| T5#65 | **Configuração completa de MSI** (instalar, modificar, reparar) | PARCIAL | **PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao "Modificar" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por "MsiConfigureProduct" nao encontra em `src/`. |
 | T5#67 | **Tarefas de segundo plano** executadas pelo app | PARCIAL | **PARCIAL** - **Tarefas de segundo plano** executadas pelo app/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) **Nota**: o Tranal gerencia as tarefas do Windows; nao ha registro das tarefas internas do proprio Tranal. |
 | T5#68 | **Itens compartilhados e dependentes** entre programas | PARCIAL | **PARCIAL** - **Itens compartilhados e dependentes** entre programas/`src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:52` (`public static class SharedReferenceCounter`) `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:102` (`UsersOf`) **Nota**: o contador de referencia e os avisos de pasta compartilhada existem; falta a deteccao de dependencia entre programas. |
 | T5#70 | Formulário de **notações do log** de rastreamento | PARCIAL | **PARCIAL** - Formulário de **notações do log** de rastreamento/`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) **Nota**: o log aceita edicao, remocao, renomear e entrada nova; nao ha formulario de notacoes separado. |
@@ -252,11 +249,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **61** |
-| PARCIAL | 27 |
+| **OK** | **62** |
+| PARCIAL | 26 |
 | AUSENTE | 1 |
 | FORA POR DECISAO | 5 |
-| **Cobertura** | **70.2%** |
+| **Cobertura** | **71.3%** |
 
 ### O que ainda falta
 
@@ -267,7 +264,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T1#6 | Atualizações de software como **sub-itens em árvore** | PARCIAL | **PARCIAL** - Atualizações de software como **sub-itens em árvore**/`src/Tranal.Uninstaller/Core/Updates/UpdateService.cs:29` (`public static class UpdateService`) `src/Tranal.Uninstaller/Ui/Tools/UpdateViews.cs:22` (`UpdateService`) **Nota**: a verificacao de atualizacao dos programas existe e tem tela e comando, mas nao ha arvore de atualizacoes como sub-item. |
 | T1#7 | Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos | PARCIAL | **PARCIAL** - Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos/`src/Tranal.Uninstaller/Core/Discovery/UserInstallFolders.cs:35` (`public static class UserInstallFolders`) **Nota**: o tamanho medido e o da pasta de instalacao; as pastas de dados sao apenas apontadas como aviso e nao somadas ao tamanho. |
 | T1#8 | Data de instalação por item, com destaque para "recentemente instalado" | PARCIAL | **PARCIAL** - Data de instalação por item, com destaque para "recentemente instalado"/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:20` (`public static class RelativeDate`) **Nota**: a data em tempo relativo existe; o realce dos recem-instalados nao. |
-| T1#10 | **Modify** — tela de modificação de componentes | PARCIAL | **PARCIAL** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:74` (`public static class MsiProductCatalog`) **Nota**: o motor monta o reparo MSI (`msiexec /fa`), mas `TryBuildRepairCommand` so e chamado pelos testes — a interface nao tem a acao Modify. |
 | T1#18 | Detecção de **itens relacionados** e **dependentes** | PARCIAL | **PARCIAL** - Detecção de **itens relacionados** e **dependentes**/`src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:87` (`public static class UninstallAdvisories`) `src/Tranal.Cli/RegistryCommands.cs:258` (`SharedReferenceCounter`) **Nota**: relacionados e pasta compartilhada sao avisados; dependentes nao sao detectados. |
 | T1#19 | **Cancelamento forçado** de um desinstalador travado, com aviso de riscos | PARCIAL | **PARCIAL** - **Cancelamento forçado** de um desinstalador travado, com aviso de riscos/`src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml.cs:17` (`public partial class ForcedUninstallWindow`) **Nota**: o processo que trava e encerrado, mas a tela de desinstalacao forcada nao avisa dos riscos antes de remover. |
 | T1#20 | Remoção de **objetos COM** registrados | PARCIAL | **PARCIAL** - Remoção de **objetos COM** registrados/`src/Tranal.Uninstaller/Core/Automation/ComUnregister.cs:28` (`public static class ComUnregister`) **Nota**: o desregistro de COM existe como ferramenta separada, mas nao esta ligado ao fluxo de remocao. |
@@ -324,11 +320,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 86 |
-| **OK** | **54** |
-| PARCIAL | 29 |
+| **OK** | **56** |
+| PARCIAL | 27 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 3 |
-| **Cobertura** | **66.3%** |
+| **Cobertura** | **68.6%** |
 
 ### O que ainda falta
 
@@ -336,8 +332,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 |---|---|---|---|
 | T1#2 | Lista separada de "Apps da Área de Trabalho" (Win32) | PARCIAL | **PARCIAL** - Lista separada de "Apps da Área de Trabalho" (Win32)/`src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs:39` (`public static class WindowsApps`) `src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:23` (`WindowsApps`) **Nota**: a origem StoreApp e lida e a listagem pode incluir ou omitir os aplicativos do Store; nao ha uma visao Win32 separada na interface. |
 | T1#4 | Lista separada de "Componentes do Sistema" | PARCIAL | **PARCIAL** - Lista separada de "Componentes do Sistema"/`src/Tranal.Uninstaller/Core/ProgramScanner.cs:32` (`IncludeSystemComponents`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:309` (`HiddenFilterCheck`) **Nota**: os componentes do sistema tem coluna propria e podem ser ocultados pela preferencia; nao ha lista separada. |
-| T1#7 | "Modificar" — reaproveita o instalador do programa | PARCIAL | **PARCIAL** - "Modificar" — reaproveita o instalador do programa/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:74` (`public static class MsiProductCatalog`) **Nota**: o reparo MSI e montado (`msiexec /fa`), mas `TryBuildRepairCommand` so e chamado pelos testes — a interface nao tem a acao "Modificar". |
-| T1#8 | "Remover Entradas" — tira o programa da lista **sem** desinstalar | PARCIAL | **PARCIAL** - "Remover Entradas" — tira o programa da lista **sem** desinstalar/`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs:46` (`public static class RegistryEditor`) **Nota**: o motor apaga chave e valor isolados e sabe tomar posse da chave, mas nao ha a acao de remover a entrada do programa da lista na interface. |
 | T1#12 | Extensão de navegador, com aviso de **sincronização** | PARCIAL | **PARCIAL** - Extensão de navegador, com aviso de **sincronização**/`src/Tranal.Uninstaller/Core/Modules/BrowserExtensions.cs:53` (`public static class BrowserExtensions`) `src/Tranal.Uninstaller/Ui/Tools/MaintenanceViews.cs:380` (`BrowserCleanup.FindOrphanExtensions`) **Nota**: a listagem e a remocao de extensoes existem para os navegadores suportados; nao ha o aviso de sincronizacao do navegador. |
 | T1#15 | Aviso de que um programa **não aceita** desinstalação silenciosa | PARCIAL | **PARCIAL** - Aviso de que um programa **não aceita** desinstalação silenciosa/`src/Tranal.Uninstaller/Core/QuietUninstall.cs:26` (`public static class QuietUninstall`) `src/Tranal.Uninstaller/Core/ProgramColumns.cs:273` (`QuietUninstallCommand`) **Nota**: o nucleo sabe dizer se o programa tem desinstalador silencioso e a coluna mostra o comando, mas `QuietUninstall.Supports` so e chamado pelos testes — nao ha o aviso na tela. |
 | T2#25 | Tela de **Restauração do Sistema**, com "Restaurar" e "Apagar" | PARCIAL | **PARCIAL** - Tela de **Restauração do Sistema**, com "Restaurar" e "Apagar"/`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:30` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1238` (`SystemNavigator`) **Nota**: a Recuperacao do Sistema do Windows e aberta pelo menu de contexto e a tela de backups restaura e apaga os pontos do Tranal; falta "Apagar" de ponto de restauracao do Windows. |

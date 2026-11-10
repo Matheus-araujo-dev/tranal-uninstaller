@@ -1539,5 +1539,9 @@
     "Wizard.LeftTask.Foreground":  "Rodar em primeiro plano",
     "Wizard.LeftTask.Running":  "Rodando o desinstalador de {0}...",
     "Wizard.LeftTask.StillThere":  "{0} continua instalado.",
-    "Wizard.Collision":  "Colisões: {0}"
+    "Wizard.Collision":  "Colisões: {0}",
+    "Cmd.RemoveEntriesBatch":  "Remover entradas da lista do Windows",
+    "Cmd.RemoveEntriesBatchWithCount":  "Remover {0} entrada(s) da lista do Windows",
+    "Cmd.RemoveEntriesBatchConfirm":  "Remover {0} entrada(s) da lista do Windows?\n\nOs programas NÃO serão desinstalados: apenas a chave de registro que o Windows usa para listar o programa será apagada. Esta operação não pode ser desfeita.",
+    "Cmd.RemoveEntriesBatchDone":  "{0} entrada(s) removida(s), {1} protegida(s), {2} com falha."
 }

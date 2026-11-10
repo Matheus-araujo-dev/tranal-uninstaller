@@ -1539,5 +1539,9 @@
     "Wizard.LeftTask.Foreground":  "Run in the foreground",
     "Wizard.LeftTask.Running":  "Running the uninstaller of {0}...",
     "Wizard.LeftTask.StillThere":  "{0} is still installed.",
-    "Wizard.Collision":  "Collisions: {0}"
+    "Wizard.Collision":  "Collisions: {0}",
+    "Cmd.RemoveEntriesBatch":  "Remove entries from the Windows list",
+    "Cmd.RemoveEntriesBatchWithCount":  "Remove {0} entry(ies) from the Windows list",
+    "Cmd.RemoveEntriesBatchConfirm":  "Remove {0} entry(ies) from the Windows list?\n\nThe programs will NOT be uninstalled: only the registry key the Windows uses to list the program will be erased. This action cannot be undone.",
+    "Cmd.RemoveEntriesBatchDone":  "{0} entry(ies) removed, {1} protected, {2} failed."
 }

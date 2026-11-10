@@ -63,6 +63,7 @@ namespace Tranal.Cli;
 ///   tranal /resume "id"              - retoma uma desinstalacao interrompida
 ///   tranal /processes                - lista os processos em execucao e o programa dono
 ///   tranal /registry-remove "chave"   - apaga uma entrada de registro
+///   tranal /remove-entries "programa" ["programa"] - remove entradas da lista do Windows (nao desinstala)
 ///   tranal /report-html "arquivo"     - grava o relatorio HTML da limpeza de registro
 ///   tranal /unlock "arquivo"          - mostra quem segura o arquivo
 ///   tranal /unlock "arquivo" /force   - destrava o arquivo
@@ -118,6 +119,7 @@ public static class ExtraCommands
         if (LogCommands.TryRun(args, flags) is int logResult) return logResult;
         if (ParityCommands.TryRun(args, flags) is int parityResult) return parityResult;
         if (RegistryCommands.TryRun(args, flags) is int registryResult) return registryResult;
+        if (EntryCommands.TryRun(args, flags) is int entryResult) return entryResult;
         if (ResumeCommands.TryRun(args, flags) is int resumeResult) return resumeResult;
         if (CleanupCommands.TryRun(args, flags) is int cleanupResult) return cleanupResult;
         if (MaintenanceCommands.TryRun(args, flags) is int maintenanceResult) return maintenanceResult;

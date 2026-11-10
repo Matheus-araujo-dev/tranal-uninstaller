@@ -1307,8 +1307,8 @@
                                                          "id":  "T5#86",
                                                          "funcionalidade":  "**Modificar a instalação** (reparo / alterar instalação)",
                                                          "evidencia":  "literal \"Modify application\" (`bcu.strings.txt:9070`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:265` (`Repair`, `msiexec /fa`) e `:122` (`TryBuildRepairCommand`). **Nota**: o reparo existe no nucleo, mas **nao tem consumidor** — `grep \"MsiProductCatalog.Repair\" em src/` -\u003e 1 hit (a definicao) e `TryBuildRepairCommand` -\u003e 3 hits, todos em `src/Tranal.Tests/QueueAndStartupTests.cs:231`; a tela de Descoberta so lista os produtos MSI (`src/Tranal.Uninstaller/Ui/Discovery/DiscoveryWindow.xaml.cs:115`) sem botao de reparo. Binario do concorrente: `bcu.strings.txt:9070` (\"Modify application\")"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Modificar a instalação** (reparo / alterar instalação)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
                                                      },
                                                      {
                                                          "numero":  87,
@@ -1482,8 +1482,8 @@
                                                          "id":  "T1#10",
                                                          "funcionalidade":  "**Remove Entry** + **Batch Remove Entries**",
                                                          "evidencia":  "`MainMenu/mnuActionRemoveEntry` (`geek.strings.txt:1171`), literal `\u003cmnuActionRemoveEntryBatch\u003eBatch Remove \u0026amp;Entries\u003c/mnuActionRemoveEntryBatch\u003e` (`:4557`), `\u003cmsgRemoveEntryQuestion\u003e` (`:4612`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Remove Entry** + **Batch Remove Entries**/`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:82` (`public static class RegistryBatchRemover`) `src/Tranal.Cli/RegistryCommands.cs:68` (`RegistryBatchRemover`) **Nota**: a remocao em lote de entradas existe e e exposta na CLI, mas nao ha acao na interface grafica — o editor de registro da tela continua unitario."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Remove Entry** + **Batch Remove Entries**/A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:109`, `Remove`) delega para a acao em lote (`:136`, `RemoveMany`), e as duas passam pela mesma remocao (`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:121`, `Remove`), que respeita a chave protegida e a visao do registro do programa (`:85`, `FromProgram`). A tela tem a acao em lote (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1134`, `CmdRemoveEntriesBatch`; o metodo em `:1831`, `RemoveEntriesBatch`) e a linha de comando tem `/remove-entries` (`src/Tranal.Cli/EntryCommands.cs:24`). Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao."
                                                      },
                                                      {
                                                          "numero":  11,
@@ -1841,8 +1841,8 @@
                                                          "id":  "T1#10",
                                                          "funcionalidade":  "**Deletar entrada** do registro do programa",
                                                          "evidencia":  "`hibit.recursos.txt:192` -\u003e `TUNINSTALLFORM/0`; `hibit.inventario.md:13432` -\u003e `RegDeleteKey` - Remove chaves de registro",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Apagar chave e valor existe (`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs:125` e `:174`) e a remocao em lote existe em `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:82`; a CLI consome em `src/Tranal.Cli/RegistryCommands.cs:52` (`/registry-remove`, `:68`) e a remocao da chave no fluxo de desinstalacao em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:2007`. **Nota**: **nao ha botao dedicado \"remover so a entrada\"** na interface grafica — a remocao em lote de chaves e **CLI-only**. Binario do concorrente: `hibit.recursos.txt:192` (`TUNINSTALLFORM/0`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Deletar entrada** do registro do programa/`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1134` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:24` (`/remove-entries`). A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`:109`) delega para a acao em lote (`:136`), e as duas passam pela mesma remocao (`RegistryBatchRemover`, `:121`), que respeita a chave protegida e a visao do registro do programa (`:85`). **Nao desinstala nada**: o programa continua instalado, e a confirmacao da tela e o aviso da linha de comando dizem isso. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa e o menu \"Mais comandos\" mostra a acao."
                                                      },
                                                      {
                                                          "numero":  11,
@@ -3144,7 +3144,7 @@
                                                          "funcionalidade":  "**Configuração completa de MSI** (instalar, modificar, reparar)",
                                                          "evidencia":  "`imports.txt:74` → `msi.dll / MsiConfigureProductW`, `MsiSetExternalUIW`, `MsiSetInternalUI`, `MsiEnumProductsExW`, `MsiQueryProductStateW`",
                                                          "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`) **Nota**: o reparo e a desinstalacao MSI sao montados, mas a interface nao os aciona (`TryBuildRepairCommand` so aparece nos testes) e nao ha a configuracao do Windows Installer."
+                                                         "estadoTexto":  "**PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao \"Modificar\" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por \"MsiConfigureProduct\" nao encontra em `src/`."
                                                      },
                                                      {
                                                          "numero":  66,
@@ -4085,8 +4085,8 @@
                                                          "id":  "T1#10",
                                                          "funcionalidade":  "**Modify** — tela de modificação de componentes",
                                                          "evidencia":  "`strings.txt:4953` → `MainMenu/mnuActionModify`; `:14050` → `\u003cmnuActionModify\u003e\u0026amp;Modify...\u003c/mnuActionModify\u003e`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:74` (`public static class MsiProductCatalog`) **Nota**: o motor monta o reparo MSI (`msiexec /fa`), mas `TryBuildRepairCommand` so e chamado pelos testes — a interface nao tem a acao Modify."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
                                                      },
                                                      {
                                                          "numero":  11,
@@ -5235,16 +5235,16 @@
                                                          "id":  "T1#7",
                                                          "funcionalidade":  "\"Modificar\" — reaproveita o instalador do programa",
                                                          "evidencia":  "`wise.recursos.txt:144` -\u003e `TFRMBEFOREUNISTALL/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - \"Modificar\" — reaproveita o instalador do programa/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:74` (`public static class MsiProductCatalog`) **Nota**: o reparo MSI e montado (`msiexec /fa`), mas `TryBuildRepairCommand` so e chamado pelos testes — a interface nao tem a acao \"Modificar\"."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - \"Modificar\" — reaproveita o instalador do programa/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`)."
                                                      },
                                                      {
                                                          "numero":  8,
                                                          "id":  "T1#8",
                                                          "funcionalidade":  "\"Remover Entradas\" — tira o programa da lista **sem** desinstalar",
                                                          "evidencia":  "`wise.recursos.txt:144` -\u003e `TFRMBEFOREUNISTALL/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - \"Remover Entradas\" — tira o programa da lista **sem** desinstalar/`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryEditor.cs:46` (`public static class RegistryEditor`) **Nota**: o motor apaga chave e valor isolados e sabe tomar posse da chave, mas nao ha a acao de remover a entrada do programa da lista na interface."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - \"Remover Entradas\" — tira o programa da lista **sem** desinstalar/`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1134` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:24` (`/remove-entries`). A acao existe avulsa (menu de contexto) e em lote (menu \"Mais comandos\"), com a confirmacao que diz que o programa **nao** e desinstalado. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao."
                                                      },
                                                      {
                                                          "numero":  9,

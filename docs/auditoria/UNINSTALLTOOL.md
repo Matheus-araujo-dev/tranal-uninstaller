@@ -85,7 +85,7 @@ Coluna **Tranal**: `OK`, `PARCIAL` (diz o que falta) ou `AUSENTE`.
 | 7 | Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos | nao confirmado no binario | **PARCIAL** - Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos/`src/Tranal.Uninstaller/Core/Discovery/UserInstallFolders.cs:35` (`public static class UserInstallFolders`) **Nota**: o tamanho medido e o da pasta de instalacao; as pastas de dados sao apenas apontadas como aviso e nao somadas ao tamanho. |
 | 8 | Data de instalação por item, com destaque para "recentemente instalado" | `strings.txt:14234` → `<checkHighlighRecent>Highlight recently installed programs</checkHighlighRecent>` | **PARCIAL** - Data de instalação por item, com destaque para "recentemente instalado"/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:20` (`public static class RelativeDate`) **Nota**: a data em tempo relativo existe; o realce dos recem-instalados nao. |
 | 9 | **Uninstall** — executa o desinstalador padrão | `strings.txt:4952` → `MainMenu/mnuActionUninstall`; `:14049` → `<mnuActionUninstall>&amp;Uninstall...</mnuActionUninstall>` | OK — `Core/Removal.cs` |
-| 10 | **Modify** — tela de modificação de componentes | `strings.txt:4953` → `MainMenu/mnuActionModify`; `:14050` → `<mnuActionModify>&amp;Modify...</mnuActionModify>` | **PARCIAL** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:74` (`public static class MsiProductCatalog`) **Nota**: o motor monta o reparo MSI (`msiexec /fa`), mas `TryBuildRepairCommand` so e chamado pelos testes — a interface nao tem a acao Modify. |
+| 10 | **Modify** — tela de modificação de componentes | `strings.txt:4953` → `MainMenu/mnuActionModify`; `:14050` → `<mnuActionModify>&amp;Modify...</mnuActionModify>` | **OK** - **Modify** — tela de modificação de componentes/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao "Modificar" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`). |
 | 11 | **Force Removal** — apaga arquivos e registro **sem rodar o desinstalador** | `strings.txt:5020` → `Messages/msgForceRemovalDescription` | OK — `Core/Modules/HunterMode.cs`, `Ui/ForcedUninstallWindow.xaml.cs` |
 | 12 | **Batch Force Removal** | `strings.txt:14052` → `<mnuActionDeleteBatch>Batch &amp;Force Removal</mnuActionDeleteBatch>` | OK — `Core/Automation/BatchList.cs` |
 | 13 | **Remove Entry** — tira da lista sem apagar sobras | `strings.txt:4955` → `MainMenu/mnuActionRemoveEntry`; `:14053` → `<mnuActionRemoveEntry>Remove &amp;Entry</mnuActionRemoveEntry>` | OK — `Core/RegistryEditing/RegistryEditor.cs` (MATRIZ D14) |
@@ -488,10 +488,11 @@ lote**; e ausência de **log de remoção por item** e de **reverter instalaçã
    cobertura de silencioso sem nada disso. Registrar a contraprova é o que
    torna a decisão defensável.
 2. **Desinstalação em lote é a lacuna mais barata desta matriz.** O Uninstall
-   Tool tem Batch Force Removal e Batch Remove Entries; o Tranal **não tem
-   desinstalação em lote** (grep confirma). O `Core/Modules/TracedPrograms.cs`
-   e o `Core/UninstallSupport.cs` já operam sobre listas — é carga de trabalho
-   de interface, não de motor.
+   Tool tem Batch Force Removal e Batch Remove Entries; o Tranal tem as
+   duas: a desinstalação em lote com prevenção de colisão
+   (`Core/Automation/UninstallQueue.cs`, que a tela consome) e a remoção em lote
+   das entradas da lista do Windows (`Core/Management/WindowsListEntry.cs`,
+   `RemoveMany`, com ação na tela e na linha de comando).
 3. **Log de remoção por item, com código de erro, é o que a auditoria do
    Geek/MSI também pede.** O `Core/MsiInstallLog.cs` é *leitor*; falta o
    *escritor*. Um log por operação, com o código de erro e a explicação,

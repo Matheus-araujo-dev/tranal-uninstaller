@@ -495,6 +495,23 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   serve.
 - `ReloadProgramRows` preserva **todas** as linhas escolhidas.
 
+## Remover as entradas da lista do Windows (regra do núcleo)
+
+- **A regra mora em `Core/Management/WindowsListEntry.cs`**: `Remove` (a ação
+  avulsa) e `RemoveMany` (a ação em lote). A ação avulsa **delega** para a
+  ação em lote — não existe segunda interpretação de "remover entrada".
+- **A remoção em si mora em `Core/RegistryEditing/RegistryBatchRemover.cs`**
+  (`Remove`): chave protegida não é apagada e sai no relatório como
+  *protegida*, e o código de erro do Windows vai no `RemovalOutcome`.
+- **Remover entrada não é desinstalar.** O que se apaga é a chave de
+  desinstalação; o programa continua instalado. A confirmação da tela diz isso
+  na cara do usuário, e a linha de comando avisa antes de remover.
+- **O alvo preserva a visão do registro** (32/64 bits) do programa
+  (`RegistryTarget.FromProgram`): a mesma subchave existe nas duas visões e são
+  entradas diferentes.
+- **A tela e a linha de comando removem pelo mesmo código**: o menu "Mais
+  comandos" (`CmdRemoveEntriesBatch`) e o comando `/remove-entries`.
+
 ## O log de remoção por item (regra do núcleo)
 
 Toda operação de remoção grava um log com **uma linha por item**: tipo,

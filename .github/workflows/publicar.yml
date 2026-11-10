@@ -176,6 +176,20 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote24.ps1 `
             -Exe publish\preview\TranalUninstaller.exe `
             -CliExe publish\cli\tranal.exe
+      # A remocao das entradas da lista do Windows, em lote (lote 26): a
+      # entrada de teste sai do registro e a linha de comando avisa que o
+      # programa NAO e desinstalado.
+      #
+      # O teste cria uma entrada de desinstalacao no HKCU de quem roda e
+      # apaga tudo no final: nenhum software instalado e tocado.
+      - name: Remocao de entradas em lote (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote26.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
 
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.

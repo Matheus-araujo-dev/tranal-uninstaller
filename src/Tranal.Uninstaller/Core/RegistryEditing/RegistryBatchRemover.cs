@@ -26,6 +26,13 @@ public sealed class RegistryTarget
     /// </summary>
     public string ValueName { get; init; } = string.Empty;
 
+    /// <summary>
+    /// O rotulo do alvo: o nome do programa, quando o alvo vem de uma
+    /// entrada de desinstalacao. E o que permite ao relatorio dizer de que
+    /// entrada se trata, e nao apenas o caminho da chave.
+    /// </summary>
+    public string Label { get; init; } = string.Empty;
+
     /// <summary>True quando o alvo e um valor, e nao a chave.</summary>
     public bool IsValue => ValueName.Length > 0;
 
@@ -66,6 +73,30 @@ public sealed class RegistryTarget
             ValueName = (valueName ?? string.Empty).Trim(),
         };
     }
+
+    /// <summary>
+    /// Monta o alvo a partir de uma entrada de programa instalado.
+    ///
+    /// A identidade do programa inclui a visao do registro (32/64 bits): a
+    /// mesma subchave existe nas duas visoes e sao entradas diferentes.
+    /// </summary>
+    /// <param name="program">A entrada de desinstalacao do programa.</param>
+    /// <returns>O alvo, ou null quando a entrada nao tem chave conhecida.</returns>
+    public static RegistryTarget? FromProgram(InstalledProgram? program)
+    {
+        if (program is null) return null;
+
+        var parsed = RegistryPath.Parse(program.RegistryPath);
+        if (parsed is null) return null;
+
+        return new RegistryTarget
+        {
+            Hive = parsed.Value.Hive,
+            RelativePath = parsed.Value.RelativePath,
+            View = program.View,
+            Label = program.DisplayName,
+        };
+    }
 }
 
 /// <summary>
@@ -83,7 +114,6 @@ public static class RegistryBatchRemover
 {
     /// <summary>
     /// Apaga os alvos informados em lote.
-    ///
     /// </summary>
     /// <param name="targets">Os alvos.</param>
     public static RemovalReport Remove(IEnumerable<RegistryTarget>? targets)
@@ -108,7 +138,9 @@ public static class RegistryBatchRemover
         {
             Kind = alvo.IsValue ? "Valor de Registro" : "Registro",
             Path = alvo.DisplayPath,
-            Detail = alvo.IsValue ? "Valor de registro" : "Chave de registro",
+            Detail = alvo.Label.Length > 0
+                ? "Entrada de desinstalacao: " + alvo.Label
+                : (alvo.IsValue ? "Valor de registro" : "Chave de registro"),
             Selected = true,
             Confidence = LeftoverConfidence.High,
             Reason = LeftoverReason.OrphanedRegistryEntry,

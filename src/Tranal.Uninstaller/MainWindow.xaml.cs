@@ -1103,6 +1103,10 @@ public partial class MainWindow : Window
     {
         var menu = new ContextMenu();
 
+        // A selecao e multipla (Ctrl/Shift, ou Ctrl+A): e o que permite
+        // remover varias entradas de uma vez.
+        var selecionados = selectedRows.Count;
+
         var refresh = CommandItem(Loc.Get("Cmd.Refresh"), "CmdRefresh", async () => await ReloadAsync());
         menu.Items.Add(refresh);
 
@@ -1122,6 +1126,18 @@ public partial class MainWindow : Window
 
         var forced = CommandItem(Loc.Get("Cmd.ForcedUninstall"), "CmdForcedUninstall", ShowForcedUninstall);
         menu.Items.Add(forced);
+
+        // "Batch Remove Entries": tirar de uma vez as entradas de varios
+        // programas da lista "Adicionar e Remover Programas" do Windows
+        // (Geek Uninstaller, HiBit, Wise, UNINSTALLTOOL). Nao desinstala
+        // nada — e a confirmacao diz isso antes de qualquer coisa.
+        var removerEntradas = CommandItem(
+            Loc.Get(selecionados > 0
+                ? "Cmd.RemoveEntriesBatchWithCount"
+                : "Cmd.RemoveEntriesBatch", selecionados),
+            "CmdRemoveEntriesBatch",
+            () => RemoveEntriesBatch());
+        menu.Items.Add(removerEntradas);
 
         menu.Items.Add(new Separator());
 
@@ -1802,6 +1818,38 @@ public partial class MainWindow : Window
         UserMessages.Information(this, removido
             ? Loc.Get("Cmd.RemoveFromWindowsListDone")
             : Loc.Get("Cmd.RemoveFromWindowsListFailed"));
+    }
+
+    /// <summary>
+    /// Remove as entradas de desinstalacao dos programas selecionados, em lote.
+    ///
+    /// A operacao NAO desinstala nada: o programa continua instalado e o que
+    /// some e a chave de registro que o Windows usa para listar o programa.
+    /// A confirmacao diz isso na cara do usuario — e o que distingue
+    /// "remover entrada" de "desinstalar".
+    /// </summary>
+    private async void RemoveEntriesBatch()
+    {
+        var rows = selectedRows;
+        if (rows.Count == 0)
+        {
+            UserMessages.Information(this, Loc.Get("Status.NoSelection"));
+            return;
+        }
+
+        var confirmado = UserMessages.Confirm(
+            this,
+            Loc.Get("Cmd.RemoveEntriesBatchConfirm", rows.Count),
+            Loc.Get("Cmd.RemoveEntriesBatch"));
+        if (!confirmado) return;
+
+        var relatorio = Core.Management.WindowsListEntry.RemoveMany(rows.Select(r => r.Program));
+        await ReloadAsync();
+
+        UserMessages.Information(this, Loc.Get("Cmd.RemoveEntriesBatchDone",
+            relatorio.RemovedCount,
+            relatorio.ProtectedCount,
+            relatorio.FailedCount));
     }
 
     /// <summary>
