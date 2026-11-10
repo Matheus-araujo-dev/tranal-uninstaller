@@ -23,7 +23,7 @@
       <TextBlock Text="O que procurar:" VerticalAlignment="Center"
                  Foreground="{DynamicResource TextBrush}" />
       <ComboBox x:Name="CategoryBox" Width="340" Margin="8,0,0,0" VerticalAlignment="Center"
-                DisplayMemberPath="Text" />
+                DisplayMemberPath="Text" AutomationProperties.AutomationId="DiscoveryCategories" />
     </StackPanel>
 
     <ListView Grid.Row="2" x:Name="ResultsList" AutomationProperties.AutomationId="DiscoveryResults"
@@ -37,6 +37,9 @@
       <Button x:Name="ScanButton" Content="{loc:Tr Common.Scan}" Style="{StaticResource FlatButton}"
               Margin="0,0,6,0" AutomationProperties.AutomationId="DiscoveryScan"
               Click="ScanButton_Click" />
+      <Button x:Name="RemoveUpdateButton" Content="{loc:Tr Common.Remove}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="DiscoveryRemoveUpdate"
+              Click="RemoveUpdateButton_Click" />
       <Button x:Name="CloseButton" Content="{loc:Tr Common.Close}" Style="{StaticResource FlatButton}"
               AutomationProperties.AutomationId="DiscoveryClose"
               Click="CloseButton_Click" />

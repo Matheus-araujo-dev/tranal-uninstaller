@@ -104,11 +104,16 @@ foreach ($linha in $linhasRelatorio) {
     if ($celulas[$ultima] -eq '') { $ultima-- }
 
     # O estado e reconhecido pelo TEXTO, e nao pela posicao: os relatorios
-    # tem dois formatos — "| # | Funcionalidade | Estado | Evidencia |" e
-    # "| # | Funcionalidade | O que existe | Estado | Evidencia |". O que
-    # decide e a celula cujo texto e um estado conhecido.
+    # tem tres formatos — "| # | Funcionalidade | Estado | Evidencia |",
+    # "| # | Funcionalidade | O que existe | Estado | Evidencia |" e
+    # "| # | Estado | Funcionalidade | Evidencia |". O que decide e a celula
+    # cujo texto e um estado conhecido.
+    #
+    # A busca comeca na coluna 2 porque o estado pode estar logo depois do
+    # numero: MEDIDO, o RECON-D-2026-11-08.md escreve o estado nessa posicao,
+    # e a busca que comecava na coluna 3 ignorava o arquivo inteiro.
     $indiceEstado = -1
-    foreach ($i in 2..$ultima) {
+    foreach ($i in 1..$ultima) {
         if ($mapaEstado.ContainsKey($celulas[$i])) { $indiceEstado = $i; break }
     }
     if ($indiceEstado -lt 0) { continue }

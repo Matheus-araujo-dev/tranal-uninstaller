@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Win32;
@@ -194,6 +195,69 @@ public static class ProgramBackup
     }
 
     /// <summary>
+    /// Registra a remocao de um programa no centro de mudancas.
+    ///
+    /// O backup das sobras guardou o conteudo; aqui a remocao vira uma linha
+    /// do centro de mudancas (o "Undo Changes Center" do Soft Organizer),
+    /// com o perfil do programa gravado ao lado.
+    ///
+    /// E o UNICO lugar que faz esta ligacao: a interface e a linha de
+    /// comando chamam o mesmo backup, e ele chama este metodo.
+    /// </summary>
+    /// <param name="backup">O backup ja gravado.</param>
+    /// <param name="program">O programa removido, quando ele e um so.</param>
+    /// <param name="programName">O nome do programa.</param>
+    /// <param name="items">Os itens que foram removidos.</param>
+    /// <returns>True quando a operacao ficou registrada.</returns>
+    public static bool Register(
+        LeftoverBackupResult backup,
+        InstalledProgram? program,
+        string? programName,
+        IEnumerable<LeftoverItem>? items)
+    {
+        if (backup is null || !backup.Ok) return false;
+        if (string.IsNullOrWhiteSpace(backup.Id)) return false;
+
+        var nome = string.IsNullOrWhiteSpace(programName)
+            ? program?.DisplayName ?? string.Empty
+            : programName!;
+
+        var operacao = new RecoverOperation
+        {
+            Id = backup.Id,
+            Description = "Remocao do programa",
+            TimestampUtc = DateTime.UtcNow,
+            ProgramName = nome,
+            BackupFolder = backup.Folder,
+        };
+
+        // Os itens guardados entram na operacao: e o que o "Refazer" usa
+        // para apagar de novo, e o que da o numero de itens da linha.
+        var manifesto = LeftoverBackup.LoadManifest(backup.Folder);
+        if (manifesto is not null)
+        {
+            foreach (var item in manifesto.Items)
+            {
+                // A validade nao e um item guardado: e o prazo do backup.
+                if (string.Equals(item.Kind, "Validade", StringComparison.OrdinalIgnoreCase)) continue;
+                operacao.Items.Add(item);
+            }
+        }
+
+        if (!Record(operacao)) return false;
+
+        // O perfil do programa: o que ele gravou no computador. E o que
+        // permite mostrar, na linha do centro, o que foi guardado.
+        if (program is not null)
+        {
+            var perfil = CreateProfile(program, items ?? new List<LeftoverItem>());
+            SaveProfile(perfil);
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// As operacoes registradas, da mais nova para a mais antiga.
     /// </summary>
     /// <param name="limit">Quantas devolver. Zero: todas.</param>
@@ -242,7 +306,7 @@ public static class ProgramBackup
         }
 
         operacao.Undone = true;
-        GravarOperacoes();
+        GravarOperacoes(operacao);
 
         return (true, $"Operacao desfeita. {mensagem}");
     }
@@ -280,7 +344,7 @@ public static class ProgramBackup
         }
 
         operacao.Undone = false;
-        GravarOperacoes();
+        GravarOperacoes(operacao);
 
         return (true, $"{apagados} item(ns) removido(s) de novo");
     }
@@ -362,11 +426,100 @@ public static class ProgramBackup
         catch (Exception) { return false; }
     }
 
-    private static void GravarOperacoes()
+    /// <summary>
+    /// Grava o arquivo das operacoes com a operacao alterada.
+    ///
+    /// A alteracao vem no PARAMETRO: reler o arquivo e regrava-lo perderia
+    /// o estado novo (a operacao desfeita, a refeita). Era assim que o
+    /// "desfazer" devolvia o conteudo mas nao deixava a mudanca marcada.
+    ///
+    /// O arquivo e JSON Lines na ordem cronologica (a mais antiga primeiro),
+    /// que e a ordem em que o <see cref="Record"/> vai acrescentando.
+    /// </summary>
+    /// <param name="alterada">A operacao que mudou.</param>
+    private static void GravarOperacoes(RecoverOperation alterada)
     {
         try
         {
-            var linhas = Operations().Select(o => o.ToJson()).ToList();
+            var operacoes = Operations().ToList();
+
+            var id = string.IsNullOrWhiteSpace(alterada.Id)
+                ? alterada.BackupFolder
+                : alterada.Id;
+
+            var indice = operacoes.FindIndex(o =>
+            {
+                var outro = string.IsNullOrWhiteSpace(o.Id) ? o.BackupFolder : o.Id;
+                return string.Equals(outro, id, StringComparison.OrdinalIgnoreCase);
+            });
+
+            if (indice >= 0) operacoes[indice] = alterada;
+            else operacoes.Insert(0, alterada);
+
+            GravarLista(operacoes);
+        }
+        catch (Exception) { /* o registro de operacoes nunca trava a operacao */ }
+    }
+
+    /// <summary>
+    /// Esquece uma operacao e o perfil do programa.
+    ///
+    /// E o que acontece quando o backup que guardava o conteudo expira: sem
+    /// o conteudo guardado, nao ha o que desfazer, e o perfil que o
+    /// descrevia ja nao descreve nada.
+    /// </summary>
+    /// <param name="id">O identificador da operacao (o do backup).</param>
+    /// <returns>True quando havia a operacao e ela foi esquecida.</returns>
+    public static bool Forget(string? id)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return false;
+
+        try
+        {
+            var operacoes = Operations().ToList();
+
+            var indice = operacoes.FindIndex(o =>
+                string.Equals(IdDe(o), id!.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (indice < 0) return false;
+
+            var programa = operacoes[indice].ProgramName;
+            operacoes.RemoveAt(indice);
+            GravarLista(operacoes);
+
+            // O perfil do programa vale enquanto houver mudanca dele no
+            // centro: sem nenhuma, ele sai junto.
+            var aindaTem = operacoes.Any(o =>
+                string.Equals(o.ProgramName, programa, StringComparison.OrdinalIgnoreCase));
+
+            if (!aindaTem) DeleteProfile(programa);
+
+            return true;
+        }
+        catch (Exception) { return false; }
+    }
+
+    /// <summary>O identificador de uma operacao.</summary>
+    /// <param name="operacao">A operacao.</param>
+    private static string IdDe(RecoverOperation operacao) =>
+        string.IsNullOrWhiteSpace(operacao.Id) ? operacao.BackupFolder : operacao.Id;
+
+    /// <summary>
+    /// Grava a lista de operacoes no arquivo.
+    ///
+    /// A ordem e a cronologica (a mais antiga primeiro), que e a ordem em
+    /// que o <see cref="Record"/> vai acrescentando.
+    /// </summary>
+    /// <param name="operacoes">As operacoes.</param>
+    private static void GravarLista(IReadOnlyList<RecoverOperation> operacoes)
+    {
+        try
+        {
+            var linhas = operacoes
+                .Select(o => o.ToJson())
+                .Reverse()
+                .ToList();
+
             File.WriteAllText(OperationsFile, string.Join(Environment.NewLine, linhas), EncodingUtf8);
         }
         catch (Exception) { /* o registro de operacoes nunca trava a operacao */ }

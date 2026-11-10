@@ -1559,5 +1559,12 @@
     "ProgramMark.Orphan":  "Orphan",
     "ProgramMark.Invalid":  "Invalid",
     "ProgramMark.Protected":  "Protected",
-    "ProgramMark.BitsSuffix":  "(32-bit)" 
+    "ProgramMark.BitsSuffix":  "(32-bit)",
+    "Discovery.Category.Shortcuts":  "Start Menu and Desktop shortcuts",
+    "Discovery.Update.Select":  "Select a Windows update in the list.",
+    "Discovery.Update.Working":  "Removing the update...",
+    "Discovery.Update.Removed":  "Update removed: {0}",
+    "Discovery.Update.Failed":  "Could not remove the update: {0}",
+    "Tool.UndoCenter.Profile":  "{0} file(s), {1} folder(s), {2} registry value(s)",
+    "UndoCenter.Notice":  "Use the Changes Center to undo this removal." 
 }

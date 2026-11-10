@@ -105,8 +105,14 @@ public static class AssociationCommands
 
         foreach (var item in report.Items)
         {
+            // O perfil: o que o programa gravou no computador. Sem ele, a
+            // linha mostra so o que aconteceu.
+            var perfil = item.ProfileFiles + item.ProfileFolders + item.ProfileValues == 0
+                ? string.Empty
+                : $"  [perfil: {item.ProfileFiles} arquivo(s), {item.ProfileFolders} pasta(s), {item.ProfileValues} valor(es)]";
+
             Console.WriteLine(
-                $"{item.Timestamp:yyyy-MM-dd HH:mm}  {item.ProgramName,-24} {item.Description} ({item.ItemCount} item(ns))");
+                $"{item.Timestamp:yyyy-MM-dd HH:mm}  {item.ProgramName,-24} {item.Description} ({item.ItemCount} item(ns)){perfil}");
         }
 
         return 0;

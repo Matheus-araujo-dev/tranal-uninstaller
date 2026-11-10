@@ -132,6 +132,11 @@ public static class Program
         var integracoes = IntegrationCommands.TryRun(effective, flags);
         if (integracoes.HasValue) return integracoes.Value;
 
+        // O pacote portatil: levar o que o Tranal sabe do sistema para
+        // outra maquina.
+        var portatil = PortableCommands.TryRun(effective, flags);
+        if (portatil.HasValue) return portatil.Value;
+
         // A bandeja, os programas novos, as categorias e a integracao.
         var shell = ShellCommands.TryRun(effective, flags);
         if (shell.HasValue) return shell.Value;
@@ -570,7 +575,7 @@ public static class Program
             {
                 // As sobras vao para o backup ANTES de sumirem: e o que
                 // permite devolver o conteudo apagado ("Recuperar").
-                leftoverBackup = UninstallEngine.BackupLeftovers(items, target.DisplayName, options);
+                leftoverBackup = UninstallEngine.BackupLeftovers(items, target.DisplayName, options, target);
 
                 // A sessao e gravada ANTES da remocao: e a remocao que pode
                 // ser interrompida pelo reinicio do Windows, e sem a sessao
@@ -597,6 +602,11 @@ public static class Program
                 if (leftoverBackup.Ok)
                 {
                     Console.WriteLine($"Backup das sobras: {leftoverBackup.Folder}");
+
+                    // O aviso que o Soft Organizer da antes de apagar: o
+                    // conteudo guardado pode ser devolvido pelo centro de
+                    // mudancas.
+                    Console.WriteLine("Use o centro de mudancas para desfazer: tranal /undo-center");
                     Console.WriteLine();
                 }
             }

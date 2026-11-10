@@ -523,6 +523,15 @@ public static class LeftoverBackup
                 {
                     Directory.Delete(pasta, recursive: true);
                     apagados++;
+
+                    // O conteudo guardado sumiu: a mudanca correspondente e o
+                    // perfil do programa sao esquecidos, porque sem o backup
+                    // nao ha mais o que desfazer. A REGRA de esquecer esta em
+                    // <see cref="ProgramBackup.Forget"/>.
+                    if (manifesto is not null)
+                    {
+                        ProgramBackup.Forget(manifesto.Id);
+                    }
                 }
                 catch (Exception) { /* backup em uso: fica para a proxima vez */ }
             }

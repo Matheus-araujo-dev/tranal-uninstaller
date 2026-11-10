@@ -29,6 +29,15 @@ public sealed class UndoChangeItem
 
     /// <summary>A origem da mudanca ("Programa" ou "Sobras").</summary>
     public string Kind { get; init; } = string.Empty;
+
+    /// <summary>Quantos arquivos o programa gravou (o perfil do backup).</summary>
+    public int ProfileFiles { get; init; }
+
+    /// <summary>Quantas pastas o programa gravou (o perfil do backup).</summary>
+    public int ProfileFolders { get; init; }
+
+    /// <summary>Quantos valores de registro o programa gravou.</summary>
+    public int ProfileValues { get; init; }
 }
 
 /// <summary>
@@ -74,6 +83,16 @@ public static class UndoChangesCenter
         var itens = new List<UndoChangeItem>();
         var vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+        // O perfil de cada programa: o que ele gravou no computador. A
+        // REGRA de onde o perfil vem mora em <see cref="ProgramBackup"/>; aqui
+        // ele so entra na linha.
+        var perfis = new Dictionary<string, ProgramProfile>(StringComparer.OrdinalIgnoreCase);
+        foreach (var perfil in ProgramBackup.ListProfiles())
+        {
+            if (string.IsNullOrWhiteSpace(perfil.ProgramName)) continue;
+            perfis[perfil.ProgramName] = perfil;
+        }
+
         foreach (var operacao in ProgramBackup.Operations())
         {
             var id = string.IsNullOrWhiteSpace(operacao.Id) ? operacao.BackupFolder : operacao.Id;
@@ -90,6 +109,9 @@ public static class UndoChangesCenter
                 ItemCount = operacao.ItemCount,
                 Undone = operacao.Undone,
                 Kind = "Programa",
+                ProfileFiles = PerfilDe(perfis, operacao.ProgramName, p => p.Files.Count),
+                ProfileFolders = PerfilDe(perfis, operacao.ProgramName, p => p.Folders.Count),
+                ProfileValues = PerfilDe(perfis, operacao.ProgramName, p => p.RegistryValues.Count),
             });
         }
 
@@ -114,6 +136,22 @@ public static class UndoChangesCenter
         {
             Items = itens.OrderByDescending(i => i.Timestamp).ToList(),
         };
+    }
+
+    /// <summary>
+    /// Um numero do perfil do programa (zero quando o perfil nao existe).
+    /// </summary>
+    /// <param name="perfis">Os perfis, por nome de programa.</param>
+    /// <param name="programName">O nome do programa.</param>
+    /// <param name="contador">O que contar no perfil.</param>
+    private static int PerfilDe(
+        Dictionary<string, ProgramProfile> perfis,
+        string? programName,
+        Func<ProgramProfile, int> contador)
+    {
+        if (string.IsNullOrWhiteSpace(programName)) return 0;
+        if (!perfis.TryGetValue(programName!, out var perfil)) return 0;
+        return contador(perfil);
     }
 
     /// <summary>

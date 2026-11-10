@@ -261,7 +261,7 @@ public static class ShortcutFixer
     /// <param name="shortcutPath">O caminho do .lnk.</param>
     public static string ReadTarget(string? shortcutPath)
     {
-        if (string.IsNullOrWhiteSpace(shortcutPath)) return string.Empty;
+        if (!Existe(shortcutPath)) return string.Empty;
 
         try
         {
@@ -288,7 +288,60 @@ public static class ShortcutFixer
     }
 
     /// <summary>
+    /// Le o icone de um atalho. Devolve string vazia quando o atalho nao tem
+    /// icone proprio gravado.
+    ///
+    /// O icone e o que o Explorador mostra para o atalho: o caminho do
+    /// executavel que tem o desenho, com o indice do icone quando o arquivo
+    /// tem mais de um. E o segundo dado que a varredura de atalhos procura -
+    /// o alvo diz ONDE o programa esta, o icone diz COMO ele aparece.
+    ///
+    /// A leitura e a mesma do alvo (o Shell do Windows), entao a regra do
+    /// atalho continua em um lugar so.
+    /// </summary>
+    /// <param name="shortcutPath">O caminho do .lnk.</param>
+    public static string ReadIconLocation(string? shortcutPath)
+    {
+        if (!Existe(shortcutPath)) return string.Empty;
+
+        try
+        {
+            dynamic? shell = CreateShell();
+            if (shell is null) return string.Empty;
+
+            dynamic? shortcut = null;
+            try
+            {
+                shortcut = shell.CreateShortcut(shortcutPath);
+                return (shortcut.IconLocation as string) ?? string.Empty;
+            }
+            finally
+            {
+                Release(shortcut);
+                Release(shell);
+            }
+        }
+        catch (Exception ex)
+        {
+            ToolLog.Error($"Falha ao ler o icone do atalho '{shortcutPath}': {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
     /// Grava um novo alvo no atalho.
+    /// <summary>
+    /// True quando o caminho e um atalho que existe de verdade.
+    ///
+    /// E a regra que vale para o alvo e para o icone: o Shell do Windows cria
+    /// um atalho novo na memoria quando o caminho nao existe, e o icone desse
+    /// atalho recem-criado vem preenchido. Sem esta conferencia, ler um
+    /// atalho inexistente devolveria um icone inventado.
+    /// </summary>
+    /// <param name="shortcutPath">O caminho do .lnk.</param>
+    private static bool Existe(string? shortcutPath) =>
+        !string.IsNullOrWhiteSpace(shortcutPath) && File.Exists(shortcutPath);
+
     /// </summary>
     /// <param name="shortcutPath">O caminho do .lnk.</param>
     /// <param name="target">O novo alvo.</param>

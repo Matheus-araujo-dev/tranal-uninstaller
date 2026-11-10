@@ -1559,5 +1559,12 @@
     "ProgramMark.Orphan":  "Órfão",
     "ProgramMark.Invalid":  "Inválido",
     "ProgramMark.Protected":  "Protegido",
-    "ProgramMark.BitsSuffix":  "(32-bit)" 
+    "ProgramMark.BitsSuffix":  "(32-bit)",
+    "Discovery.Category.Shortcuts":  "Atalhos do Menu Iniciar e da Área de Trabalho",
+    "Discovery.Update.Select":  "Selecione uma atualização do Windows na lista.",
+    "Discovery.Update.Working":  "Removendo a atualização...",
+    "Discovery.Update.Removed":  "Atualização removida: {0}",
+    "Discovery.Update.Failed":  "Não foi possível remover a atualização: {0}",
+    "Tool.UndoCenter.Profile":  "{0} arquivo(s), {1} pasta(s), {2} valor(es) de registro",
+    "UndoCenter.Notice":  "Use o Centro de mudancas para desfazer esta remocao." 
 }

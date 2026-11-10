@@ -665,8 +665,8 @@
                                             "recon":  34,
                                             "catalogo":  34,
                                             "catalogoId":  "T6#34",
-                                            "estado":  "PARCIAL",
-                                            "evidencia":  "Limite de tamanho da pasta de backup (\"Backup folder limit (MB)\")|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) **Nota**: o backup expira por tempo (`Expire`), mas nao ha limite em MB da pasta.",
+                                            "estado":  "OK",
+                                            "evidencia":  "Limite de tamanho da pasta de backup (\"Backup folder limit (MB)\")|`src/Tranal.Uninstaller/Core/Recovery/SnapshotLimits.cs:49` (`Enforce`), `:113` (`FolderSize`), `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:415` (`MaxSnapshotSizeMb`), `src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:160` (a chamada depois de cada backup gravado)",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -674,8 +674,8 @@
                                             "recon":  35,
                                             "catalogo":  35,
                                             "catalogoId":  "T6#35",
-                                            "estado":  "PARCIAL",
-                                            "evidencia":  "**Transferir programas monitorados para outro PC** via arquivo `.zip`|`src/Tranal.Uninstaller/Core/Reporting/PortableArchive.cs:93` (`public static class PortableArchive`) **Nota**: o arquivo portable existe; falta o fluxo \"programa monitorado para outro PC\".",
+                                            "estado":  "OK",
+                                            "evidencia":  "**Transferir programas monitorados para outro PC** via arquivo `.zip`|`src/Tranal.Uninstaller/Core/Reporting/PortableArchive.cs:110` (`Export`), `:192` (`Import`), `:365` (`ProgramListImporter.Import`), `src/Tranal.Cli/PortableCommands.cs:33` (`/portable-export`), `:34` (`/portable-import`), `:35` (`/portable-import-list`)",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -2195,7 +2195,7 @@
                                    "catalogo":  21,
                                    "catalogoId":  "T2#21",
                                    "estado":  "OK",
-                                   "evidencia":  "**A catalogacao do HiBit esta obsoleta.** `Core/Management/WindowsUpdateManager.cs:33` invoca `wusa.exe` (`:52`) com o KB e le o codigo de saida (`:78`/`:84`); `:95` apaga varios KBs. A CLI expoe o comando de Windows Update em `src/Tranal.Cli/ExtraCommands.cs`",
+                                   "evidencia":  "`Core/Management/WindowsUpdateManager.cs:33` invoca `wusa.exe` com o KB e le o codigo de saida; `:95` apaga varios KBs; `:116` le o numero do artigo (`KB5031356` vira `5031356`). A linha de comando expoe `/windows-updates` e `/windows-update-remove` (`src/Tranal.Cli/IntegrationCommands.cs:34` e `:35`), e a tela de Descoberta remove a atualizacao escolhida (`Ui/Discovery/DiscoveryWindow.xaml.cs:131`, botao `DiscoveryRemoveUpdate`).",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2330,7 +2330,7 @@
                                    "catalogo":  86,
                                    "catalogoId":  "T4#86",
                                    "estado":  "OK",
-                                   "evidencia":  "**A catalogacao do HiBit esta obsoleta.** Deixou de ser categoria do Discovery: agora ha modulo proprio `Core/Management/WindowsUpdateManager.cs` - `:33` apaga KB, `:132` lista instaladas; a categoria do Discovery segue em `Ui/Discovery/DiscoveryWindow.xaml.cs:42`",
+                                   "evidencia":  "A lista das atualizacoes instaladas vem de `Core/Management/WindowsUpdateManager.cs:132`; a remocao de KB e o `:33` (e o `:95` para varias de uma vez). A linha de comando expoe `/windows-updates` e `/windows-update-remove` (`src/Tranal.Cli/IntegrationCommands.cs:34` e `:35`), e a tela de Descoberta tem a categoria \"Atualizacoes do Windows\" com o botao que remove a atualizacao escolhida (`Ui/Discovery/DiscoveryWindow.xaml.cs:131`).",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -3485,8 +3485,8 @@
                                   "recon":  34,
                                   "catalogo":  34,
                                   "catalogoId":  "T2#34",
-                                  "estado":  "PARCIAL",
-                                  "evidencia":  "A varredura existe e cobre os quatro lugares: `src/Tranal.Uninstaller/Core/Modules/ShortcutFixer.cs:84` (`Locations`: Menu Iniciar do usuario e de todos, Area de Trabalho do usuario e publica, em `:94-100`), enumerando os `.lnk` em `Scan` `:110` e lendo o alvo em `ReadTarget` `:262`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:376`, com `ShortcutScan` em `:392`; CLI `src/Tranal.Cli/CleanupCommands.cs:39` e `:186`. **Nota**: o item **icone** nao e lido - a busca por `IconLocation` em `src/` nao retorna hits, e `ReadTarget` (`:262-288`) so le o `TargetPath`; o `src/Tranal.Uninstaller/Core/Discovery/ShortcutDiscovery.cs:44`, que descobre programas pelos atalhos, **nao tem consumidor** (a busca por `ShortcutDiscovery` em `src/` so encontra a propria declaracao). Binario do concorrente: confirmado em binario (`geek.strings.txt:1194`, `:1317`, `:1320`)",
+                                  "estado":  "OK",
+                                  "evidencia":  "`src/Tranal.Uninstaller/Core/Discovery/ShortcutDiscovery.cs:80` (`Discover`) varre recursivamente os atalhos das quatro pastas (`:56` `Locations`: Menu Iniciar do usuario e de todos, Area de Trabalho do usuario e publica), acha o icone (`:131` `IconLocation`, lido por `Core/Modules/ShortcutFixer.cs:303` `ReadIconLocation`) e o local de cada programa, e a tela de Descoberta mostra a categoria (`Ui/Discovery/DiscoveryWindow.xaml.cs:245`).",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -4480,7 +4480,7 @@
                                            "catalogo":  38,
                                            "catalogoId":  "T3#38",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "**Reverter** a instalação rastreada|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) **Nota**: o motor de undo e redo existe e persiste as operacoes, mas `Record` e `Undo` so sao chamados pelos testes.",
+                                           "evidencia":  "**Reverter** a instalação rastreada|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:212` (`Register`), `:292` (`Undo`), `src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1620` (`BackupLeftovers`) **Nota**: o motor de undo e redo tem consumidor de producao desde o lote 29 (a remocao entra no centro de mudancas quando o backup e gravado), mas o que se reverte e o conteudo removido, e nao o log de instalacao rastreado.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },

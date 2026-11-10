@@ -17,6 +17,7 @@ namespace Tranal.Tests;
 /// novo, o backup comprimido volta igual ao original, e o filtro de
 /// selecao deixa passar so o que foi escolhido.
 /// </summary>
+[Collection("preferencias")]
 public class Lote10FeatureTests
 {
     /// <summary>

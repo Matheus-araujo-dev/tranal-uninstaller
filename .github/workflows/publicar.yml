@@ -218,6 +218,18 @@ jobs:
             -CliExe publish\cli\tranal.exe
 
 
+      # O que ja existia e nao tinha dono (lote 29): a varredura de atalhos,
+      # a remocao de KB do Windows, o pacote portatil e o Centro de mudancas.
+      # O teste so LE e GRAVA um pacote sintetico: nada e instalado ou removido.
+      - name: O que ja existia e nao tinha dono (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote29.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
+
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
       # O teste cria snapshots sinteticos e apaga tudo no final.

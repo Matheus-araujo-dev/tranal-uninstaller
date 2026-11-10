@@ -665,7 +665,7 @@ public static class ToolViews
                 {
                     Category = item.Timestamp.ToString("g"),
                     Size = item.ProgramName,
-                    Detail = item.Description,
+                    Detail = Descrever(item),
                     Path = item.ItemCount.ToString(),
                     Source = item,
                 });
@@ -674,6 +674,20 @@ public static class ToolViews
             panel.PanelStatus = report.Total == 0
                 ? Loc.Get("Tool.UndoCenter.Empty")
                 : Loc.Get("Tool.UndoCenter.Status", report.Total, report.UndoneCount);
+        }
+
+        // A linha diz o que aconteceu e, quando ha perfil, o que foi guardado
+        // do programa. O TEXTO vem do catalogo; aqui so a montagem.
+        static string Descrever(UndoChangeItem item)
+        {
+            if (item.ProfileFiles + item.ProfileFolders + item.ProfileValues == 0)
+                return item.Description;
+
+            return item.Description + " - " + Loc.Get(
+                "Tool.UndoCenter.Profile",
+                item.ProfileFiles,
+                item.ProfileFolders,
+                item.ProfileValues);
         }
 
         static async Task DesfazerAsync(ItemListPanel panel, ObservableCollection<ToolRow> rows)

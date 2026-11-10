@@ -558,6 +558,37 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   `ProgramMark.*`; o sufixo `(32-bit)` é `ProgramMark.BitsSuffix`; o nome da
   coluna é `Common.Marks`. O Core não escreve texto de interface.
 
+## O que já existia e não tinha dono (regra do núcleo)
+
+- **Módulo órfão não conta.** Um módulo do núcleo que nenhuma linha do
+  produto chama não existe para quem usa o programa. Antes de inventar
+  feature, **procure o que já está pronto**: no lote 29 a varredura achou 16
+  classes estáticas sem consumidor de produto.
+- **A ligação acontece no núcleo, não nas telas.** A interface e a linha de
+  comando chamam o **mesmo** método: `UninstallEngine.BackupLeftovers`
+  (`Core/UninstallSupport.cs:1620`) é quem grava o backup **e** quem
+  registra a operação no Centro de mudanças
+  (`Core/Recovery/ProgramBackup.cs:212`, `Register`). Nenhuma tela monta
+  regra por conta própria.
+- **O Centro de mudanças tem tela, comando e produtor**: tela em
+  `Ui/Tools/ToolViews.cs:632` (`CreateUndoCenter`), comando
+  `/undo-center` em `src/Tranal.Cli/AssociationCommands.cs:30`, e produtor em
+  `Core/UninstallSupport.cs:1620`. O perfil do programa (o que ele gravou no
+  computador) é gravado em `Core/Recovery/ProgramBackup.cs` e mostrado na
+  linha do centro.
+- **Estado que muda em memória precisa ser gravado por quem mudou.** Ler o
+  arquivo de novo e regravá-lo perde o estado novo — foi assim que "desfazer"
+  devolvia o conteúdo e deixava a mudança marcada como não desfeita
+  (`ProgramBackup.GravarOperacoes`, que agora recebe a operação alterada).
+- **O aviso do Centro de mudanças sai quando há backup**: sem backup não há o
+  que desfazer. O texto vem do catálogo (`UndoCenter.Notice`).
+- **A regra do ícone do atalho mora no módulo de atalhos**:
+  `ShortcutFixer.ReadIconLocation` (`:303`) e `ReadTarget` (`:262`) tratam
+  atalho inexistente do mesmo jeito — sem alvo e sem ícone. A varredura que
+  descobre programas pelos atalhos é `Core/Discovery/ShortcutDiscovery.cs`
+  (quatro pastas: Menu Iniciar do usuário e de todos, Área de Trabalho do
+  usuário e pública).
+
 ## O log de remoção por item (regra do núcleo)
 
 Toda operação de remoção grava um log com **uma linha por item**: tipo,

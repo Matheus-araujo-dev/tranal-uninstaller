@@ -1612,10 +1612,16 @@ public static class UninstallEngine
     /// <param name="items">As sobras que serao removidas.</param>
     /// <param name="programName">O nome do programa (para o backup ser reconhecivel).</param>
     /// <param name="options">As opcoes da operacao.</param>
+    /// <param name="program">
+    /// O programa removido, quando ele e um so. E dele que sai o perfil
+    /// gravado (o que o programa deixou no computador). Com varios programas
+    /// removidos de uma vez, o perfil nao e de um so: ele nao e gravado.
+    /// </param>
     public static Recovery.LeftoverBackupResult BackupLeftovers(
         IEnumerable<LeftoverItem> items,
         string? programName,
-        UninstallRemovalOptions? options = null)
+        UninstallRemovalOptions? options = null,
+        InstalledProgram? program = null)
     {
         var opts = options ?? UninstallRemovalOptions.Default;
 
@@ -1627,7 +1633,17 @@ public static class UninstallEngine
             return new Recovery.LeftoverBackupResult { Ok = false, Message = "nao ha sobras para guardar" };
 
         var nome = string.IsNullOrWhiteSpace(programName) ? "sobras" : programName!;
-        return Recovery.LeftoverBackup.Backup(lista, nome);
+        var resultado = Recovery.LeftoverBackup.Backup(lista, nome);
+
+        // A remocao entra no centro de mudancas: e o "Undo Changes Center".
+        // A REGRA mora em <see cref="Recovery.ProgramBackup.Register"/>; aqui e
+        // so a chamada, depois do backup gravado.
+        if (resultado.Ok)
+        {
+            Recovery.ProgramBackup.Register(resultado, program, nome, lista);
+        }
+
+        return resultado;
     }
 
     public static RemovalReport RemoveLeftovers(

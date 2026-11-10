@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Tranal.Uninstaller.Core.Discovery;
+using Tranal.Uninstaller.Core.Management;
 
 namespace Tranal.Cli;
 
@@ -11,6 +12,8 @@ namespace Tranal.Cli;
 ///   tranal /msi-deps        - as dependencias entre pacotes MSI
 ///   tranal /appx            - o catalogo de pacotes Appx
 ///   tranal /system-dlls     - as DLLs em pastas de sistema
+///   tranal /windows-updates  - as atualizacoes do Windows instaladas
+///   tranal /windows-update-remove "KB5031356" - remove uma atualizacao
 ///
 /// A REGRA mora no nucleo: cada comando aqui consome o veredito de uma
 /// classe do <c>Core</c> e nao repete a regra de negocio.
@@ -28,6 +31,8 @@ public static class IntegrationCommands
         if (CliArgs.Has(flags, "/msi-deps")) return ExecutarMsiDeps();
         if (CliArgs.Has(flags, "/appx")) return ExecutarAppx();
         if (CliArgs.Has(flags, "/system-dlls")) return ExecutarSystemDlls();
+        if (CliArgs.Has(flags, "/windows-updates")) return ExecutarWindowsUpdates();
+        if (CliArgs.Has(flags, "/windows-update-remove")) return ExecutarWindowsUpdateRemove(args);
         return null;
     }
 
@@ -112,5 +117,55 @@ public static class IntegrationCommands
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// As atualizacoes do Windows que estao instaladas.
+    /// </summary>
+    private static int ExecutarWindowsUpdates()
+    {
+        var atualizacoes = WindowsUpdateManager.ListInstalled();
+
+        Console.WriteLine($"Atualizacoes do Windows instaladas: {atualizacoes.Count}");
+        Console.WriteLine();
+
+        foreach (var update in atualizacoes)
+        {
+            Console.WriteLine($"{update.KbArticles,-22} {update.Title}");
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// Remove uma atualizacao do Windows.
+    ///
+    /// A remocao e do Windows e nao do Tranal: o comando e o
+    /// <c>wusa.exe</c>, e o que o Windows responde e o que sai aqui.
+    /// </summary>
+    private static int ExecutarWindowsUpdateRemove(string[] args)
+    {
+        var artigo = CliArgs.ValueAfter(args, "/windows-update-remove");
+        if (string.IsNullOrWhiteSpace(artigo))
+        {
+            Console.Error.WriteLine("Uso: tranal /windows-update-remove KB5031356");
+            return 1;
+        }
+
+        var resultados = WindowsUpdateManager.RemoveMany(artigo);
+        if (resultados.Count == 0)
+        {
+            Console.Error.WriteLine("Informe o artigo de base de conhecimento (ex.: KB5031356).");
+            return 1;
+        }
+
+        var falhou = false;
+        foreach (var (numero, resultado) in resultados)
+        {
+            Console.WriteLine($"{numero}: {resultado.Message}");
+            if (!resultado.Success) falhou = true;
+        }
+
+        return falhou ? 1 : 0;
     }
 }

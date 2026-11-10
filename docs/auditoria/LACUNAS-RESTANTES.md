@@ -1,4 +1,4 @@
-# Lacunas restantes (medido em 09/11/2026)
+# Lacunas restantes (medido em 10/11/2026)
 
 Este documento lista a **uma** funcionalidade que ainda nao existe no
 Tranal, entre as 725 funcionalidades medidas contra os 11 concorrentes.
@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(77,0% — 725 funcionalidades, 528 OK, 166 PARCIAL, 1 AUSENTE, 30 FORA por
+(77,4% — 725 funcionalidades, 531 OK, 163 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -38,6 +38,41 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**GEEK T2#34 e #13, GEEK T4#80, HiBit #80, HiBit T2#21 e #21, IObit #29,
+TOTALUNINSTALL T6#34 e T6#35, SOFTORGANIZER #22 e #25 - o que ja existia e
+nao tinha dono.** Onze linhas do RECON mediam funcionalidade que o Tranal
+**tinha**, mas que ninguem conseguia alcancar: a varredura de atalhos, a
+remocao de KB do Windows, o pacote portatil, o backup do programa com
+undo/redo, o Centro de mudancas e o aviso "use o Centro de mudancas para
+cancelar". O RECON media o resultado (o que a tela mostra) e nao via o codigo
+morto. O detalhe esta em `EVIDENCIA-LOTE29-DONO.md`:
+
+- a varredura de atalhos (`Core/Discovery/ShortcutDiscovery.cs`) aparece na
+  tela de Descoberta, com o icone e a localizacao de cada programa;
+- a remocao de KB do Windows (`Core/Management/WindowsUpdateManager.cs`)
+  ganha comando proprio na linha de comando (`/windows-updates` e
+  `/windows-update-remove`) e botao na tela de Descoberta;
+- o pacote portatil (`Core/Reporting/PortableArchive.cs`) ganha
+  `/portable-export`, `/portable-import` e `/portable-import-list`;
+- o Centro de mudancas (`Core/Recovery/UndoChangesCenter.cs`) passa a ter
+  tela (`Ui/Tools/ToolViews.cs:632`), comando (`/undo-center`) e a remocao
+  **entra nele em producao** (`Core/UninstallSupport.cs:1620`);
+- o **perfil do programa** (o que ele gravou no computador) passa a ser
+  gravado e mostrado na linha do centro;
+- o aviso "use o Centro de mudancas para cancelar" sai no resumo da tela e
+  na linha de comando;
+- o limite em MB da pasta de backup existia (`Core/Recovery/SnapshotLimits.cs:49`)
+  e a medicao do RECON estava defasada;
+- **um bug real apareceu no caminho**: desfazer devolvia o conteudo mas a
+  mudanca continuava marcada como nao desfeita
+  (`Core/Recovery/ProgramBackup.cs`, `GravarOperacoes` relia o disco e
+  perdia o estado novo). O bug so era invisivel porque ninguem consumia o
+  estado;
+- o proprio `tools/auditoria/aplicar-recon.ps1` tinha um furo: ele nao lia o
+  `RECON-D-2026-11-08.md` (o estado esta na segunda coluna e a busca
+  comecava na terceira). MEDIDO: 38 e 48 linhas passaram a aplicar, e o
+  numero de cobertura nao mudou - o furo nao inflava nada.
 
 **BCU T1#13, T1#14, T1#15 e T1#16 e UNINSTALLTOOL T1#3 - as marcas do
 programa na lista.** O RECON media que o Tranal tinha o dado (a tag

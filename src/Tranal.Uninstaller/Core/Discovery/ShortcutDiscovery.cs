@@ -19,6 +19,13 @@ public sealed class ShortcutApp
     /// <summary>O caminho do atalho.</summary>
     public string ShortcutPath { get; init; } = string.Empty;
 
+    /// <summary>
+    /// O icone gravado no atalho (o executavel que tem o desenho, com o
+    /// indice do icone quando o arquivo tem mais de um). Vazio quando o
+    /// atalho nao tem icone proprio.
+    /// </summary>
+    public string IconLocation { get; init; } = string.Empty;
+
     /// <summary>Onde o atalho foi encontrado.</summary>
     public string Location { get; init; } = string.Empty;
 
@@ -121,6 +128,7 @@ public static class ShortcutDiscovery
                         Name = Path.GetFileNameWithoutExtension(atalho),
                         TargetPath = normalizado,
                         ShortcutPath = atalho,
+                        IconLocation = ShortcutFixer.ReadIconLocation(atalho),
                         Location = location,
                         SizeBytes = SafeLength(normalizado),
                         LooksInstalled = LooksInstalled(normalizado),

@@ -3,7 +3,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Discovery;
+using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Management;
 
 namespace Tranal.Uninstaller.Ui.Discovery;
 
@@ -43,6 +46,7 @@ public partial class DiscoveryWindow : Window
             new("Steam, Chocolatey e Scoop", DiscoveryCategory.ManagedPackages),
             new("Executaveis que parecem desinstalador", DiscoveryCategory.OrphanUninstallers),
             new("Pastas de programa vazias ou pela metade", DiscoveryCategory.EmptyFolders),
+            new(Loc.Get("Discovery.Category.Shortcuts"), DiscoveryCategory.ShortcutApps),
         };
         CategoryBox.SelectedIndex = 0;
 
@@ -103,6 +107,44 @@ public partial class DiscoveryWindow : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
     /// <summary>
+    /// Remove a atualizacao do Windows selecionada.
+    ///
+    /// A remocao e do Windows e nao do Tranal: o comando e o
+    /// <c>wusa.exe</c>, e o que o Windows responde e o que a tela mostra.
+    /// Por isso a regra mora em <c>WindowsUpdateManager</c> e a tela so
+    /// escolhe o artigo e conta o resultado.
+    /// </summary>
+    private async void RemoveUpdateButton_Click(object sender, RoutedEventArgs e)
+    {
+        var linha = ResultsList.SelectedItem as DiscoveryRow;
+        if (linha is null || linha.KbArticle.Length == 0)
+        {
+            StatusText.Text = Loc.Get("Discovery.Update.Select");
+            return;
+        }
+
+        RemoveUpdateButton.IsEnabled = false;
+        StatusText.Text = Loc.Get("Discovery.Update.Working");
+
+        try
+        {
+            var resultado = await Task.Run(() => WindowsUpdateManager.Remove(linha.KbArticle));
+
+            StatusText.Text = resultado.Success
+                ? Loc.Get("Discovery.Update.Removed", linha.KbArticle)
+                : Loc.Get("Discovery.Update.Failed", resultado.Message);
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = Loc.Get("Discovery.Update.Failed", ex.Message);
+        }
+        finally
+        {
+            RemoveUpdateButton.IsEnabled = true;
+        }
+    }
+
+    /// <summary>
     /// Coleta os itens de uma categoria.
     /// </summary>
     private static List<DiscoveryRow> Collect(DiscoveryCategory category)
@@ -149,6 +191,7 @@ public partial class DiscoveryWindow : Window
                         Name = update.Title,
                         Detail = update.KbArticles,
                         Status = update.InstalledOn?.ToString("dd/MM/yyyy") ?? "Instalada",
+                        KbArticle = update.KbArticles,
                     });
                 }
                 break;
@@ -191,6 +234,26 @@ public partial class DiscoveryWindow : Window
                     });
                 }
                 break;
+
+            case DiscoveryCategory.ShortcutApps:
+                // A varredura dos atalhos acha o programa que o Windows
+                // mostra mas que nao tem chave de desinstalacao: o
+                // portatil, o jogo de loja, o aplicativo de terceiros.
+                var instalados = ProgramScanner.Scan(
+                    new ProgramScanner.ScanOptions { RequireUninstallString = false });
+
+                foreach (var shortcut in ShortcutDiscovery.Discover(instalados))
+                {
+                    rows.Add(new DiscoveryRow
+                    {
+                        Name = shortcut.Name,
+                        Detail = shortcut.TargetPath,
+                        Status = shortcut.IconLocation.Length > 0
+                            ? shortcut.IconLocation
+                            : shortcut.Location,
+                    });
+                }
+                break;
         }
 
         return rows;
@@ -207,6 +270,7 @@ public partial class DiscoveryWindow : Window
         ManagedPackages,
         OrphanUninstallers,
         EmptyFolders,
+        ShortcutApps,
     }
 
     /// <summary>
@@ -240,5 +304,11 @@ public partial class DiscoveryWindow : Window
 
         /// <summary>Situacao do item.</summary>
         public string Status { get; init; } = string.Empty;
+
+        /// <summary>
+        /// O artigo de base de conhecimento, quando o item e uma atualizacao
+        /// do Windows. E o que a remocao usa.
+        /// </summary>
+        public string KbArticle { get; init; } = string.Empty;
     }
 }

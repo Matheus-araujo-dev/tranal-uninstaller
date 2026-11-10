@@ -12,15 +12,15 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 54 | 18 | 0 | 4 | 76.3% |
 | Bulk Cookie Uninstaller | 97 | 82 | 13 | 0 | 2 | 86.6% |
-| Geek Uninstaller | 44 | 38 | 6 | 0 | 0 | 86.4% |
+| Geek Uninstaller | 44 | 39 | 5 | 0 | 0 | 88.6% |
 | HiBit Uninstaller | 66 | 45 | 17 | 0 | 4 | 74.2% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
-| Total Uninstall | 94 | 66 | 24 | 0 | 4 | 74.5% |
+| Total Uninstall | 94 | 68 | 22 | 0 | 4 | 76.6% |
 | Uninstall Tool | 94 | 63 | 25 | 1 | 5 | 72.3% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 56 | 27 | 0 | 3 | 68.6% |
-| **TOTAL** | **725** | **528** | **166** | **1** | **30** | **77.0%** |
+| **TOTAL** | **725** | **531** | **163** | **1** | **30** | **77.4%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -92,11 +92,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 44 |
-| **OK** | **38** |
-| PARCIAL | 6 |
+| **OK** | **39** |
+| PARCIAL | 5 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 0 |
-| **Cobertura** | **86.4%** |
+| **Cobertura** | **88.6%** |
 
 ### O que ainda falta
 
@@ -105,7 +105,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T1#16 | Aba de **Microsoft Store Apps** (`Ctrl+Tab`) | PARCIAL | **PARCIAL** - Aba de **Microsoft Store Apps** (`Ctrl+Tab`)/`src/Tranal.Uninstaller/Core/Modules/WindowsApps.cs:39` (`public static class WindowsApps`) `src/Tranal.Uninstaller/Ui/Modules/ModuleViews.cs:23` (`WindowsApps`) `src/Tranal.Cli/ExtraCommands.cs:14` (`/winapps`) **Nota**: os apps Store tem modulo e painel proprios, mas nao sao uma aba da janela principal. |
 | T2#29 | **Desregistro de COM** (`regsvr32 /u`) antes de remover | PARCIAL | **PARCIAL** - **Desregistro de COM** (`regsvr32 /u`) antes de remover/`src/Tranal.Uninstaller/Core/Automation/ComUnregister.cs:28` (`public static class ComUnregister`) `src/Tranal.Cli/RegistryCommands.cs:41` (`ComUnregister`) **Nota**: o desregistro de COM existe e tem comando proprio, mas nao esta ligado ao fluxo de remocao — e uma ferramenta separada. |
 | T2#33 | **Correspondência aproximada (Levenshtein)** de caminho de instalação | PARCIAL | **PARCIAL** - **Correspondência aproximada (Levenshtein)** de caminho de instalação/`src/Tranal.Uninstaller/Core/Search/FuzzyMatch.cs:17` (`public static class FuzzyMatch`) `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:555` (`FuzzyMatch.IsMatch`) **Nota**: a distancia de edicao existe e e usada na busca por nome do programa, mas nao na comparacao de caminho de instalacao. |
-| T2#34 | **Varredura de atalhos do Menu Iniciar e da Área de Trabalho** para achar ícone e localização | PARCIAL | **PARCIAL** - A varredura existe e cobre os quatro lugares: `src/Tranal.Uninstaller/Core/Modules/ShortcutFixer.cs:84` (`Locations`: Menu Iniciar do usuario e de todos, Area de Trabalho do usuario e publica, em `:94-100`), enumerando os `.lnk` em `Scan` `:110` e lendo o alvo em `ReadTarget` `:262`. Tela `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:376`, com `ShortcutScan` em `:392`; CLI `src/Tranal.Cli/CleanupCommands.cs:39` e `:186`. **Nota**: o item **icone** nao e lido - a busca por `IconLocation` em `src/` nao retorna hits, e `ReadTarget` (`:262-288`) so le o `TargetPath`; o `src/Tranal.Uninstaller/Core/Discovery/ShortcutDiscovery.cs:44`, que descobre programas pelos atalhos, **nao tem consumidor** (a busca por `ShortcutDiscovery` em `src/` so encontra a propria declaracao). Binario do concorrente: confirmado em binario (`geek.strings.txt:1194`, `:1317`, `:1320`) |
 | T2#37 | **Cache de uninstall** com XML versionado | PARCIAL | **PARCIAL** - **Cache de uninstall** com XML versionado/`src/Tranal.Uninstaller/Core/Settings/ProgramCache.cs:154` (`public static class ProgramCache`) **Nota**: o cache existe (salva, carrega e invalida), mas o formato e JSON, nao XML versionado. |
 | T2#42 | **Enumeração por SID do usuário** dos pacotes MSIX | PARCIAL | **PARCIAL** - **Enumeração por SID do usuário** dos pacotes MSIX/modulo de aplicativos do Windows `Core/Modules/WindowsApps.cs:39` |
 
@@ -203,11 +202,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **66** |
-| PARCIAL | 24 |
+| **OK** | **68** |
+| PARCIAL | 22 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 4 |
-| **Cobertura** | **74.5%** |
+| **Cobertura** | **76.6%** |
 
 ### O que ainda falta
 
@@ -224,8 +223,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T5#62 | Importar logs de versões anteriores | PARCIAL | **PARCIAL** - Importar logs de versões anteriores/`src/Tranal.Uninstaller/Core/Reporting/PortableArchive.cs:93` (`public static class PortableArchive`) **Nota**: o arquivo portable exporta e importa; falta importar o log vindo de outra maquina. |
 | T6#28 | **Backup do programa desinstalado** ("Create a backup for the program") | PARCIAL | **PARCIAL** - **Backup do programa desinstalado** ("Create a backup for the program")/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) **Nota**: o backup do programa existe; falta o backup no formato do log de instalacao. |
 | T6#30 | Restaurar **só o log de instalação**, sem o programa | PARCIAL | **PARCIAL** - Restaurar **só o log de instalação**, sem o programa/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` (`public static (bool Ok, string Message) Undo`) **Nota**: o undo/redo da restauracao existe, mas o backup e por item e valor — nao ha um log completo reaplicavel sem o programa. |
-| T6#34 | Limite de tamanho da pasta de backup ("Backup folder limit (MB)") | PARCIAL | **PARCIAL** - Limite de tamanho da pasta de backup ("Backup folder limit (MB)")/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) **Nota**: o backup expira por tempo (`Expire`), mas nao ha limite em MB da pasta. |
-| T6#35 | **Transferir programas monitorados para outro PC** via arquivo `.zip` | PARCIAL | **PARCIAL** - **Transferir programas monitorados para outro PC** via arquivo `.zip`/`src/Tranal.Uninstaller/Core/Reporting/PortableArchive.cs:93` (`public static class PortableArchive`) **Nota**: o arquivo portable existe; falta o fluxo "programa monitorado para outro PC". |
 | T6#36 | Remover rastros de programa monitorado já desinstalado | PARCIAL | **PARCIAL** - Remover rastros de programa monitorado já desinstalado/`src/Tranal.Uninstaller/Core/Tools/TrackCleaner.cs:42` (`public static class TrackCleaner`) **Nota**: o limpador de rastros existe; falta a acao especifica sobre o log antigo do programa ja desinstalado. |
 | T6#37 | Itens compartilhados: contadores de referência em registro e diálogo "Remove shared file" | PARCIAL | **PARCIAL** - O **contador de referencia** existe e esta ligado: lido do registro `SharedDLLs` em `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:97` e `:108`, quem depende de cada item em `UsersOf` `:126`, o catalogo canonico em `src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:60` e `:121` (`IsShared` em `:27`), o painel na tela (`src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:542`, contador exibido em `:552` e `:580`) e as saidas na CLI (`src/Tranal.Cli/CleanupCommands.cs:272` e `src/Tranal.Cli/RegistryCommands.cs:258-268`). **Nota**: o **dialogo "Remove shared file?"** nao existe - a frase so aparece em **comentarios** (`src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:25` e `:42`, `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:50`); a remocao pela tela (`src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:594-605`) apaga direto, sem a confirmacao de item compartilhado. Binario do concorrente: confirmado em binario (`strings.txt:51011`, `recursos.txt:143`, `TDLGRMVSHARED`) |
 | T7#67 | **Mesclar logs** de instalação (e apagar o log do update depois) | PARCIAL | **PARCIAL** - **Mesclar logs** de instalação (e apagar o log do update depois)/`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) `src/Tranal.Uninstaller/Core/Tracing/TraceLogV2.cs:42` (`public sealed class TraceLogV2`) **Nota**: mesclar existe; apagar o log do update depois da mescla nao. |
@@ -266,7 +263,7 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#34 | Rastreamento **em tempo real, por evento**, de arquivos/pastas criados e renomeados e chaves criadas/alteradas/excluídas | PARCIAL | **PARCIAL** - Rastreamento **em tempo real, por evento**, de arquivos/pastas criados e renomeados e chaves criadas/alteradas/excluídas/`src/Tranal.Uninstaller/Core/Tracing/WriteWatcher.cs:35` (`public sealed class WriteWatcher`) `src/Tranal.Uninstaller/Core/Modules/SystemSnapshot.cs:43` (`public sealed class SystemSnapshot`) **Nota**: o disco e rastreado em tempo real, mas o registro e capturado por snapshot, nao por notificacao. |
 | T3#35 | Rastreamento de **processos criados** | PARCIAL | **PARCIAL** - Rastreamento de **processos criados**/`src/Tranal.Uninstaller/Core/Modules/ProcessInspector.cs:74` (`public static class ProcessInspector`) **Nota**: existe a politica que decide quais processos entram no rastreio, mas nao ha callback de criacao — os processos sao observados por consulta. |
 | T3#36 | Log com **eventos enumerados** e barra de progresso na bandeja | PARCIAL | **PARCIAL** - Log com **eventos enumerados** e barra de progresso na bandeja/`src/Tranal.Uninstaller/Core/Reporting/TraceLogExporter.cs:37` (`public static class TraceLogExporter`) **Nota**: o log e enumerado e exportavel em Text, Csv e Html; nao ha barra de progresso nem bandeja. |
-| T3#38 | **Reverter** a instalação rastreada | PARCIAL | **PARCIAL** - **Reverter** a instalação rastreada/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) **Nota**: o motor de undo e redo existe e persiste as operacoes, mas `Record` e `Undo` so sao chamados pelos testes. |
+| T3#38 | **Reverter** a instalação rastreada | PARCIAL | **PARCIAL** - **Reverter** a instalação rastreada/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:212` (`Register`), `:292` (`Undo`), `src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1620` (`BackupLeftovers`) **Nota**: o motor de undo e redo tem consumidor de producao desde o lote 29 (a remocao entra no centro de mudancas quando o backup e gravado), mas o que se reverte e o conteudo removido, e nao o log de instalacao rastreado. |
 | T3#41 | **Entrada customizada** quando o instalador não deixou registro | PARCIAL | **PARCIAL** - **Entrada customizada** quando o instalador não deixou registro/`src/Tranal.Uninstaller/Core/Automation/AdvancedUninstallReview.cs:89` (`public static class AdvancedUninstallReview`) **Nota**: a revisao do que o instalador nao registrou existe e e oferecida no assistente, mas o item criado e um registro de remocao assistida — nao uma entrada na lista principal. |
 | T3#42 | Ver dados rastreados como **XML** e **desfazer o rastreamento** | PARCIAL | **PARCIAL** - Ver dados rastreados como **XML** e **desfazer o rastreamento**/`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) `src/Tranal.Uninstaller/Core/Reporting/TraceLogExporter.cs:37` (`public static class TraceLogExporter`) **Nota**: editar, renomear, mesclar, ignorar e remover entradas do log existem; "ver como XML" nao — o exportador so tem Text, Csv e Html. |
 | T3#45 | Menu de contexto dos **atalhos**: "Uninstall with Uninstall Tool" | PARCIAL | **PARCIAL** - Menu de contexto dos **atalhos**: "Uninstall with Uninstall Tool"/`src/Tranal.Uninstaller/Core/Topmost/ExplorerContextMenu.cs:28` (`public static class ExplorerContextMenu`) `src/Tranal.Uninstaller/Core/Modules/HunterMode.cs:38` (`public static class HunterMode`) **Nota**: o verb vale para os atalhos e o Tranal resolve atalhos, mas nao ha um verb especifico nem o rotulo dedicado do concorrente. |

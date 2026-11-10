@@ -996,7 +996,12 @@ public partial class UninstallWizardWindow : Window
 
         // As sobras vao para o backup ANTES de sumirem: e o que permite devolver
         // o conteudo apagado ("Recuperar").
-        var leftoverBackup = UninstallEngine.BackupLeftovers(_leftovers, name, options);
+        //
+        // O programa entra junto quando ele e um so: e dele que sai o perfil
+        // gravado (o que ele deixou no computador). Com varios programas de
+        // uma vez, o perfil nao e de um so, e nao e gravado.
+        var alvo = _programs.Count == 1 ? _programs[0] : null;
+        var leftoverBackup = UninstallEngine.BackupLeftovers(_leftovers, name, options, alvo);
         _leftoverBackupId = leftoverBackup.Ok ? leftoverBackup.Id : string.Empty;
 
         _report = await Task.Run(() =>
@@ -1142,6 +1147,16 @@ public partial class UninstallWizardWindow : Window
         sb.AppendLine();
         sb.AppendLine(report.Describe());
         sb.AppendLine();
+
+        // O aviso que o Soft Organizer da antes de apagar: o conteudo guardado
+        // pode ser devolvido pelo Centro de mudancas. So ha aviso quando ha
+        // backup — sem backup, nao ha o que desfazer.
+        if (!string.IsNullOrWhiteSpace(_leftoverBackupId))
+        {
+            sb.AppendLine(Loc.Get("UndoCenter.Notice"));
+            sb.AppendLine();
+        }
+
         sb.AppendLine(Loc.Get("Wizard.SummaryTotal", report.Total));
         sb.AppendLine(Loc.Get("Wizard.SummaryRemoved", report.RemovedCount));
         sb.AppendLine(Loc.Get("Wizard.SummaryAbsent", report.AbsentCount));
