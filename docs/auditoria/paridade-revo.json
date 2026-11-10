@@ -807,9 +807,10 @@
                        "revo":  "`[Portable] 18505 = Portability`",
                        "status":  "OK",
                        "evidencia":  [
-                                         "Core/Settings/AppSettings.cs::PortableDataFolder"
+                                         "Core/PortableMode.cs::PortableMode",
+                                         "Ui/OptionsWindow.xaml.cs::PortableMode"
                                      ],
-                       "nota":  "medido: modo portavel (a pasta de dados fica ao lado do executavel)"
+                       "nota":  "medido: a pasta de dados pode ser configurada e vale para TODO o produto (preferencias, logs, backups e pontos de restauracao); a pasta configurada mora no registro e nao no arquivo de preferencias, porque o arquivo de preferencias fica dentro da propria pasta de dados e nunca conseguiria mudar o lugar dele mesmo"
                    },
                    {
                        "id":  70,

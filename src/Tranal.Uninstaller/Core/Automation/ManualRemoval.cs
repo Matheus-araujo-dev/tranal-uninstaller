@@ -39,6 +39,21 @@ public static class ManualRemoval
     }
 
     /// <summary>
+    /// Os programas cujo nome tem a palavra-chave.
+    ///
+    /// E o filtro da desinstalacao personalizada: o usuario digita
+    /// "Adobe" e ve os programas cujo nome tem a palavra "Adobe" — nao os
+    /// que apenas contem essas letras. O casamento por palavra e o do
+    /// nucleo (<see cref="NameMatch.ContainsWord"/>), o mesmo que protege a
+    /// varredura de sobras de falsos positivos.
+    /// </summary>
+    /// <param name="programs">Os programas instalados.</param>
+    /// <param name="keyword">A palavra-chave.</param>
+    public static IReadOnlyList<InstalledProgram> SelectByKeyword(
+        IEnumerable<InstalledProgram> programs,
+        string? keyword) => ForcedRemovalOptions.SelectByKeyword(programs, keyword);
+
+    /// <summary>
     /// Monta o arquivo da lista de sobras, em CSV.
     ///
     /// O separador é o ponto e vírgula e a primeira linha é o cabeçalho: é o

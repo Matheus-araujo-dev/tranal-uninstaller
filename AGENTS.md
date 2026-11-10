@@ -589,6 +589,62 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   (quatro pastas: Menu Iniciar do usuário e de todos, Área de Trabalho do
   usuário e pública).
 
+## Os modulos que ja existiam e agora tem dono (regra do nucleo)
+
+- **Medir orfao e por arquivo, nao por tipo.** A varredura do lote 32 contou
+  **7** modulos do nucleo sem nenhum consumidor de produto: `ProgramListLayout`,
+  `PortableMode`, `ForcedRemovalOptions`, `ManualRemoval`, `PendingOperations`,
+  `DailyRegistryBackup` e `InstallMonitor`. A contagem honesta ignora os
+  `<see cref>` (comentario nao e consumidor) e conta por arquivo do Core.
+- **As colunas da lista tem uma fonte so**: `ProgramListLayout`
+  (`Core/Appearance/ProgramListLayout.cs:16`). `ColumnsFor` (`:42`) devolve as
+  colunas; `CompactColumns` (`:22`) e o conjunto do modo compacto; e
+  `VisibleColumns` (`:59`) devolve o que a grade mostra. A grade
+  (`MainWindow.xaml.cs:631`) e a impressao (`MainWindow.xaml.cs:1480`) consomem
+  a mesma regra.
+- **O modo compacto nunca desobedece coluna escondida.** O compacto e
+  `CompactColumns INTERSECT colunas visiveis UNION {Name}`: o `HiddenColumns`
+  do usuario e sempre sobre o catalogo completo.
+- **A pasta de dados tem uma fonte so**: `PortableMode`
+  (`Core/PortableMode.cs:28`). `EffectiveDataDirectory` (`:57`) e a pasta que o
+  Tranal usa — preferencias, logs, backups e pontos de restauracao.
+  `RegistryBackup.DataDirectory` (`Core/UninstallSupport.cs:1204`) consome essa
+  mesma regra, e nao um caminho proprio.
+- **A pasta configurada mora no registro, e nao no arquivo de preferencias**:
+  o arquivo de preferencias fica dentro da pasta de dados, entao uma preferencia
+  que mora junto dele nunca conseguiria mudar o lugar do proprio arquivo.
+  `PortableMode.SetConfiguredFolder` (`:86`) grava
+  `HKCU\Software\Tranal Group\Tranal Uninstaller Pro\DataFolder`.
+- **A desinstalacao personalizada tem a regra no nucleo e a tela na interface**:
+  `ForcedRemovalOptions.Resolve` (`Core/Automation/ForcedRemovalOptions.cs:95`)
+  monta a lista de sobras e `ManualRemoval.SelectByKeyword`
+  (`Core/Automation/ManualRemoval.cs:52`) filtra por palavra-chave. A tela
+  `Ui/ManualRemovalWindow.xaml.cs:26` e a desinstalacao forcada
+  (`Ui/ForcedUninstallWindow.xaml.cs:77`) consomem as duas — nenhuma delas
+  reescreve a varredura.
+- **A fila de operacoes pendentes e do Windows; a regra e do Tranal**:
+  `PendingOperations` (`Core/Recovery/PendingOperations.cs:42`) le
+  `PendingFileRenameOperations`, aplica (`Apply`, `:117`) e tira da fila
+  (`Remove`, `:178`). A tela "Operacoes Pendentes"
+  (`Ui/Tools/RecoveryViews.cs:72`) e o botao `ToolPendingOperations` da barra
+  lateral consomem.
+- **O backup diario do registro roda sozinho, mas tem tela**:
+  `DailyRegistryBackup.RunIfDue` (`Core/Recovery/DailyRegistryBackup.cs:127`)
+  roda no arranque, em segundo plano (`App.xaml.cs:172`), e `Run` (`:156`)
+  força o backup na hora. A tela "Backup Diario do Registro"
+  (`Ui/Tools/RecoveryViews.cs:184`) lista o que ja foi feito.
+- **O monitor de instalacao e sob demanda, e a tela diz isso**:
+  `InstallMonitor.Start` (`Core/Modules/InstallMonitor.cs:164`) compara
+  fotografias do sistema; a tela `Ui/InstallMonitorWindow.xaml.cs:25`
+  acompanha a sessao ao vivo. Nao existe retomada do monitoramento no
+  arranque — a sessao morre com o processo.
+- **Preferencia gravada e nunca usada e bug de produto.** As preferencias que
+  o Revo tem e o Tranal so guardava agora tem efeito: a lista compacta
+  (`CompactProgramList`, `Core/Settings/AppSettings.cs:460`) muda as colunas
+  de verdade, e o modo de carregamento rapido (`FastLoadingMode`, `:172`) pula
+  a medicao de tamanho da varredura (`AccessibilityOptions.SkipSlowChecks`,
+  `Core/UninstallSupport.cs:1174`).
+
 ## A assinatura do desinstalador e o comando do usuário (regra do núcleo)
 
 - **A regra do executável do desinstalador mora em um lugar só**:

@@ -4,7 +4,9 @@ using System.IO;
 using System.Text;
 using Microsoft.Win32;
 using Tranal.Uninstaller.Core.Automation;
+using Tranal.Uninstaller.Core.Appearance;
 using Tranal.Uninstaller.Core.Discovery;
+using Tranal.Uninstaller.Core.Localization;
 
 namespace Tranal.Uninstaller.Core;
 
@@ -1166,11 +1168,18 @@ public static class LeftoverScanner
             if (byCriteria > confidence) confidence = byCriteria;
         }
 
+        // O modo rapido (a preferencia "modo rapido") pula a medicao do
+        // tamanho: ela percorre a pasta inteira e demora. O item continua
+        // na lista — so sem o tamanho, que e o que o modo rapido promete.
+        var detail = AccessibilityOptions.SkipSlowChecks
+            ? Loc.Get("Leftover.SizeNotMeasured")
+            : $"{ProgramScanner.MeasureFolder(dir) / 1024 / 1024} MB";
+
         items.Add(new LeftoverItem
         {
             Kind = "Pasta",
             Path = full,
-            Detail = $"{ProgramScanner.MeasureFolder(dir) / 1024 / 1024} MB",
+            Detail = detail,
             Confidence = confidence,
             Reason = judgment.Reason,
             Selected = Selects(confidence, options, otherAccount),
@@ -1184,9 +1193,15 @@ public static class LeftoverScanner
 /// <summary>Backup e restauracao de chaves de registro no formato do Revo.</summary>
 public static class RegistryBackup
 {
-    public static string DataDirectory =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Tranal Group", "Tranal Uninstaller Pro");
+    /// <summary>
+    /// A pasta onde ficam os dados do Tranal: preferencias, logs, backups e
+    /// o resto. Quando o modo portavel esta ativo, e a pasta configurada
+    /// pelo usuario; sem ele, a pasta padrao em %LOCALAPPDATA%.
+    ///
+    /// A regra mora em <see cref="PortableMode"/>: este e so o lugar que
+    /// todo o Tranal consome.
+    /// </summary>
+    public static string DataDirectory => PortableMode.EffectiveDataDirectory;
 
     /// <summary>
     /// Cria o backup das chaves indicadas e devolve o caminho do arquivo .reg.

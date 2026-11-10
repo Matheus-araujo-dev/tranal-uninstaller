@@ -669,6 +669,22 @@
             </StackPanel>
           </Button>
 
+          <Button Style="{StaticResource ModuleButton}" Tag="PendingOperations" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolPendingOperations">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x23F8;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.PendingOperations}" />
+            </StackPanel>
+          </Button>
+
+          <Button Style="{StaticResource ModuleButton}" Tag="DailyRegistryBackup" Click="ToolButton_Click"
+                  AutomationProperties.AutomationId="ToolDailyRegistryBackup">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="&#x1F5C4;" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Module.DailyRegistryBackup}" />
+            </StackPanel>
+          </Button>
+
           <Button Style="{StaticResource ModuleButton}" Tag="HexViewer" Click="ToolButton_Click"
                   AutomationProperties.AutomationId="ToolHexViewer">
             <StackPanel Orientation="Horizontal">

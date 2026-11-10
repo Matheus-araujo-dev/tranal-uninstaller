@@ -1,0 +1,60 @@
+<Window x:Class="Tranal.Uninstaller.Ui.ManualRemovalWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        xmlns:shared="clr-namespace:Tranal.Uninstaller.Ui.Shared"
+        Title="Desinstalacao personalizada" Height="620" Width="780" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" ShowInTaskbar="False">
+
+  <Grid Margin="14">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- descricao -->
+      <RowDefinition Height="Auto" />   <!-- busca por palavra-chave -->
+      <RowDefinition Height="*" />      <!-- programas -->
+      <RowDefinition Height="*" />      <!-- sobras -->
+      <RowDefinition Height="Auto" />   <!-- status -->
+      <RowDefinition Height="Auto" />   <!-- botoes -->
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" TextWrapping="Wrap" Text="{loc:Tr Manual.Description}" />
+
+    <!--
+      A palavra-chave e o filtro da desinstalacao personalizada: o usuario
+      digita "Adobe" e ve os programas cujo nome tem a palavra "Adobe".
+      Vazio traz a lista inteira.
+    -->
+    <Grid Grid.Row="1" Margin="0,10,0,8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBox x:Name="KeywordBox" Grid.Column="0" VerticalContentAlignment="Center"
+               AutomationProperties.AutomationId="ManualKeywordBox" />
+      <Button Grid.Column="1" Margin="6,0,0,0" Content="{loc:Tr Manual.Search}" Style="{StaticResource FlatButton}"
+              Click="SearchButton_Click" AutomationProperties.AutomationId="ManualSearchButton" />
+    </Grid>
+
+    <ListBox x:Name="ProgramList" Grid.Row="2" Margin="0,0,0,8" DisplayMemberPath="DisplayName"
+             AutomationProperties.AutomationId="ManualProgramList"
+             SelectionChanged="ProgramList_SelectionChanged" />
+
+    <!-- As sobras do programa escolhido: a mesma arvore do assistente. -->
+    <shared:LeftoversTree x:Name="LeftoversTreeControl" Grid.Row="3" />
+
+    <TextBlock x:Name="StatusText" Grid.Row="4" Margin="0,8,0,0" TextWrapping="Wrap"
+               Foreground="{DynamicResource TextDimBrush}"
+               AutomationProperties.AutomationId="ManualStatusText" />
+
+    <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button x:Name="ExportButton" Content="{loc:Tr Manual.Export}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" IsEnabled="False" Click="ExportButton_Click"
+              AutomationProperties.AutomationId="ManualExportButton" />
+      <Button x:Name="RemoveButton" Content="{loc:Tr Manual.Remove}" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" IsEnabled="False" Click="RemoveButton_Click"
+              AutomationProperties.AutomationId="ManualRemoveButton" />
+      <Button Content="{loc:Tr Common.Close}" Style="{StaticResource FlatButton}" Click="CloseButton_Click"
+              AutomationProperties.AutomationId="ManualCloseButton" />
+    </StackPanel>
+  </Grid>
+</Window>

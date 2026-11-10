@@ -28,6 +28,13 @@ public partial class OptionsWindow : Window
     /// <summary>Titulo do grupo de preferencias de armazenamento.</summary>
     private static string StorageSection => Loc.Get("Options.StorageSection");
 
+    /// <summary>
+    /// A pasta de dados configurada no momento em que a janela abriu. Serve
+    /// para saber se o usuario mudou: so a mudanca avisa que vale no proximo
+    /// inicio.
+    /// </summary>
+    private string _pastaAnterior = string.Empty;
+
     /// <summary>Titulo do grupo de preferencias de layout.</summary>
     private static string LayoutSection => Loc.Get("Options.LayoutSection");
 
@@ -144,7 +151,8 @@ public partial class OptionsWindow : Window
         AccessibilityModeCheck.IsChecked = settings.AccessibilityMode;
         FastModeCheck.IsChecked = settings.FastMode;
 
-        PortableFolderBox.Text = settings.PortableDataFolder;
+        PortableFolderBox.Text = PortableMode.ConfiguredFolder;
+        _pastaAnterior = PortableFolderBox.Text;
         WebSearchBox.Text = settings.WebSearchEngine;
         WebSearchEnginesBox.Text = string.Join(Environment.NewLine, settings.WebSearchEngines ?? new List<string>());
         UpdateFeedBox.Text = settings.UpdateFeedUrl;
@@ -164,7 +172,8 @@ public partial class OptionsWindow : Window
     {
         var settings = AppSettingsStore.Current;
 
-        PortableFolderBox.Text = settings.PortableDataFolder;
+        PortableFolderBox.Text = PortableMode.ConfiguredFolder;
+        _pastaAnterior = PortableFolderBox.Text;
         WebSearchBox.Text = settings.WebSearchEngine;
         WebSearchEnginesBox.Text = string.Join(Environment.NewLine, settings.WebSearchEngines ?? new List<string>());
         UpdateFeedBox.Text = settings.UpdateFeedUrl;
@@ -457,7 +466,6 @@ public partial class OptionsWindow : Window
             s.KeepPreferencesOnUninstall = KeepPreferencesCheck.IsChecked == true;
             s.FocusTracedProgramsOnStartup = FocusTracedProgramsCheck.IsChecked == true;
             s.ShowCheckBoxesInDetailsView = ShowCheckBoxesCheck.IsChecked == true;
-            s.PortableDataFolder = PortableFolderBox.Text.Trim();
             s.WebSearchEngine = WebSearchBox.Text.Trim();
             s.WebSearchEngines = ReadWebSearchEngines();
             s.UpdateFeedUrl = UpdateFeedBox.Text.Trim();
@@ -465,6 +473,30 @@ public partial class OptionsWindow : Window
             s.UpdateBlacklist = ReadUpdateBlacklist();
             s.ExportToExcelInstalled = ExcelInstalledCheck.IsChecked == true;
         });
+
+        // A pasta de dados mora no registro (e nao no arquivo de
+        // preferencias, que mora dentro dela). A mudanca vale no proximo
+        // inicio: e so entao que os dados passam a ser lidos do novo lugar.
+        var pastaConfigurada = PortableFolderBox.Text.Trim();
+        if (!string.Equals(pastaConfigurada, _pastaAnterior, StringComparison.OrdinalIgnoreCase))
+        {
+            if (!PortableMode.SetConfiguredFolder(pastaConfigurada))
+            {
+                MessageBox.Show(this,
+                    Loc.Get("Options.PortableFolderFailed"),
+                    Loc.Get("Options.StorageSection"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            else if (pastaConfigurada.Length > 0)
+            {
+                MessageBox.Show(this,
+                    Loc.Get("Options.PortableFolderRestart"),
+                    Loc.Get("Options.StorageSection"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+        }
 
         ThemeManager.Apply(theme);
         Loc.SetLanguage(language);

@@ -25,6 +25,21 @@ public sealed class DailyRegistryBackupResult
 }
 
 /// <summary>
+/// Um backup diario ja feito.
+/// </summary>
+public sealed class DailyRegistryBackupEntry
+{
+    /// <summary>O dia do backup.</summary>
+    public DateTime Date { get; init; }
+
+    /// <summary>A pasta do backup.</summary>
+    public string Directory { get; init; } = string.Empty;
+
+    /// <summary>Os arquivos .reg do backup.</summary>
+    public IReadOnlyList<string> Files { get; init; } = Array.Empty<string>();
+}
+
+/// <summary>
 /// O backup completo do registro, todo dia.
 ///
 /// O <see cref="FullRegistryBackup"/> ja exporta o registro inteiro, mas so
@@ -46,6 +61,17 @@ public static class DailyRegistryBackup
     /// Substitui a pasta de destino do backup (so a suite de testes).
     /// </summary>
     internal static string? DestinationOverride { get; set; }
+
+    /// <summary>
+    /// Substitui a pasta raiz dos backups diarios (so a suite de testes).
+    /// </summary>
+    internal static string? RootDirectoryOverride { get; set; }
+
+    /// <summary>
+    /// A pasta que guarda os backups diarios (um por dia).
+    /// </summary>
+    public static string RootDirectory =>
+        RootDirectoryOverride ?? Path.Combine(RegistryBackup.DataDirectory, "RegBackup", "Full");
 
     /// <summary>
     /// O arquivo que guarda a data do ultimo backup diario.
@@ -118,9 +144,19 @@ public static class DailyRegistryBackup
             }
         }
 
+        return Run();
+    }
+
+    /// <summary>
+    /// Faz o backup diario agora, sem olhar a data do ultimo backup.
+
+    /// E o que o botao "Executar agora" da tela chama: o usuario pediu,
+    /// e o pedido manda.
+    /// </summary>
+    public static DailyRegistryBackupResult Run()
+    {
         var destino = DestinationOverride ?? Path.Combine(
-            RegistryBackup.DataDirectory, "RegBackup", "Full",
-            "diario-" + DateTime.Now.ToString("yyyy-MM-dd"));
+            RootDirectory, "diario-" + DateTime.Now.ToString("yyyy-MM-dd"));
 
         var resultado = FullRegistryBackup.Create(destino);
 
@@ -138,6 +174,45 @@ public static class DailyRegistryBackup
                 ? $"backup diario criado em {resultado.Directory}"
                 : resultado.Message,
         };
+    }
+
+    /// <summary>
+    /// Os backups diarios ja feitos, do mais novo para o mais antigo.
+    /// </summary>
+    public static IReadOnlyList<DailyRegistryBackupEntry> List()
+    {
+        var resultado = new List<DailyRegistryBackupEntry>();
+
+        try
+        {
+            var raiz = RootDirectory;
+            if (!Directory.Exists(raiz)) return resultado;
+
+            foreach (var pasta in Directory.EnumerateDirectories(raiz, "diario-*"))
+            {
+                var nome = Path.GetFileName(pasta);
+                var data = DateTime.MinValue;
+
+                if (nome.Length > "diario-".Length)
+                {
+                    DateTime.TryParseExact(nome["diario-".Length..], "yyyy-MM-dd",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out data);
+                }
+
+                resultado.Add(new DailyRegistryBackupEntry
+                {
+                    Date = data,
+                    Directory = pasta,
+                    Files = Directory.EnumerateFiles(pasta, "*.reg").ToList(),
+                });
+            }
+        }
+        catch (Exception)
+        {
+            return resultado;
+        }
+
+        return resultado.OrderByDescending(e => e.Date).ToList();
     }
 
     /// <summary>

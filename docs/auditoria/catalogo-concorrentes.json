@@ -1372,7 +1372,7 @@
                                                          "funcionalidade":  "**Configurações portáteis** (settings gravados junto do executável)",
                                                          "evidencia":  "`PortableSettingsProvider` (`bcu.strings.txt:5939`), assembly `PortableSettingsProvider, Version=1.2.1.0` (`:7191`), `labelPortable` (`:4490`), `get_StrIsPortable` (`:4491`)",
                                                          "estado":  "OK",
-                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/PortableMode.cs` + `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs` (`portableDataFolder`)"
+                                                         "estadoTexto":  "OK — `src/Tranal.Uninstaller/Core/PortableMode.cs` (`PortableMode`, `ConfiguredFolder`, `EffectiveDataDirectory`) + `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml.cs` (`PortableMode.SetConfiguredFolder`)"
                                                      },
                                                      {
                                                          "numero":  95,

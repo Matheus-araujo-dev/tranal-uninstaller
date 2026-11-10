@@ -73,6 +73,8 @@ public static class ToolViews
         ToolCatalog.RecycleBin => CleanupViews.Create(toolId),
         ToolCatalog.Finder => InspectorViews.Create(toolId),
         ToolCatalog.RunOnce => InspectorViews.Create(toolId),
+        ToolCatalog.PendingOperations => RecoveryViews.Create(toolId),
+        ToolCatalog.DailyRegistryBackup => RecoveryViews.Create(toolId),
         ToolCatalog.HexViewer => InspectorViews.Create(toolId),
         ToolCatalog.Bloatware => MaintenanceViews.Create(toolId),
         ToolCatalog.Duplicates => MaintenanceViews.Create(toolId),

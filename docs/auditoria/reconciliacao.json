@@ -268,7 +268,7 @@
                                        "catalogo":  9,
                                        "catalogoId":  "T1#9",
                                        "estado":  "PARCIAL",
-                                       "evidencia":  "**Pré-visualização** de tudo que será removido, com **exclusão item a item**|`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:29` (`public partial class UninstallWizardWindow`) `src/Tranal.Uninstaller/Core/UninstallSupport.cs:49` (`public enum LeftoverReason`) **Nota**: a previa de tudo que sera removido existe e o item pode ser marcado; a exclusao por item usa a lista global de exclusoes (`Core/ExcludeList.cs`), nao um desmarcar item a item na propria previa.",
+                                       "evidencia":  "**Pré-visualização** de tudo que será removido, com **exclusão item a item**|`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:29` (`public partial class UninstallWizardWindow`) `src/Tranal.Uninstaller/Core/UninstallSupport.cs:51` (`public enum LeftoverReason`) **Nota**: a previa de tudo que sera removido existe e o item pode ser marcado; a exclusao por item usa a lista global de exclusoes (`Core/ExcludeList.cs`), nao um desmarcar item a item na propria previa.",
                                        "via":  "id",
                                        "motivo":  ""
                                    },
@@ -322,7 +322,7 @@
                                        "catalogo":  46,
                                        "catalogoId":  "T2#46",
                                        "estado":  "PARCIAL",
-                                       "evidencia":  "**Salvar posição da janela** e **filtros** entre sessões|`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:315` (`public static class AppSettings`) **Nota**: filtros e preferencias sao gravados em `settings.json`; a posicao e o tamanho da janela nao sao gravados — `AppSettings` nao tem campo de posicao.",
+                                       "evidencia":  "**Salvar posição da janela** e **filtros** entre sessões|`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:314` (`public static class AppSettings`) **Nota**: filtros e preferencias sao gravados em `settings.json`; a posicao e o tamanho da janela nao sao gravados — `AppSettings` nao tem campo de posicao.",
                                        "via":  "id",
                                        "motivo":  ""
                                    },
@@ -342,7 +342,7 @@
                                             "catalogo":  12,
                                             "catalogoId":  "T1#12",
                                             "estado":  "OK",
-                                            "evidencia":  "`grep PendingFileRenameOperations` -\u003e `PendingOperations.cs:12` e `:53`; `Apply` (`:117`) executa a renomeacao na hora",
+                                            "evidencia":  "`grep PendingFileRenameOperations` -\u003e `PendingOperations.cs:12` e `:53`; `Apply` (`:117`) executa a renomeacao na hora; a fila aparece na ferramenta \"Operacoes Pendentes\" da barra lateral (`src/Tranal.Uninstaller/Ui/Tools/RecoveryViews.cs:72`), que lista o que o Windows vai renomear ou apagar no proximo arranque, deixa tentar agora e tira da fila",
                                             "via":  0.8,
                                             "motivo":  ""
                                         },
@@ -540,7 +540,7 @@
                                             "catalogo":  88,
                                             "catalogoId":  "T7#88",
                                             "estado":  "PARCIAL",
-                                            "evidencia":  "**Retomar o monitoramento inacabado** no arranque do Windows|`src/Tranal.Uninstaller/Core/Automation/UninstallResume.cs:80` (`public static class UninstallResume`) `src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: existe a retomada da desinstalacao (`UninstallResume`), mas nao a retomada do monitoramento de instalacao — o `InstallMonitor.Start` e sessao em memoria e morre com o processo.",
+                                            "evidencia":  "**Retomar o monitoramento inacabado** no arranque do Windows|`src/Tranal.Uninstaller/Core/Automation/UninstallResume.cs:80` (`public static class UninstallResume`) `src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:46` (`public sealed class InstallMonitor`) a tela de acompanhamento `src/Tranal.Uninstaller/Ui/InstallMonitorWindow.xaml.cs:25` (`InstallMonitorWindow`) **Nota**: existe a retomada da desinstalacao (`UninstallResume`), mas nao a retomada do monitoramento de instalacao — o `InstallMonitor.Start` e sessao em memoria e morre com o processo.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -738,7 +738,7 @@
                                             "catalogo":  79,
                                             "catalogoId":  "T7#79",
                                             "estado":  "PARCIAL",
-                                            "evidencia":  "**Customização dos botões da barra** e legendas dos botões|`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:315` (`public static class AppSettings`) **Nota**: existe mostrar/ocultar as duas barras; nao ha adicionar/remover botao nem editar legenda.",
+                                            "evidencia":  "**Customização dos botões da barra** e legendas dos botões|`src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:314` (`public static class AppSettings`) **Nota**: existe mostrar/ocultar as duas barras; nao ha adicionar/remover botao nem editar legenda.",
                                             "via":  "id",
                                             "motivo":  ""
                                         },
@@ -875,7 +875,7 @@
                                  "catalogo":  29,
                                  "catalogoId":  "T2#29",
                                  "estado":  "OK",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Automation/ShutdownGuard.cs:56` (`Acquire`, `SetThreadExecutionState`); ligado na remocao em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1363` (`using var guard = ShutdownGuard.Acquire()`). Binario do concorrente: `bcu.strings.txt:5789` (`checkBoxShutdown`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Automation/ShutdownGuard.cs:56` (`Acquire`, `SetThreadExecutionState`); ligado na remocao em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1378` (`using var guard = ShutdownGuard.Acquire()`). Binario do concorrente: `bcu.strings.txt:5789` (`checkBoxShutdown`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -893,7 +893,7 @@
                                  "catalogo":  32,
                                  "catalogoId":  "T2#32",
                                  "estado":  "OK",
-                                 "evidencia":  "preferencia de repeticao `Core/Settings/AppSettings.cs:326`; a regra da repeticao `Core/Automation/UninstallQueue.cs:124`",
+                                 "evidencia":  "preferencia de repeticao `Core/Settings/AppSettings.cs:335`; a regra da repeticao `Core/Automation/UninstallQueue.cs:124`",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -911,7 +911,7 @@
                                  "catalogo":  36,
                                  "catalogoId":  "T2#36",
                                  "estado":  "OK",
-                                 "evidencia":  "os dois caminhos existem: **remover da tarefa** e a regra da fila (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:20`, `UninstallQueueOutcome.RemovedFromTask`), e **rodar em primeiro plano** e o painel do rodape do assistente (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:200`, `WizardLeftTaskText`, e `:206`, `WizardForegroundButton`), que roda o comando registrado do programa, com a janela do desinstalador (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:856`, `NativeUninstallCommand.Registered`; o modo esta no nucleo em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1295`, `NativeUninstallCommand`). A tela so mostra quem saiu: a lista vem da fila (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:795`). Medido: `src/Tranal.Tests/Lote25FeatureTests.cs`.",
+                                 "evidencia":  "os dois caminhos existem: **remover da tarefa** e a regra da fila (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:20`, `UninstallQueueOutcome.RemovedFromTask`), e **rodar em primeiro plano** e o painel do rodape do assistente (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:200`, `WizardLeftTaskText`, e `:206`, `WizardForegroundButton`), que roda o comando registrado do programa, com a janela do desinstalador (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:856`, `NativeUninstallCommand.Registered`; o modo esta no nucleo em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1310`, `NativeUninstallCommand`). A tela so mostra quem saiu: a lista vem da fila (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:795`). Medido: `src/Tranal.Tests/Lote25FeatureTests.cs`.",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -947,7 +947,7 @@
                                  "catalogo":  44,
                                  "catalogoId":  "T3#44",
                                  "estado":  "OK",
-                                 "evidencia":  "a avaliacao tem os nove criterios: `src/Tranal.Uninstaller/Core/Discovery/FolderConfidenceEvaluator.cs:120` (`ManyFilesCriterion`, \"muitos arquivos\"), `:123` (`NoSubdirectoriesCriterion`, \"sem subdiretorios\") e o limite em `:126` (`ManyFilesThreshold`); o veredito sai em `:174` (`Evaluate`) e a inspecao do primeiro nivel (`:358`, `Inspect`) conta os arquivos e os subdiretorios. O veredito entra na sobra em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1150`. Medido: `src/Tranal.Tests/Lote24FeatureTests.cs` (a pasta com muitos arquivos tem o criterio positivo; a pasta com subdiretorios tem o criterio negativo).",
+                                 "evidencia":  "a avaliacao tem os nove criterios: `src/Tranal.Uninstaller/Core/Discovery/FolderConfidenceEvaluator.cs:120` (`ManyFilesCriterion`, \"muitos arquivos\"), `:125` (`NoSubdirectoriesCriterion`, \"sem subdiretorios\") e o limite em `:128` (`ManyFilesThreshold`); o veredito sai em `:176` (`Evaluate`) e a inspecao do primeiro nivel (`:360`, `Inspect`) conta os arquivos e os subdiretorios. O veredito entra na sobra em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1152`. Medido: `src/Tranal.Tests/Lote24FeatureTests.cs` (a pasta com muitos arquivos tem o criterio positivo; a pasta com subdiretorios tem o criterio negativo).",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -956,7 +956,7 @@
                                  "catalogo":  45,
                                  "catalogoId":  "T3#45",
                                  "estado":  "OK",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Discovery/StartupEntries.cs:43` (`Scan`, le `Run` e `RunOnce` em `:30-35`) e `:104` (`BelongsTo`, dois sinais: executavel dentro da pasta e comando que cita o nome); o sinal entra na confianca da sobra em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:663` (motivo `LeftoverReason.StartupEntry`, `src/Tranal.Uninstaller/Core/UninstallSupport.cs:115`). Binario do concorrente: chaves `Confidence_Startup_*` — nao confirmado no binario (so `.resx`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Discovery/StartupEntries.cs:43` (`Scan`, le `Run` e `RunOnce` em `:30-35`) e `:106` (`BelongsTo`, dois sinais: executavel dentro da pasta e comando que cita o nome); o sinal entra na confianca da sobra em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:663` (motivo `LeftoverReason.StartupEntry`, `src/Tranal.Uninstaller/Core/UninstallSupport.cs:117`). Binario do concorrente: chaves `Confidence_Startup_*` — nao confirmado no binario (so `.resx`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -965,7 +965,7 @@
                                  "catalogo":  46,
                                  "catalogoId":  "T3#46",
                                  "estado":  "OK",
-                                 "evidencia":  "o aviso de perigo existe: `src/Tranal.Uninstaller/Core/UninstallSupport.cs:191` (`LeftoverWarningKind.Dangerous`), a chave em `:220` (`DangerousKey`) e a regra em `:248` (os itens MARCADOS cuja nota nao e segura, por `src/Tranal.Uninstaller/Core/LeftoverRatings.cs:132`, `MarkedRiskyItems`); a arvore avisa quando a marcacao muda (`src/Tranal.Uninstaller/Ui/Shared/LeftoversTree.xaml.cs:35`, `SelectionChanged`) e o assistente refaz o aviso na hora (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:189`). O aviso some quando o item e desmarcado. Medido: `src/Tranal.Tests/Lote24FeatureTests.cs`.",
+                                 "evidencia":  "o aviso de perigo existe: `src/Tranal.Uninstaller/Core/UninstallSupport.cs:193` (`LeftoverWarningKind.Dangerous`), a chave em `:220` (`DangerousKey`) e a regra em `:248` (os itens MARCADOS cuja nota nao e segura, por `src/Tranal.Uninstaller/Core/LeftoverRatings.cs:132`, `MarkedRiskyItems`); a arvore avisa quando a marcacao muda (`src/Tranal.Uninstaller/Ui/Shared/LeftoversTree.xaml.cs:35`, `SelectionChanged`) e o assistente refaz o aviso na hora (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:189`). O aviso some quando o item e desmarcado. Medido: `src/Tranal.Tests/Lote24FeatureTests.cs`.",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1010,7 +1010,7 @@
                                  "catalogo":  64,
                                  "catalogoId":  "T4#64",
                                  "estado":  "OK",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Ui/RenameWindow.xaml.cs:18` (dialogo), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1358`; o nome novo e o que a lista mostra em `src/Tranal.Uninstaller/Core/ProgramColumns.cs:260` (`custom.DisplayName`). Binario do concorrente: `bcu.strings.txt:5414` (`renameContextMenuStripItem`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Ui/RenameWindow.xaml.cs:18` (dialogo), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1376`; o nome novo e o que a lista mostra em `src/Tranal.Uninstaller/Core/ProgramColumns.cs:260` (`custom.DisplayName`). Binario do concorrente: `bcu.strings.txt:5414` (`renameContextMenuStripItem`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1028,7 +1028,7 @@
                                  "catalogo":  67,
                                  "catalogoId":  "T4#67",
                                  "estado":  "OK",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:58` (`RegistryEditor`: `regedit.exe \"\u003cchave\u003e\"`), aberto pelo menu da lista em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1238`. Binario do concorrente: `bcu.strings.txt:5505` (`openKeyInRegeditToolStripMenuItem`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:58` (`RegistryEditor`: `regedit.exe \"\u003cchave\u003e\"`), aberto pelo menu da lista em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1256`. Binario do concorrente: `bcu.strings.txt:5505` (`openKeyInRegeditToolStripMenuItem`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1037,7 +1037,7 @@
                                  "catalogo":  68,
                                  "catalogoId":  "T4#68",
                                  "estado":  "OK",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:69` (`AppsAndFeatures` -\u003e `appwiz.cpl`) e `:73` (`SystemRestore` -\u003e `SystemPropertiesProtection.exe`), ambos no menu da lista (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1238`). Binario do concorrente: `bcu.strings.txt:5485` (`openProgramsAndFeaturesToolStripMenuItem`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:69` (`AppsAndFeatures` -\u003e `appwiz.cpl`) e `:73` (`SystemRestore` -\u003e `SystemPropertiesProtection.exe`), ambos no menu da lista (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1256`). Binario do concorrente: `bcu.strings.txt:5485` (`openProgramsAndFeaturesToolStripMenuItem`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1055,7 +1055,7 @@
                                  "catalogo":  71,
                                  "catalogoId":  "T4#71",
                                  "estado":  "PARCIAL",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Exporters.cs:157` (`ToXml`: elemento `TranalUninstaller` com atributo `exported` e um `Entry` por programa, com os elementos das colunas escolhidas); exporta pela tela (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1629`) e pela CLI (`src/Tranal.Cli/ExtraCommands.cs:258`). **Nota**: **nao ha cabecalho fixo** com os 9 campos do BCU — o XML sai com as colunas que o usuario escolheu, e `Tamanho` e `Desinstalador silencioso` ficam de fora do conjunto padrao (`src/Tranal.Uninstaller/Core/Exporters.cs:26`). Binario do concorrente: `bcu.strings.txt:5935` (`get_StrExportHeader`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Exporters.cs:157` (`ToXml`: elemento `TranalUninstaller` com atributo `exported` e um `Entry` por programa, com os elementos das colunas escolhidas); exporta pela tela (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1655`) e pela CLI (`src/Tranal.Cli/ExtraCommands.cs:258`). **Nota**: **nao ha cabecalho fixo** com os 9 campos do BCU — o XML sai com as colunas que o usuario escolheu, e `Tamanho` e `Desinstalador silencioso` ficam de fora do conjunto padrao (`src/Tranal.Uninstaller/Core/Exporters.cs:26`). Binario do concorrente: `bcu.strings.txt:5935` (`get_StrExportHeader`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1073,7 +1073,7 @@
                                  "catalogo":  74,
                                  "catalogoId":  "T4#74",
                                  "estado":  "PARCIAL",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Appearance/ColorBlindPalette.cs:157` (`Adapt`) e `:90` (`IsAdjusted`), aplicado em `src/Tranal.Uninstaller/Theming/ThemeManager.cs:159`; escolha do modo na tela em `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml.cs:203` e preferencia em `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:33`; tema do Windows em `src/Tranal.Uninstaller/Theming/ThemeProbe.cs:11` (chamado em `src/Tranal.Uninstaller/App.xaml.cs:65`). **Nota**: modo daltônico e tema do sistema existem, mas **nao ha escalonamento por DPI** — `grep \"Dpi/PerMonitor/GetDpi\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:4261` (`checkBoxColorblind`) / `:4703` (`checkBoxDpiaware`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Appearance/ColorBlindPalette.cs:157` (`Adapt`) e `:95` (`IsAdjusted`), aplicado em `src/Tranal.Uninstaller/Theming/ThemeManager.cs:159`; escolha do modo na tela em `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml.cs:212` e preferencia em `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:33`; tema do Windows em `src/Tranal.Uninstaller/Theming/ThemeProbe.cs:11` (chamado em `src/Tranal.Uninstaller/App.xaml.cs:70`). **Nota**: modo daltônico e tema do sistema existem, mas **nao ha escalonamento por DPI** — `grep \"Dpi/PerMonitor/GetDpi\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:4261` (`checkBoxColorblind`) / `:4703` (`checkBoxDpiaware`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1091,7 +1091,7 @@
                                  "catalogo":  76,
                                  "catalogoId":  "T4#76",
                                  "estado":  "PARCIAL",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:833`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:92` (`PreviewKeyDown`) e `:1676` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep \"RegisterHotKey/Hotkey/GlobalHotkey\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:833`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:92` (`PreviewKeyDown`) e `:1702` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep \"RegisterHotKey/Hotkey/GlobalHotkey\" em src/` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1154,7 +1154,7 @@
                                  "catalogo":  86,
                                  "catalogoId":  "T5#86",
                                  "estado":  "OK",
-                                 "evidencia":  "**Modificar a instalação** (reparo / alterar instalação)|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`).",
+                                 "evidencia":  "**Modificar a instalação** (reparo / alterar instalação)|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1709` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`).",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1208,7 +1208,7 @@
                                  "catalogo":  92,
                                  "catalogoId":  "T5#92",
                                  "estado":  "OK",
-                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Exporters.cs:126` (`ToJson`); tela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1630` e CLI em `src/Tranal.Cli/ExtraCommands.cs:259` (`/json`). Binario do concorrente: `bcu.strings.txt:5754` (`System.Text.Json`)",
+                                 "evidencia":  "`src/Tranal.Uninstaller/Core/Exporters.cs:126` (`ToJson`); tela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1656` e CLI em `src/Tranal.Cli/ExtraCommands.cs:259` (`/json`). Binario do concorrente: `bcu.strings.txt:5754` (`System.Text.Json`)",
                                  "via":  "id",
                                  "motivo":  ""
                              },
@@ -1471,7 +1471,7 @@
                                       "catalogo":  61,
                                       "catalogoId":  "T2#61",
                                       "estado":  "OK",
-                                      "evidencia":  "Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar|modulo do Instal guard `Core/Automation/InstallerGuard.cs:153`; a deteccao do instalador `Core/Automation/InstallerGuard.cs:250`; as regras embutidas `Core/Automation/InstallerGuard.cs:169`",
+                                      "evidencia":  "Instal guard: definir como o programa identifica setups e quais propriedades de arquivo usar|modulo do Instal guard `Core/Automation/InstallerGuard.cs:153`; a deteccao do instalador `Core/Automation/InstallerGuard.cs:249`; as regras embutidas `Core/Automation/InstallerGuard.cs:168`",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1570,7 +1570,7 @@
                                       "catalogo":  60,
                                       "catalogoId":  "T1#60",
                                       "estado":  "OK",
-                                      "evidencia":  "Busca online do programa e \"Rate online\"|`src/Tranal.Uninstaller/Core/WebSearch.cs:19` (`public static class WebSearch`) `src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:92` (`AvaliarOnlineUrl`) `src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:111` (`AvaliarOnline`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1717` (menu \"Avaliar on-line\") `src/Tranal.Cli/InspectionCommands.cs:477` (`ExecutarAvaliacao`, `tranal /inspection-rate`)",
+                                      "evidencia":  "Busca online do programa e \"Rate online\"|`src/Tranal.Uninstaller/Core/WebSearch.cs:19` (`public static class WebSearch`) `src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:92` (`AvaliarOnlineUrl`) `src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:111` (`AvaliarOnline`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1743` (menu \"Avaliar on-line\") `src/Tranal.Cli/InspectionCommands.cs:477` (`ExecutarAvaliacao`, `tranal /inspection-rate`)",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1624,7 +1624,7 @@
                                       "catalogo":  47,
                                       "catalogoId":  "T4#47",
                                       "estado":  "OK",
-                                      "evidencia":  "Autorun / StartUp Tuner: habilitar, desabilitar, adicionar, editar e remover entradas de inicialização|`src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:73` (`public static class AutorunManager`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:131` (`SetEnabled`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:156` (`Remove`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:190` (`Add`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:229` (`ResolveKind`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:262` (`Update`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:304` (`UpdateRunKeyValue`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:388` (`UpdateStartupFile`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:487` (`UpdateService`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:543` (`UpdateScheduledTask`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:177` (`AutorunAdd`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:178` (`AutorunEdit`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:240` (`Adicionar`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:265` (`AutorunManager.Add`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:280` (`Editar`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:316` (`AutorunManager.Update`) `src/Tranal.Cli/ExtraCommands.cs:240` (`RunAutorun`)",
+                                      "evidencia":  "Autorun / StartUp Tuner: habilitar, desabilitar, adicionar, editar e remover entradas de inicialização|`src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:73` (`public static class AutorunManager`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:131` (`SetEnabled`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:156` (`Remove`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:190` (`Add`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:229` (`ResolveKind`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:262` (`Update`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:304` (`UpdateRunKeyValue`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:388` (`UpdateStartupFile`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:487` (`UpdateService`) `src/Tranal.Uninstaller/Core/Tools/AutorunManager.cs:543` (`UpdateScheduledTask`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:179` (`AutorunAdd`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:180` (`AutorunEdit`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:242` (`Adicionar`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:267` (`AutorunManager.Add`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:282` (`Editar`) `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:318` (`AutorunManager.Update`) `src/Tranal.Cli/ExtraCommands.cs:240` (`RunAutorun`)",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -1768,7 +1768,7 @@
                                       "catalogo":  55,
                                       "catalogoId":  "T4#55",
                                       "estado":  "OK",
-                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProgramImpactAnalyzer.cs:56` (classe), `:64` (`Rank`, mede memoria e CPU de cada programa instalado e ordena por impacto), `:113` (`CalcularNota`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:107`, carga em `:143`, colunas de score, memoria e CPU em `:117-119`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:363`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:63`. Binario do concorrente: nao confirmado no binario",
+                                      "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProgramImpactAnalyzer.cs:56` (classe), `:64` (`Rank`, mede memoria e CPU de cada programa instalado e ordena por impacto), `:115` (`CalcularNota`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:107`, carga em `:145`, colunas de score, memoria e CPU em `:117-119`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:363`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:63`. Binario do concorrente: nao confirmado no binario",
                                       "via":  "id",
                                       "motivo":  ""
                                   },
@@ -2031,7 +2031,7 @@
                                    "catalogo":  12,
                                    "catalogoId":  "T3#12",
                                    "estado":  "PARCIAL",
-                                   "evidencia":  "**Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL|`src/Tranal.Uninstaller/Core/UninstallSupport.cs:49` (`public enum LeftoverReason`) `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:89` (`public static class ServiceManager`) **Nota**: DLL nao e um motivo de sobra no Tranal — a biblioteca compartilhada tem catalogo proprio (`Core/Modules/SharedDllCatalog.cs:60`).",
+                                   "evidencia":  "**Sobras por categoria**: Registro, Arquivo, Tarefas, Serviços, DLL|`src/Tranal.Uninstaller/Core/UninstallSupport.cs:51` (`public enum LeftoverReason`) `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) `src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:89` (`public static class ServiceManager`) **Nota**: DLL nao e um motivo de sobra no Tranal — a biblioteca compartilhada tem catalogo proprio (`Core/Modules/SharedDllCatalog.cs:60`).",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2049,7 +2049,7 @@
                                    "catalogo":  21,
                                    "catalogoId":  "T4#21",
                                    "estado":  "PARCIAL",
-                                   "evidencia":  "Monitor roda **em segundo plano no startup**|`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: o rastreio existe sob demanda, mas nao roda continuamente em segundo plano ao iniciar.",
+                                   "evidencia":  "Monitor roda **em segundo plano no startup**|o monitor `src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:46` (`public sealed class InstallMonitor`); a tela de acompanhamento `src/Tranal.Uninstaller/Ui/InstallMonitorWindow.xaml.cs:25` (`InstallMonitorWindow`) **Nota**: o rastreio existe sob demanda, com tela propria, mas nao roda continuamente em segundo plano ao iniciar.",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2123,7 +2123,7 @@
                                    "catalogo":  7,
                                    "catalogoId":  "T1#7",
                                    "estado":  "OK",
-                                   "evidencia":  "`Core/UninstallSupport.cs:1397` cria o ponto; ligado ao assistente em `Ui/UninstallWizardWindow.xaml.cs:554-566`",
+                                   "evidencia":  "`Core/UninstallSupport.cs:1412` cria o ponto; ligado ao assistente em `Ui/UninstallWizardWindow.xaml.cs:554-566`",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2132,7 +2132,7 @@
                                    "catalogo":  11,
                                    "catalogoId":  "T1#11",
                                    "estado":  "OK",
-                                   "evidencia":  "`Core/ProgramCustomization.cs:136` (store), `:189` (`For`); acoes em `MainWindow.xaml.cs:1174` (renomear), `:1177` (comentario), `:1182` (icone), `:1185` (comandos)",
+                                   "evidencia":  "`Core/ProgramCustomization.cs:136` (store), `:189` (`For`); acoes em `MainWindow.xaml.cs:1192` (renomear), `:1195` (comentario), `:1182` (icone), `:1203` (comandos)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2186,7 +2186,7 @@
                                    "catalogo":  20,
                                    "catalogoId":  "T2#20",
                                    "estado":  "OK",
-                                   "evidencia":  "`Core/Modules/InstallMonitor.cs:103` inicia e monitora por comparacao de fotografia (`Core/Modules/SystemSnapshot.cs:136`); eventos gravados em `Core/Modules/LogOperations.cs:165`",
+                                   "evidencia":  "`Core/Modules/InstallMonitor.cs:164` inicia e monitora por comparacao de fotografia (`Core/Modules/SystemSnapshot.cs:136`); a tela de acompanhamento mostra o que mudou desde a fotografia (`src/Tranal.Uninstaller/Ui/InstallMonitorWindow.xaml.cs:25`); eventos gravados em `Core/Modules/LogOperations.cs:165`",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2294,7 +2294,7 @@
                                    "catalogo":  77,
                                    "catalogoId":  "T4#77",
                                    "estado":  "OK",
-                                   "evidencia":  "**A catalogacao do HiBit esta obsoleta.** `Core/Tools/RegistryCleaner.cs:152-250` define **16 categorias**: ActiveX (`:156`), AppPaths (`:162`), Classes COM (`:168`), FileTypes (`:174`), FirewallRules (`:180`), Fontes (`:186`), IFEO (`:192`), Produtos do Installer (`:198`), **MUICache** (`:204`), Abrir com (`:210`), ProgID (`:216`), Itens de inicializacao (`:222`), **SharedDLLs** (`:228`), Extensoes do shell (`:234`), TypeLib (`:240`), Entradas de desinstalacao (`:246`). Varredura em `:264`, remocao em `:322`; painel em `Ui/Tools/ToolViews.cs:486-560`",
+                                   "evidencia":  "**A catalogacao do HiBit esta obsoleta.** `Core/Tools/RegistryCleaner.cs:152-250` define **16 categorias**: ActiveX (`:156`), AppPaths (`:164`), Classes COM (`:170`), FileTypes (`:176`), FirewallRules (`:182`), Fontes (`:188`), IFEO (`:194`), Produtos do Installer (`:200`), **MUICache** (`:206`), Abrir com (`:212`), ProgID (`:218`), Itens de inicializacao (`:224`), **SharedDLLs** (`:228`), Extensoes do shell (`:234`), TypeLib (`:242`), Entradas de desinstalacao (`:248`). Varredura em `:266`, remocao em `:324`; painel em `Ui/Tools/ToolViews.cs:486-560`",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2420,7 +2420,7 @@
                                    "catalogo":  5,
                                    "catalogoId":  "T1#5",
                                    "estado":  "PARCIAL",
-                                   "evidencia":  "Varredura rica em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:529` (`LeftoverScanner.Scan`), motivos em `:49-123` (14 motivos, com `ObsoleteShortcut` em `:88`, `ObsoleteStartMenu` em `:79`, `StartupEntry` em `:115`, `InstallerLog` em `:105`); backup do registro ligado a operacao (`src/Tranal.Uninstaller/Core/BackupManager.cs:165` `Create`, `:193` `AddRegistryKey`). **Nota**: a tela usa **`ListView`** (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:164`), **nao arvore**, e o gerenciador de servico/tarefa tem painel proprio (`src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:114`, `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:80`) que nao entra na arvore de sobras. Binario do concorrente: `hibit.recursos.txt:181`",
+                                   "evidencia":  "Varredura rica em `src/Tranal.Uninstaller/Core/UninstallSupport.cs:531` (`LeftoverScanner.Scan`), motivos em `:49-123` (14 motivos, com `ObsoleteShortcut` em `:88`, `ObsoleteStartMenu` em `:79`, `StartupEntry` em `:115`, `InstallerLog` em `:105`); backup do registro ligado a operacao (`src/Tranal.Uninstaller/Core/BackupManager.cs:165` `Create`, `:193` `AddRegistryKey`). **Nota**: a tela usa **`ListView`** (`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml:164`), **nao arvore**, e o gerenciador de servico/tarefa tem painel proprio (`src/Tranal.Uninstaller/Core/Management/ServiceManager.cs:114`, `src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:80`) que nao entra na arvore de sobras. Binario do concorrente: `hibit.recursos.txt:181`",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2447,7 +2447,7 @@
                                    "catalogo":  9,
                                    "catalogoId":  "T1#9",
                                    "estado":  "OK",
-                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:57` (`Hide`, renomeia a chave com o sufixo `.TranalHidden` de `:47`) e `:85` (`Restore`); acionado no menu da lista em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1311` (e a remocao da entrada em `:1326`). Binario do concorrente: nao confirmado no binario",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:57` (`Hide`, renomeia a chave com o sufixo `.TranalHidden` de `:47`) e `:85` (`Restore`); acionado no menu da lista em `src/Tranal.Uninstaller/MainWindow.xaml.cs:1329` (e a remocao da entrada em `:1344`). Binario do concorrente: nao confirmado no binario",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2456,7 +2456,7 @@
                                    "catalogo":  10,
                                    "catalogoId":  "T1#10",
                                    "estado":  "OK",
-                                   "evidencia":  "**Deletar entrada** do registro do programa|`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1134` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:24` (`/remove-entries`). A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`:109`) delega para a acao em lote (`:136`), e as duas passam pela mesma remocao (`RegistryBatchRemover`, `:121`), que respeita a chave protegida e a visao do registro do programa (`:85`). **Nao desinstala nada**: o programa continua instalado, e a confirmacao da tela e o aviso da linha de comando dizem isso. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa e o menu \"Mais comandos\" mostra a acao.",
+                                   "evidencia":  "**Deletar entrada** do registro do programa|`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1152` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:24` (`/remove-entries`). A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`:109`) delega para a acao em lote (`:136`), e as duas passam pela mesma remocao (`RegistryBatchRemover`, `:121`), que respeita a chave protegida e a visao do registro do programa (`:85`). **Nao desinstala nada**: o programa continua instalado, e a confirmacao da tela e o aviso da linha de comando dizem isso. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa e o menu \"Mais comandos\" mostra a acao.",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2537,7 +2537,7 @@
                                    "catalogo":  76,
                                    "catalogoId":  "T4#76",
                                    "estado":  "PARCIAL",
-                                   "evidencia":  "Criar ponto existe: `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1397` (`TryCreateRestorePoint`, WMI `SystemRestore`), ligado ao assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:591` e a CLI em `src/Tranal.Cli/Program.cs:473`; os backups proprios sao restaurados por `src/Tranal.Uninstaller/Core/BackupManager.cs:601`, com painel em `src/Tranal.Uninstaller/Ui/BackupManagerWindow.xaml.cs:304`. **Nota**: **nao exclui pontos de restauracao do Windows** — `grep \"SRRemoveRestorePoint\" em src/` -\u003e **0 hits**; o que a CLI apaga (`src/Tranal.Cli/ExtraCommands.cs:451-453`, `delete`/`delete-all`/`delete-older`) sao os pontos **proprios** do Tranal (`BackupManager`), nao os do \"Restaurador do Sistema\". Binario do concorrente: `hibit.recursos.txt:189` (`TSYSRESTOREFORM/0`)",
+                                   "evidencia":  "Criar ponto existe: `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1412` (`TryCreateRestorePoint`, WMI `SystemRestore`), ligado ao assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:591` e a CLI em `src/Tranal.Cli/Program.cs:473`; os backups proprios sao restaurados por `src/Tranal.Uninstaller/Core/BackupManager.cs:601`, com painel em `src/Tranal.Uninstaller/Ui/BackupManagerWindow.xaml.cs:304`. **Nota**: **nao exclui pontos de restauracao do Windows** — `grep \"SRRemoveRestorePoint\" em src/` -\u003e **0 hits**; o que a CLI apaga (`src/Tranal.Cli/ExtraCommands.cs:451-453`, `delete`/`delete-all`/`delete-older`) sao os pontos **proprios** do Tranal (`BackupManager`), nao os do \"Restaurador do Sistema\". Binario do concorrente: `hibit.recursos.txt:189` (`TSYSRESTOREFORM/0`)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2582,7 +2582,7 @@
                                    "catalogo":  87,
                                    "catalogoId":  "T5#87",
                                    "estado":  "PARCIAL",
-                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProcessInspector.cs:12-51` expoe nome, caminho, descricao, empresa, versao, usuario, memoria, threads e data de inicio; painel na tela em `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:593` (`CreateProcessPanel`) com 5 colunas em `:602-606` (nome/dono/caminho/memoria/afinidade). **Nota**: o painel mostra **5 colunas** — **nao ha janela dedicada de propriedades** por processo com todos os campos. Binario do concorrente: `hibit.recursos.txt:179` (`TPROCPROPERTIFORM/0`)",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProcessInspector.cs:12-51` expoe nome, caminho, descricao, empresa, versao, usuario, memoria, threads e data de inicio; painel na tela em `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:595` (`CreateProcessPanel`) com 5 colunas em `:602-606` (nome/dono/caminho/memoria/afinidade). **Nota**: o painel mostra **5 colunas** — **nao ha janela dedicada de propriedades** por processo com todos os campos. Binario do concorrente: `hibit.recursos.txt:179` (`TPROCPROPERTIFORM/0`)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2591,7 +2591,7 @@
                                    "catalogo":  88,
                                    "catalogoId":  "T5#88",
                                    "estado":  "OK",
-                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProcessAffinity.cs:51` (`ProcessAffinity`), `:60` (`List`) e `:79` (`Of`, com `GetProcessAffinityMask`/`SetProcessAffinityMask`); painel na tela em `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:629` (coluna de afinidade em `:606`) e CLI em `src/Tranal.Cli/InspectionCommands.cs:284`. Binario do concorrente: `hibit.recursos.txt:147` (`TAFFINITYFORM/0`)",
+                                   "evidencia":  "`src/Tranal.Uninstaller/Core/Modules/ProcessAffinity.cs:51` (`ProcessAffinity`), `:60` (`List`) e `:79` (`Of`, com `GetProcessAffinityMask`/`SetProcessAffinityMask`); painel na tela em `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:631` (coluna de afinidade em `:606`) e CLI em `src/Tranal.Cli/InspectionCommands.cs:284`. Binario do concorrente: `hibit.recursos.txt:147` (`TAFFINITYFORM/0`)",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2663,7 +2663,7 @@
                                    "catalogo":  60,
                                    "catalogoId":  "T3#60",
                                    "estado":  "PARCIAL",
-                                   "evidencia":  "A coleta e a tela existem: `src/Tranal.Uninstaller/Core/Modules/SystemInfoPanel.cs:41` (classe), `Collect` `:47`, CPU `:54`, RAM via WMI `Win32_OperatingSystem` `:122`, disco, GPU `:65` e tempo de atividade (`UptimeInfo` `:200`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:52`, carga em `:81`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:355`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:62`. **Nota**: o painel **nao esta no banner** - e uma tela da barra lateral; no banner da `MainWindow` so existe a barra de status (`src/Tranal.Uninstaller/MainWindow.xaml:638-640`), sem CPU, GPU, RAM ou SO. Binario do concorrente: nao confirmado no binario",
+                                   "evidencia":  "A coleta e a tela existem: `src/Tranal.Uninstaller/Core/Modules/SystemInfoPanel.cs:41` (classe), `Collect` `:47`, CPU `:54`, RAM via WMI `Win32_OperatingSystem` `:124`, disco, GPU `:65` e tempo de atividade (`UptimeInfo` `:202`). Tela `src/Tranal.Uninstaller/Ui/Tools/InsightViews.cs:52`, carga em `:83`; barra lateral `src/Tranal.Uninstaller/MainWindow.xaml:355`; despacho `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:62`. **Nota**: o painel **nao esta no banner** - e uma tela da barra lateral; no banner da `MainWindow` so existe a barra de status (`src/Tranal.Uninstaller/MainWindow.xaml:638-640`), sem CPU, GPU, RAM ou SO. Binario do concorrente: nao confirmado no binario",
                                    "via":  "id",
                                    "motivo":  ""
                                },
@@ -2935,7 +2935,7 @@
                                            "catalogo":  2,
                                            "catalogoId":  "T1#2",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES|`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: a acao de instalar e rastrear existe, mas no painel do modulo \"Programas Monitorados\"; nao ha painel lateral com essa acao.",
+                                           "evidencia":  "Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES|o monitor `src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:46` (`public sealed class InstallMonitor`); a tela de acompanhamento `src/Tranal.Uninstaller/Ui/InstallMonitorWindow.xaml.cs:25` (`InstallMonitorWindow`) **Nota**: a acao de instalar e rastrear existe, com tela propria, mas no painel do modulo \"Programas Monitorados\"; nao ha painel lateral com essa acao.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2944,7 +2944,7 @@
                                            "catalogo":  20,
                                            "catalogoId":  "T2#20",
                                            "estado":  "OK",
-                                           "evidencia":  "Backup automático antes da remoção|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1464` (`BackupLeftovers`) `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:569` (`PrepareFullRegistryBackup`) o backup do registro completo e o backup das sobras acontecem antes de qualquer remocao.",
+                                           "evidencia":  "Backup automático antes da remoção|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:51` (`public static class ProgramBackup`) `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1479` (`BackupLeftovers`) `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:569` (`PrepareFullRegistryBackup`) o backup do registro completo e o backup das sobras acontecem antes de qualquer remocao.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2953,7 +2953,7 @@
                                            "catalogo":  22,
                                            "catalogoId":  "T2#22",
                                            "estado":  "OK",
-                                           "evidencia":  "**Undo Changes Center**|`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:162` (`Undo`), `:189` (`Redo`), `src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:180` (`Record`), `:212` (`Register`), `:292` (`Undo`), `:319` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:632` (`CreateUndoCenter`), `:702` (`Undo`), `:716` (`Redo`), `src/Tranal.Cli/AssociationCommands.cs:30` (`/undo-center`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1620` (`BackupLeftovers`)",
+                                           "evidencia":  "**Undo Changes Center**|`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:164` (`Undo`), `:191` (`Redo`), `src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:180` (`Record`), `:214` (`Register`), `:292` (`Undo`), `:321` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:634` (`CreateUndoCenter`), `:704` (`Undo`), `:718` (`Redo`), `src/Tranal.Cli/AssociationCommands.cs:30` (`/undo-center`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1635` (`BackupLeftovers`)",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2962,7 +2962,7 @@
                                            "catalogo":  23,
                                            "catalogoId":  "T2#23",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "Reverter uninstallação cronologicamente, renomear ou restaurar|`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:189` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:632` (`CreateUndoCenter`) **Nota**: o centro lista as mudancas em ordem cronologica (`:81` ordena pela data) e o Refazer volta o que o Desfazer desfez (`:189`); nao ha acao de renomear nem de restaurar item a item.",
+                                           "evidencia":  "Reverter uninstallação cronologicamente, renomear ou restaurar|`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:189` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:634` (`CreateUndoCenter`) **Nota**: o centro lista as mudancas em ordem cronologica (`:83` ordena pela data) e o Refazer volta o que o Desfazer desfez (`:189`); nao ha acao de renomear nem de restaurar item a item.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2998,7 +2998,7 @@
                                            "catalogo":  42,
                                            "catalogoId":  "T3#42",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "Rastreamento de **aplicativos adicionais** instalados junto|`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: a deteccao e por comparacao de snapshot, nao por evento, e nao ha monitor rodando em segundo plano.",
+                                           "evidencia":  "Rastreamento de **aplicativos adicionais** instalados junto|o monitor `src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:46` (`public sealed class InstallMonitor`); a tela de acompanhamento `src/Tranal.Uninstaller/Ui/InstallMonitorWindow.xaml.cs:25` (`InstallMonitorWindow`) **Nota**: a deteccao e por comparacao de snapshot, nao por evento, e nao ha monitor rodando em segundo plano.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -3061,7 +3061,7 @@
                                            "catalogo":  65,
                                            "catalogoId":  "T5#65",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "**Configuração completa de MSI** (instalar, modificar, reparar)|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao \"Modificar\" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por \"MsiConfigureProduct\" nao encontra em `src/`.",
+                                           "evidencia":  "**Configuração completa de MSI** (instalar, modificar, reparar)|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1709` (`CmdModifyProgram`), `:2366` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao \"Modificar\" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por \"MsiConfigureProduct\" nao encontra em `src/`.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -3153,7 +3153,7 @@
                                   "catalogo":  8,
                                   "catalogoId":  "T1#8",
                                   "estado":  "OK",
-                                  "evidencia":  "`Ui/ForcedUninstallWindow.xaml.cs` + `Core/Automation/ForcedRemovalOptions.cs`; acao na UI em `MainWindow.xaml.cs:694` (`Cmd.ForcedUninstall`), confirmacao em `:1710`",
+                                  "evidencia":  "`Ui/ForcedUninstallWindow.xaml.cs` + `Core/Automation/ForcedRemovalOptions.cs`; acao na UI em `MainWindow.xaml.cs:694` (`Cmd.ForcedUninstall`), confirmacao em `:1736`",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3189,7 +3189,7 @@
                                   "catalogo":  17,
                                   "catalogoId":  "T1#17",
                                   "estado":  "OK",
-                                  "evidencia":  "`Ui/ColumnsWindow.xaml.cs:78` monta a lista de colunas; acao na UI em `MainWindow.xaml.cs:708` (`CmdColumns`)",
+                                  "evidencia":  "`Ui/ColumnsWindow.xaml.cs:78` monta a lista de colunas; acao na UI em `MainWindow.xaml.cs:2162` (`CmdColumns`)",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3216,7 +3216,7 @@
                                   "catalogo":  20,
                                   "catalogoId":  "T1#20",
                                   "estado":  "OK",
-                                  "evidencia":  "`Core/Exporters.cs:63` gera o HTML da lista; `Core/Reporting/ReportFormats.cs:86` e o formato de relatorio; UI em `MainWindow.xaml.cs:1492` (`Cmd.ExportHtml`)",
+                                  "evidencia":  "`Core/Exporters.cs:63` gera o HTML da lista; `Core/Reporting/ReportFormats.cs:86` e o formato de relatorio; UI em `MainWindow.xaml.cs:1510` (`Cmd.ExportHtml`)",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3261,7 +3261,7 @@
                                   "catalogo":  27,
                                   "catalogoId":  "T2#27",
                                   "estado":  "OK",
-                                  "evidencia":  "`Core/MsiInstallLog.cs:110`/`:130` capturam o log do instalador MSI, `:163` (`UsableAfter`) so aceita o log depois do desinstalador nativo rodar; o log vira sobra por `Core/UninstallSupport.cs:105` (`InstallerLog`)",
+                                  "evidencia":  "`Core/MsiInstallLog.cs:110`/`:132` capturam o log do instalador MSI, `:163` (`UsableAfter`) so aceita o log depois do desinstalador nativo rodar; o log vira sobra por `Core/UninstallSupport.cs:107` (`InstallerLog`)",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3297,7 +3297,7 @@
                                   "catalogo":  32,
                                   "catalogoId":  "T2#32",
                                   "estado":  "OK",
-                                  "evidencia":  "`Core/Discovery/FolderConfidenceEvaluator.cs:165` avalia a pasta por criterios (`:293` protege pastas de conteudo do usuario); os avisos de baixa confianca saem em `Core/UninstallSupport.cs:205` (`LeftoverWarnings`)",
+                                  "evidencia":  "`Core/Discovery/FolderConfidenceEvaluator.cs:165` avalia a pasta por criterios (`:295` protege pastas de conteudo do usuario); os avisos de baixa confianca saem em `Core/UninstallSupport.cs:207` (`LeftoverWarnings`)",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3360,7 +3360,7 @@
                                   "catalogo":  14,
                                   "catalogoId":  "T1#14",
                                   "estado":  "OK",
-                                  "evidencia":  "Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos**|modulo das falhas de desinstalacao `Core/Automation/UninstallFailureRecovery.cs:48`; o registro da falha `Core/Automation/UninstallFailureRecovery.cs:66`; a limpeza da entrada e dos arquivos `Core/Automation/UninstallFailureRecovery.cs:146`",
+                                  "evidencia":  "Diálogo de falha de desinstalação com opção de **limpar a entrada do registro e os arquivos**|modulo das falhas de desinstalacao `Core/Automation/UninstallFailureRecovery.cs:48`; o registro da falha `Core/Automation/UninstallFailureRecovery.cs:65`; a limpeza da entrada e dos arquivos `Core/Automation/UninstallFailureRecovery.cs:146`",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3414,7 +3414,7 @@
                                   "catalogo":  10,
                                   "catalogoId":  "T1#10",
                                   "estado":  "OK",
-                                  "evidencia":  "**Remove Entry** + **Batch Remove Entries**|A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:109`, `Remove`) delega para a acao em lote (`:136`, `RemoveMany`), e as duas passam pela mesma remocao (`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:121`, `Remove`), que respeita a chave protegida e a visao do registro do programa (`:85`, `FromProgram`). A tela tem a acao em lote (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1134`, `CmdRemoveEntriesBatch`; o metodo em `:1831`, `RemoveEntriesBatch`) e a linha de comando tem `/remove-entries` (`src/Tranal.Cli/EntryCommands.cs:24`). Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao.",
+                                  "evidencia":  "**Remove Entry** + **Batch Remove Entries**|A remocao das entradas da lista do Windows existe **em lote** e na tela. A REGRA mora no nucleo, em um lugar so: a acao avulsa (`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:109`, `Remove`) delega para a acao em lote (`:136`, `RemoveMany`), e as duas passam pela mesma remocao (`src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:121`, `Remove`), que respeita a chave protegida e a visao do registro do programa (`:85`, `FromProgram`). A tela tem a acao em lote (`src/Tranal.Uninstaller/MainWindow.xaml.cs:1152`, `CmdRemoveEntriesBatch`; o metodo em `:1831`, `RemoveEntriesBatch`) e a linha de comando tem `/remove-entries` (`src/Tranal.Cli/EntryCommands.cs:24`). Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao.",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3506,7 +3506,7 @@
                                   "catalogo":  6,
                                   "catalogoId":  "T1#6",
                                   "estado":  "OK",
-                                  "evidencia":  "A desinstalacao forcada e acionada do painel principal e abre a tela de varredura e remocao (`src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml.cs:80`).",
+                                  "evidencia":  "A desinstalacao forcada e acionada do painel principal e abre a tela de varredura e remocao (`src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml.cs:83`).",
                                   "via":  "ancora",
                                   "motivo":  "RECON \"Desinstalacao Forcada - modo explicito no painel principal\" = CAT T1#6 \"Desinstalacao Forcada - para quando o desinstalador normal nao resolve\"."
                               },
@@ -3695,7 +3695,7 @@
                                   "catalogo":  46,
                                   "catalogoId":  "T3#46",
                                   "estado":  "OK",
-                                  "evidencia":  "Registro de \"última análise\"|o registro da ultima varredura `Core/Settings/AppSettings.cs:350`; a gravacao da varredura `Core/Settings/AppSettings.cs:469`",
+                                  "evidencia":  "Registro de \"última análise\"|o registro da ultima varredura `Core/Settings/AppSettings.cs:354` (`LastScanAt`); a gravacao da varredura `Core/Settings/AppSettings.cs:586` (`RecordScan`)",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3776,7 +3776,7 @@
                                   "catalogo":  7,
                                   "catalogoId":  "T1#7",
                                   "estado":  "OK",
-                                  "evidencia":  "\"Modificar\" — reaproveita o instalador do programa|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`).",
+                                  "evidencia":  "\"Modificar\" — reaproveita o instalador do programa|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1709` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`).",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3785,7 +3785,7 @@
                                   "catalogo":  8,
                                   "catalogoId":  "T1#8",
                                   "estado":  "OK",
-                                  "evidencia":  "\"Remover Entradas\" — tira o programa da lista **sem** desinstalar|`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1134` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:24` (`/remove-entries`). A acao existe avulsa (menu de contexto) e em lote (menu \"Mais comandos\"), com a confirmacao que diz que o programa **nao** e desinstalado. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao.",
+                                  "evidencia":  "\"Remover Entradas\" — tira o programa da lista **sem** desinstalar|`src/Tranal.Uninstaller/Core/Management/WindowsListEntry.cs:136` (`RemoveMany`), `:109` (`Remove`), `src/Tranal.Uninstaller/Core/RegistryEditing/RegistryBatchRemover.cs:85` (`FromProgram`), `:121` (`Remove`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1152` (`CmdRemoveEntriesBatch`), `:1831` (`RemoveEntriesBatch`), `src/Tranal.Cli/EntryCommands.cs:24` (`/remove-entries`). A acao existe avulsa (menu de contexto) e em lote (menu \"Mais comandos\"), com a confirmacao que diz que o programa **nao** e desinstalado. Medido: `tools/test-lote26.ps1` -\u003e a entrada de teste sai do registro, a linha de comando avisa que o programa NAO e desinstalado e o menu \"Mais comandos\" mostra a acao.",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3812,7 +3812,7 @@
                                   "catalogo":  25,
                                   "catalogoId":  "T2#25",
                                   "estado":  "PARCIAL",
-                                  "evidencia":  "Tela de **Restauração do Sistema**, com \"Restaurar\" e \"Apagar\"|`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:30` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1238` (`SystemNavigator`) **Nota**: a Recuperacao do Sistema do Windows e aberta pelo menu de contexto e a tela de backups restaura e apaga os pontos do Tranal; falta \"Apagar\" de ponto de restauracao do Windows.",
+                                  "evidencia":  "Tela de **Restauração do Sistema**, com \"Restaurar\" e \"Apagar\"|`src/Tranal.Uninstaller/Core/Management/SystemNavigator.cs:30` (`public static class SystemNavigator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:1256` (`SystemNavigator`) **Nota**: a Recuperacao do Sistema do Windows e aberta pelo menu de contexto e a tela de backups restaura e apaga os pontos do Tranal; falta \"Apagar\" de ponto de restauracao do Windows.",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -3838,8 +3838,8 @@
                                   "recon":  32,
                                   "catalogo":  32,
                                   "catalogoId":  "T2#32",
-                                  "estado":  "PARCIAL",
-                                  "evidencia":  "**Desinstalação Personalizada** — varre por palavra-chave e deixa explorar a pasta|`src/Tranal.Uninstaller/Core/Automation/ForcedRemovalOptions.cs:17` (`public sealed class ForcedRemovalOptions`) `src/Tranal.Uninstaller/Ui/ForcedUninstallWindow.xaml.cs:17` (`public partial class ForcedUninstallWindow`) **Nota**: a varredura por palavra-chave e a lista de candidatos existem; falta a tela de exploracao da pasta propria da desinstalacao personalizada.",
+                                  "estado":  "OK",
+                                  "evidencia":  "**Desinstalação Personalizada** — varre por palavra-chave e deixa explorar a pasta|a tela `src/Tranal.Uninstaller/Ui/ManualRemovalWindow.xaml.cs:26` (`ManualRemovalWindow`); a varredura por palavra-chave `src/Tranal.Uninstaller/Core/Automation/ManualRemoval.cs:52` (`SelectByKeyword`); a lista de candidatos `src/Tranal.Uninstaller/Core/Automation/ManualRemoval.cs:33` (`Candidates`); a exportacao em CSV `src/Tranal.Uninstaller/Core/Automation/ManualRemoval.cs:66` (`Export`); o comando no menu \"Mais comandos\" `src/Tranal.Uninstaller/MainWindow.xaml.cs:1140`",
                                   "via":  "id",
                                   "motivo":  ""
                               },
@@ -4138,7 +4138,7 @@
                                            "catalogo":  94,
                                            "catalogoId":  "T6#94",
                                            "estado":  "FORA POR DECISAO",
-                                           "evidencia":  "Driver de kernel fora do plano do Tranal, por decisao registrada. O que o Tranal faz e rastrear por snapshot (`Core/Modules/InstallMonitor.cs:31`), sem driver.",
+                                           "evidencia":  "Driver de kernel fora do plano do Tranal, por decisao registrada. O que o Tranal faz e rastrear por snapshot (`Core/Modules/InstallMonitor.cs:49`), sem driver.",
                                            "via":  1,
                                            "motivo":  ""
                                        },
@@ -4165,7 +4165,7 @@
                                            "catalogo":  31,
                                            "catalogoId":  "T2#31",
                                            "estado":  "OK",
-                                           "evidencia":  "Preferência: sempre rodar / nunca rodar / perguntar|preferencia `Core/Settings/AppSettings.cs:368`; a regra dos modos `Core/Settings/AppSettings.cs:366`",
+                                           "evidencia":  "Preferência: sempre rodar / nunca rodar / perguntar|preferencia `Core/Settings/AppSettings.cs:382`; a regra dos modos `Core/Settings/AppSettings.cs:366`",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -4174,7 +4174,7 @@
                                            "catalogo":  32,
                                            "catalogoId":  "T2#32",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "O Wizard **sempre roda** para programas rastreados|preferencia `Core/Settings/AppSettings.cs:368`",
+                                           "evidencia":  "O Wizard **sempre roda** para programas rastreados|preferencia `Core/Settings/AppSettings.cs:382`",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -4327,7 +4327,7 @@
                                            "catalogo":  82,
                                            "catalogoId":  "T6#82",
                                            "estado":  "OK",
-                                           "evidencia":  "**Lista compacta de aplicativos**|o modulo do formato da lista `Core/Appearance/ProgramListLayout.cs:15`; as colunas da lista compacta `Core/Appearance/ProgramListLayout.cs:21`",
+                                           "evidencia":  "**Lista compacta de aplicativos**|o modulo do formato da lista `Core/Appearance/ProgramListLayout.cs:16`; as colunas da lista compacta `Core/Appearance/ProgramListLayout.cs:22`; a fonte unica das colunas visiveis `Core/Appearance/ProgramListLayout.cs:59`; o consumo na grade `src/Tranal.Uninstaller/MainWindow.xaml.cs:631` e na impressao `src/Tranal.Uninstaller/MainWindow.xaml.cs:1480`",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -4399,7 +4399,7 @@
                                            "catalogo":  10,
                                            "catalogoId":  "T1#10",
                                            "estado":  "OK",
-                                           "evidencia":  "**Modify** — tela de modificação de componentes|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`).",
+                                           "evidencia":  "**Modify** — tela de modificação de componentes|`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `:265` (`Repair`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1709` (`CmdModifyProgram`), `:2366` (`ModifyProgram`). A acao \"Modificar\" existe na tela: e o item do menu de contexto (`Cmd.ModifyProgram`), que reaproveita o instalador do programa e, para um produto MSI, roda o reparo do Windows Installer (`msiexec /fa`). A regra mora no nucleo, em um lugar so (`Core/Discovery/MsiProductCatalog.cs`).",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -4480,7 +4480,7 @@
                                            "catalogo":  38,
                                            "catalogoId":  "T3#38",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "**Reverter** a instalação rastreada|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:212` (`Register`), `:292` (`Undo`), `src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1620` (`BackupLeftovers`) **Nota**: o motor de undo e redo tem consumidor de producao desde o lote 29 (a remocao entra no centro de mudancas quando o backup e gravado), mas o que se reverte e o conteudo removido, e nao o log de instalacao rastreado.",
+                                           "evidencia":  "**Reverter** a instalação rastreada|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:212` (`Register`), `:292` (`Undo`), `src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1635` (`BackupLeftovers`) **Nota**: o motor de undo e redo tem consumidor de producao desde o lote 29 (a remocao entra no centro de mudancas quando o backup e gravado), mas o que se reverte e o conteudo removido, e nao o log de instalacao rastreado.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -4552,7 +4552,7 @@
                                            "catalogo":  75,
                                            "catalogoId":  "T6#75",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "**Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável|`src/Tranal.Uninstaller/Theming/ThemeManager.cs:41` (`public static class ThemeManager`) `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:315` (`public static class AppSettings`) **Nota**: a visibilidade das barras e os quatro temas existem; faltam as legendas nos botoes e a barra de status editavel.",
+                                           "evidencia":  "**Personalizar aparência, barras de ferramentas e menus**, com legendas nos botões e barra de status editável|`src/Tranal.Uninstaller/Theming/ThemeManager.cs:41` (`public static class ThemeManager`) `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:314` (`public static class AppSettings`) **Nota**: a visibilidade das barras e os quatro temas existem; faltam as legendas nos botoes e a barra de status editavel.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },

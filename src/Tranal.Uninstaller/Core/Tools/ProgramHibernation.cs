@@ -69,9 +69,8 @@ public sealed class HibernatedProgram
 public static class ProgramHibernation
 {
     /// <summary>A pasta onde o estado dos programas dormentes e gravado.</summary>
-    public static string DataDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Tranal Group", "Tranal Uninstaller Pro", "hibernation");
+    public static string DataDirectory => Path.Combine(
+        RegistryBackup.DataDirectory, "hibernation");
 
     /// <summary>O arquivo do estado dos programas dormentes.</summary>
     public static string FilePath => Path.Combine(DataDirectory, "hibernated.json");

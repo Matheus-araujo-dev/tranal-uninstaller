@@ -607,6 +607,12 @@ public partial class MainWindow : Window
     private bool _checkBoxesInDetails;
 
     /// <summary>
+    /// O ultimo valor da preferencia "lista compacta". Serve para saber se
+    /// a grade precisa ser refeita quando ela muda.
+    /// </summary>
+    private bool _compactProgramList;
+
+    /// <summary>
     /// Qual coluna do catalogo cada coluna da grade representa. E o que liga
     /// a coluna da tela (montada em codigo) ao catalogo de colunas.
     /// </summary>
@@ -620,7 +626,9 @@ public partial class MainWindow : Window
     /// </summary>
     private void BuildProgramColumns()
     {
-        var visiveis = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
+        // O formato da lista mora em um lugar so (ProgramListLayout): a
+        // grade nasce dele e a preference do modo compacto vale.
+        var visiveis = ProgramListLayout.VisibleColumns();
 
         var template = (DataTemplate)Resources["ProgramNameTemplate"];
 
@@ -1127,6 +1135,16 @@ public partial class MainWindow : Window
         var forced = CommandItem(Loc.Get("Cmd.ForcedUninstall"), "CmdForcedUninstall", ShowForcedUninstall);
         menu.Items.Add(forced);
 
+        // A desinstalacao personalizada: escolher o programa por
+        // palavra-chave, explorar o que sobrou e decidir o que remover.
+        var manual = CommandItem(Loc.Get("Cmd.ManualRemoval"), "CmdManualRemoval", ShowManualRemoval);
+        menu.Items.Add(manual);
+
+        // O monitor de instalacao: acompanhar ao vivo o que o instalador
+        // cria no sistema e gravar o log no fim.
+        var monitor = CommandItem(Loc.Get("Cmd.InstallMonitor"), "CmdInstallMonitor", ShowInstallMonitor);
+        menu.Items.Add(monitor);
+
         // As acoes que sao de UM programa: os comandos que rodam antes e
         // depois do desinstalador, e a assinatura digital do desinstalador.
         // Elas so entram quando a selecao tem uma linha so — sao coisas de
@@ -1459,7 +1477,7 @@ public partial class MainWindow : Window
     private void ShowPrintPreview()
     {
         var programas = _view.Cast<ProgramRow>().Select(r => r.Program).ToList();
-        var colunas = ProgramColumns.Visible(AppSettingsStore.Current.HiddenColumns);
+        var colunas = ProgramListLayout.VisibleColumns();
 
         var janela = new ReportingWindow(programas, colunas);
         janela.Owner = this;
@@ -1552,6 +1570,14 @@ public partial class MainWindow : Window
         if (settings.ShowCheckBoxesInDetailsView != _checkBoxesInDetails)
         {
             _checkBoxesInDetails = settings.ShowCheckBoxesInDetailsView;
+            BuildProgramColumns();
+        }
+
+        // O modo compacto tambem muda as colunas: a lista compacta mostra
+        // so o essencial, e a grade precisa nascer de novo.
+        if (ProgramListLayout.IsCompact != _compactProgramList)
+        {
+            _compactProgramList = ProgramListLayout.IsCompact;
             BuildProgramColumns();
         }
     }
@@ -2422,6 +2448,34 @@ public partial class MainWindow : Window
     }
 
     private void ForcedUninstallButton_Click(object sender, RoutedEventArgs e) => ShowForcedUninstall();
+
+    /// <summary>
+    /// Abre a tela de desinstalacao personalizada: o programa escolhido por
+    /// palavra-chave, as sobras encontradas e a decisao do usuario.
+    /// </summary>
+    private void ShowManualRemoval()
+    {
+        var dialog = new ManualRemovalWindow(ProgramasInstalados, selectedRows.FirstOrDefault()?.Program)
+        {
+            Owner = this,
+        };
+
+        dialog.ShowDialog();
+    }
+
+    /// <summary>
+    /// Abre o monitor de instalacao: a tela que acompanha ao vivo o que o
+    /// instalador cria no sistema.
+    /// </summary>
+    private void ShowInstallMonitor()
+    {
+        var dialog = new InstallMonitorWindow(selectedRows.FirstOrDefault()?.Program)
+        {
+            Owner = this,
+        };
+
+        dialog.ShowDialog();
+    }
 
     private void ShowForcedUninstall()
     {

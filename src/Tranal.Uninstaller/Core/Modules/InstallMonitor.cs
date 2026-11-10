@@ -4,6 +4,24 @@ using System.Text.Json;
 namespace Tranal.Uninstaller.Core.Modules;
 
 /// <summary>
+/// Um arquivo detectado pelo monitoramento.
+///
+/// E a forma publica do que o monitor viu: o tipo interno do log nao
+/// pode vazar para fora do nucleo.
+/// </summary>
+public sealed class MonitoredFile
+{
+    /// <summary>O caminho do arquivo.</summary>
+    public string Path { get; init; } = string.Empty;
+
+    /// <summary>O tamanho do arquivo, em bytes.</summary>
+    public long SizeBytes { get; init; }
+
+    /// <summary>Quando o arquivo foi modificado.</summary>
+    public DateTime ModifiedUtc { get; init; }
+}
+
+/// <summary>
 /// Monitor de instalacao: equivalente ao "AppBar" do Revo Uninstaller Pro.
 ///
 /// O Revo mostra uma barra que acompanha, ao vivo, tudo o que o instalador
@@ -30,6 +48,18 @@ public sealed class InstallMonitor
     /// <summary>Intervalo padrao entre capturas (segundos).</summary>
     public const int DefaultIntervalSeconds = 30;
 
+    /// <summary>
+    /// As pastas que a fotografia do sistema percorre (so a suite de
+    /// testes). Nulo em uso normal: a fotografia cobre o sistema inteiro.
+    /// </summary>
+    internal static IReadOnlyList<string>? FileRootsOverride { get; set; }
+
+    /// <summary>
+    /// As raizes de registro que a fotografia percorre (so a suite de
+    /// testes). Nulo em uso normal.
+    /// </summary>
+    internal static IReadOnlyList<string>? RegistryRootsOverride { get; set; }
+
     private readonly object _gate = new();
     private readonly Dictionary<string, TraceStore.TraceFileEntry> _files = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _folders = new(StringComparer.OrdinalIgnoreCase);
@@ -45,7 +75,7 @@ public sealed class InstallMonitor
         ProgramName = programName ?? string.Empty;
         IntervalSeconds = intervalSeconds <= 0 ? DefaultIntervalSeconds : intervalSeconds;
 
-        _previous = SystemSnapshot.Capture();
+        _previous = SystemSnapshot.Capture(FileRootsOverride, RegistryRootsOverride);
 
         _timer = new Timer(Capture, null, Timeout.Infinite, Timeout.Infinite);
         _timer.Change(TimeSpan.FromSeconds(IntervalSeconds), TimeSpan.FromSeconds(IntervalSeconds));
@@ -79,6 +109,37 @@ public sealed class InstallMonitor
     public int ChangedRegistryKeyCount
     {
         get { lock (_gate) return _registryKeys.Count; }
+    }
+
+    /// <summary>Os arquivos novos detectados ate agora.</summary>
+    public IReadOnlyList<MonitoredFile> Files
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _files.Values
+                    .Select(f => new MonitoredFile
+                    {
+                        Path = f.Path,
+                        SizeBytes = f.SizeBytes,
+                        ModifiedUtc = f.ModifiedUtc,
+                    })
+                    .ToList();
+            }
+        }
+    }
+
+    /// <summary>As pastas novas detectadas ate agora.</summary>
+    public IReadOnlyList<string> Folders
+    {
+        get { lock (_gate) return _folders.ToList(); }
+    }
+
+    /// <summary>As chaves de registro novas detectadas ate agora.</summary>
+    public IReadOnlyList<string> RegistryKeys
+    {
+        get { lock (_gate) return _registryKeys.ToList(); }
     }
 
     /// <summary>Resumo do que foi observado (texto para a interface).</summary>
@@ -198,7 +259,7 @@ public sealed class InstallMonitor
 
         try
         {
-            var current = SystemSnapshot.Capture();
+            var current = SystemSnapshot.Capture(FileRootsOverride, RegistryRootsOverride);
             var previous = _previous;
             _previous = current;
 

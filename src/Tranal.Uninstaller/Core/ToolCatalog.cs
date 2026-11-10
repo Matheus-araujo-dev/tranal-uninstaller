@@ -176,6 +176,17 @@ public static class ToolCatalog
     public const string RunOnce = "RunOnce";
 
     /// <summary>
+    /// A fila de operacoes pendentes do Windows: as renomeacoes e as
+    /// remocoes que ele aplica no proximo arranque.
+    /// </summary>
+    public const string PendingOperations = "PendingOperations";
+
+    /// <summary>
+    /// O backup diario do registro: uma copia do registro por dia.
+    /// </summary>
+    public const string DailyRegistryBackup = "DailyRegistryBackup";
+
+    /// <summary>
     /// Visor hexadecimal com a soma de verificacao do arquivo.
     /// </summary>
     public const string HexViewer = "HexViewer";
@@ -282,6 +293,8 @@ public static class ToolCatalog
         RecycleBin,
         Finder,
         RunOnce,
+        PendingOperations,
+        DailyRegistryBackup,
         HexViewer,
         Bloatware,
         Duplicates,

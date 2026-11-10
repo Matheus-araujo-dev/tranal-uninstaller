@@ -48,9 +48,8 @@ public sealed class FailedUninstall
 public static class UninstallFailureRecovery
 {
     /// <summary>A pasta onde o registro das falhas e gravado.</summary>
-    public static string DataDirectory { get; } = System.IO.Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Tranal Group", "Tranal Uninstaller Pro", "failures");
+    public static string DataDirectory => System.IO.Path.Combine(
+        RegistryBackup.DataDirectory, "failures");
 
     /// <summary>O arquivo do registro das falhas.</summary>
     public static string FilePath => System.IO.Path.Combine(DataDirectory, "failed-uninstalls.json");

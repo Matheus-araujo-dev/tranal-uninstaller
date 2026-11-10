@@ -166,13 +166,6 @@ public sealed class AppSettings
     public bool BackupBeforeRemoval { get; set; } = true;
 
     /// <summary>
-    /// Pasta de dados propria do aplicativo (modo portatil). Vazia quando o
-    /// Tranal usa a pasta padrao em %LOCALAPPDATA%.
-    /// Corresponde a opcao "Usar pasta de armazenamento de dados personalizada".
-    /// </summary>
-    public string PortableDataFolder { get; set; } = string.Empty;
-
-    /// <summary>
     /// Modo de carregamento rapido: pula etapas de inicializacao nao essenciais.
     /// Corresponde a opcao "Ativar modo de carregamento rapido" do Revo.
     /// </summary>
@@ -616,7 +609,6 @@ public static class AppSettingsStore
         if (string.IsNullOrWhiteSpace(settings.ColorVisionMode)) settings.ColorVisionMode = "Standard";
         settings.RecentPrograms ??= new List<string>();
         settings.DockedToolId ??= string.Empty;
-        settings.PortableDataFolder ??= string.Empty;
         settings.WebSearchEngine ??= string.Empty;
         settings.WebSearchEngines ??= new List<string>();
         if (settings.BatchItemLimit < 0) settings.BatchItemLimit = 0;

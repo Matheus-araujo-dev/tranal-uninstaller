@@ -1,4 +1,5 @@
 using System.IO;
+using Microsoft.Win32;
 using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Settings;
 
@@ -14,14 +15,52 @@ namespace Tranal.Uninstaller.Core;
 /// (preferencias, logs, backups e pontos de restauracao) ficam nela; sem
 /// configuracao, os dados ficam em
 /// <c>%LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro</c>.
+///
+/// A pasta configurada mora no registro, e nao no arquivo de preferencias: o
+/// arquivo de preferencias fica dentro da pasta de dados, entao uma
+/// preferencia que mora junto dele nunca conseguiria mudar o lugar do
+/// proprio arquivo. O registro e o unico lugar que pode dizer "os dados
+/// estao em outro sitio" sem depender do lugar que ele mesmo ocupa.
+///
+/// A REGRA mora aqui, em um lugar so: quem guarda os dados do Tranal
+/// (<see cref="RegistryBackup.DataDirectory"/>) consome esta classe.
 /// </summary>
 public static class PortableMode
 {
+    /// <summary>O caminho da chave do registro onde a pasta fica.</summary>
+    private const string ChaveDoRegistro = @"Software\Tranal Group\Tranal Uninstaller Pro";
+
+    /// <summary>O nome do valor do registro onde a pasta fica.</summary>
+    private const string ValorDoRegistro = "DataFolder";
+
     /// <summary>
     /// Pasta de dados padrao do Tranal:
     /// %LOCALAPPDATA%\Tranal Group\Tranal Uninstaller Pro
     /// </summary>
-    public static string DefaultDataDirectory => RegistryBackup.DataDirectory;
+    public static string DefaultDataDirectory => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Tranal Group", "Tranal Uninstaller Pro");
+
+    /// <summary>
+    /// A pasta de dados configurada pelo usuario. Vazia quando o Tranal usa a
+    /// pasta padrao.
+    /// </summary>
+    public static string ConfiguredFolder => ReadConfiguredFolder();
+
+    /// <summary>
+    /// A pasta de dados efetiva: a configurada, quando ela pode ser usada;
+    /// caso contrario, a pasta padrao.
+    ///
+    /// E esta a pasta que todo o Tranal usa: preferencias, logs, backups,
+    /// categorias, votos e sessoes de desinstalacao.
+    /// </summary>
+    public static string EffectiveDataDirectory => ResolveDataDirectory(ConfiguredFolder);
+
+    /// <summary>
+    /// True quando existe uma pasta de dados personalizada em uso (o modo
+    /// portavel esta ativo).
+    /// </summary>
+    public static bool IsPortableMode => IsPortable(ConfiguredFolder);
 
     /// <summary>
     /// True quando o modo de carregamento rapido esta ligado
@@ -33,6 +72,41 @@ public static class PortableMode
         {
             try { return AppSettingsStore.Current.FastLoadingMode; }
             catch { return false; }
+        }
+    }
+
+    /// <summary>
+    /// Grava (ou apaga, quando a pasta vem vazia) a pasta de dados
+    /// configurada.
+    ///
+    /// Devolve false quando o registro nao pode ser gravado: nesse caso o
+    /// Tranal continua usando a pasta padrao, e a interface avisa.
+    /// </summary>
+    /// <param name="folder">A pasta configurada (vazia para voltar ao padrao).</param>
+    public static bool SetConfiguredFolder(string? folder)
+    {
+        var valor = (folder ?? string.Empty).Trim();
+
+        try
+        {
+            if (valor.Length == 0)
+            {
+                using var chave = Registry.CurrentUser.OpenSubKey(ChaveDoRegistro, writable: true);
+                chave?.DeleteValue(ValorDoRegistro, throwOnMissingValue: false);
+                return true;
+            }
+
+            using var nova = Registry.CurrentUser.CreateSubKey(ChaveDoRegistro, writable: true);
+            if (nova is null) return false;
+
+            nova.SetValue(ValorDoRegistro, valor, RegistryValueKind.String);
+            return true;
+        }
+        catch
+        {
+            // O registro pode estar bloqueado por politica do Windows: sem a
+            // pasta configurada, o Tranal segue na pasta padrao.
+            return false;
         }
     }
 
@@ -122,6 +196,26 @@ public static class PortableMode
             sb.AppendLine(error);
 
         return sb.ToString().TrimEnd();
+    }
+
+    /// <summary>
+    /// Le a pasta configurada do registro. Devolve vazia quando o registro
+    /// nao tem o valor (ou quando ele nao pode ser lido).
+    /// </summary>
+    private static string ReadConfiguredFolder()
+    {
+        try
+        {
+            using var chave = Registry.CurrentUser.OpenSubKey(ChaveDoRegistro);
+            var valor = chave?.GetValue(ValorDoRegistro) as string;
+            return valor?.Trim() ?? string.Empty;
+        }
+        catch
+        {
+            // Sem registro legivel o Tranal fica na pasta padrao — que e o
+            // comportamento de sempre, e nao uma falha.
+            return string.Empty;
+        }
     }
 
     /// <summary>

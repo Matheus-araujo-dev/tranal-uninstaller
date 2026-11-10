@@ -72,8 +72,11 @@ public partial class ForcedUninstallWindow : Window
 
         StatusText.Text = Loc.Get("Status.Scanning");
 
-        var items = LeftoverScanner.ScanForced(
-            path, new LeftoverScanOptions
+        // A regra da desinstalacao forcada mora no nucleo
+        // (ForcedRemovalOptions): a tela nao reescreve a varredura.
+        var items = Core.Automation.ForcedRemovalOptions.ForTarget(path).Resolve(
+            null,
+            new LeftoverScanOptions
             {
                 Mode = UninstallMode.Advanced,
                 CheckAllLeftovers = AppSettingsStore.Current.CheckAllLeftoversByDefault,

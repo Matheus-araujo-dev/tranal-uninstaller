@@ -89,16 +89,23 @@ public sealed class ForcedRemovalOptions
     /// varredura (`ScanForced`) o traz marcado. Na desinstalação
     /// personalizada, os itens são os da varredura normal do programa.
     /// </summary>
-    /// <param name="program">O programa sendo desinstalado.</param>
+    /// <param name="program">O programa sendo desinstalado. Nulo na
+    /// desinstalacao forcada, em que o alvo apontado e quem manda.</param>
     /// <param name="scanOptions">As opções da varredura.</param>
     public IReadOnlyList<LeftoverItem> Resolve(
-        InstalledProgram program,
+        InstalledProgram? program,
         LeftoverScanOptions? scanOptions = null)
     {
         var opts = scanOptions ?? LeftoverScanOptions.Default;
 
         if (IsForced)
             return LeftoverScanner.ScanForced(TargetPath!, opts);
+
+        if (program is null)
+        {
+            throw new ArgumentNullException(nameof(program),
+                "A desinstalacao por palavra-chave precisa do programa escolhido.");
+        }
 
         return LeftoverScanner.Scan(program, opts);
     }

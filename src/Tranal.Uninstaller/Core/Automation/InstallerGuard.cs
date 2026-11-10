@@ -156,9 +156,8 @@ public static class InstallerGuard
     public const int SignatureWindowBytes = 1024 * 1024;
 
     /// <summary>A pasta onde as regras personalizadas ficam gravadas.</summary>
-    public static string DataDirectory { get; } = System.IO.Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "Tranal Group", "Tranal Uninstaller Pro", "installer-guard");
+    public static string DataDirectory => System.IO.Path.Combine(
+        RegistryBackup.DataDirectory, "installer-guard");
 
     /// <summary>O arquivo das regras personalizadas.</summary>
     public static string FilePath => System.IO.Path.Combine(DataDirectory, "rules.json");

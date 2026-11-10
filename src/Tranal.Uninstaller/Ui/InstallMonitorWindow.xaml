@@ -1,0 +1,49 @@
+<Window x:Class="Tranal.Uninstaller.Ui.InstallMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
+        Title="Monitor de instalacao" Height="560" Width="760" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource PanelBrush}" FontFamily="{DynamicResource UiFont}"
+        FontSize="12" ShowInTaskbar="False">
+
+  <Grid Margin="14">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />   <!-- descricao -->
+      <RowDefinition Height="Auto" />   <!-- nome e botoes -->
+      <RowDefinition Height="*" />      <!-- o que foi detectado -->
+      <RowDefinition Height="Auto" />   <!-- status -->
+      <RowDefinition Height="Auto" />   <!-- botoes -->
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" TextWrapping="Wrap" Text="{loc:Tr Monitor.Description}" />
+
+    <Grid Grid.Row="1" Margin="0,10,0,10">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TextBox x:Name="ProgramNameBox" Grid.Column="0" VerticalContentAlignment="Center"
+               AutomationProperties.AutomationId="MonitorProgramNameBox" />
+      <Button x:Name="StartButton" Grid.Column="1" Margin="6,0,0,0" Content="{loc:Tr Monitor.Start}"
+              Style="{StaticResource FlatButton}" Click="StartButton_Click"
+              AutomationProperties.AutomationId="MonitorStartButton" />
+      <Button x:Name="StopButton" Grid.Column="2" Margin="6,0,0,0" Content="{loc:Tr Monitor.Stop}"
+              Style="{StaticResource FlatButton}" IsEnabled="False" Click="StopButton_Click"
+              AutomationProperties.AutomationId="MonitorStopButton" />
+    </Grid>
+
+    <ListView x:Name="ItemsList" Grid.Row="2" Background="{DynamicResource PanelBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
+              AutomationProperties.AutomationId="MonitorItemsList" />
+
+    <TextBlock x:Name="StatusText" Grid.Row="3" Margin="0,8,0,0" TextWrapping="Wrap"
+               Foreground="{DynamicResource TextDimBrush}"
+               AutomationProperties.AutomationId="MonitorStatusText" />
+
+    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="{loc:Tr Common.Close}" Style="{StaticResource FlatButton}" Click="CloseButton_Click"
+              AutomationProperties.AutomationId="MonitorCloseButton" />
+    </StackPanel>
+  </Grid>
+</Window>

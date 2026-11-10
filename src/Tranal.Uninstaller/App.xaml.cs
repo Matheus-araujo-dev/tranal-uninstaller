@@ -59,6 +59,11 @@ public partial class App : Application
         // "Mostrar comandos no menu de contexto do Windows" do Revo.
         ExplorerContextMenu.Apply(AppSettingsStore.Current.ShowContextMenuCommands);
 
+        // O backup diario do registro: uma copia do registro por dia, sem o
+        // usuario pedir nada. Roda em segundo plano para nao atrasar a
+        // abertura da janela.
+        _ = Task.Run(BackupDiarioDoRegistro);
+
         // Sonda de diagnostico dos recursos de tema (so com a variavel de
         // ambiente ligada): grava o resultado em %TEMP%\tranal-theme-probe.txt.
         if (Environment.GetEnvironmentVariable("TRANAL_THEME_PROBE") == "1")
@@ -155,6 +160,26 @@ public partial class App : Application
         finally
         {
             ShutdownMode = modoAnterior;
+        }
+    }
+
+    /// <summary>
+    /// Executa o backup diario do registro, uma vez por dia.
+
+    /// O <c>reg.exe export</c> leva alguns segundos: por isso o backup
+    /// roda em segundo plano e nunca derruba o aplicativo.
+    /// </summary>
+    private static void BackupDiarioDoRegistro()
+    {
+        try
+        {
+            Core.Recovery.DailyRegistryBackup.RunIfDue();
+        }
+        catch (Exception ex)
+        {
+            // O backup diario e uma convenience: falhar nele nao pode
+            // derrubar o aplicativo.
+            FatalLog.Write(ex);
         }
     }
 
