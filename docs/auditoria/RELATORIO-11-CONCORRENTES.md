@@ -15,12 +15,12 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Geek Uninstaller | 44 | 39 | 5 | 0 | 0 | 88.6% |
 | HiBit Uninstaller | 66 | 45 | 17 | 0 | 4 | 74.2% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
-| Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
+| Soft Organizer | 77 | 60 | 16 | 0 | 1 | 79.2% |
 | Total Uninstall | 94 | 68 | 22 | 0 | 4 | 76.6% |
 | Uninstall Tool | 94 | 63 | 25 | 1 | 5 | 72.3% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 56 | 27 | 0 | 3 | 68.6% |
-| **TOTAL** | **725** | **531** | **163** | **1** | **30** | **77.4%** |
+| **TOTAL** | **725** | **533** | **161** | **1** | **30** | **77.7%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -168,11 +168,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 77 |
-| **OK** | **58** |
-| PARCIAL | 18 |
+| **OK** | **60** |
+| PARCIAL | 16 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 1 |
-| **Cobertura** | **76.6%** |
+| **Cobertura** | **79.2%** |
 
 ### O que ainda falta
 
@@ -180,10 +180,8 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 |---|---|---|---|
 | T1#2 | Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES | PARCIAL | **PARCIAL** - Painel lateral com **INSTALL WITH TRACING**, REMOVE, PROPERTIES/`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: a acao de instalar e rastrear existe, mas no painel do modulo "Programas Monitorados"; nao ha painel lateral com essa acao. |
 | T1#9 | **Removal tools from the developers** (link para o desinstalador oficial) | PARCIAL | **PARCIAL** - **Removal tools from the developers** (link para o desinstalador oficial)/`src/Tranal.Uninstaller/Core/Tools/SystemActions.cs:69` (`public static bool AbrirPaginaDoFabricante`) **Nota**: a acao de abrir a pagina do fabricante existe no nucleo, mas ainda nao tem consumidor na interface nem na linha de comando. |
-| T2#22 | **Undo Changes Center** | PARCIAL | **PARCIAL** - **Undo Changes Center**/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` (`public static (bool Ok, string Message) Undo`) **Nota**: o motor de desfazer e refazer existe, mas nao ha o centro de reversao na interface — `Record` e `Undo` so sao chamados pelos testes. |
-| T2#23 | Reverter uninstallação cronologicamente, renomear ou restaurar | PARCIAL | **PARCIAL** - Reverter uninstallação cronologicamente, renomear ou restaurar/`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` (`public static (bool Ok, string Message) Undo`) **Nota**: o motor existe; falta a linha do tempo cronologica e a acao de renomear ou restaurar item a item na interface. |
-| T2#24 | Descarte de mudanças antigas do histórico | PARCIAL | **PARCIAL** - Descarte de mudanças antigas do histórico/`src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:440` (`Expire`) **Nota**: o backup de sobras expira em 30 dias; nao ha descarte de mudancas antigas do historico de desinstalacao — a tela de historico e nova e ainda nao tem essa opcao. |
-| T2#25 | Aviso "use o Undo Changes Center para cancelar" | PARCIAL | **PARCIAL** - Aviso "use o Undo Changes Center para cancelar"/centro de mudancas `Core/Recovery/UndoChangesCenter.cs:66` |
+| T2#23 | Reverter uninstallação cronologicamente, renomear ou restaurar | PARCIAL | **PARCIAL** - Reverter uninstallação cronologicamente, renomear ou restaurar/`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:189` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:632` (`CreateUndoCenter`) **Nota**: o centro lista as mudancas em ordem cronologica (`:81` ordena pela data) e o Refazer volta o que o Desfazer desfez (`:189`); nao ha acao de renomear nem de restaurar item a item. |
+| T2#24 | Descarte de mudanças antigas do histórico | PARCIAL | **PARCIAL** - Descarte de mudanças antigas do histórico/`src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:505` (`Expire`), `src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:473` (`Forget`), `src/Tranal.Uninstaller/Core/Recovery/SnapshotLimits.cs:49` (`Enforce`) **Nota**: o descarte existe no centro de mudancas - quando o snapshot expira, a mudanca e o perfil do programa sao esquecidos (`ProgramBackup.Forget`); a tela de historico de desinstalacao ainda nao tem essa opcao. |
 | T2#26 | Trace manager: excluir itens e editar valores antes de aplicar | PARCIAL | **PARCIAL** - Trace manager: excluir itens e editar valores antes de aplicar/`src/Tranal.Uninstaller/Core/Modules/LogOperations.cs:165` (`public static class LogOperations`) `src/Tranal.Uninstaller/Ui/TracedLogWindow.xaml.cs:23` (`LogOperations`) **Nota**: a edicao e sobre o log ja gravado, nao antes de aplicar a remocao. |
 | T3#39 | Log de mudanças em arquivo por app (`TracedApp.changes`) | PARCIAL | **PARCIAL** - Log de mudanças em arquivo por app (`TracedApp.changes`)/ha um log por programa rastreado, em JSON, e a fusao dos logs do mesmo programa existe; nao ha o arquivo `TracedApp.changes` por aplicativo com o formato do concorrente |
 | T3#42 | Rastreamento de **aplicativos adicionais** instalados junto | PARCIAL | **PARCIAL** - Rastreamento de **aplicativos adicionais** instalados junto/`src/Tranal.Uninstaller/Core/Modules/InstallMonitor.cs:28` (`public sealed class InstallMonitor`) **Nota**: a deteccao e por comparacao de snapshot, nao por evento, e nao ha monitor rodando em segundo plano. |

@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(77,4% — 725 funcionalidades, 531 OK, 163 PARCIAL, 1 AUSENTE, 30 FORA por
+(77,7% — 725 funcionalidades, 533 OK, 161 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -72,7 +72,12 @@ morto. O detalhe esta em `EVIDENCIA-LOTE29-DONO.md`:
 - o proprio `tools/auditoria/aplicar-recon.ps1` tinha um furo: ele nao lia o
   `RECON-D-2026-11-08.md` (o estado esta na segunda coluna e a busca
   comecava na terceira). MEDIDO: 38 e 48 linhas passaram a aplicar, e o
-  numero de cobertura nao mudou - o furo nao inflava nada.
+  numero de cobertura nao mudou - o furo nao inflava nada;
+- **a funcionalidade que aparece em varios relatorios precisa ser corrigida
+  em todos**: o `SOFTORGANIZER #22` estava remediado em um relatorio e
+  continuava PARCIAL, porque o outro (aplicado por ultimo) media o estado
+  antigo. As quatro linhas do `RECON-C-2026-11-08.md` foram corrigidas
+  tambem.
 
 **BCU T1#13, T1#14, T1#15 e T1#16 e UNINSTALLTOOL T1#3 - as marcas do
 programa na lista.** O RECON media que o Tranal tinha o dado (a tag

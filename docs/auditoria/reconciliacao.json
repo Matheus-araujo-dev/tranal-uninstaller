@@ -2799,8 +2799,8 @@
                                            "recon":  25,
                                            "catalogo":  25,
                                            "catalogoId":  "T2#25",
-                                           "estado":  "PARCIAL",
-                                           "evidencia":  "Aviso \"use o Undo Changes Center para cancelar\"|centro de mudancas `Core/Recovery/UndoChangesCenter.cs:66`",
+                                           "estado":  "OK",
+                                           "evidencia":  "Aviso \"use o Undo Changes Center para cancelar\"|`src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:1156` (`UndoCenter.Notice`), `src/Tranal.Cli/Program.cs:609` (o aviso depois do backup), `src/Tranal.Uninstaller/Lang/pt-BR.json` (`UndoCenter.Notice`)",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2952,8 +2952,8 @@
                                            "recon":  22,
                                            "catalogo":  22,
                                            "catalogoId":  "T2#22",
-                                           "estado":  "PARCIAL",
-                                           "evidencia":  "**Undo Changes Center**|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` (`public static (bool Ok, string Message) Undo`) **Nota**: o motor de desfazer e refazer existe, mas nao ha o centro de reversao na interface — `Record` e `Undo` so sao chamados pelos testes.",
+                                           "estado":  "OK",
+                                           "evidencia":  "**Undo Changes Center**|`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:162` (`Undo`), `:189` (`Redo`), `src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:180` (`Record`), `:212` (`Register`), `:292` (`Undo`), `:319` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:632` (`CreateUndoCenter`), `:702` (`Undo`), `:716` (`Redo`), `src/Tranal.Cli/AssociationCommands.cs:30` (`/undo-center`), `src/Tranal.Uninstaller/Core/UninstallSupport.cs:1620` (`BackupLeftovers`)",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2962,7 +2962,7 @@
                                            "catalogo":  23,
                                            "catalogoId":  "T2#23",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "Reverter uninstallação cronologicamente, renomear ou restaurar|`src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:228` (`public static (bool Ok, string Message) Undo`) **Nota**: o motor existe; falta a linha do tempo cronologica e a acao de renomear ou restaurar item a item na interface.",
+                                           "evidencia":  "Reverter uninstallação cronologicamente, renomear ou restaurar|`src/Tranal.Uninstaller/Core/Recovery/UndoChangesCenter.cs:81` (`Scan`), `:189` (`Redo`), `src/Tranal.Uninstaller/Ui/Tools/ToolViews.cs:632` (`CreateUndoCenter`) **Nota**: o centro lista as mudancas em ordem cronologica (`:81` ordena pela data) e o Refazer volta o que o Desfazer desfez (`:189`); nao ha acao de renomear nem de restaurar item a item.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },
@@ -2971,7 +2971,7 @@
                                            "catalogo":  24,
                                            "catalogoId":  "T2#24",
                                            "estado":  "PARCIAL",
-                                           "evidencia":  "Descarte de mudanças antigas do histórico|`src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:440` (`Expire`) **Nota**: o backup de sobras expira em 30 dias; nao ha descarte de mudancas antigas do historico de desinstalacao — a tela de historico e nova e ainda nao tem essa opcao.",
+                                           "evidencia":  "Descarte de mudanças antigas do histórico|`src/Tranal.Uninstaller/Core/Recovery/LeftoverBackup.cs:505` (`Expire`), `src/Tranal.Uninstaller/Core/Recovery/ProgramBackup.cs:473` (`Forget`), `src/Tranal.Uninstaller/Core/Recovery/SnapshotLimits.cs:49` (`Enforce`) **Nota**: o descarte existe no centro de mudancas - quando o snapshot expira, a mudanca e o perfil do programa sao esquecidos (`ProgramBackup.Forget`); a tela de historico de desinstalacao ainda nao tem essa opcao.",
                                            "via":  "id",
                                            "motivo":  ""
                                        },

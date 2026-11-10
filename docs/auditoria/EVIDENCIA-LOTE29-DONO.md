@@ -39,17 +39,19 @@ tela mostra), e nao o codigo morto.
 | IObit #29 (RECON-HIBIT-GEEK-IOBIT-UNINSTALR) | Desinstalar Windows Updates | NAO EXISTE | JA EXISTE |
 | TOTALUNINSTALL T6#34 (RECON-D) | Limite de tamanho da pasta de backup, em MB | PARCIAL | OK |
 | TOTALUNINSTALL T6#35 (RECON-D) | Transferir os programas monitorados para outro PC, via `.zip` | PARCIAL | OK |
-| SOFTORGANIZER #22 (RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE) | Undo Changes Center | PARCIAL | OK |
-| SOFTORGANIZER #25 (RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE) | Aviso "use o Undo Changes Center para cancelar" | AUSENTE | OK |
+| SOFTORGANIZER #22 (RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE e RECON-C) | Undo Changes Center | PARCIAL | OK |
+| SOFTORGANIZER #25 (RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE e RECON-C) | Aviso "use o Undo Changes Center para cancelar" | AUSENTE | OK |
 | SOFTORGANIZER #23 (RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE) | Reverter a desinstalacao cronologicamente | PARCIAL | PARCIAL (evidencia medida) |
 | UNINSTALLTOOL #38 (RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE) | Reverter a instalacao rastreada | PARCIAL | PARCIAL (evidencia medida) |
+| SOFTORGANIZER #24 (RECON-C) | Descarte de mudancas antigas do historico | PARCIAL | PARCIAL (evidencia medida) |
 | UNINSTALLTOOL T3#38 (RECON-D) | a mesma funcionalidade, na tabela do Uninstall Tool | PARCIAL | PARCIAL (evidencia medida) |
 
 Cobertura: de **77,0%** (725 funcionalidades, 528 OK, 166 PARCIAL, 1 AUSENTE,
-30 FORA) para **77,4%** (725, 531 OK, 163 PARCIAL, 1 AUSENTE, 30 FORA). Na
+30 FORA) para **77,7%** (725, 533 OK, 161 PARCIAL, 1 AUSENTE, 30 FORA). Na
 prova de cobertura com o Revo Pro dentro (`PARIDADE-11-CONCORRENTES.md`), de
-**79,0%** (795 funcionalidades, 596 OK) para **79,4%** (795, 599 OK). O Geek
-subiu de 86,4% para **88,6%** e o Total Uninstall de 74,5% para **76,6%**.
+**79,0%** (795 funcionalidades, 596 OK) para **79,6%** (795, 601 OK). O Geek
+subiu de 86,4% para **88,6%**, o Total Uninstall de 74,5% para **76,6%** e o
+Soft Organizer de 76,6% para **79,2%**.
 
 ## 3. O que o lote deu de dono
 
@@ -98,6 +100,13 @@ A correcao foi em `tools/auditoria/aplicar-recon.ps1`: a busca do estado
 comeca na coluna 2. O numero de cobertura **nao mudou** com a correcao
 (77,0% antes e depois) - o furo nao inflava nada, ele apenas impedia que as
 remediacoes do RECON-D valessem.
+
+E o mesmo raciocinio vale para o resto: **a funcionalidade que aparece em
+varios relatorios precisa ser corrigida em todos**. MEDIDO: o
+`SOFTORGANIZER #22` estava remediado no `RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE.md`
+e continuava PARCIAL, porque o `RECON-C-2026-11-08.md` (aplicado por ultimo
+para o Soft Organizer) ainda media o estado antigo. As quatro linhas do
+RECON-C foram corrigidas tambem.
 
 ## 6. Os testes
 
