@@ -152,6 +152,31 @@ jobs:
             -Exe publish\preview\TranalUninstaller.exe `
             -CliExe publish\cli\tranal.exe
 
+      # As sobras em arvore (lote 23): a tela de desinstalacao forcada
+      # mostra a arvore com a categoria e a contagem, a busca filtra a
+      # arvore e o comando "Explorar" existe.
+      #
+      # O teste cria uma pasta temporaria e apaga tudo no final.
+      - name: Sobras em arvore (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote23.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe
+
+      # A nota das sobras em cinco niveis (lote 24): a folha da arvore
+      # mostra a nota (Muito bom, Bom, Duvidoso, Mau, Desconhecido) e a
+      # linha de comando mostra a mesma nota.
+      #
+      # A varredura da linha de comando e SEM /remove: e apenas relatorio.
+      - name: Nota das sobras em cinco niveis (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote24.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
       # O teste cria snapshots sinteticos e apaga tudo no final.

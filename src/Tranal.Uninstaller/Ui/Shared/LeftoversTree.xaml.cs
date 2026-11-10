@@ -26,6 +26,14 @@ public partial class LeftoversTree : UserControl
 {
     private IReadOnlyList<LeftoverItem> _itens = Array.Empty<LeftoverItem>();
 
+    /// <summary>
+    /// Ocorre quando a marcacao das sobras muda.
+    ///
+    /// Quem mostra o aviso de perigo precisa saber disso: o aviso e sobre o
+    /// que o usuario ESCOLHEU apagar, e nao sobre o que veio marcado.
+    /// </summary>
+    public event EventHandler? SelectionChanged;
+
     /// <summary>Cria a arvore das sobras.</summary>
     public LeftoversTree()
     {
@@ -101,7 +109,7 @@ public partial class LeftoversTree : UserControl
     /// (tipo, tamanho, confianca e o motivo do julgamento).
     /// </summary>
     /// <param name="item">A sobra.</param>
-    private static TreeViewItem FolhaDe(LeftoverItem item)
+    private TreeViewItem FolhaDe(LeftoverItem item)
     {
         var folha = new TreeViewItem { Tag = item, IsExpanded = true };
 
@@ -115,8 +123,17 @@ public partial class LeftoversTree : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 4, 0),
         };
-        caixa.Checked += (_, _) => item.Selected = true;
-        caixa.Unchecked += (_, _) => item.Selected = false;
+        caixa.Checked += (_, _) =>
+        {
+            item.Selected = true;
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        };
+
+        caixa.Unchecked += (_, _) =>
+        {
+            item.Selected = false;
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+        };
         Grid.SetColumn(caixa, 0);
 
         var textos = new StackPanel();
@@ -160,7 +177,10 @@ public partial class LeftoversTree : UserControl
         if (!string.IsNullOrWhiteSpace(item.Kind)) partes.Add(item.Kind);
         if (!string.IsNullOrWhiteSpace(item.Detail)) partes.Add(item.Detail);
 
-        partes.Add(LeftoverLabels.Confidence(item.Confidence));
+        // A NOTA e o que a pessoa le: cinco niveis que juntam a confianca com
+        // o motivo. A confianca sozinha (tres niveis) continua no relatorio e
+        // na linha de comando.
+        partes.Add(LeftoverLabels.Rating(LeftoverRatings.Rate(item)));
 
         var motivo = LeftoverLabels.Reason(item.Reason);
         if (!string.IsNullOrWhiteSpace(motivo)) partes.Add(motivo);

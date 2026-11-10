@@ -891,6 +891,7 @@ public static class Program
             var marker = item.Selected ? "marcado" : "não marcado";
             var account = item.OtherAccount ? " - outra conta do Windows" : string.Empty;
             Console.WriteLine($"  [{item.Kind}] {item.Path}{detail}"
+                              + $"   nota: {RatingLabel(LeftoverRatings.Rate(item))}"
                               + $"   confiança: {ConfidenceLabel(item.Confidence)} - {marker}{account}"
                               + $"   motivo: {ReasonLabel(item.Reason)}");
         }
@@ -943,6 +944,15 @@ public static class Program
     /// <summary>Rotulo da confianca de uma sobra, no idioma ativo.</summary>
     private static string ConfidenceLabel(LeftoverConfidence confidence) =>
         LeftoverLabels.Confidence(confidence);
+
+    /// <summary>
+    /// Rotulo da nota de cinco niveis de uma sobra, no idioma ativo.
+    ///
+    /// O texto vem do nucleo (<see cref="LeftoverLabels"/>), o mesmo que a
+    /// interface grafica usa: CLI e tela nao podem divergir.
+    /// </summary>
+    private static string RatingLabel(LeftoverRating rating) =>
+        LeftoverLabels.Rating(rating);
 
     /// <summary>
     /// Rotulo do motivo de uma sobra, no idioma ativo.

@@ -43,7 +43,11 @@ public class LeftoverReasonTests
         var arvore = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "Shared", "LeftoversTree.xaml.cs");
 
         Assert.Contains("LeftoverLabels.Reason(item.Reason)", arvore);
-        Assert.Contains("LeftoverLabels.Confidence(item.Confidence)", arvore);
+
+        // O que a pessoa le na folha e a NOTA de cinco niveis (o lote 24),
+        // e nao a confianca crua de tres niveis: a nota junta a confianca
+        // com o motivo, e e ela que diz o quanto e seguro mexer no item.
+        Assert.Contains("LeftoverLabels.Rating(LeftoverRatings.Rate(item))", arvore);
 
         // O conversor continua existindo para quem quiser usar a coluna.
         var wizard = RepoFiles.Read("src", "Tranal.Uninstaller", "Ui", "UninstallWizardWindow.xaml.cs");

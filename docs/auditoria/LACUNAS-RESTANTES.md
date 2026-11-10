@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(74,5% — 725 funcionalidades, 510 OK, 184 PARCIAL, 1 AUSENTE, 30 FORA por
+(74,9% — 725 funcionalidades, 513 OK, 181 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -217,6 +217,36 @@ Continua de fora, e continua honesto: a **busca textual nas alteracoes
 detectadas** do Total Uninstall (T2#11). A busca deste lote e a das sobras; a
 das alteracoes e outra tela (a comparacao de snapshots, que ainda aparece
 como texto). Fechar aquela linha e um lote proprio.
+
+
+**BCU T3#42, T3#44 e T3#46 — a nota das sobras em cinco niveis, os criterios de
+pasta e o aviso de perigo.** O BCU mostra o quanto e seguro mexer em cada
+sobra, com cinco niveis (Muito bom, Bom, Duvidoso, Mau, Desconhecido), e avisa
+quando a pessoa mexe num item ruim. O Tranal tinha tres niveis de confianca
+e nenhum aviso ligado a eles. O detalhe esta em
+`EVIDENCIA-LOTE24-CONFIANCA.md`:
+
+- a **nota** mora no nucleo, em um lugar so (`Core/LeftoverRatings.cs`): ela
+  junta a confianca (tres niveis, que decide o que fica marcado) com o motivo
+  do julgamento, e e por isso que o mesmo item pode ser "Bom" ou "Duvidoso"
+  conforme o motivo;
+- a avaliacao de pasta ganhou os **dois criterios que faltavam** (muitos
+  arquivos e sem subdiretorios), e a seguranca foi verificada: a pasta com
+  documento do usuario continua na confianca mais baixa, porque o desconto
+  por dado do usuario e maior que a soma dos criterios novos;
+- o **aviso de perigo** entra quando o usuario marca um item de nota ruim, e
+  some quando ele desmarca. Ele fica no painel de avisos da etapa das sobras
+  — nao e dialogo;
+- a nota aparece na folha da arvore e na saida da linha de comando, com o
+  mesmo texto nos dois;
+- a suite tem 23 testes proprios (`Lote24FeatureTests.cs`) e um teste de
+  ponta a ponta no aplicativo de verdade (`tools/test-lote24.ps1`, 8
+  verificacoes), que nao remove nada.
+
+Continua de fora, e continua honesto: os **17 grupos de sobras** do BCU
+(T3#49). A tela de sobras e uma arvore com categorias, mas as categorias sao
+as do Tranal (sistema de arquivos, registro e as outras), e nao as 17 do
+concorrente.
 
 
 ## Como fechar

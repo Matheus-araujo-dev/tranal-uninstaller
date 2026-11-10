@@ -22,6 +22,24 @@ public static class LeftoverLabels
     });
 
     /// <summary>
+    /// O rotulo da nota de cinco niveis ("Muito bom", "Bom", "Duvidoso",
+    /// "Mau", "Desconhecido").
+    ///
+    /// A nota e o que a pessoa le; a confianca e o que decide o que fica
+    /// marcado. As duas coisas sao do mesmo julgamento, e por isso a tela e a
+    /// linha de comando mostram a mesma palavra para a mesma sobra.
+    /// </summary>
+    /// <param name="rating">A nota da sobra.</param>
+    public static string Rating(LeftoverRating rating) => Loc.Get(rating switch
+    {
+        LeftoverRating.VeryGood => "Common.Rating.VeryGood",
+        LeftoverRating.Good => "Common.Rating.Good",
+        LeftoverRating.Doubtful => "Common.Rating.Doubtful",
+        LeftoverRating.Bad => "Common.Rating.Bad",
+        _ => "Common.Rating.Unknown",
+    });
+
+    /// <summary>
     /// A frase que explica por que o item e sobra do programa.
     ///
     /// A chave e derivada do nome do membro do enum: um motivo novo no enum

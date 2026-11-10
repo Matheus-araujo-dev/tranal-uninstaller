@@ -116,6 +116,15 @@ public static class FolderConfidenceEvaluator
     /// <summary>Criterio: a pasta esta dentro da pasta do usuario.</summary>
     public const string UserFolderCriterion = "pasta-do-usuario";
 
+    /// <summary>Criterio: a pasta tem muitos arquivos.</summary>
+    public const string ManyFilesCriterion = "muitos-arquivos";
+
+    /// <summary>Criterio: a pasta nao tem subdiretorios.</summary>
+    public const string NoSubdirectoriesCriterion = "sem-subdiretorios";
+
+    /// <summary>Quantos arquivos a pasta precisa ter para contar como "muitos".</summary>
+    public const int ManyFilesThreshold = 50;
+
     /// <summary>Quantos itens do primeiro nivel sao inspecionados no maximo.</summary>
     private const int MaxEntries = 400;
 
@@ -264,6 +273,30 @@ public static class FolderConfidenceEvaluator
 
         if (inUserFolder) score -= 1;
 
+        // 8) Muitos arquivos: a pasta de um programa instalado tem dezenas de
+        //    arquivos, e uma pasta de documento do usuario nao tem.
+        var manyFiles = content.FileCount >= ManyFilesThreshold;
+        criteria.Add(new FolderConfidenceCriterion(
+            ManyFilesCriterion,
+            manyFiles
+                ? "A pasta tem muitos arquivos."
+                : "A pasta não tem muitos arquivos.",
+            manyFiles));
+
+        if (manyFiles) score += 1;
+
+        // 9) Sem subdiretorios: a pasta e plana, e nao o albamaro de um
+        //    programa que guarda varias coisas dentro dela.
+        var noSubdirectories = !content.HasSubdirectories;
+        criteria.Add(new FolderConfidenceCriterion(
+            NoSubdirectoriesCriterion,
+            noSubdirectories
+                ? "A pasta não tem subdiretórios."
+                : "A pasta tem subdiretórios.",
+            noSubdirectories));
+
+        if (noSubdirectories) score += 1;
+
         var level = score >= 3 ? FolderConfidenceLevel.High
             : score >= 1 ? FolderConfidenceLevel.Medium
             : FolderConfidenceLevel.Low;
@@ -317,7 +350,9 @@ public static class FolderConfidenceEvaluator
         bool Accessible,
         int EntryCount,
         bool HasExecutables,
-        bool HasUserDocuments);
+        bool HasUserDocuments,
+        int FileCount,
+        bool HasSubdirectories);
 
     /// <summary>Le o primeiro nivel da pasta, sem seguir link e sem estourar tempo.</summary>
     private static FolderContent Inspect(string folder)
@@ -325,6 +360,8 @@ public static class FolderConfidenceEvaluator
         var count = 0;
         var executables = false;
         var documents = false;
+        var files = 0;
+        var hasSubdirectories = false;
 
         try
         {
@@ -336,8 +373,14 @@ public static class FolderConfidenceEvaluator
                 try { isDirectory = Directory.Exists(entry); }
                 catch { /* item inacessivel: segue como arquivo */ }
 
-                if (!isDirectory)
+                if (isDirectory)
                 {
+                    hasSubdirectories = true;
+                }
+                else
+                {
+                    files++;
+
                     var extension = Path.GetExtension(entry);
                     if (ExecutableExtensions.Contains(extension)) executables = true;
                     else if (UserDocumentExtensions.Contains(extension)) documents = true;
@@ -348,10 +391,10 @@ public static class FolderConfidenceEvaluator
         }
         catch
         {
-            return new FolderContent(false, count, executables, documents);
+            return new FolderContent(false, count, executables, documents, files, hasSubdirectories);
         }
 
-        return new FolderContent(true, count, executables, documents);
+        return new FolderContent(true, count, executables, documents, files, hasSubdirectories);
     }
 
     /// <summary>

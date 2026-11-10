@@ -182,6 +182,12 @@ public partial class UninstallWizardWindow : Window
         StepsBar.ItemsSource = StepNames;
         LeftoversTreeControl.SetItems(_leftovers);
 
+        // O aviso de perigo depende da marcacao: quando o usuario marca um
+        // item de nota ruim, o aviso precisa aparecer na hora — e sumir
+        // quando ele desmarca. A regra do aviso mora no nucleo; aqui so se
+        // avisa que a marcacao mudou.
+        LeftoversTreeControl.SelectionChanged += (_, _) => ShowLeftoverAdvisory();
+
         ApplyPreferences();
 
         // Desmarcar a varredura em todas as contas desmarca tambem a

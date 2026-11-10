@@ -1528,5 +1528,11 @@
     "Leftovers.Group.FileSystem":  "File system",
     "Leftovers.Group.Registry":  "Registry",
     "Wizard.Step4.Search":  "Search the leftovers",
-    "Wizard.Step4.Browse":  "Browse"
+    "Wizard.Step4.Browse":  "Browse",
+    "Common.Rating.VeryGood":  "Very good",
+    "Common.Rating.Good":  "Good",
+    "Common.Rating.Doubtful":  "Doubtful",
+    "Common.Rating.Bad":  "Bad",
+    "Common.Rating.Unknown":  "Unknown",
+    "Leftovers.Warn.Dangerous":  "These checked items are doubtful or bad: removing them can be very dangerous."
 }

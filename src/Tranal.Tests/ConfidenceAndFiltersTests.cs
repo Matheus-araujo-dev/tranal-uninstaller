@@ -35,13 +35,13 @@ public class ConfidenceAndFiltersTests
     }
 
     [Fact]
-    public void AvaliacaoExplicaOsSeteCriterios()
+    public void AvaliacaoExplicaOsNoveCriterios()
     {
         var folder = NewFolder("Programa Tranal Criterios");
 
         var result = FolderConfidenceEvaluator.Evaluate(folder, "Programa Tranal");
 
-        Assert.Equal(7, result.Criteria.Count);
+        Assert.Equal(9, result.Criteria.Count);
         Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.EmptyFolderCriterion);
         Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.ExecutablesCriterion);
         Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.UserDataCriterion);
@@ -49,6 +49,8 @@ public class ConfidenceAndFiltersTests
         Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.NameMatchCriterion);
         Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.ProgramsFolderCriterion);
         Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.UserFolderCriterion);
+        Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.ManyFilesCriterion);
+        Assert.Contains(result.Criteria, c => c.Id == FolderConfidenceEvaluator.NoSubdirectoriesCriterion);
         Assert.False(string.IsNullOrWhiteSpace(result.Summary));
     }
 
@@ -101,7 +103,7 @@ public class ConfidenceAndFiltersTests
     // -----------------------------------------------------------------
 
     [Fact]
-    public void AvisoDeBaixaConfiancaEAvisoDePastaComDadoDoUsuario()
+    public void AvisoDeBaixaConfiancaAvisoDePastaComDadoDoUsuarioEAvisoDePerigo()
     {
         var sobras = new[]
         {
@@ -124,7 +126,13 @@ public class ConfidenceAndFiltersTests
 
         var avisos = LeftoverWarnings.Build(sobras);
 
-        Assert.Equal(2, avisos.Count);
+        // O aviso de perigo entra na lista: o primeiro item tem confianca
+        // baixa e vem marcado, e e exatamente o caso que o aviso descreve.
+        Assert.Equal(3, avisos.Count);
+
+        var perigo = avisos.First(a => a.Kind == LeftoverWarningKind.Dangerous);
+        Assert.Contains(@"C:\Users\Alguem\AppData\Local\MeuApp", perigo.Items);
+        Assert.DoesNotContain(@"C:\Program Files\MeuApp", perigo.Items);
 
         var baixa = avisos.First(a => a.Kind == LeftoverWarningKind.LowConfidence);
         Assert.Equal("Leftovers.Warn.LowConfidence", baixa.MessageKey);

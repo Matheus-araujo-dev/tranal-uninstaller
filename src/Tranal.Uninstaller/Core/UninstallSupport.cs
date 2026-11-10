@@ -183,6 +183,12 @@ public enum LeftoverWarningKind
     /// A pasta pode conter documentos ou dados do usuario.
     /// </summary>
     UserData,
+
+    /// <summary>
+    /// O item foi marcado para remocao apesar da nota duvidosa ou ruim:
+    /// remove-lo pode ser muito perigoso.
+    /// </summary>
+    Dangerous,
 }
 
 /// <summary>
@@ -210,6 +216,9 @@ public static class LeftoverWarnings
     /// <summary>A chave de idioma do aviso de pasta com dado do usuario.</summary>
     public const string UserDataKey = "Leftovers.Warn.UserData";
 
+    /// <summary>A chave de idioma do aviso de item perigoso marcado.</summary>
+    public const string DangerousKey = "Leftovers.Warn.Dangerous";
+
     /// <summary>
     /// Os avisos das sobras informadas.
     /// </summary>
@@ -231,6 +240,19 @@ public static class LeftoverWarnings
 
         if (baixaConfianca.Count > 0)
             avisos.Add(new LeftoverWarning(LeftoverWarningKind.LowConfidence, LowConfidenceKey, baixaConfianca));
+
+        // O aviso de perigo: o item MARCADO cuja nota nao e segura. O aviso
+        // anterior diz quais itens nao vieram marcados; este diz quais o
+        // usuario escolheu apagar mesmo assim — e e por isso que ele
+        // depende da marcacao atual, e nao so da varredura.
+        var perigosos = LeftoverRatings.MarkedRiskyItems(lista)
+            .Select(i => i.Path)
+            .Where(p => p.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (perigosos.Count > 0)
+            avisos.Add(new LeftoverWarning(LeftoverWarningKind.Dangerous, DangerousKey, perigosos));
 
         var comDados = lista
             .Where(i => i.Kind == "Pasta" && (i.MayContainUserData || UninstallAdvisories.IsUserDataFolder(i.Path)))
