@@ -645,6 +645,34 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   a medicao de tamanho da varredura (`AccessibilityOptions.SkipSlowChecks`,
   `Core/UninstallSupport.cs:1174`).
 
+## A evidencia da auditoria aponta para o codigo (regra do nucleo)
+
+- **A citacao do RECON e conferida pela suite**, nao por confianca:
+  `ReconEvidenceTests` (`src/Tranal.Tests/ReconEvidenceTests.cs`) confere
+  cada `arquivo.cs:linha` dos relatorios de reconciliacao contra o fonte em
+  disco. Medido: 1852 citacoes (888 com simbolo, 964 sem).
+- **A regra da citacao com simbolo**: o identificador final do simbolo tem
+  que estar NA linha citada. Quando o simbolo e qualificado
+  (`Classe.Metodo`), a classe tem que existir no arquivo — a string
+  `Classe.Metodo` nunca aparece literal no codigo, e exigir isso daria falso
+  positivo em toda linha. O simbolo que e comando da linha de comando
+  (`tranal /xxx`) nao e identificador de codigo e nao se aplica.
+- **A regra da citacao sem simbolo**: o arquivo tem que existir, a linha tem
+  que estar dentro dele e nao pode ser uma linha em branco — nao ha codigo em
+  uma linha em branco.
+- **Remediar e reancorar, nao reescrever**: quando o codigo anda, a citacao
+  vai para a linha onde o simbolo esta (a ocorrencia mais proxima da linha
+  citada, que e o que preserva a intencao original). Antes do lote 33, 244
+  citacoes com simbolo apontavam para a linha errada e 31 apontavam para
+  linha em branco; depois, zero.
+- **Linha "OK" com evidencia errada e pior que linha "AUSENTE" honesta.**
+  Por isso o estado medido importa mais que a quantidade de "OK": o que a
+  tabela promete e o que a evidencia prova.
+- **O remediador roda antes da cadeia**: a cadeia aplica o RECON nos
+  documentos canonicos dos concorrentes, e a prova de paridade le a coluna
+  "Tranal" deles. Uma citacao errada no RECON propaga errada para o
+  catalogo.
+
 ## A assinatura do desinstalador e o comando do usuário (regra do núcleo)
 
 - **A regra do executável do desinstalador mora em um lugar só**:
