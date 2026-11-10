@@ -8,8 +8,8 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(78,2% — 725 funcionalidades, 537 OK, 157 PARCIAL, 1 AUSENTE, 30 FORA por
-decisao).
+(79,3% — 725 funcionalidades, 545 OK, 149 PARCIAL, 1 AUSENTE, 30 FORA por
+decisao; com o Revo Pro dentro, 81,1% — 795 funcionalidades, 613 OK).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
 
@@ -453,6 +453,32 @@ imediato** do BCU (T2#34). O Tranal nao mata o desinstalador nativo em
 execucao — matar o desinstalador no meio deixa o programa meio desinstalado, e
 um programa meio desinstalado e pior do que um programa desinstalado. A
 tarefa inteira para no proximo programa, e o que ja rodou termina.
+
+
+**UNINSTALLTOOL T1#20 e T1#21, GEEK T2#29, UNINSTALLTOOL T2#29 e T6#84,
+WISE T1#15 e T6#59 — o nucleo ja sabia; a tela nao dizia.** Sete linhas
+fecharam, e uma delas era um bug de verdade. O detalhe esta em
+`EVIDENCIA-LOTE34-TELA-NUCLEO.md`:
+
+- **o arquivo somente-leitura nao saia**: a regra do atributo existia no
+  `StubbornRemover`, mas o caminho principal de remocao usava `File.Delete`
+  direto e nao a consumia. O Windows recusa apagar um arquivo somente-leitura.
+  Agora a regra mora em um lugar so (`ClearReadOnly`) e quem apaga consome —
+  inclusive o item de sobra marcado como arquivo;
+- **o desregistro de COM nao estava no fluxo**: existia como comando
+  separado, sem nenhum lugar na desinstalacao. Agora acontece antes de apagar
+  os arquivos, que e o que evita o registro orfao (o Windows apontando para
+  uma DLL que nao existe mais), e o que sobrou aparece no resumo;
+- **a varredura nao tinha como sair em XML**: o exportador existia e so a
+  linha de comando consumia. Agora a tela do assistente tem a acao e a tela
+  da desinstalacao personalizada tambem — ali a exportacao acontece sem
+  desinstalar nada, que e o que o Uninstall Tool faz;
+- **o aviso de desinstalacao silenciosa e o tamanho total ja existiam**: as
+  duas medicoes estavam desatualizadas. Nenhuma linha foi fechada sem codigo:
+  a remediacao reescreveu a medicao com a evidencia nova e a linha real;
+- a suite tem 10 testes proprios (`Lote34FeatureTests.cs`) e o teste de ponta
+  a ponta (`tools/test-lote34.ps1`) roda no aplicativo de verdade: a linha de
+  comando gera o XML da varredura e as telas sao abertas e conferidas.
 
 
 ## Como fechar

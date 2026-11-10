@@ -157,33 +157,59 @@ public static class StubbornRemover
         }
     }
 
-    private static StubbornResult TryRemoveReadOnly(string path)
+    /// <summary>
+    /// Tira a marcacao de somente leitura do caminho informado.
+    ///
+    /// E a REGRA do atributo somente-leitura, em um lugar so: quem apaga um
+    /// arquivo que o Windows protege chama este metodo, em vez de repetir
+    /// o <c>File.SetAttributes</c> por conta propria.
+    ///
+    /// Devolve true quando o caminho ja nao esta marcado como somente
+    /// leitura - inclusive quando ele nao existe mais.
+    /// </summary>
+    /// <param name="path">O caminho do arquivo ou da pasta.</param>
+    public static bool ClearReadOnly(string? path)
     {
+        if (string.IsNullOrWhiteSpace(path)) return false;
+
         try
         {
-            if (File.Exists(path))
-            {
-                var atributos = File.GetAttributes(path);
-                File.SetAttributes(path, atributos & ~FileAttributes.ReadOnly);
-                return new StubbornResult(path, StubbornReason.LockedFile, true,
-                    "A marcacao de somente leitura foi removida.");
-            }
+            if (!File.Exists(path) && !Directory.Exists(path)) return true;
 
-            if (Directory.Exists(path))
-            {
-                var atributos = File.GetAttributes(path);
-                File.SetAttributes(path, atributos & ~FileAttributes.ReadOnly);
-                return new StubbornResult(path, StubbornReason.LockedFile, true,
-                    "A marcacao de somente leitura da pasta foi removida.");
-            }
+            var atributos = File.GetAttributes(path);
+            if ((atributos & FileAttributes.ReadOnly) != FileAttributes.ReadOnly) return true;
 
+            File.SetAttributes(path, atributos & ~FileAttributes.ReadOnly);
+            return true;
+        }
+        catch
+        {
+            // Sem permissao: quem chama decide o que fazer (falha ou adia).
+            return false;
+        }
+    }
+
+    private static StubbornResult TryRemoveReadOnly(string path)
+    {
+        // O caminho pode ter sumido entre a medicao e o tratamento:
+        // nesse caso nao ha marcacao para tirar, e a mensagem diz isso.
+        if (!File.Exists(path) && !Directory.Exists(path))
+        {
             return new StubbornResult(path, StubbornReason.LockedFile, true,
                 "O caminho ja nao existe.");
         }
-        catch (Exception ex)
+
+        if (ClearReadOnly(path))
         {
-            return new StubbornResult(path, StubbornReason.LockedFile, false, ex.Message);
+            var mensagem = Directory.Exists(path)
+                ? "A marcacao de somente leitura da pasta foi removida."
+                : "A marcacao de somente leitura foi removida.";
+
+            return new StubbornResult(path, StubbornReason.LockedFile, true, mensagem);
         }
+
+        return new StubbornResult(path, StubbornReason.LockedFile, false,
+            "Nao foi possivel tirar a marcacao de somente leitura.");
     }
 
     /// <summary>

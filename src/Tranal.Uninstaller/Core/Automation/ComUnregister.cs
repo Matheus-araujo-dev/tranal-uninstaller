@@ -82,6 +82,25 @@ public static class ComUnregister
     }
 
     /// <summary>
+    /// Desregistra os componentes COM registrados a partir de uma pasta.
+    ///
+    /// E a regra do desregistro por programa, em um lugar so: quem desinstala
+    /// um programa chama este metodo com a pasta de instalacao, e nao
+    /// precisa saber como o registro COM e lido.
+    ///
+    /// Desregistrar antes de apagar os arquivos e o que evita o registro
+    /// orfao: uma DLL apagada com o registro apontando para ela deixa o
+    /// Windows apontar para o nada.
+    /// </summary>
+    /// <param name="folder">A pasta de instalacao do programa.</param>
+    public static IReadOnlyList<KeyValuePair<string, ManagementResult>> UnregisterFolder(string? folder)
+    {
+        if (string.IsNullOrWhiteSpace(folder)) return Array.Empty<KeyValuePair<string, ManagementResult>>();
+
+        return UnregisterAll(RegisteredDlls(folder));
+    }
+
+    /// <summary>
     /// Desregistra varias DLLs e devolve o resultado de cada uma.
     ///
     /// A ordem importa: uma DLL que outra depende continua valendo enquanto a

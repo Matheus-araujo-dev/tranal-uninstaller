@@ -1862,12 +1862,18 @@ public static class UninstallEngine
             // do alvo junto.
             if (SafeTraversal.IsReparsePoint(file))
             {
+                StubbornRemover.ClearReadOnly(file);
                 File.Delete(file);
                 return ItemRemoval.Removed;
             }
 
             if (options.UseRecycleBin && RecycleBin.CanAccept(file) && RecycleBin.Send(file))
                 return ItemRemoval.Removed;
+
+            // O Windows nao apaga um arquivo somente-leitura: a marcacao e
+            // tirada pela REGRA do StubbornRemover (o mesmo que trata o
+            // caminho travado), e nao por uma copia do SetAttributes aqui.
+            StubbornRemover.ClearReadOnly(file);
 
             File.Delete(file);
             return ItemRemoval.Removed;
@@ -2181,6 +2187,12 @@ public static class UninstallEngine
 
                     try
                     {
+                        // O Windows nao apaga um arquivo somente-leitura: a
+                        // marcacao e tirada pela REGRA do StubbornRemover
+                        // (o mesmo que trata o caminho travado), e nao por
+                        // uma copia do SetAttributes aqui.
+                        StubbornRemover.ClearReadOnly(full);
+
                         File.Delete(full);
                         return new RemovalOutcome { Item = item, Status = RemovalStatus.Removed, Message = "removido" };
                     }

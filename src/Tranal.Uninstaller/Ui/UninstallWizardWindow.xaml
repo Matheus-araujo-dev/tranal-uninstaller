@@ -158,6 +158,9 @@
             <Button x:Name="DeselectAllButton" Content="{loc:Tr Wizard.Step4.DeselectAll}" Style="{StaticResource FlatButton}"
                     AutomationProperties.AutomationId="WizardDeselectAllButton" Margin="0,0,12,0"
                     Click="DeselectAllButton_Click" />
+            <Button x:Name="ExportLeftoversButton" Content="{loc:Tr Wizard.Step4.ExportXml}" Style="{StaticResource FlatButton}"
+                    AutomationProperties.AutomationId="WizardExportLeftoversButton" Margin="0,0,12,0"
+                    Click="ExportLeftoversButton_Click" />
             <TextBlock Text="{loc:Tr Wizard.Step4.RecycleBin}" VerticalAlignment="Center"
                        Foreground="{DynamicResource TextDimBrush}" />
           </WrapPanel>

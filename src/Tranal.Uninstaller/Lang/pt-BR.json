@@ -1678,5 +1678,18 @@
     "Monitor.Column.Path":  "Caminho",
     "Monitor.Column.Size":  "Tamanho" ,
 
-    "Leftover.SizeNotMeasured":  "tamanho não medido" 
+    "Leftover.SizeNotMeasured":  "tamanho não medido",
+    "Wizard.Step4.ExportXml":  "Exportar lista (XML)", 
+    "Wizard.ExportLeftoversTitle":  "Salvar a lista de sobras", 
+    "Wizard.ExportLeftoversFilter":  "Lista de sobras (*.xml)|*.xml|Todos os arquivos (*.*)|*.*", 
+    "Wizard.ExportNothing":  "Não há sobras para exportar.", 
+    "Wizard.Exported":  "Lista exportada para {0}.", 
+    "Wizard.ExportFailed":  "Não foi possível gravar a lista em {0}.", 
+    "Wizard.ComUnregistered":  "{0} componente(s) COM desregistrado(s).", 
+    "Wizard.ComUnregisterFailed":  "{0} componente(s) COM não puderam ser desregistrados.", 
+    "Manual.ExportXml":  "Exportar lista em XML", 
+    "Manual.ExportXmlTitle":  "Salvar a lista de sobras em XML", 
+    "Manual.ExportXmlFilter":  "Lista de sobras (*.xml)|*.xml|Todos os arquivos (*.*)|*.*", 
+    "Manual.ExportedXml":  "Lista exportada em XML para {0}.", 
+    "Manual.ExportXmlFailed":  "Não foi possível gravar a lista em XML em {0}." 
 }

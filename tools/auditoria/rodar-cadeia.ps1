@@ -52,6 +52,12 @@ $pairs = @(
     @('RECON-UNINSTALLTOOL-SOFTORGANIZER-WISE.md', 'WISE.md', 'Wise'),
     @('RECON-E-2026-11-08.md', 'WISE.md', 'WISE')
 
+    # O RECON da rodada do lote 34 vem DEPOIS de todos os outros:
+    # a medicao mais recente vence por linha do catalogo.
+    @('RECON-LOTE34-2026-11-10.md', 'UNINSTALLTOOL.md', 'UNINSTALLTOOL'),
+    @('RECON-LOTE34-2026-11-10.md', 'GEEK.md', 'GEEK'),
+    @('RECON-LOTE34-2026-11-10.md', 'WISE.md', 'WISE')
+
 )
 
 foreach ($p in $pairs) {

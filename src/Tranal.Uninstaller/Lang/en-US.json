@@ -1678,5 +1678,18 @@
     "Monitor.Column.Path":  "Path",
     "Monitor.Column.Size":  "Size" ,
 
-    "Leftover.SizeNotMeasured":  "size not measured" 
+    "Leftover.SizeNotMeasured":  "size not measured",
+    "Wizard.Step4.ExportXml":  "Export list (XML)", 
+    "Wizard.ExportLeftoversTitle":  "Save the leftovers list", 
+    "Wizard.ExportLeftoversFilter":  "Leftovers list (*.xml)|*.xml|All files (*.*)|*.*", 
+    "Wizard.ExportNothing":  "There are no leftovers to export.", 
+    "Wizard.Exported":  "List exported to {0}.", 
+    "Wizard.ExportFailed":  "Could not save the list to {0}.", 
+    "Wizard.ComUnregistered":  "{0} COM component(s) unregistered.", 
+    "Wizard.ComUnregisterFailed":  "{0} COM component(s) could not be unregistered.", 
+    "Manual.ExportXml":  "Export list as XML", 
+    "Manual.ExportXmlTitle":  "Save the leftovers list as XML", 
+    "Manual.ExportXmlFilter":  "Leftovers list (*.xml)|*.xml|All files (*.*)|*.*", 
+    "Manual.ExportedXml":  "Leftovers list exported as XML to {0}.", 
+    "Manual.ExportXmlFailed":  "Could not write the XML list to {0}." 
 }

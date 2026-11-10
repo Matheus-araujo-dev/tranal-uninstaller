@@ -15,6 +15,7 @@ using Tranal.Uninstaller.Core.Localization;
 using Tranal.Uninstaller.Core.Modules;
 using Tranal.Uninstaller.Core.Settings;
 using Tranal.Uninstaller.Ui.Automation;
+using Microsoft.Win32;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -1004,9 +1005,25 @@ public partial class UninstallWizardWindow : Window
         var leftoverBackup = UninstallEngine.BackupLeftovers(_leftovers, name, options, alvo);
         _leftoverBackupId = leftoverBackup.Ok ? leftoverBackup.Id : string.Empty;
 
+        // Os componentes COM do programa: desregistrar ANTES de apagar os
+        // arquivos e o que evita o registro orfao (o Windows apontando para
+        // uma DLL que nao existe mais). A regra mora no nucleo; aqui so
+        // consulta e conta.
+        var com = DesregistrarCom();
+
         _report = await Task.Run(() =>
             UninstallEngine.RemoveLeftovers(_leftovers, options, _fullRegistryBackup));
         _summary = BuildSummary(_report);
+
+        if (com.Desregistrados > 0)
+        {
+            _summary += Environment.NewLine + Loc.Get("Wizard.ComUnregistered", com.Desregistrados);
+        }
+
+        if (com.Falhas > 0)
+        {
+            _summary += Environment.NewLine + Loc.Get("Wizard.ComUnregisterFailed", com.Falhas);
+        }
 
         // O painel de progresso cumpriu o seu papel: a janela fecha aqui.
         CloseProgressPanel();
@@ -1342,6 +1359,69 @@ public partial class UninstallWizardWindow : Window
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e) => Close();
+
+    /// <summary>
+    /// Desregistra os componentes COM registrados a partir da pasta de
+    /// instalacao de cada programa removido.
+    ///
+    /// A regra mora no nucleo (<see cref="ComUnregister.UnregisterFolder"/>):
+    /// aqui so conta o que aconteceu.
+    /// </summary>
+    private (int Desregistrados, int Falhas) DesregistrarCom()
+    {
+        var desregistrados = 0;
+        var falhas = 0;
+
+        foreach (var program in _programs)
+        {
+            var pasta = program.InstallLocation;
+            if (string.IsNullOrWhiteSpace(pasta)) continue;
+
+            foreach (var resultado in ComUnregister.UnregisterFolder(pasta))
+            {
+                if (resultado.Value.Success) desregistrados++;
+                else falhas++;
+            }
+        }
+
+        return (desregistrados, falhas);
+    }
+
+    /// <summary>
+    /// Exporta a lista de sobras em XML: o resultado fica em um arquivo que
+    /// outra ferramenta abre.
+    /// </summary>
+    private void ExportLeftoversButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_leftovers.Count == 0)
+        {
+            MessageBox.Show(this,
+                Loc.Get("Wizard.ExportNothing"),
+                Loc.Get("Wizard.ExportLeftoversTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = Loc.Get("Wizard.ExportLeftoversTitle"),
+            Filter = Loc.Get("Wizard.ExportLeftoversFilter"),
+            FileName = "sobras.xml",
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        var gravado = Core.Reporting.LeftoverReportExporter.WriteXml(dialog.FileName, _leftovers);
+
+        MessageBox.Show(this,
+            string.IsNullOrWhiteSpace(gravado)
+                ? Loc.Get("Wizard.ExportFailed", dialog.FileName)
+                : Loc.Get("Wizard.Exported", gravado),
+            Loc.Get("Wizard.ExportLeftoversTitle"),
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
+    }
 }
 
 /// <summary>

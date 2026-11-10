@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using Tranal.Uninstaller.Core;
 using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Reporting;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -103,6 +104,7 @@ public sealed partial class ManualRemovalWindow : Window
         LeftoversTreeControl.SetItems(_sobras);
 
         ExportButton.IsEnabled = _sobras.Count > 0;
+        ExportXmlButton.IsEnabled = _sobras.Count > 0;
         RemoveButton.IsEnabled = _sobras.Count > 0;
 
         StatusText.Text = Loc.Get("Manual.Found", _sobras.Count, programa.DisplayName);
@@ -129,6 +131,33 @@ public sealed partial class ManualRemovalWindow : Window
         StatusText.Text = gravado
             ? Loc.Get("Manual.Exported", dialog.FileName)
             : Loc.Get("Manual.ExportFailed", dialog.FileName);
+    }
+
+    /// <summary>
+    /// Exporta a lista de sobras em XML.
+    ///
+    /// E o mesmo exportador do nucleo que a linha de comando usa
+    /// (<see cref="LeftoverReportExporter"/>): a regra mora em um lugar
+    /// so, e a tela so pergunta onde gravar.
+    /// </summary>
+    private void ExportXmlButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_sobras.Count == 0) return;
+
+        var dialog = new SaveFileDialog
+        {
+            Title = Loc.Get("Manual.ExportXmlTitle"),
+            Filter = Loc.Get("Manual.ExportXmlFilter"),
+            FileName = "sobras.xml",
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        var gravado = LeftoverReportExporter.WriteXml(dialog.FileName, _sobras);
+
+        StatusText.Text = string.IsNullOrWhiteSpace(gravado)
+            ? Loc.Get("Manual.ExportXmlFailed", dialog.FileName)
+            : Loc.Get("Manual.ExportedXml", dialog.FileName);
     }
 
     /// <summary>

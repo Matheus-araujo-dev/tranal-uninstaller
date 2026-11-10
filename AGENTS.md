@@ -673,6 +673,46 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   "Tranal" deles. Uma citacao errada no RECON propaga errada para o
   catalogo.
 
+## O nucleo ja sabia e a tela nao dizia (regra do nucleo)
+
+Este lote tem um tema so: **fechar a distancia entre o que o nucleo sabia e
+o que a pessoa conseguia fazer**. Duas das sete linhas que fecharam nao
+precisaram de codigo novo — a medicao estava desatualizada. As outras cinco
+precisaram, e uma delas era um **bug de verdade**.
+
+- **A marcacao de somente-leitura mora em um lugar so**:
+  `Core/Automation/StubbornRemover.cs` — `ClearReadOnly` (`:171`). Quem apaga
+  um arquivo consome a regra; ninguem repete o `File.SetAttributes` por conta
+  propria. MEDIDO: o caminho principal de remocao (`Core/UninstallSupport.cs`,
+  `RemoveOne`, `:2040`) usava `File.Delete` direto e deixava o arquivo
+  somente-leitura no lugar — o Windows recusa.
+- **O desregistro de COM mora em um lugar so**:
+  `Core/Automation/ComUnregister.cs` — `UnregisterFolder` (`:96`). O
+  assistente consome a regra antes de apagar os arquivos
+  (`Ui/UninstallWizardWindow.xaml.cs`, `DesregistrarCom`, `:1370`) e apenas
+  **conta** o que aconteceu. Desregistrar **antes** de remover e o que evita
+  o registro orfao (o Windows apontando para uma DLL que nao existe mais).
+- **A exportacao da varredura mora em um lugar so**:
+  `Core/Reporting/LeftoverReportExporter.cs` — `WriteXml` (`:77`). Quem
+  exporta consome: a linha de comando (`/inspection-leftovers`), a tela do
+  assistente (`Ui/UninstallWizardWindow.xaml.cs`, `ExportLeftoversButton_Click`,
+  `:1394`) e a tela da desinstalacao personalizada
+  (`Ui/ManualRemovalWindow.xaml.cs`, `ExportXmlButton_Click`).
+- **A varredura que nao remove nada tambem exporta**: a etapa da varredura do
+  assistente so chega DEPOIS do desinstalador nativo. A varredura que a pessoa
+  faz sem remover nada e a da desinstalacao personalizada — e ali so havia
+  CSV. Com o XML, a exportacao fica alcancavel sem desinstalar nada.
+- **Medicao desatualizada se corrige, nao se infla**: quando a evidencia da
+  auditoria aponta para codigo que ja mudou, a remediacao reescreve a
+  medicao (com a evidencia nova e a linha real). Fechar linha sem codigo
+  seria mentira; e o caminho oposto tambem: deixar "PARCIAL" quando o codigo
+  ja resolvia era perder funcionalidade que existe.
+- **A rodada do lote tem RECON proprio**:
+  `docs/auditoria/RECON-LOTE34-2026-11-10.md`. Ele entra **no fim** da cadeia
+  (`tools/auditoria/rodar-cadeia.ps1`): a medicao mais recente vence por linha
+  do catalogo. Um RECON novo nao apaga o historico dos outros — ele mede de
+  novo, com a data dele.
+
 ## A assinatura do desinstalador e o comando do usuário (regra do núcleo)
 
 - **A regra do executável do desinstalador mora em um lugar só**:
