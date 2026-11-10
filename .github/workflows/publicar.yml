@@ -230,6 +230,18 @@ jobs:
             -CliExe publish\cli\tranal.exe
 
 
+      # A assinatura do desinstalador e o comando do usuario: a tela mostra
+      # o estado da assinatura e a linha de comando responde por
+      # /signature e /signatures. O teste so LE a assinatura de arquivos do
+      # proprio Windows: nada e instalado ou removido.
+      - name: A assinatura do desinstalador e o comando do usuario (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote30.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
       # O teste cria snapshots sinteticos e apaga tudo no final.

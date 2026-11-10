@@ -11,16 +11,16 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Concorrente | Medido | OK | PARCIAL | AUSENTE | FORA | Cobertura |
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 54 | 18 | 0 | 4 | 76.3% |
-| Bulk Cookie Uninstaller | 97 | 82 | 13 | 0 | 2 | 86.6% |
+| Bulk Cookie Uninstaller | 97 | 83 | 12 | 0 | 2 | 87.6% |
 | Geek Uninstaller | 44 | 39 | 5 | 0 | 0 | 88.6% |
 | HiBit Uninstaller | 66 | 45 | 17 | 0 | 4 | 74.2% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
-| Soft Organizer | 77 | 60 | 16 | 0 | 1 | 79.2% |
+| Soft Organizer | 77 | 61 | 15 | 0 | 1 | 80.5% |
 | Total Uninstall | 94 | 68 | 22 | 0 | 4 | 76.6% |
 | Uninstall Tool | 94 | 63 | 25 | 1 | 5 | 72.3% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
-| Wise Program Uninstaller | 86 | 56 | 27 | 0 | 3 | 68.6% |
-| **TOTAL** | **725** | **533** | **161** | **1** | **30** | **77.7%** |
+| Wise Program Uninstaller | 86 | 57 | 26 | 0 | 3 | 69.8% |
+| **TOTAL** | **725** | **536** | **158** | **1** | **30** | **78.1%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -63,11 +63,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 97 |
-| **OK** | **82** |
-| PARCIAL | 13 |
+| **OK** | **83** |
+| PARCIAL | 12 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 2 |
-| **Cobertura** | **86.6%** |
+| **Cobertura** | **87.6%** |
 
 ### O que ainda falta
 
@@ -84,7 +84,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T4#74 | **Modo para daltônicos**, escalonamento por DPI, tema do sistema | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ColorBlindPalette.cs:157` (`Adapt`) e `:90` (`IsAdjusted`), aplicado em `src/Tranal.Uninstaller/Theming/ThemeManager.cs:159`; escolha do modo na tela em `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml.cs:203` e preferencia em `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:33`; tema do Windows em `src/Tranal.Uninstaller/Theming/ThemeProbe.cs:11` (chamado em `src/Tranal.Uninstaller/App.xaml.cs:65`). **Nota**: modo daltônico e tema do sistema existem, mas **nao ha escalonamento por DPI** — `grep "Dpi/PerMonitor/GetDpi" em src/` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:4261` (`checkBoxColorblind`) / `:4703` (`checkBoxDpiaware`) |
 | T4#75 | **Gerenciador de desinstaladores relacionados** (`RelatedUninstallerAdder`) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/RelatedProgramFinder.cs:53` (`Find`) e o aviso `src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:244`, exibido em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:493`. **Nota**: a correlacao e a lista existem, mas **nao ha gerenciador** para adicionar/remover desinstaladores relacionados da tarefa — o BCU tem a tela `RelatedUninstallerAdder`; aqui so ha o aviso. Binario do concorrente: `bcu.identificadores.txt:30` (tipo `RelatedUninstallerAdder.resources`) |
 | T4#76 | Atalhos de teclado e cópia de informações da entrada | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Ui/Appearance/ProgramClipboard.cs:39` (`Copy`), acionado em `src/Tranal.Uninstaller/MainWindow.xaml.cs:833`; atalhos de teclado da janela em `src/Tranal.Uninstaller/MainWindow.xaml.cs:92` (`PreviewKeyDown`) e `:1676` (tratador). **Nota**: **nao ha hotkey global** registrado pelo processo — `grep "RegisterHotKey/Hotkey/GlobalHotkey" em src/` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:5429` (`fullInformationCopyContextMenuStripItem`) |
-| T4#80 | Linha de comando **antes/depois** e "executar aplicativos externos" (desabilitável) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`). **Nota**: os comandos antes/depois existem e sao executados, mas **nao ha a opcao "executar aplicativos externos"** desabilitavel — `grep "External" em src/Tranal.Uninstaller/Core/Settings/AppSettings.cs` -> **0 hits**. Binario do concorrente: `bcu.strings.txt:5310` (`checkBoxEnableExternal`) |
 | T5#95 | Filtro que **esconde o que foi publicado pela Microsoft** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Appearance/ProgramFilters.cs:189` (`PublisherFilter`, filtro por editora, consumida em `:640`). **Nota**: existe o filtro **generico por editora** (digitar "Microsoft" filtra), mas **nao ha o filtro dedicado** "esconder o publicado pela Microsoft" — nenhum `Microsoft` fixo no codigo do filtro. Binario do concorrente: `bcu.inventario.md:160` ("Hide published by Microsoft") |
 
 ## Geek Uninstaller
@@ -168,11 +167,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 77 |
-| **OK** | **60** |
-| PARCIAL | 16 |
+| **OK** | **61** |
+| PARCIAL | 15 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 1 |
-| **Cobertura** | **79.2%** |
+| **Cobertura** | **80.5%** |
 
 ### O que ainda falta
 
@@ -188,7 +187,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T3#43 | Extensão de shell COM para o menu de contexto | PARCIAL | **PARCIAL** - Extensão de shell COM para o menu de contexto/`src/Tranal.Uninstaller/Core/Topmost/ExplorerContextMenu.cs:28` (`public static class ExplorerContextMenu`) **Nota**: o menu de contexto e um verb do registro; nao ha extensao COM empacotada. |
 | T3#44 | Chave de configuração "Windows context menu commands" | PARCIAL | **PARCIAL** - Chave de configuração "Windows context menu commands"/gerenciador do menu de contexto `Core/Management/AppPermissionManager.cs:120`; registro do menu do Explorer `Core/Management/ContextMenuManager.cs:46` |
 | T5#56 | **Backup e restauração de chaves de registro inteiras** | PARCIAL | **PARCIAL** - **Backup e restauração de chaves de registro inteiras**/`src/Tranal.Uninstaller/Core/FullRegistryBackup.cs:42` (`public static class FullRegistryBackup`) **Nota**: o backup exporta os hives inteiros com `reg.exe` e gera o script de restauracao; nao ha backup de chave arbitraria — a busca por "RegSaveKey" em `src/` nao retorna hits. |
-| T5#59 | **Verificação de assinatura digital** de executáveis | PARCIAL | **PARCIAL** - **Verificação de assinatura digital** de executáveis/`src/Tranal.Uninstaller/Core/Discovery/UninstallerCertificate.cs:104` (`public static class UninstallerCertificate`) **Nota**: a verificacao existe (`WinVerifyTrust` com `X509Chain`), mas so e chamada pelos testes — a interface nao mostra o resultado. |
 | T5#65 | **Configuração completa de MSI** (instalar, modificar, reparar) | PARCIAL | **PARCIAL** - **Configuração completa de MSI** (instalar, modificar, reparar)/`src/Tranal.Uninstaller/Core/Discovery/MsiProductCatalog.cs:122` (`TryBuildRepairCommand`), `src/Tranal.Uninstaller/MainWindow.xaml.cs:1683` (`CmdModifyProgram`), `:2340` (`ModifyProgram`) **Nota**: o reparo MSI e a desinstalacao MSI sao montados, e a tela aciona o reparo (a acao "Modificar" do menu de contexto); o que falta e a configuracao do Windows Installer (instalar), que o grep por "MsiConfigureProduct" nao encontra em `src/`. |
 | T5#67 | **Tarefas de segundo plano** executadas pelo app | PARCIAL | **PARCIAL** - **Tarefas de segundo plano** executadas pelo app/`src/Tranal.Uninstaller/Core/Management/ScheduledTaskManager.cs:72` (`public static class ScheduledTaskManager`) **Nota**: o Tranal gerencia as tarefas do Windows; nao ha registro das tarefas internas do proprio Tranal. |
 | T5#68 | **Itens compartilhados e dependentes** entre programas | PARCIAL | **PARCIAL** - **Itens compartilhados e dependentes** entre programas/`src/Tranal.Uninstaller/Core/Discovery/SharedReferenceCounter.cs:52` (`public static class SharedReferenceCounter`) `src/Tranal.Uninstaller/Core/Modules/SharedDllCatalog.cs:102` (`UsersOf`) **Nota**: o contador de referencia e os avisos de pasta compartilhada existem; falta a deteccao de dependencia entre programas. |
@@ -308,11 +306,11 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 86 |
-| **OK** | **56** |
-| PARCIAL | 27 |
+| **OK** | **57** |
+| PARCIAL | 26 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 3 |
-| **Cobertura** | **68.6%** |
+| **Cobertura** | **69.8%** |
 
 ### O que ainda falta
 
@@ -333,7 +331,6 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | T5#53 | Tipos de regra: **1.513 File**, **671 RegKey**, **166 RegValue**, **22 Reg**, **16 Ini**, **11 PopNotify** | PARCIAL | **PARCIAL** - Tipos de regra: **1.513 File**, **671 RegKey**, **166 RegValue**, **22 Reg**, **16 Ini**, **11 PopNotify**/`src/Tranal.Uninstaller/Core/Rules/RemovalRule.cs:48` (`RemovalRule`) **Nota**: o modelo de regra tem categoria (Include, Exclude, Protect, Cleanup) e escopo (geral ou por aplicativo), mas nao tem os tipos File, RegKey, RegValue, Reg, Ini e PopNotify. |
 | T5#54 | Perfis de conhecidos: Epic Games Launcher, Discord, Slack, AnyDesk, Xmind, AVG PC TuneUp, IObit Driver Booster, WeChat Cache, Bilibili Offline Cache, Razer Software, DiskDrill Software, 360 Total Security, Adobe Acrobat, Ableton Live, ACDSee… | PARCIAL | **PARCIAL** - Perfis de conhecidos: Epic Games Launcher, Discord, Slack, AnyDesk, Xmind, AVG PC TuneUp, IObit Driver Booster, WeChat Cache, Bilibili Offline Cache, Razer Software, DiskDrill Software, 360 Total Security, Adobe Acrobat, Ableton Live, ACDSee…/`src/Tranal.Uninstaller/Core/Discovery/FolderConfidenceEvaluator.cs:149` (`Epic Games`) `src/Tranal.Uninstaller/Core/Discovery/BundlewareDetector.cs:55` (`public static class BundlewareDetector`) **Nota**: o Tranal conhece os fabricantes que o bloatware e a confianca de pasta usam, mas nao ha perfis de regras por aplicativo. |
 | T6#59 | Contagem e **tamanho total** dos programas | PARCIAL | **PARCIAL** - Contagem e **tamanho total** dos programas/`src/Tranal.Uninstaller/Core/Modules/RelativeDate.cs:142` (`public static class ProgramTotalsCalculator`) `src/Tranal.Uninstaller/MainWindow.xaml.cs:221` (`Status.Installations`) **Nota**: a barra de status mostra a contagem de instalacoes e de itens visiveis; o total agregado e calculado no nucleo, mas nao aparece no rodape. |
-| T6#62 | Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site | PARCIAL | **PARCIAL** - Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site/`src/Tranal.Uninstaller/Core/Appearance/ProgramTextFormatter.cs:38` (`public static class ProgramTextFormatter`) `src/Tranal.Uninstaller/Core/ProgramColumns.cs:9` (`public enum ProgramColumn`) **Nota**: path, comando de desinstalacao e site do fabricante estao nas colunas e no detalhe; nao ha a classificacao Trust, Unknown e App site. |
 | T6#67 | **Avaliação** pelo usuário, com "Software Recomendado" | PARCIAL | **PARCIAL** - **Avaliação** pelo usuário, com "Software Recomendado"/`src/Tranal.Uninstaller/Core/Appearance/ProgramRating.cs:13` (`public static class ProgramRating`) **Nota**: a avaliacao por estrelas existe, com edicao na tela de aparencia; nao ha a lista "Software Recomendado" do concorrente. |
 | T6#68 | "Traduzir pro…" — convida a traduzir | PARCIAL | **PARCIAL** - "Traduzir pro…" — convida a traduzir/`src/Tranal.Uninstaller/Core/Localization/Localizer.cs:15` (`public static class Loc`) **Nota**: ha troca de idioma da interface e o seletor tem 48 idiomas; nao ha convite para traduzir o aplicativo. |
 | T6#70 | Central de suporte, fórum, novidades | PARCIAL | **PARCIAL** - Central de suporte, fórum, novidades/`src/Tranal.Uninstaller/Core/Appearance/SupportRequest.cs:18` (`public static class SupportRequest`) **Nota**: o pedido de suporte online existe, com o diagnostico do ambiente; nao ha central com forum e novidades. |

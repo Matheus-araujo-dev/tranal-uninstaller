@@ -137,6 +137,10 @@ public static class Program
         var portatil = PortableCommands.TryRun(effective, flags);
         if (portatil.HasValue) return portatil.Value;
 
+        // A assinatura digital do desinstalador.
+        var assinatura = SignatureCommands.TryRun(effective, flags);
+        if (assinatura.HasValue) return assinatura.Value;
+
         // A bandeja, os programas novos, as categorias e a integracao.
         var shell = ShellCommands.TryRun(effective, flags);
         if (shell.HasValue) return shell.Value;

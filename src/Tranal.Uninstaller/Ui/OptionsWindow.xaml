@@ -134,6 +134,9 @@
         <CheckBox x:Name="OnlyBuiltInCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.OnlyBuiltIn}"
                   AutomationProperties.AutomationId="OptOnlyBuiltIn" />
+        <CheckBox x:Name="AllowUserCommandsCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.AllowUserCommands}"
+                  AutomationProperties.AutomationId="OptAllowUserCommands" />
         <CheckBox x:Name="DisableHistoryCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.DisableHistory}"
                   AutomationProperties.AutomationId="OptDisableHistory" />

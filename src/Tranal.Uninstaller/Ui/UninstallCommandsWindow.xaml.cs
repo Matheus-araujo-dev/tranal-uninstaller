@@ -1,5 +1,10 @@
+using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using Tranal.Uninstaller.Core.Automation;
 using Tranal.Uninstaller.Core.Localization;
+using Tranal.Uninstaller.Core.Settings;
 
 namespace Tranal.Uninstaller.Ui;
 
@@ -34,6 +39,69 @@ public sealed partial class UninstallCommandsWindow : Window
         PostBox.Text = post ?? string.Empty;
         PreBox.Focus();
         PreBox.SelectAll();
+
+        RunButton.Content = Loc.Get("Commands.Run");
+
+        // O usuario pode desligar a execucao de aplicativos externos (a
+        // opcao do Bulk Cookie Uninstaller). Desligada, o botao de executar
+        // some: o comando continua sendo gravado e roda no desinstalador,
+        // se o usuario pediu.
+        if (!AppSettingsStore.Current.AllowRunningUserCommands)
+        {
+            RunButton.Visibility = Visibility.Collapsed;
+            HintText.Text = Loc.Get("Commands.Hint")
+                + Environment.NewLine
+                + Loc.Get("Commands.RunDisabled");
+        }
+    }
+
+    /// <summary>
+    /// Roda o comando do usuario na hora, para ele ver o que o comando faz
+    /// antes de confiar nele.
+    ///
+    /// E o "executar aplicativos externos" do Bulk Cookie Uninstaller: o
+    /// comando sai do teclado do usuario e roda pelo <c>cmd.exe</c>, que e o
+    /// que faz a regra morar em um lugar so
+    /// (<see cref="ShellCommand"/>).
+    /// </summary>
+    private async void RunButton_Click(object sender, RoutedEventArgs e)
+    {
+        var comando = ComandoEscolhido();
+        if (comando.Length == 0)
+        {
+            OutputBox.Text = Loc.Get("Commands.EmptyToRun");
+            return;
+        }
+
+        RunButton.IsEnabled = false;
+        OutputBox.Text = Loc.Get("Commands.Running");
+
+        try
+        {
+            var resultado = await ShellCommand.RunAsync(comando);
+
+            var texto = resultado.Message;
+            if (resultado.Output.Length > 0) texto += Environment.NewLine + resultado.Output;
+            if (resultado.Error.Length > 0) texto += Environment.NewLine + resultado.Error;
+
+            OutputBox.Text = texto;
+        }
+        finally
+        {
+            RunButton.IsEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// O comando que o botao vai rodar: o do campo com o foco, ou o
+    /// "antes" quando nenhum tem o foco.
+    /// </summary>
+    private string ComandoEscolhido()
+    {
+        if (ReferenceEquals(Keyboard.FocusedElement, PostBox))
+            return (PostBox.Text ?? string.Empty).Trim();
+
+        return (PreBox.Text ?? string.Empty).Trim();
     }
 
     private void OkButton_Click(object sender, RoutedEventArgs e)

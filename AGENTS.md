@@ -589,6 +589,29 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   (quatro pastas: Menu Iniciar do usuário e de todos, Área de Trabalho do
   usuário e pública).
 
+## A assinatura do desinstalador e o comando do usuário (regra do núcleo)
+
+- **A regra do executável do desinstalador mora em um lugar só**:
+  `Core/Discovery/UninstallerExecutable.cs` — `Declared` (`:41`, o que o
+  registro nomeia) e `Resolve` (`:64`, onde o executável está: caminho
+  absoluto quando o comando traz raiz; nome solto é procurado no PATH como o
+  próprio Windows faz, e a pasta System32 entra na busca). A coluna, a tela
+  e a linha de comando chamam o **mesmo** método.
+- **A assinatura é verificada sob demanda, nunca na coluna**: `Verify` custa
+  cerca de 160 ms por arquivo (medido) e a varredura de 51 desinstaladores
+  custa 8,1 s.
+- **Não implemente o catálogo de componentes do Windows**: a assinatura por
+  catálogo não é alcançável com as APIs gerenciadas do .NET 10 nem com
+  P/Invoke estável (medido em várias combinações). Em vez de mentir, o
+  produto avisa: `Signature.WindowsComponent` e `Signature.WindowsInstaller`.
+- **O núcleo não escreve o texto da tela**: `UninstallerSignature.Message` é a
+  explicação do estado em português (a CLI é pt-BR por decisão do projeto) e
+  `Detail` (`:82`) é o detalhe técnico da falha — a interface o envolve numa
+  frase traduzida (`Signature.VerifyFailed`).
+- **Executar aplicativos externos é desabilitável**: a preferência
+  `AllowRunningUserCommands` (`Core/Settings/AppSettings.cs:123`, ligada por
+  padrão) esconde o botão "Executar" da tela de comandos.
+
 ## O log de remoção por item (regra do núcleo)
 
 Toda operação de remoção grava um log com **uma linha por item**: tipo,

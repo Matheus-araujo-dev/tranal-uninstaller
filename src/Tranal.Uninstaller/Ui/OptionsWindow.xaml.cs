@@ -110,6 +110,7 @@ public partial class OptionsWindow : Window
 
         CreateRestorePointCheck.IsChecked = settings.CreateRestorePointBeforeUninstall;
         OnlyBuiltInCheck.IsChecked = settings.OnlyRunBuiltInUninstaller;
+        AllowUserCommandsCheck.IsChecked = settings.AllowRunningUserCommands;
         DisableHistoryCheck.IsChecked = settings.DisableUninstallHistory;
         RecycleBinCheck.IsChecked = settings.SendFilesToRecycleBin;
         DeferRemovalCheck.IsChecked = settings.DeferRemovalToNextRestart;
@@ -417,6 +418,7 @@ public partial class OptionsWindow : Window
 
             s.CreateRestorePointBeforeUninstall = CreateRestorePointCheck.IsChecked == true;
             s.OnlyRunBuiltInUninstaller = OnlyBuiltInCheck.IsChecked == true;
+            s.AllowRunningUserCommands = AllowUserCommandsCheck.IsChecked == true;
             s.DisableUninstallHistory = DisableHistoryCheck.IsChecked == true;
             s.SendFilesToRecycleBin = RecycleBinCheck.IsChecked == true;
             s.DeferRemovalToNextRestart = DeferRemovalCheck.IsChecked == true;

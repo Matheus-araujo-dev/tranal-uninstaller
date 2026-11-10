@@ -1259,8 +1259,8 @@
                                                          "id":  "T4#80",
                                                          "funcionalidade":  "Linha de comando **antes/depois** e \"executar aplicativos externos\" (desabilitável)",
                                                          "evidencia":  "`checkBoxEnableExternal` (`bcu.strings.txt:5310`), `groupBoxExternal` (`:5311`)",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`). **Nota**: os comandos antes/depois existem e sao executados, mas **nao ha a opcao \"executar aplicativos externos\"** desabilitavel — `grep \"External\" em src/Tranal.Uninstaller/Core/Settings/AppSettings.cs` -\u003e **0 hits**. Binario do concorrente: `bcu.strings.txt:5310` (`checkBoxEnableExternal`)"
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - `src/Tranal.Uninstaller/Core/Automation/UninstallPlan.cs:170` (`ResolveOptions`) e `:205` (`Build`); tela de edicao em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:18` (`PreCommand`/`PostCommand`); gravacao por programa em `src/Tranal.Uninstaller/Core/ProgramCustomization.cs:72` (`PreCommand`), `:79` (`PostCommand`) e `:297` (`SetCommands`); executar o comando do usuario pela propria tela: `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:67` (`RunButton_Click`), com a saida em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml:38` (`CommandsOutput`); a opcao desabilitavel: `src/Tranal.Uninstaller/Core/Settings/AppSettings.cs:123` (`AllowRunningUserCommands`), marcada em `src/Tranal.Uninstaller/Ui/OptionsWindow.xaml:139` (`OptAllowUserCommands`) e aplicada em `src/Tranal.Uninstaller/Ui/UninstallCommandsWindow.xaml.cs:49`. Medido: `tools/test-lote30.ps1` -\u003e o botao de executar existe na tela real."
                                                      },
                                                      {
                                                          "numero":  81,
@@ -3095,8 +3095,8 @@
                                                          "id":  "T5#59",
                                                          "funcionalidade":  "**Verificação de assinatura digital** de executáveis",
                                                          "evidencia":  "`imports.txt:56` → `CRYPT32.dll / CryptQueryObject`, `CryptMsgGetParam`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - **Verificação de assinatura digital** de executáveis/`src/Tranal.Uninstaller/Core/Discovery/UninstallerCertificate.cs:104` (`public static class UninstallerCertificate`) **Nota**: a verificacao existe (`WinVerifyTrust` com `X509Chain`), mas so e chamada pelos testes — a interface nao mostra o resultado."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - **Verificação de assinatura digital** de executáveis/`src/Tranal.Uninstaller/Core/Discovery/UninstallerCertificate.cs:131` (`Verify`), com o detalhe tecnico em `:82` (`Detail`); tela `src/Tranal.Uninstaller/Ui/UninstallerSignatureWindow.xaml.cs:45` (`Descrever`); linha de comando `src/Tranal.Cli/SignatureCommands.cs:29` (`TryRun`). Medido: `tools/test-lote30.ps1` -\u003e o estado da assinatura na tela real e a cadeia da Microsoft no `kernel32.dll` pela linha de comando real."
                                                      },
                                                      {
                                                          "numero":  60,
@@ -5675,8 +5675,8 @@
                                                          "id":  "T6#62",
                                                          "funcionalidade":  "Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site",
                                                          "evidencia":  "`wise.recursos.txt:165` -\u003e `TFRMWPUMAIN/0`",
-                                                         "estado":  "PARCIAL",
-                                                         "estadoTexto":  "**PARCIAL** - Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site/`src/Tranal.Uninstaller/Core/Appearance/ProgramTextFormatter.cs:38` (`public static class ProgramTextFormatter`) `src/Tranal.Uninstaller/Core/ProgramColumns.cs:9` (`public enum ProgramColumn`) **Nota**: path, comando de desinstalacao e site do fabricante estao nas colunas e no detalhe; nao ha a classificacao Trust, Unknown e App site."
+                                                         "estado":  "OK",
+                                                         "estadoTexto":  "**OK** - Detalhes da entrada: Path, Uninstall Command, Details, Trust/Unknown/App site/`src/Tranal.Uninstaller/Core/Appearance/ProgramTextFormatter.cs:38` (`public static class ProgramTextFormatter`) `src/Tranal.Uninstaller/Core/ProgramColumns.cs:9` (`public enum ProgramColumn`); a classificacao de confianca (Trust/Unknown) e a assinatura digital do desinstalador: `src/Tranal.Uninstaller/Core/Discovery/UninstallerCertificate.cs:131` (`Verify`), mostrada em `src/Tranal.Uninstaller/Ui/UninstallerSignatureWindow.xaml.cs:45` (`Descrever`). Medido: `tools/test-lote30.ps1` -\u003e o estado da assinatura na tela real."
                                                      },
                                                      {
                                                          "numero":  63,

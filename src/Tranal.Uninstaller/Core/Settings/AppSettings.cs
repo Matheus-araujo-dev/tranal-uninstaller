@@ -112,6 +112,17 @@ public sealed class AppSettings
     public bool OnlyRunBuiltInUninstaller { get; set; }
 
     /// <summary>
+    /// Permite executar o comando do usuario pela tela de comandos.
+    ///
+    /// Corresponde a opcao "executar aplicativos externos" do Bulk Cookie
+    /// Uninstaller, que o usuario pode desligar. Desligada, o botao de
+    /// executar some da tela de comandos: o comando continua sendo gravado
+    /// (e roda no desinstalador, se o usuario pediu).
+    /// Padrao: <c>true</c>.
+    /// </summary>
+    public bool AllowRunningUserCommands { get; set; } = true;
+
+    /// <summary>
     /// Desativa o registro de historico de desinstalacoes.
     /// Corresponde a opcao "Desativar o recurso Historico de Desinstalacao".
     /// </summary>

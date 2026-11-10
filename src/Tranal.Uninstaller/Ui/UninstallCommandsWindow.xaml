@@ -16,6 +16,7 @@
       <RowDefinition Height="*" />
       <RowDefinition Height="Auto" />
       <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
     <TextBlock Grid.Row="0" x:Name="PromptText" TextWrapping="Wrap" Margin="0,0,0,8" />
@@ -31,7 +32,15 @@
     <TextBlock Grid.Row="5" x:Name="HintText" TextWrapping="Wrap" Margin="0,10,0,0"
                Opacity="0.8" />
 
-    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+    <TextBox Grid.Row="6" x:Name="OutputBox" Margin="0,10,0,0" Height="90"
+             IsReadOnly="True" TextWrapping="Wrap"
+             VerticalScrollBarVisibility="Auto"
+             AutomationProperties.AutomationId="CommandsOutput" />
+
+    <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+      <Button x:Name="RunButton" Style="{StaticResource FlatButton}"
+              Margin="0,0,6,0" AutomationProperties.AutomationId="CommandsRun"
+              Click="RunButton_Click" />
       <Button x:Name="OkButton" Content="{loc:Tr Common.Ok}" Style="{StaticResource FlatButton}"
               Margin="0,0,6,0" AutomationProperties.AutomationId="CommandsOk"
               Click="OkButton_Click" />

@@ -72,6 +72,15 @@ public sealed class UninstallerSignature
     /// <summary>Explicacao do estado, em portugues.</summary>
     public string Message { get; init; } = string.Empty;
 
+    /// <summary>
+    /// O detalhe tecnico de uma falha de verificacao (o texto da excecao).
+    ///
+    /// Vazio quando a verificacao deu conta do arquivo. A interface usa
+    /// este texto dentro de uma frase traduzida; a explicacao do estado, nao
+    /// — ela vem do catalogo, e a do nucleo e escrita em portugues.
+    /// </summary>
+    public string Detail { get; init; } = string.Empty;
+
     /// <summary>True quando o Windows confia na assinatura.</summary>
     public bool IsTrusted => Status == SignatureTrustStatus.Valid;
 }
@@ -216,6 +225,7 @@ public static class UninstallerCertificate
                 Message = assinado
                     ? Describe(trustStatus)
                     : $"Nao foi possivel verificar a assinatura: {erroDeLeitura}",
+                Detail = assinado ? string.Empty : erroDeLeitura,
             };
         }
 

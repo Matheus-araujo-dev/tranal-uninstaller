@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(77,7% — 725 funcionalidades, 533 OK, 161 PARCIAL, 1 AUSENTE, 30 FORA por
+(78,1% — 725 funcionalidades, 536 OK, 158 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -38,6 +38,41 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**SOFTORGANIZER #59, WISE #62 e BCU T4#80 — a assinatura do desinstalador e
+o comando do usuario.** A verificacao da assinatura digital ja existia no
+nucleo (`Core/Discovery/UninstallerCertificate.cs`) e so os testes a
+chamavam: ninguem conseguia saber se o desinstalador de um programa era
+assinado. O comando do usuario (`ShellCommand`) tambem nao tinha quem o
+chamasse. O detalhe esta em `EVIDENCIA-LOTE30-ASSINATURA.md`:
+
+- a **assinatura** tem tela (`Ui/UninstallerSignatureWindow.xaml.cs:45`),
+  item no menu "Mais comandos" e linha de comando (`/signature` e
+  `/signatures`);
+- ela e **sob demanda** e nao uma coluna: `Verify` custa cerca de 160 ms por
+  arquivo (medido) e a varredura de 51 desinstaladores custa 8,1 s — uma
+  coluna assim seria impossivel de usar;
+- a **assinatura por catalogo de componentes do Windows** nao e alcancavel
+  com as APIs gerenciadas do .NET 10 nem com P/Invoke estavel (medido em
+  varias combinacoes). Em vez de mentir, o produto **avisa** que o
+  executavel e um componente do Windows;
+- **um bug real apareceu no caminho**: a pergunta "qual e o executavel do
+  desinstalador" tinha seis copias que discordavam entre si. A tela dizia
+  que o "AMD Install Manager" nao tinha desinstalador registrado, porque o
+  registro nomeia `MsiExec.exe` sem caminho. A regra subiu para
+  `Core/Discovery/UninstallerExecutable.cs` (`Declared` e `Resolve`, que
+  procura no PATH como o Windows faz);
+- a tela **fala a lingua do catalogo**: o texto do nucleo (portugues fixo) e o
+  estado traduzido apareciam lado a lado, e se contradiziam no caso do
+  instalador do Windows. O nucleo agora separa a explicacao do estado
+  (`Message`, para a linha de comando) do detalhe tecnico da falha
+  (`Detail`), que a interface traduz;
+- o "executar aplicativos externos" do BCU e **desabilitavel**: a preferencia
+  `AllowRunningUserCommands` (`Core/Settings/AppSettings.cs:123`) esconde o
+  botao "Executar" quando esta desligada;
+- a suite tem 23 testes proprios (`Lote30FeatureTests.cs`) e o teste de ponta
+  a ponta (`tools/test-lote30.ps1`) tem 13 verificacoes no aplicativo de
+  verdade.
 
 **GEEK T2#34 e #13, GEEK T4#80, HiBit #80, HiBit T2#21 e #21, IObit #29,
 TOTALUNINSTALL T6#34 e T6#35, SOFTORGANIZER #22 e #25 - o que ja existia e

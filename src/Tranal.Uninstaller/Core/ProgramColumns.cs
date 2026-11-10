@@ -310,7 +310,7 @@ public static class ProgramColumns
             case ProgramColumn.UninstallerKind: return program.Kind.ToString();
             case ProgramColumn.ProductCode: return program.ProductCode;
             case ProgramColumn.QuietUninstall: return program.QuietUninstallCommand;
-            case ProgramColumn.UninstallerLocation: return UninstallerLocationOf(program);
+            case ProgramColumn.UninstallerLocation: return Discovery.UninstallerExecutable.Declared(program);
             case ProgramColumn.Source: return SourceOf(program).ToString();
             case ProgramColumn.SystemComponent: return YesNo(program.IsSystemComponent);
             case ProgramColumn.Protected: return YesNo(IsProtected(program));
@@ -395,25 +395,6 @@ public static class ProgramColumns
     /// idiomas, porque e texto de tela.
     /// </summary>
     private static string YesNo(bool value) => Loc.Get(value ? "Common.Yes" : "Common.No");
-
-    /// <summary>
-    /// O caminho do executavel que faz a desinstalacao.
-    ///
-    /// E o proprio comando de desinstalacao do registro, lido pelo mesmo
-    /// extrator que a varredura usa. Quando o comando nao nomeia um
-    /// executavel (o caso do "winget uninstall", por exemplo), o valor fica
-    /// vazio: melhor vazio do que um caminho inventado.
-    /// </summary>
-    /// <param name="program">O programa instalado.</param>
-    public static string UninstallerLocationOf(InstalledProgram program)
-    {
-        if (program is null) return string.Empty;
-
-        var command = program.UninstallString;
-        if (string.IsNullOrWhiteSpace(command)) return string.Empty;
-
-        return ProgramScanner.ExtractExecutablePath(command).Trim();
-    }
 
     /// <summary>
     /// De onde o Windows tirou a entrada do programa.

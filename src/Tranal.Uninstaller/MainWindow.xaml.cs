@@ -1127,6 +1127,21 @@ public partial class MainWindow : Window
         var forced = CommandItem(Loc.Get("Cmd.ForcedUninstall"), "CmdForcedUninstall", ShowForcedUninstall);
         menu.Items.Add(forced);
 
+        // As acoes que sao de UM programa: os comandos que rodam antes e
+        // depois do desinstalador, e a assinatura digital do desinstalador.
+        // Elas so entram quando a selecao tem uma linha so — sao coisas de
+        // um programa, nao de uma lista.
+        if (selectedRows.Count == 1)
+        {
+            var alvo = selectedRows[0];
+
+            menu.Items.Add(CommandItem(
+                Loc.Get("Cmd.EditCommands"), "CmdEditCommands", () => EditCommands(alvo)));
+
+            menu.Items.Add(CommandItem(
+                Loc.Get("Cmd.UninstallerSignature"), "CmdUninstallerSignature", () => MostrarAssinatura(alvo)));
+        }
+
         // "Batch Remove Entries": tirar de uma vez as entradas de varios
         // programas da lista "Adicionar e Remover Programas" do Windows
         // (Geek Uninstaller, HiBit, Wise, UNINSTALLTOOL). Nao desinstala
@@ -1713,6 +1728,13 @@ public partial class MainWindow : Window
         var commands = CommandItem(Loc.Get("Cmd.EditCommands"), "CmdEditCommands", () => EditCommands(row));
         menu.Items.Add(commands);
 
+        // A assinatura digital do desinstalador: o "Trust/Unknown" dos
+        // detalhes do Wise e a verificacao de assinatura do Soft Organizer.
+        // A verificacao mora no nucleo; a tela so mostra.
+        var assinatura = CommandItem(
+            Loc.Get("Cmd.UninstallerSignature"), "CmdUninstallerSignature", () => MostrarAssinatura(row));
+        menu.Items.Add(assinatura);
+
         // Onde a desinstalacao acontece: o registro do programa, o painel de
         // Programas e Recursos e a Recuperacao do Sistema. O destino vem do
         // nucleo, que e o unico lugar que sabe o comando de cada um.
@@ -1915,6 +1937,20 @@ public partial class MainWindow : Window
     /// que as preenche.
     /// </summary>
     /// <param name="row">O programa do menu de contexto.</param>
+    /// <summary>
+    /// Abre a tela da assinatura digital do desinstalador do programa.
+    /// </summary>
+    /// <param name="row">O programa do menu de contexto.</param>
+    private void MostrarAssinatura(ProgramRow row)
+    {
+        var tela = new UninstallerSignatureWindow(row.Program)
+        {
+            Owner = this,
+        };
+
+        tela.ShowDialog();
+    }
+
     private void EditCommands(ProgramRow row)
     {
         var custom = ProgramCustomizationStore.Has(row.Program) ? ProgramCustomizationStore.For(row.Program) : null;
