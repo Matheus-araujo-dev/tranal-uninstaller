@@ -531,6 +531,33 @@ Consequências que precisam ser lembradas quando se mexe na lista:
   rastreio monta os nós (`PreencherArvore`, `NoVisual`) e a linha de comando
   imprime os mesmos (`/comparar "antes" "depois" /arvore`, `/busca "termo"`).
 
+## As marcas do programa na lista (regra do núcleo)
+
+- **As marcas moram em `Core/ProgramMarks.cs`**, em um lugar só: `Detect`
+  (`:96`) devolve o que o Tranal entendeu sobre o programa — 32 bits
+  (`:51`), atualização (`:54`), órfão (`:57`), inválido (`:60`) e protegido
+  (`:63`). A lista, a exportação e a linha de comando consomem esse
+  resultado; ninguém monta a marca por conta própria.
+- **Cada marca é um fato medido**, nunca um palpite: a máquina do executável
+  (`program.Bits`), o detector de atualização (`UpdateMarker.Detect`), a
+  ausência de chave de registro (órfão), a saúde do desinstalador
+  (`UninstallerHealth`) e a tag `NoRemove` do próprio programa. Quando o
+  Tranal não sabe, a marca não existe.
+- **A regra do órfão mora em um lugar só** (`ProgramMarks.IsOrphan`, `:141`):
+  a entrada que não veio do registro e não é MSI nem StoreApp. A coluna
+  "Origem" consome essa mesma regra (`ProgramColumns.SourceOf`, `:429`) —
+  uma regra, dois consumidores.
+- **A coluna "Protegido" da lista considera as duas coisas**: a lista de
+  exclusão do Tranal e a tag `NoRemove` do próprio programa
+  (`ProgramColumns.IsProtected`, `:451`).
+- **O nome exibido carrega a marca de 32 bits** (`ProgramMarks.WithBits`,
+  `:182`): "Nome (32-bit)", como no Uninstall Tool e no Geek. A
+  **identidade** do programa (`ProgramRow.DisplayName`, `:41`) continua crua —
+  é o que a seleção, a cópia e a coluna de exportação usam.
+- **O texto é do catálogo**: `ProgramMarks.Label` (`:171`) lê as chaves
+  `ProgramMark.*`; o sufixo `(32-bit)` é `ProgramMark.BitsSuffix`; o nome da
+  coluna é `Common.Marks`. O Core não escreve texto de interface.
+
 ## O log de remoção por item (regra do núcleo)
 
 Toda operação de remoção grava um log com **uma linha por item**: tipo,

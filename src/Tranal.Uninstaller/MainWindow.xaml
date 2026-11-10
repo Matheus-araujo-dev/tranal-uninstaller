@@ -24,7 +24,7 @@
           O realce pinta o nome. Sem regra que case, o pincel e nulo e o nome
           usa a cor do tema.
         -->
-        <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"
+        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
                    Foreground="{Binding HighlightTextBrush}" />
       </StackPanel>
     </DataTemplate>

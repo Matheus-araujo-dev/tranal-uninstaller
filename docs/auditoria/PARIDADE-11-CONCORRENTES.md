@@ -15,17 +15,17 @@ colunas.
 | Concorrente | Funcionalidades medidas | OK | Parcial | Ausente | Fora | Nao confirmado | Cobertura |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | ASHAMPOO | 76 | 54 | 18 | 0 | 4 | 0 | 76.3% |
-| BCU | 97 | 78 | 17 | 0 | 2 | 0 | 82.5% |
+| BCU | 97 | 82 | 13 | 0 | 2 | 0 | 86.6% |
 | GEEK | 44 | 38 | 6 | 0 | 0 | 0 | 86.4% |
 | HIBIT | 66 | 45 | 17 | 0 | 4 | 0 | 74.2% |
 | IOBIT | 40 | 30 | 6 | 0 | 4 | 0 | 85% |
 | SOFTORGANIZER | 77 | 58 | 18 | 0 | 1 | 0 | 76.6% |
 | TOTALUNINSTALL | 94 | 66 | 24 | 0 | 4 | 0 | 74.5% |
-| UNINSTALLTOOL | 94 | 62 | 26 | 1 | 5 | 0 | 71.3% |
+| UNINSTALLTOOL | 94 | 63 | 25 | 1 | 5 | 0 | 72.3% |
 | UNINSTALR | 51 | 36 | 12 | 0 | 3 | 0 | 76.5% |
 | WISE | 86 | 56 | 27 | 0 | 3 | 0 | 68.6% |
 | REVO PRO 5.5.4 | 70 | 68 | 0 | 0 | 2 | 0 | 100% |
-| **TOTAL** | **795** | **591** | **171** | **1** | **32** | **0** | **78.4%** |
+| **TOTAL** | **795** | **596** | **166** | **1** | **32** | **0** | **79%** |
 
 Apuracoes linha a linha aplicadas: 506.
 

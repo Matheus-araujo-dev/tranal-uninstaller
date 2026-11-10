@@ -117,6 +117,12 @@ public enum ProgramColumn
     /// conhecido.
     /// </summary>
     Platform,
+
+    /// <summary>
+    /// As marcas do programa (32 bits, atualizacao, orfao, invalido,
+    /// protegido). Vazio quando o programa nao carrega nenhuma marca.
+    /// </summary>
+    Marks,
 }
 
 /// <summary>
@@ -215,6 +221,7 @@ public static class ProgramColumns
         new(ProgramColumn.Country, "Common.Country", "País", "Country", "Common.Country"),
         new(ProgramColumn.RelativeDate, "Common.Date", "Data (relativa)", "RelativeDate", "Common.RelativeDate"),
         new(ProgramColumn.Platform, "Common.Platform", "Plataforma", "Platform", "Common.Platform"),
+        new(ProgramColumn.Marks, "Common.Marks", "Marcas", "Marks"),
     };
 
     /// <summary>Todas as colunas, na ordem em que aparecem na lista.</summary>
@@ -315,6 +322,7 @@ public static class ProgramColumns
             case ProgramColumn.Country: return CountryOf(program);
             case ProgramColumn.RelativeDate: return Modules.RelativeDate.Format(program.InstallDateValue);
             case ProgramColumn.Platform: return PlatformOf(program);
+            case ProgramColumn.Marks: return ProgramMarks.Text(program);
             default: return string.Empty;
         }
     }
@@ -425,11 +433,9 @@ public static class ProgramColumns
         if (program.IsWindowsInstaller || program.IsMsi) return ProgramSource.WindowsInstaller;
         if (program.Kind == UninstallerKind.StoreApp) return ProgramSource.StoreApp;
 
-        if (string.IsNullOrWhiteSpace(program.RegistryPath)
-            && string.IsNullOrWhiteSpace(program.RegistryKey))
-        {
-            return ProgramSource.Unknown;
-        }
+        // Sem chave de registro, a entrada veio do disco: e o "orfao".
+        // A regra mora em um lugar so (ProgramMarks.IsOrphan).
+        if (ProgramMarks.IsOrphan(program)) return ProgramSource.Unknown;
 
         return ProgramSource.UninstallKey;
     }
@@ -445,6 +451,11 @@ public static class ProgramColumns
     public static bool IsProtected(InstalledProgram program)
     {
         if (program is null) return false;
+
+        // O proprio programa pode pedir para nao ser removido: e a tag
+        // "NoRemove" do registro. A lista de exclusao do Tranal e outra
+        // coisa — e as duas contam como protegido.
+        if (program.IsProtected) return true;
 
         var lista = ExcludeList.Current;
         if (lista.IsEmpty) return false;

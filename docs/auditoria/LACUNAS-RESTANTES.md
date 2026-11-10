@@ -8,7 +8,7 @@ linha aqui esta marcada como "OK": a medicao e o que vale, e medir e dizer
 "ok" sem o codigo seria mentira.
 
 O numero da cobertura esta em `PARIDADE-11-CONCORRENTES.md`
-(76,3% — 725 funcionalidades, 523 OK, 171 PARCIAL, 1 AUSENTE, 30 FORA por
+(77,0% — 725 funcionalidades, 528 OK, 166 PARCIAL, 1 AUSENTE, 30 FORA por
 decisao).
 O Revo Pro 5.5.4 segue com 68 de 70 OK e 2 FORA por decisao registrada
 (cobertura 100%, conforme a tabela acima).
@@ -38,6 +38,33 @@ ha como medir essa diferenca sem um pacote empacotado, e um pacote
 empacotado e exatamente a decisao pendente.
 
 ## Fechadas nesta rodada
+
+**BCU T1#13, T1#14, T1#15 e T1#16 e UNINSTALLTOOL T1#3 - as marcas do
+programa na lista.** O RECON media que o Tranal tinha o dado (a tag
+`NoRemove`, o valor `IsUpgrade`, a saude do desinstalador, a maquina do
+executavel) mas **nao tinha a marcacao na lista principal**: o sinal nao
+aparecia em nenhuma coluna. Alem disso, a marcacao `(32-bit)` era uma coluna
+(`Tipo`) e nao o sufixo no nome, como no Uninstall Tool e no Geek. O detalhe
+esta em `EVIDENCIA-LOTE28-MARCAS.md`:
+
+- a REGRA mora no nucleo, em um lugar so: `Core/ProgramMarks.cs` (`Detect`,
+  `:96`) devolve as marcas - 32 bits, atualizacao, orfao, invalido e
+  protegido - e a lista, a exportacao e a linha de comando consomem esse
+  resultado;
+- cada marca e um **fato medido** (o disco, o registro, o desinstalador), e
+  nao um palpite: quando o Tranal nao sabe, a marca nao existe;
+- a regra do **orfao** mora em um lugar so (`ProgramMarks.IsOrphan`, `:141`) e
+  a coluna "Origem" passa a consumir essa mesma regra;
+- a coluna "Protegido" passou a considerar a tag `NoRemove` do proprio
+  programa, e nao so a lista de exclusao do Tranal;
+- o **nome exibido** carrega o sufixo `(32-bit)`, como no Uninstall Tool e no
+  Geek, e a identidade do programa (chave de registro, nome cru) continua
+  separada;
+- a suite tem 22 testes proprios (`Lote28FeatureTests.cs`) e um teste de ponta
+  a ponta no aplicativo de verdade (`tools/test-lote28.ps1`, 12 verificacoes):
+  80 programas com marca na linha de comando, 29 com `(32-bit)` na tela e 0
+  divergentes entre os dois. O teste so le a lista - nenhum software instalado
+  da maquina e tocado.
 
 **TOTALUNINSTALL T2#22, T2#11 e #22, #69, #71 — a arvore de alteracoes
 detectadas, a busca textual dentro dela, a exportacao e a impressao.** A

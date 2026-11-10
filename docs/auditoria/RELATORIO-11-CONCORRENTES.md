@@ -11,16 +11,16 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Concorrente | Medido | OK | PARCIAL | AUSENTE | FORA | Cobertura |
 |---|---|---|---|---|---|---|
 | Ashampoo UnInstaller 27 | 76 | 54 | 18 | 0 | 4 | 76.3% |
-| Bulk Cookie Uninstaller | 97 | 78 | 17 | 0 | 2 | 82.5% |
+| Bulk Cookie Uninstaller | 97 | 82 | 13 | 0 | 2 | 86.6% |
 | Geek Uninstaller | 44 | 38 | 6 | 0 | 0 | 86.4% |
 | HiBit Uninstaller | 66 | 45 | 17 | 0 | 4 | 74.2% |
 | IObit Uninstaller | 40 | 30 | 6 | 0 | 4 | 85.0% |
 | Soft Organizer | 77 | 58 | 18 | 0 | 1 | 76.6% |
 | Total Uninstall | 94 | 66 | 24 | 0 | 4 | 74.5% |
-| Uninstall Tool | 94 | 62 | 26 | 1 | 5 | 71.3% |
+| Uninstall Tool | 94 | 63 | 25 | 1 | 5 | 72.3% |
 | Uninstalr | 51 | 36 | 12 | 0 | 3 | 76.5% |
 | Wise Program Uninstaller | 86 | 56 | 27 | 0 | 3 | 68.6% |
-| **TOTAL** | **725** | **523** | **171** | **1** | **30** | **76.3%** |
+| **TOTAL** | **725** | **528** | **166** | **1** | **30** | **77.0%** |
 
 > **Atencao:** 30 linha(s) tem estado diferente entre o mapa de reconciliacao e o catalogo. A prova de paridade usa o mapa; este relatorio tambem.
 
@@ -63,21 +63,17 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 97 |
-| **OK** | **78** |
-| PARCIAL | 17 |
+| **OK** | **82** |
+| PARCIAL | 13 |
 | AUSENTE | 0 |
 | FORA POR DECISAO | 2 |
-| **Cobertura** | **82.5%** |
+| **Cobertura** | **86.6%** |
 
 ### O que ainda falta
 
 | # | Funcionalidade | Estado | O que falta |
 |---|---|---|---|
 | T1#11 | **Classificação por tipo de desinstalador**: Msiexec, Inno Setup, NSIS, InstallShield, SDBInst, Steam, Store App, Windows Feature, Windows Update, Chocolatey, Oculus, PowerShell, Simple Delete, Desconhecido | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/UninstallerKind.cs:22` (enum) e `:167` (`Classify`): 13 valores — Unknown, MsiExec, InnoSetup, Nsis, InstallShield, SdbInst, Steam, StoreApp, Chocolatey, Oculus, PowerShell, SimpleDelete; coluna na lista em `src/Tranal.Uninstaller/Core/ProgramColumns.cs:271`. **Nota**: faltam **Windows Feature** e **Windows Update** como tipo proprio do desinstalador (existem como catalogos separados em `src/Tranal.Uninstaller/Core/Discovery/WindowsFeatures.cs:129` e `src/Tranal.Uninstaller/Core/Management/WindowsUpdateManager.cs:25`, nunca como `UninstallerKind`). Binario do concorrente: `bcu.strings.txt` (`UninstallerType`; os 14 `UninstallerType_*` vivem no motor `UninstallTools.dll`, fora do dump) |
-| T1#13 | Marcação de **protegido** (tag `NoRemove` do editor) | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/ProgramScanner.cs:148` (`IsProtected = GetInt(sub, "NoRemove") == 1`) e `src/Tranal.Uninstaller/Core/Management/ProtectedUninstallTag.cs:34` (`IsProtected`); aviso no assistente em `src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:198` (`ProtectedAdvisory`), exibido em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:493`. **Nota**: nao ha marcacao nem filtro de protegidos na lista — a coluna "Protegido" (`src/Tranal.Uninstaller/Core/ProgramColumns.cs:277`) mostra a lista de exclusoes do Tranal (`ProgramColumns.cs:413`), nao a tag `NoRemove`. Binario do concorrente: `bcu.inventario.md:292-293` / `:371` |
-| T1#14 | Marcação de **atualização** de outro aplicativo | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/UpdateMarker.cs:68` (`Detect`) e `:131` (`IsUpdateOf`); exposto pela CLI em `src/Tranal.Cli/ParityCommands.cs:74` (`/updates`, flag em `:30`). **Nota**: a deteccao existe, mas **nao ha marcacao/coluna de atualizacao na lista principal** — o sinal do registro `IsUpgrade` lido em `src/Tranal.Uninstaller/Core/ProgramScanner.cs:144` nao aparece em nenhuma coluna. Binario do concorrente: `bcu.strings.txt:6342` (`checkBoxShowUpdates`) |
-| T1#15 | Marcação de **não registrado (órfão)** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/DriveScanner.cs:82` (`OrphanUninstaller`) e `:226` (varredura); tela em `src/Tranal.Uninstaller/Ui/Discovery/DiscoveryWindow.xaml.cs:170` (categoria `OrphanUninstallers`). **Nota**: os executaveis orfaos aparecem na tela de Descoberta, **nao como marcacao na lista principal**. Binario do concorrente: `bcu.strings.txt:6529` (`checkBoxOrphans`) |
-| T1#16 | Marcação de **aplicativo inválido / desinstalador corrompido** | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/UninstallerHealth.cs:55` (`Evaluate`: Ok/Missing/Broken), leitura em `src/Tranal.Uninstaller/Core/ProgramScanner.cs:153`, aviso em `src/Tranal.Uninstaller/Core/UninstallAdvisories.cs:214` (`UninstallerHealthAdvisory`), exibido em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:493`. **Nota**: o desinstalador ausente/corrompido e avisado antes da desinstalacao, mas **nao ha coluna nem filtro que marque a entrada na lista** (a coluna "Protegido" da lista e a lista de exclusoes). Binario do concorrente: `bcu.strings.txt:6893` (`checkBoxInvalidTest`) |
 | T1#17 | Pastas de instalação **personalizadas** declaradas pelo usuário + detecção automática | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Discovery/UserInstallFolders.cs:47` (`Roots`: `%LOCALAPPDATA%\Programs`, `%APPDATA%`, `%LOCALAPPDATA%`) e `:87` (`IsUserInstallPath`); CLI em `src/Tranal.Cli/ParityCommands.cs:97` (`/userapps`, flag em `:31`). **Nota**: a deteccao automatica das pastas do usuario existe, mas **nao ha pastas extra declaradas pelo usuario** (nenhuma preferencia de pasta adicional e lida). Binario do concorrente: `bcu.strings.txt:6595` (`labelProgramFolders`) / `:6745` (`checkBoxAutoInstallFolderDetect`) |
 | T2#34 | **Abortar a tarefa inteira**, sem matar o desinstalador em execução | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Core/Automation/RemovalProgress.cs:240` (`RequestStop` -> `Issue(ProgressCommand.Stop)`), botao em `src/Tranal.Uninstaller/Ui/Automation/AutomationWindow.xaml.cs:106` (janela aberta pelo assistente em `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:414`); a fila para a TARIFA no proximo programa (`src/Tranal.Uninstaller/Core/Automation/UninstallQueue.cs:176`, o `stopRequested` marca o que nao comecou como `Aborted`, em `:33`). **Nota**: o desinstalador nativo **em execucao** nao e interrompido — de proposito: matar o desinstalador no meio deixa o programa meio desinstalado, que e pior do que terminar a desinstalacao e parar depois. Binario do concorrente: `bcu.inventario.md` |
 | T2#39 | **Assistente de desinstalação em 6 etapas**: Relacionado → Confirmação → Aplicativos em execução → Configuração → … → Final | PARCIAL | **PARCIAL** - `src/Tranal.Uninstaller/Ui/UninstallWizardWindow.xaml.cs:72-80` (`StepNames`: 5 etapas) e `:312` (`ShowStep`, casos 0 a 4). **Nota**: sao **5 etapas, nao 6** — nao ha etapa de **Relacionado** nem de **Aplicativos em execucao** (o painel de processos em uso e a ferramenta separada `src/Tranal.Uninstaller/Ui/Tools/CleanupViews.cs:108`). Binario do concorrente: `bcu.identificadores.txt:18` (tipo `BeginUninstallTaskWizard.resources`) |
@@ -247,17 +243,16 @@ A prova completa, que inclui tambem as 70 funcionalidades medidas do **Revo Pro 
 | Medido | |
 |---|---|
 | Funcionalidades medidas | 94 |
-| **OK** | **62** |
-| PARCIAL | 26 |
+| **OK** | **63** |
+| PARCIAL | 25 |
 | AUSENTE | 1 |
 | FORA POR DECISAO | 5 |
-| **Cobertura** | **71.3%** |
+| **Cobertura** | **72.3%** |
 
 ### O que ainda falta
 
 | # | Funcionalidade | Estado | O que falta |
 |---|---|---|---|
-| T1#3 | Marcação `(32-bit)` em programas de 32 bits em Windows 64 | PARCIAL | **PARCIAL** - Marcação `(32-bit)` em programas de 32 bits em Windows 64/`src/Tranal.Uninstaller/Core/ProgramColumns.cs:9` (`public enum ProgramColumn`) **Nota**: a marca 32/64 e detectada e aparece por linha, mas na coluna "Tipo" e nao embutida no nome do programa. |
 | T1#4 | Ordenação por qualquer coluna, com largura e posição **memorizadas** | PARCIAL | **PARCIAL** - Ordenação por qualquer coluna, com largura e posição **memorizadas**/`src/Tranal.Uninstaller/MainWindow.xaml.cs:72` (`ProgramsList`) **Nota**: a ordenacao por qualquer coluna existe; a largura e a posicao nao sao memorizadas — so as colunas escondidas vao para `AppSettings`. |
 | T1#6 | Atualizações de software como **sub-itens em árvore** | PARCIAL | **PARCIAL** - Atualizações de software como **sub-itens em árvore**/`src/Tranal.Uninstaller/Core/Updates/UpdateService.cs:29` (`public static class UpdateService`) `src/Tranal.Uninstaller/Ui/Tools/UpdateViews.cs:22` (`UpdateService`) **Nota**: a verificacao de atualizacao dos programas existe e tem tela e comando, mas nao ha arvore de atualizacoes como sub-item. |
 | T1#7 | Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos | PARCIAL | **PARCIAL** - Cálculo de tamanho **incluindo pastas de dados** em AppData/Documentos/`src/Tranal.Uninstaller/Core/Discovery/UserInstallFolders.cs:35` (`public static class UserInstallFolders`) **Nota**: o tamanho medido e o da pasta de instalacao; as pastas de dados sao apenas apontadas como aviso e nao somadas ao tamanho. |

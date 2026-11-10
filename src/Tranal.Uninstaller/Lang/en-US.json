@@ -1552,5 +1552,12 @@
     "ChangeTree.Change.Modified":  "Modified",
     "ChangeTree.Change.Removed":  "Removed",
     "ChangeTree.Search":  "Search the changes",
-    "ChangeTree.SearchHint":  "Type to filter the detected changes." 
+    "ChangeTree.SearchHint":  "Type to filter the detected changes.",
+    "Common.Marks":  "Marks",
+    "ProgramMark.32Bits":  "32 bits",
+    "ProgramMark.Update":  "Update",
+    "ProgramMark.Orphan":  "Orphan",
+    "ProgramMark.Invalid":  "Invalid",
+    "ProgramMark.Protected":  "Protected",
+    "ProgramMark.BitsSuffix":  "(32-bit)" 
 }

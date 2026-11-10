@@ -39,6 +39,28 @@ public sealed class ProgramRow : INotifyPropertyChanged
     }
 
     public string DisplayName => ProgramColumns.Value(ProgramColumn.Name, Program, Custom);
+
+    /// <summary>
+    /// As marcas do programa (32 bits, atualizacao, orfao, invalido,
+    /// protegido).
+    /// </summary>
+    public ProgramMarkInfo Marks => ProgramMarks.Detect(Program);
+
+    /// <summary>
+    /// O texto da coluna "Marcas".
+    /// </summary>
+    public string MarksText => ProgramMarks.Text(Program);
+
+    /// <summary>
+    /// O nome **exibido**: o nome do programa com a marca de 32 bits
+    /// embutida. E o que a pessoa le na lista.
+    ///
+    /// O <see cref="DisplayName"/> continua sendo o nome cru: ele e a
+    /// identidade do programa (a selecao, a copia e a exportacao casam por
+    /// ele), e mudar a identidade para caber na tela seria trocar uma coisa
+    /// certa por outra errada.
+    /// </summary>
+    public string Label => ProgramMarks.WithBits(DisplayName, Marks);
     public string DisplayVersion => ProgramColumns.Value(ProgramColumn.Version, Program, Custom);
     public string Publisher => ProgramColumns.Value(ProgramColumn.Company, Program, Custom);
     public string UrlInfoAbout => ProgramColumns.Value(ProgramColumn.HomePage, Program, Custom);
