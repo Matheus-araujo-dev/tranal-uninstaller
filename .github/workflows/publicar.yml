@@ -137,6 +137,21 @@ jobs:
             -Exe publish\preview\TranalUninstaller.exe `
             -CliExe publish\cli\tranal.exe
 
+      # As acoes do programa na lista (lote 22): o menu de contexto com a
+      # Microsoft Store e as pastas do programa e do desinstalador, a
+      # categoria vazia na tela de Categorias, o modo rapido (que abre e e
+      # cancelado, sem remover nada) e os comandos novos da linha de comando.
+      #
+      # O teste cria uma categoria vazia so para ele (no program-data.json) e
+      # apaga tudo no final, mesmo se o teste falhar.
+      - name: Acoes do programa e modo rapido (aplicativo de verdade)
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\test-lote22.ps1 `
+            -Exe publish\preview\TranalUninstaller.exe `
+            -CliExe publish\cli\tranal.exe
+
       # A comparacao de snapshots pela linha de comando: a arvore de
       # alteracoes sai em texto, em CSV, em HTML e no layout de impressao.
       # O teste cria snapshots sinteticos e apaga tudo no final.
