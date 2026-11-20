@@ -336,7 +336,9 @@
     <Setter Property="Padding" Value="8,5" />
     <Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
     <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- Topo: caixa de saida multilinha (somente leitura) comeca no alto.
+         A caixa de linha unica tem altura automatica e nao muda. -->
+    <Setter Property="VerticalContentAlignment" Value="Top" />
     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
     <Setter Property="Template">
       <Setter.Value>

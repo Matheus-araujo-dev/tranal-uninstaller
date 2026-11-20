@@ -160,7 +160,18 @@ public partial class MainWindow : Window
             var pastaDaSonda = Environment.GetEnvironmentVariable("TRANAL_UI_SNAPSHOT");
             if (!string.IsNullOrWhiteSpace(pastaDaSonda))
             {
-                await CapturarTelasAsync(pastaDaSonda);
+                try
+                {
+                    await CapturarTelasAsync(pastaDaSonda);
+                }
+                catch (Exception ex)
+                {
+                    // A sonda e diagnostico: falhar nela vai para o log e
+                    // fecha o app como ela fecharia, sem derrubar o processo.
+                    FatalLog.Write(ex);
+                    Close();
+                }
+
                 return;
             }
 
@@ -420,29 +431,63 @@ public partial class MainWindow : Window
         UpdateStatus();
         UpdateSelectionBar();
 
-        // A coluna "Inicializacao" so responde depois que a varredura de
-        // inicializacao aconteceu: a varredura e cara e nao cabe por linha.
-        // Ate la, a coluna fica vazia — nunca "Nao" por palpite.
-        //
-        // MEDIDO: ela rodava dentro do UpdateStatus, ou seja, a cada letra
-        // digitada na busca (registro + WMI dos servicos + tarefas, ~350
-        // itens). Agora roda uma vez por carga, fora da tela, e so quando a
-        // coluna esta na grade.
-        if (_visibleColumns.Contains(ProgramColumn.Startup))
+        if (interrompida)
         {
-            var inicializacao = await Task.Run(() => Core.Tools.AutorunManager.Scan());
-            StartupEntryIndex.Refresh(inicializacao);
-            _view.Refresh();
+            StatusText.Text = Loc.Get("Status.ScanStopped", programs.Count);
         }
+
+        // A coluna "Inicializacao": a carga nova invalida o que se sabia.
+        _inicializacaoVarrida = false;
+        _ = VarrerInicializacaoSeVisivelAsync();
 
         // A varredura deixa para tras listas grandes (registro, cache,
         // icones). Uma coleta compacta aqui devolve essa memoria ao Windows
         // em vez de ela ficar reservada pelo processo.
         AliviarMemoria();
+    }
 
-        if (interrompida)
+    /// <summary>True quando a varredura da inicializacao ja vale para a lista atual.</summary>
+    private bool _inicializacaoVarrida;
+
+    /// <summary>Numera as varreduras: so a mais nova escreve o resultado.</summary>
+    private int _varreduraDeInicializacao;
+
+    /// <summary>
+    /// Preenche a coluna "Inicializacao" quando ela esta na grade.
+    ///
+    /// A coluna so responde depois da varredura de inicializacao: a varredura
+    /// e cara e nao cabe por linha. Ate la, a coluna fica vazia — nunca "Nao"
+    /// por palpite.
+    ///
+    /// MEDIDO: ela rodava dentro do UpdateStatus, ou seja, a cada letra
+    /// digitada na busca (registro + WMI dos servicos + tarefas, ~350 itens).
+    /// Agora roda uma vez por carga, fora da tela, e so quando a coluna esta
+    /// na grade — e tambem quando a coluna ENTRA na grade (janela "Colunas",
+    /// modo compacto desligado), para a coluna nunca ficar vazia em silencio.
+    /// </summary>
+    private async Task VarrerInicializacaoSeVisivelAsync()
+    {
+        if (_inicializacaoVarrida || !_visibleColumns.Contains(ProgramColumn.Startup)) return;
+
+        _inicializacaoVarrida = true;
+        var esta = ++_varreduraDeInicializacao;
+
+        try
         {
-            StatusText.Text = Loc.Get("Status.ScanStopped", programs.Count);
+            var inicializacao = await Task.Run(() => Core.Tools.AutorunManager.Scan());
+
+            // Uma carga mais nova comecou no meio: o resultado dela vale, nao este.
+            if (esta != _varreduraDeInicializacao) return;
+
+            StartupEntryIndex.Refresh(inicializacao);
+            _view.Refresh();
+        }
+        catch (Exception ex)
+        {
+            // Sem a varredura a coluna so fica vazia (o estado "nao sei"); o
+            // erro vai para o log e a lista continua funcionando.
+            _inicializacaoVarrida = false;
+            FatalLog.Write(ex);
         }
     }
 
@@ -768,6 +813,9 @@ public partial class MainWindow : Window
         ProgramsList.View = grid;
 
         SetupColumnHeaders();
+
+        // A coluna "Inicializacao" pode ter acabado de entrar na grade.
+        if (_all.Count > 0) _ = VarrerInicializacaoSeVisivelAsync();
 
         // O modo de visualizacao e um estado da tela, nao uma preferencia de
         // colunas: ele e reaplicado depois da grade, para nao se perder quando
@@ -1456,8 +1504,15 @@ public partial class MainWindow : Window
         var origem = e.OriginalSource as DependencyObject;
         while (origem is not null and not ListViewItem)
         {
-            if (origem is System.Windows.Controls.Primitives.ScrollBar or GridViewColumnHeader) return;
-            origem = VisualTreeHelper.GetParent(origem);
+            // Dois cliques na caixa de marcacao (ou em outro botao dentro da
+            // linha) marcam a caixa — nao desinstalam.
+            if (origem is System.Windows.Controls.Primitives.ScrollBar or GridViewColumnHeader
+                or System.Windows.Controls.Primitives.ButtonBase) return;
+
+            // Um Run (texto dentro do TextBlock) nao e Visual: sobe pela arvore logica.
+            origem = origem is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(origem)
+                : LogicalTreeHelper.GetParent(origem);
         }
 
         if (origem is null) return;
@@ -1480,6 +1535,7 @@ public partial class MainWindow : Window
             await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
 
             var raiz = alvo ?? (FrameworkElement)Content;
+            if (raiz.ActualWidth < 1 || raiz.ActualHeight < 1) return;
             var dpi = VisualTreeHelper.GetDpi(raiz);
             var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(
                 (int)(raiz.ActualWidth * dpi.DpiScaleX), (int)(raiz.ActualHeight * dpi.DpiScaleY),
@@ -1515,8 +1571,15 @@ public partial class MainWindow : Window
         // O menu com submenu aberto: era ali o "branco no hover".
         var menu = new ContextMenu { PlacementTarget = MainMenuButton };
         var sub = new MenuItem { Header = Loc.Get("Cmd.Theme") };
-        sub.Items.Add(new MenuItem { Header = "Dark", IsCheckable = true, IsChecked = true });
-        sub.Items.Add(new MenuItem { Header = "Light" });
+        foreach (var skin in Core.Appearance.ThemeSkinCatalog.All)
+        {
+            sub.Items.Add(new MenuItem
+            {
+                Header = skin.DisplayName,
+                IsCheckable = true,
+                IsChecked = skin.Id == ThemeManager.Current,
+            });
+        }
         menu.Items.Add(new MenuItem { Header = Loc.Get("Cmd.Options"), InputGestureText = "Ctrl+O" });
         menu.Items.Add(sub);
         menu.Items.Add(new Separator());
@@ -1525,7 +1588,7 @@ public partial class MainWindow : Window
         await Task.Delay(300);
         sub.IsSubmenuOpen = true;
         await Gravar("07-menu", menu);
-        if (sub.Template.FindName("PART_Popup", sub) is System.Windows.Controls.Primitives.Popup popup
+        if (sub.Template?.FindName("PART_Popup", sub) is System.Windows.Controls.Primitives.Popup popup
             && popup.Child is FrameworkElement filho)
             await Gravar("08-submenu", filho);
         menu.IsOpen = false;
@@ -1728,7 +1791,10 @@ public partial class MainWindow : Window
             var id = botao.Tag?.ToString();
             if (string.IsNullOrEmpty(id)) continue;
 
-            botao.ToolTip = PanelPreview.Text(id, Loc.Get($"Module.{id}"), DescriptionFor(id));
+            // A descricao da dica e o "o que faz" do guia: e o mesmo texto do
+            // cartao, e o subtitulo da tela (DescriptionFor) fica vazio quando
+            // ha guia.
+            botao.ToolTip = PanelPreview.Text(id, Loc.Get($"Module.{id}"), Loc.Get(ToolGuide.KeyOf(id, "What")));
         }
     }
 

@@ -164,7 +164,10 @@ public sealed class InterfaceLeveTests
         var migrado = AppSettingsStore.Normalize(antigo);
         Assert.False(migrado.FocusTracedProgramsOnStartup);
         Assert.False(migrado.ShowCheckBoxesInDetailsView);
-        Assert.True(migrado.CompactProgramList);
+
+        // A lista completa de quem ja a usava continua: a migracao nao tira
+        // colunas que a pessoa escolheu.
+        Assert.False(migrado.CompactProgramList);
         Assert.Equal(AppSettingsStore.UiCurrentRevision, migrado.UiRevision);
 
         // Depois da migracao, a escolha do usuario vale.

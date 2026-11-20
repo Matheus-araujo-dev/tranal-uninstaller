@@ -2007,5 +2007,5 @@
     "Guide.Back":  "Tools", 
     "Guide.Hide":  "Hide explanation", 
     "Guide.Show":  "What is this for?", 
-    "Options.HardwareRendering":  "Use the graphics card to draw the window (uses more memory)" 
+    "Options.HardwareRendering":  "Use the graphics card to draw the window (uses more memory; takes effect when Tranal restarts)" 
 }

@@ -2007,5 +2007,5 @@
     "Guide.Back":  "Ferramentas", 
     "Guide.Hide":  "Esconder explicação", 
     "Guide.Show":  "Para que serve?", 
-    "Options.HardwareRendering":  "Usar a placa de vídeo para desenhar a janela (gasta mais memória)" 
+    "Options.HardwareRendering":  "Usar a placa de vídeo para desenhar a janela (gasta mais memória; vale ao reabrir o Tranal)" 
 }

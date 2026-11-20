@@ -1023,9 +1023,14 @@ regras abaixo valem para qualquer mudança de tela.
   `ContentPresenter` dos templates tem um `<Style TargetType="TextBlock"/>`
   vazio, e o texto escrito à mão dentro de botão usa `BtnText`/`Glyph`.
 - **Padrões novos com migração única** (`AppSettings.UiRevision`, como a
-  `UpdatePolicyRevision`): abrir na lista, sem caixas de marcação (toda linha
-  nascia marcada e parecia dizer "tudo será removido"), lista compacta.
-  Depois da migração, a escolha do usuário vale.
+  `UpdatePolicyRevision`): abrir na lista e sem caixas de marcação (toda
+  linha nascia marcada e parecia dizer "tudo será removido"). Depois da
+  migração, a escolha do usuário vale. A **lista compacta** é só o padrão de
+  quem instala agora: a migração não a liga, para não tirar colunas que a
+  pessoa já tinha escolhido.
+- **A coluna "Inicialização" é varrida quando entra na grade**, não só na
+  carga (`VarrerInicializacaoSeVisivelAsync`): sem isso, mostrar a coluna pela
+  janela "Colunas" deixava a coluna vazia até a próxima carga.
 
 ## Memória (teto de 80 MB)
 

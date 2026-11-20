@@ -725,11 +725,14 @@ public static class AppSettingsStore
         // programas monitorados e mostrar as caixas de marcacao). O arquivo
         // antigo tem os dois ligados porque era o padrao; a migracao desliga
         // UMA vez, e depois o que o usuario escolher vale.
+        //
+        // A lista compacta NAO entra na migracao: ela so e o padrao de quem
+        // instala agora. Quem ja usava a lista completa perderia colunas que
+        // escolheu (Anotacao, Inicializacao, Marcas) sem nenhum aviso.
         if (settings.UiRevision < UiCurrentRevision)
         {
             settings.FocusTracedProgramsOnStartup = false;
             settings.ShowCheckBoxesInDetailsView = false;
-            settings.CompactProgramList = true;
             settings.UiRevision = UiCurrentRevision;
         }
 
