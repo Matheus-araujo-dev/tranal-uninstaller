@@ -25,10 +25,10 @@ public static class ProgramColumnLayout
     {
         ProgramColumn.Name => 250,
         ProgramColumn.Size => 95,
-        ProgramColumn.Version => 130,
+        ProgramColumn.Version => 150,
         ProgramColumn.Type => 70,
         ProgramColumn.Date => 85,
-        ProgramColumn.Company => 150,
+        ProgramColumn.Company => 230,
         ProgramColumn.HomePage => 160,
         ProgramColumn.Comments => 170,
         ProgramColumn.UninstallString => 220,

@@ -128,6 +128,11 @@ public partial class MainWindow : Window
         // Telas de modulos e ferramentas registradas uma unica vez.
         ViewSetup.RegisterAll(this);
 
+        // A pagina "Ferramentas" (cartoes por categoria) e o subtitulo da
+        // lista de programas.
+        BuildToolCards();
+        SetDescription(DescriptionFor("AllPrograms"));
+
         // Visibilidade dos paineis conforme as preferencias.
         ApplyLayout();
 
@@ -148,6 +153,28 @@ public partial class MainWindow : Window
             SetupTray();
             await ReloadAsync();
             FocusStartupModule();
+
+            // Sonda visual (so com TRANAL_UI_SNAPSHOT apontando uma pasta):
+            // grava a tela de cada passo em PNG e fecha o app. E como a
+            // interface e conferida sem alguem olhando a tela.
+            var pastaDaSonda = Environment.GetEnvironmentVariable("TRANAL_UI_SNAPSHOT");
+            if (!string.IsNullOrWhiteSpace(pastaDaSonda))
+            {
+                try
+                {
+                    await CapturarTelasAsync(pastaDaSonda);
+                }
+                catch (Exception ex)
+                {
+                    // A sonda e diagnostico: falhar nela vai para o log e
+                    // fecha o app como ela fecharia, sem derrubar o processo.
+                    FatalLog.Write(ex);
+                    Close();
+                }
+
+                return;
+            }
+
             _ = CheckForUpdateOnStartup();
             IniciarVerificacaoPeriodica();
         };
@@ -386,6 +413,7 @@ public partial class MainWindow : Window
         ProgramCacheStore.Save(programs);
 
         _all.Clear();
+        ProgramIcons.Clear();
         foreach (var program in programs)
             _all.Add(new ProgramRow(program));
 
@@ -401,10 +429,65 @@ public partial class MainWindow : Window
 
         ApplyFilter();
         UpdateStatus();
+        UpdateSelectionBar();
 
         if (interrompida)
         {
             StatusText.Text = Loc.Get("Status.ScanStopped", programs.Count);
+        }
+
+        // A coluna "Inicializacao": a carga nova invalida o que se sabia.
+        _inicializacaoVarrida = false;
+        _ = VarrerInicializacaoSeVisivelAsync();
+
+        // A varredura deixa para tras listas grandes (registro, cache,
+        // icones). Uma coleta compacta aqui devolve essa memoria ao Windows
+        // em vez de ela ficar reservada pelo processo.
+        AliviarMemoria();
+    }
+
+    /// <summary>True quando a varredura da inicializacao ja vale para a lista atual.</summary>
+    private bool _inicializacaoVarrida;
+
+    /// <summary>Numera as varreduras: so a mais nova escreve o resultado.</summary>
+    private int _varreduraDeInicializacao;
+
+    /// <summary>
+    /// Preenche a coluna "Inicializacao" quando ela esta na grade.
+    ///
+    /// A coluna so responde depois da varredura de inicializacao: a varredura
+    /// e cara e nao cabe por linha. Ate la, a coluna fica vazia — nunca "Nao"
+    /// por palpite.
+    ///
+    /// MEDIDO: ela rodava dentro do UpdateStatus, ou seja, a cada letra
+    /// digitada na busca (registro + WMI dos servicos + tarefas, ~350 itens).
+    /// Agora roda uma vez por carga, fora da tela, e so quando a coluna esta
+    /// na grade — e tambem quando a coluna ENTRA na grade (janela "Colunas",
+    /// modo compacto desligado), para a coluna nunca ficar vazia em silencio.
+    /// </summary>
+    private async Task VarrerInicializacaoSeVisivelAsync()
+    {
+        if (_inicializacaoVarrida || !_visibleColumns.Contains(ProgramColumn.Startup)) return;
+
+        _inicializacaoVarrida = true;
+        var esta = ++_varreduraDeInicializacao;
+
+        try
+        {
+            var inicializacao = await Task.Run(() => Core.Tools.AutorunManager.Scan());
+
+            // Uma carga mais nova comecou no meio: o resultado dela vale, nao este.
+            if (esta != _varreduraDeInicializacao) return;
+
+            StartupEntryIndex.Refresh(inicializacao);
+            _view.Refresh();
+        }
+        catch (Exception ex)
+        {
+            // Sem a varredura a coluna so fica vazia (o estado "nao sei"); o
+            // erro vai para o log e a lista continua funcionando.
+            _inicializacaoVarrida = false;
+            FatalLog.Write(ex);
         }
     }
 
@@ -443,11 +526,6 @@ public partial class MainWindow : Window
 
     private void UpdateStatus()
     {
-        // A coluna "Inicializacao" so responde depois que a varredura de
-        // inicializacao aconteceu: a varredura e cara e nao cabe por linha.
-        // Ate la, a coluna fica vazia — nunca "Nao" por palpite.
-        StartupEntryIndex.Refresh(Core.Tools.AutorunManager.Scan());
-
         var total = _all.Count;
         var visible = _view.Cast<ProgramRow>().Count();
         StatusText.Text = $"{Loc.Get("Status.Installations")}: {total}";
@@ -483,6 +561,7 @@ public partial class MainWindow : Window
     // ------------------------------------------------------------------
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        SearchPlaceholder.Visibility = SearchBox.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         _filters.SearchText = SearchBox.Text;
         ApplyFilter();
         UpdateStatus();
@@ -734,6 +813,9 @@ public partial class MainWindow : Window
         ProgramsList.View = grid;
 
         SetupColumnHeaders();
+
+        // A coluna "Inicializacao" pode ter acabado de entrar na grade.
+        if (_all.Count > 0) _ = VarrerInicializacaoSeVisivelAsync();
 
         // O modo de visualizacao e um estado da tela, nao uma preferencia de
         // colunas: ele e reaplicado depois da grade, para nao se perder quando
@@ -1105,43 +1187,65 @@ public partial class MainWindow : Window
     /// </summary>
     private void SwitchView(string id, bool tool)
     {
+        var anterior = _module;
         _module = id;
         _ferramentaAtual = tool ? id : string.Empty;
 
-        foreach (var child in ModulePanel.Children.OfType<Button>())
+        // A navegacao lateral marca a tela atual. Uma ferramenta aberta pela
+        // pagina "Ferramentas" mantem "Ferramentas" marcado: e de la que a
+        // pessoa veio, e e para la que o "Voltar" leva.
+        var marcado = tool && !IsNavTarget(id) ? ToolsHomeId : id;
+        foreach (var child in NavButtons())
         {
-            var selected = !tool && (string)child.Tag == id;
+            var selected = string.Equals(child.Tag as string, marcado, StringComparison.Ordinal);
             child.Style = (Style)FindResource(selected ? "ModuleButtonSelected" : "ModuleButton");
         }
 
-        foreach (var child in ToolPanel.Children.OfType<Button>())
-        {
-            var selected = tool && (string)child.Tag == id;
-            child.Style = (Style)FindResource(selected ? "ModuleButtonSelected" : "ModuleButton");
-        }
+        ModuleHeader.Text = TitleFor(id);
+        SetDescription(DescriptionFor(id));
+        ShowGuide(tool || ToolGuide.Modules.Contains(id) ? id : string.Empty);
 
-        ModuleHeader.Text = Loc.Get($"Module.{id}");
-        DescriptionText.Text = DescriptionFor(id);
-        ActionTitleText.Text = Loc.Get(tool ? "Sidebar.Tools" : "Sidebar.Uninstall");
+        BackToToolsButton.Visibility = tool && !IsNavTarget(id) ? Visibility.Visible : Visibility.Collapsed;
+        DockPanelButton.Visibility = tool ? Visibility.Visible : Visibility.Collapsed;
 
-        if (id == "AllPrograms")
+        var programas = id == "AllPrograms";
+        var ferramentas = id == ToolsHomeId;
+
+        ProgramsView.Visibility = programas ? Visibility.Visible : Visibility.Collapsed;
+        ProgramsToolbar.Visibility = programas ? Visibility.Visible : Visibility.Collapsed;
+        SelectionBar.Visibility = programas ? Visibility.Visible : Visibility.Collapsed;
+        SettingsPanelButton.Visibility = programas ? Visibility.Visible : Visibility.Collapsed;
+        ToolsHomeView.Visibility = ferramentas ? Visibility.Visible : Visibility.Collapsed;
+        ContentHostBorder.Visibility = programas || ferramentas ? Visibility.Collapsed : Visibility.Visible;
+        SearchBox.IsEnabled = programas;
+        FilterButton.IsEnabled = programas;
+
+        // A tela que saiu e descartada: cada ferramenta guarda as proprias
+        // listas, e manter a anterior viva era memoria presa sem uso.
+        var saiuDeUmaTela = ContentHost.Content is not null;
+        ContentHost.Content = null;
+        if (saiuDeUmaTela) AliviarMemoria();
+
+        if (programas)
         {
-            ProgramsView.Visibility = Visibility.Visible;
-            ContentHost.Visibility = Visibility.Collapsed;
-            ContentHost.Content = null;
-            SearchBox.IsEnabled = true;
-            FilterButton.IsEnabled = true;
-            _ = ReloadAsync();
+            // Voltar para a lista nao precisa varrer o registro de novo: a
+            // varredura e cara, e a lista ainda e a mesma. Ela so e refeita
+            // quando nunca rodou (ou quando a pessoa pede "Atualizar").
+            if (_all.Count == 0 || anterior != "AllPrograms" && _recarregarAoVoltar) _ = ReloadAsync();
+            _recarregarAoVoltar = false;
+            UpdateSelectionBar();
 
             RefreshDock();
             RefreshToolPreviews();
             return;
         }
 
-        ProgramsView.Visibility = Visibility.Collapsed;
-        ContentHost.Visibility = Visibility.Visible;
-        SearchBox.IsEnabled = false;
-        FilterButton.IsEnabled = false;
+        if (ferramentas)
+        {
+            RefreshDock();
+            RefreshToolPreviews();
+            return;
+        }
 
         var view = ViewRegistry.Create(id);
         ContentHost.Content = view;
@@ -1153,9 +1257,358 @@ public partial class MainWindow : Window
 
         AttachPanel(id, view);
 
+        // Uma ferramenta pode mudar o que esta instalado (Apps do Windows,
+        // dormencia, relocacao): a lista e refeita na volta.
+        _recarregarAoVoltar = true;
+
         RefreshDock();
         RefreshToolPreviews();
     }
+
+    /// <summary>O id da pagina "Ferramentas" (a pagina de cartoes).</summary>
+    private const string ToolsHomeId = "ToolsHome";
+
+    /// <summary>
+    /// True quando a lista de programas precisa ser refeita ao voltar para
+    /// ela (uma ferramenta pode ter mudado o que esta instalado).
+    /// </summary>
+    private bool _recarregarAoVoltar;
+
+    /// <summary>Os botoes da navegacao lateral (os que tem destino).</summary>
+    private IEnumerable<Button> NavButtons() =>
+        ModulePanel.Children.OfType<Button>()
+            .Concat(MorePanel.Children.OfType<Button>())
+            .Append(BtnToolsHome)
+            .Where(b => b.Tag is string);
+
+    /// <summary>True quando a tela tem um botao proprio na navegacao lateral.</summary>
+    private bool IsNavTarget(string id) =>
+        NavButtons().Any(b => string.Equals(b.Tag as string, id, StringComparison.Ordinal));
+
+    /// <summary>
+    /// Devolve ao Windows a memoria que uma operacao grande deixou para tras
+    /// (a varredura dos programas, uma ferramenta que acabou de fechar).
+    ///
+    /// POR QUE: o coletor do .NET guarda a memoria livre para reusar; num
+    /// aplicativo que passa a maior parte do tempo parado, isso e so numero
+    /// alto no Gerenciador de Tarefas. A coleta agressiva compacta o heap e
+    /// libera os segmentos vazios. Roda quando a tela esta ociosa, para nao
+    /// atrasar a troca de tela.
+    /// </summary>
+    private void AliviarMemoria()
+    {
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ContextIdle, () =>
+        {
+            System.Runtime.GCSettings.LargeObjectHeapCompactionMode =
+                System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+        });
+    }
+
+    /// <summary>O subtitulo da tela. Vazio, ele some (sem deixar um vao sob o titulo).</summary>
+    private void SetDescription(string texto)
+    {
+        DescriptionText.Text = texto;
+        DescriptionText.Visibility = string.IsNullOrEmpty(texto) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>O titulo da tela.</summary>
+    private static string TitleFor(string id) =>
+        id == ToolsHomeId ? Loc.Get("Tools.Title") : Loc.Get($"Module.{id}");
+
+    /// <summary>
+    /// Mostra o guia da tela (o que faz, o que voce ganha, quando usar,
+    /// cuidado). Sem guia, o cartao some.
+    /// </summary>
+    private void ShowGuide(string id)
+    {
+        if (!ToolGuide.HasGuide(id))
+        {
+            ToolGuidePanel.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        ToolGuidePanel.Visibility = Visibility.Visible;
+        GuideWhat.Text = Loc.Get(ToolGuide.KeyOf(id, "What"));
+        GuideGain.Text = Loc.Get(ToolGuide.KeyOf(id, "Gain"));
+        GuideWhen.Text = Loc.Get(ToolGuide.KeyOf(id, "When"));
+        GuideAvoid.Text = Loc.Get(ToolGuide.KeyOf(id, "Avoid"));
+        ApplyGuideCollapsed();
+    }
+
+    /// <summary>
+    /// O guia aberto ou recolhido. A escolha vale para todas as ferramentas e
+    /// fica gravada: quem ja leu nao precisa ver o guia toda vez.
+    /// </summary>
+    private void ApplyGuideCollapsed()
+    {
+        var recolhido = AppSettingsStore.Current.CollapseToolGuide;
+        GuideBody.Visibility = recolhido ? Visibility.Collapsed : Visibility.Visible;
+        GuideToggleText.Text = Loc.Get(recolhido ? "Guide.Show" : "Guide.Hide");
+    }
+
+    private void GuideToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        AppSettingsStore.Update(s => s.CollapseToolGuide = !s.CollapseToolGuide);
+        ApplyGuideCollapsed();
+    }
+
+    private void BackToToolsButton_Click(object sender, RoutedEventArgs e) =>
+        SwitchView(ToolsHomeId, tool: false);
+
+    private void OptionsNavButton_Click(object sender, RoutedEventArgs e) => ShowOptions();
+
+    /// <summary>
+    /// Os cartoes da pagina "Ferramentas", na ordem e nas categorias do
+    /// nucleo (<see cref="ToolGuide"/>).
+    /// </summary>
+    private readonly List<Button> _toolButtons = new();
+
+    /// <summary>
+    /// Monta a pagina "Ferramentas": distribui os cartoes do XAML nas
+    /// categorias do nucleo e preenche cada um com o icone, o nome e o "o que
+    /// faz". Roda no arranque e na troca de idioma.
+    /// </summary>
+    private void BuildToolCards()
+    {
+        if (_toolButtons.Count == 0)
+        {
+            _toolButtons.AddRange(ToolPanel.Children.OfType<Button>());
+            ToolPanel.Children.Clear();
+        }
+
+        foreach (var secao in ToolSections.Children.OfType<Panel>())
+            secao.Children.Clear();
+        ToolSections.Children.Clear();
+
+        foreach (var categoria in Enum.GetValues<ToolCategory>())
+        {
+            var titulo = new TextBlock
+            {
+                Text = Loc.Get(ToolGuide.LabelKeyOf(categoria)),
+                Style = (Style)FindResource("SectionLabel"),
+            };
+            if (ToolSections.Children.Count == 0) titulo.Margin = new Thickness(0, 4, 0, 8);
+            ToolSections.Children.Add(titulo);
+
+            var cartoes = new WrapPanel();
+            foreach (var id in ToolGuide.ToolsOf(categoria))
+            {
+                var botao = _toolButtons.FirstOrDefault(b => string.Equals(b.Tag as string, id, StringComparison.Ordinal));
+                if (botao is null) continue;
+
+                botao.Content = ToolCardContent(id);
+                cartoes.Children.Add(botao);
+            }
+
+            ToolSections.Children.Add(cartoes);
+        }
+    }
+
+    /// <summary>O conteudo de um cartao: icone, nome e o que a ferramenta faz.</summary>
+    private FrameworkElement ToolCardContent(string id)
+    {
+        var glyph = new TextBlock
+        {
+            Text = ToolGlyphs.Of(id),
+            Style = (Style)FindResource("Glyph"),
+            FontSize = 16,
+            Margin = new Thickness(0, 0, 10, 0),
+        };
+
+        var nome = new TextBlock
+        {
+            Text = Loc.Get($"Module.{id}"),
+            Style = (Style)FindResource("BtnText"),
+            FontWeight = FontWeights.SemiBold,
+            FontSize = 13,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+        };
+
+        var topo = new DockPanel { LastChildFill = true };
+        topo.Children.Add(glyph);
+        topo.Children.Add(nome);
+
+        var descricao = new TextBlock
+        {
+            Text = Loc.Get(ToolGuide.KeyOf(id, "What")),
+            TextWrapping = TextWrapping.Wrap,
+            TextTrimming = TextTrimming.WordEllipsis,
+            FontSize = 11.5,
+            LineHeight = 16,
+            MaxHeight = 48,
+            Margin = new Thickness(0, 7, 0, 0),
+        };
+        descricao.SetResourceReference(TextBlock.ForegroundProperty, "TextDimBrush");
+
+        var pilha = new StackPanel();
+        pilha.Children.Add(topo);
+        pilha.Children.Add(descricao);
+        return pilha;
+    }
+
+    // ------------------------------------------------------------------
+    // A barra da selecao: o que sera desinstalado e o botao que faz
+    // ------------------------------------------------------------------
+    private void ProgramsList_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectionBar();
+
+    /// <summary>
+    /// Mostra na barra de baixo o programa escolhido (icone, nome, empresa,
+    /// versao e tamanho) e liga os botoes de desinstalar. Sem selecao, a
+    /// barra explica o que fazer.
+    /// </summary>
+    private void UpdateSelectionBar()
+    {
+        var rows = selectedRows;
+        UninstallButton.IsEnabled = rows.Count > 0;
+        QuickUninstallButton.IsEnabled = rows.Count > 0;
+
+        if (rows.Count == 0)
+        {
+            SelectionTitle.Text = Loc.Get("Selection.None.Title");
+            SelectionDetail.Text = Loc.Get("Selection.None.Hint");
+            SelectionIcon.Source = null;
+            SelectionGlyph.Visibility = Visibility.Visible;
+            return;
+        }
+
+        if (rows.Count > 1)
+        {
+            SelectionTitle.Text = Loc.Get("Selection.Many.Title", rows.Count);
+            SelectionDetail.Text = Loc.Get("Selection.Many.Hint");
+            SelectionIcon.Source = null;
+            SelectionGlyph.Visibility = Visibility.Visible;
+            return;
+        }
+
+        var row = rows[0];
+        SelectionTitle.Text = row.Label;
+
+        var partes = new List<string>();
+        if (!string.IsNullOrWhiteSpace(row.Publisher)) partes.Add(row.Publisher);
+        if (!string.IsNullOrWhiteSpace(row.DisplayVersion)) partes.Add(Loc.Get("Selection.Version", row.DisplayVersion));
+        if (!string.IsNullOrWhiteSpace(row.SizeText)) partes.Add(row.SizeText);
+        SelectionDetail.Text = string.Join("  ·  ", partes);
+
+        SelectionIcon.Source = row.Icon;
+        SelectionGlyph.Visibility = row.Icon is null ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>Dois cliques em um programa: desinstalar (o gesto que todo mundo tenta primeiro).</summary>
+    private void ProgramsList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left) return;
+
+        // So o clique numa linha conta: dois cliques no cabecalho da coluna
+        // ou na barra de rolagem nao desinstalam nada.
+        var origem = e.OriginalSource as DependencyObject;
+        while (origem is not null and not ListViewItem)
+        {
+            // Dois cliques na caixa de marcacao (ou em outro botao dentro da
+            // linha) marcam a caixa — nao desinstalam.
+            if (origem is System.Windows.Controls.Primitives.ScrollBar or GridViewColumnHeader
+                or System.Windows.Controls.Primitives.ButtonBase) return;
+
+            // Um Run (texto dentro do TextBlock) nao e Visual: sobe pela arvore logica.
+            origem = origem is Visual or System.Windows.Media.Media3D.Visual3D
+                ? VisualTreeHelper.GetParent(origem)
+                : LogicalTreeHelper.GetParent(origem);
+        }
+
+        if (origem is null) return;
+        StartUninstall(quick: false);
+    }
+
+    /// <summary>
+    /// A sonda visual: percorre as telas principais e grava cada uma em PNG
+    /// na pasta pedida, depois fecha o app. Nada e desinstalado nem alterado:
+    /// a sonda so seleciona uma linha e troca de tela.
+    /// </summary>
+    private async Task CapturarTelasAsync(string pasta)
+    {
+        Directory.CreateDirectory(pasta);
+
+        async Task Gravar(string nome, FrameworkElement? alvo = null)
+        {
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            await Task.Delay(600);
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+
+            var raiz = alvo ?? (FrameworkElement)Content;
+            if (raiz.ActualWidth < 1 || raiz.ActualHeight < 1) return;
+            var dpi = VisualTreeHelper.GetDpi(raiz);
+            var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(
+                (int)(raiz.ActualWidth * dpi.DpiScaleX), (int)(raiz.ActualHeight * dpi.DpiScaleY),
+                dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+            bitmap.Render(raiz);
+
+            var png = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            png.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+            using var arquivo = File.Create(Path.Combine(pasta, nome + ".png"));
+            png.Save(arquivo);
+        }
+
+        await Gravar("01-programas");
+
+        if (_view.Cast<ProgramRow>().FirstOrDefault() is { } primeira)
+        {
+            ProgramsList.SelectedItem = primeira;
+            await Gravar("02-selecionado");
+        }
+
+        SwitchView(ToolsHomeId, tool: false);
+        await Gravar("03-ferramentas");
+
+        SwitchView(ToolCatalog.JunkCleaner, tool: true);
+        await Gravar("04-ferramenta-temporarios");
+
+        SwitchView(ToolCatalog.AutorunManager, tool: true);
+        await Task.Delay(1500);
+        await Gravar("05-ferramenta-inicializacao");
+
+        SwitchView("AllPrograms", tool: false);
+
+        // O menu com submenu aberto: era ali o "branco no hover".
+        var menu = new ContextMenu { PlacementTarget = MainMenuButton };
+        var sub = new MenuItem { Header = Loc.Get("Cmd.Theme") };
+        foreach (var skin in Core.Appearance.ThemeSkinCatalog.All)
+        {
+            sub.Items.Add(new MenuItem
+            {
+                Header = skin.DisplayName,
+                IsCheckable = true,
+                IsChecked = skin.Id == ThemeManager.Current,
+            });
+        }
+        menu.Items.Add(new MenuItem { Header = Loc.Get("Cmd.Options"), InputGestureText = "Ctrl+O" });
+        menu.Items.Add(sub);
+        menu.Items.Add(new Separator());
+        menu.Items.Add(new MenuItem { Header = Loc.Get("Cmd.Exit") });
+        menu.IsOpen = true;
+        await Task.Delay(300);
+        sub.IsSubmenuOpen = true;
+        await Gravar("07-menu", menu);
+        if (sub.Template?.FindName("PART_Popup", sub) is System.Windows.Controls.Primitives.Popup popup
+            && popup.Child is FrameworkElement filho)
+            await Gravar("08-submenu", filho);
+        menu.IsOpen = false;
+
+        var opcoes = new OptionsWindow { Owner = this };
+        opcoes.Show();
+        await Gravar("09-opcoes", (FrameworkElement)opcoes.Content);
+        opcoes.Close();
+
+        var tema = ThemeManager.Current;
+        ThemeManager.Apply(ThemeManager.Light);
+        await Gravar("06-tema-claro");
+        ThemeManager.Apply(tema);
+
+        Close();
+    }
+
+    private void UninstallButton_Click(object sender, RoutedEventArgs e) => StartUninstall(quick: false);
+
+    private void QuickUninstallButton_Click(object sender, RoutedEventArgs e) => StartUninstall(quick: true);
 
     /// <summary>
     /// Abre a tela de uma ferramenta.
@@ -1176,9 +1629,11 @@ public partial class MainWindow : Window
     /// <summary>Atualiza os textos fixos apos troca de idioma.</summary>
     private void RefreshLocalizedTexts()
     {
-        ModuleHeader.Text = Loc.Get($"Module.{_module}");
-        DescriptionText.Text = DescriptionFor(_module);
-        ActionTitleText.Text = Loc.Get(_module == "AllPrograms" ? "Sidebar.Uninstall" : "Sidebar.Tools");
+        ModuleHeader.Text = TitleFor(_module);
+        SetDescription(DescriptionFor(_module));
+        ShowGuide(_ferramentaAtual.Length > 0 || ToolGuide.Modules.Contains(_module) ? _module : string.Empty);
+        BuildToolCards();
+        UpdateSelectionBar();
 
         // Os grupos ("Novos Programas"/"Outros Programas") tambem dependem do idioma.
         _view.Refresh();
@@ -1189,7 +1644,7 @@ public partial class MainWindow : Window
 
         // As telas de modulo/ferramenta sao recriadas: os cabecalhos das colunas
         // sao fixados no momento da criacao do painel.
-        if (_module != "AllPrograms")
+        if (_module != "AllPrograms" && _module != ToolsHomeId)
         {
             var view = ViewRegistry.Create(_module);
             if (view is not null)
@@ -1210,6 +1665,15 @@ public partial class MainWindow : Window
     /// </summary>
     private static string DescriptionFor(string module)
     {
+        // A lista de programas e a pagina de ferramentas dizem, em uma frase,
+        // o que a pessoa faz ali.
+        if (module == "AllPrograms") return Loc.Get("Page.Programs.Subtitle");
+        if (module == ToolsHomeId) return Loc.Get("Tools.Subtitle");
+
+        // A tela com guia ja explica tudo no cartao do guia: repetir a
+        // explicacao no subtitulo seria ruido.
+        if (ToolGuide.HasGuide(module)) return string.Empty;
+
         var key = $"Desc.{module}";
         var text = Loc.Get(key);
         return text == key ? string.Empty : text;
@@ -1322,12 +1786,15 @@ public partial class MainWindow : Window
     /// </summary>
     private void RefreshToolPreviews()
     {
-        foreach (var botao in ToolPanel.Children.OfType<Button>())
+        foreach (var botao in _toolButtons)
         {
             var id = botao.Tag?.ToString();
             if (string.IsNullOrEmpty(id)) continue;
 
-            botao.ToolTip = PanelPreview.Text(id, Loc.Get($"Module.{id}"), DescriptionFor(id));
+            // A descricao da dica e o "o que faz" do guia: e o mesmo texto do
+            // cartao, e o subtitulo da tela (DescriptionFor) fica vazio quando
+            // ha guia.
+            botao.ToolTip = PanelPreview.Text(id, Loc.Get($"Module.{id}"), Loc.Get(ToolGuide.KeyOf(id, "What")));
         }
     }
 
@@ -1773,9 +2240,8 @@ public partial class MainWindow : Window
         DescriptionPanelBorder.Visibility = settings.ShowDescriptionPanel ? Visibility.Visible : Visibility.Collapsed;
         StatusBarBorder.Visibility = settings.ShowStatusBar ? Visibility.Visible : Visibility.Collapsed;
 
-        var toolsVisible = settings.ShowToolsToolbar ? Visibility.Visible : Visibility.Collapsed;
-        ToolsToolbarHeaderBorder.Visibility = toolsVisible;
-        ToolPanel.Visibility = toolsVisible;
+        // "Grupo de ferramentas da barra lateral": a entrada "Ferramentas".
+        ToolsToolbarHeaderBorder.Visibility = settings.ShowToolsToolbar ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>Grava a preferencia de layout e reaplica na hora.</summary>
@@ -2505,7 +2971,15 @@ public partial class MainWindow : Window
         switch (atalho.Action)
         {
             case ShortcutAction.FocusSearch:
-                SettingsSidebarPanel.FocusSearch();
+                // A busca da lista e a caixa grande do topo; com o painel de
+                // filtros aberto, a busca dele e a mesma regra.
+                if (_settingsPanelOpen) SettingsSidebarPanel.FocusSearch();
+                else
+                {
+                    if (_module != "AllPrograms") SwitchView("AllPrograms", tool: false);
+                    SearchBox.Focus();
+                    SearchBox.SelectAll();
+                }
                 e.Handled = true;
                 break;
 

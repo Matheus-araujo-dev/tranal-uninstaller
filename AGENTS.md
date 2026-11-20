@@ -989,6 +989,82 @@ matriz consolidada em `docs/auditoria/MATRIZ.md`.
   `HeaderBrush` etc. são superfícies. Só os brushes de texto (nome com `Text`)
   podem ir no `Foreground`. Há teste que reprova o uso trocado.
 
+## A interface leve (estilo do Tranal Sentinel)
+
+A janela principal foi refeita para quem só quer desinstalar um programa. As
+regras abaixo valem para qualquer mudança de tela.
+
+- **A desinstalação fica na frente, sozinha.** A lista de programas abre no
+  arranque (não os programas monitorados), com busca grande, a barra da
+  seleção embaixo (ícone, nome, empresa, versão, tamanho) e o botão
+  "Desinstalar" — o único botão principal da tela. Dois cliques na linha
+  também desinstalam. Os três caminhos chamam o mesmo `StartUninstall`.
+- **Todo o resto mora em "Ferramentas"**, uma página de cartões por categoria.
+  A categoria e as chaves do guia moram em **um lugar só**:
+  `Core/ToolGuide.cs` (`CategoryOf`, `ToolsOf`, `KeyOf`). Os cartões do XAML
+  são só o "estoque" de botões (um por ferramenta do `ToolCatalog`, com
+  `Tag`/`AutomationId` fixos); a janela os distribui pelas categorias do
+  núcleo em `BuildToolCards`. Não escreva uma segunda lista de categorias.
+- **Toda ferramenta tem guia** — `Guide.<id>.What|Gain|When|Avoid` (o que
+  faz, o que você ganha, quando usar, cuidado) nos dois catálogos. Ele aparece
+  no cartão (o "o que faz") e no topo da ferramenta aberta (`ToolGuidePanel`).
+  `InterfaceLeveTests` reprova ferramenta sem guia, sem categoria ou com as
+  quatro partes repetidas. Ferramenta nova = categoria + guia nos dois idiomas.
+- **O visual é do Sentinel**: monocromático, cartões com canto 14, navegação
+  em pílulas, botão principal claro sobre fundo escuro (`PrimaryBrush` /
+  `PrimaryTextBrush`), ícones da Segoe Fluent Icons (`Ui/ToolGlyphs.cs`) — não
+  emoji colorido. As chaves de cor são as mesmas nos quatro temas.
+- **Todo controle com popup ou hover tem template próprio** em
+  `Themes/Styles.xaml` (menu, submenu, separador, lista suspensa, abas, árvore,
+  dica, barra de rolagem). O template padrão do WPF tem cor fixa — era ele que
+  deixava o submenu **branco** no tema escuro.
+- **Texto dentro de botão segue a cor do botão.** O estilo implícito de
+  `TextBlock` da aplicação vale até dentro dos templates; por isso todo
+  `ContentPresenter` dos templates tem um `<Style TargetType="TextBlock"/>`
+  vazio, e o texto escrito à mão dentro de botão usa `BtnText`/`Glyph`.
+- **Padrões novos com migração única** (`AppSettings.UiRevision`, como a
+  `UpdatePolicyRevision`): abrir na lista e sem caixas de marcação (toda
+  linha nascia marcada e parecia dizer "tudo será removido"). Depois da
+  migração, a escolha do usuário vale. A **lista compacta** é só o padrão de
+  quem instala agora: a migração não a liga, para não tirar colunas que a
+  pessoa já tinha escolhido.
+- **A coluna "Inicialização" é varrida quando entra na grade**, não só na
+  carga (`VarrerInicializacaoSeVisivelAsync`): sem isso, mostrar a coluna pela
+  janela "Colunas" deixava a coluna vazia até a próxima carga.
+
+## Memória (teto de 80 MB)
+
+Medido nesta máquina (coluna "Memória" do Gerenciador de Tarefas, que é o
+working set privado):
+
+| | antes | depois |
+|---|---|---|
+| em repouso, lista carregada | 110–131 MB | ~34 MB |
+| memória privada comprometida | 160–186 MB | ~40 MB |
+| pico navegando por várias ferramentas | — | 64–74 MB |
+
+- **O desenho é por software** (`App.AplicarModoDeDesenho`). O desenho por
+  hardware carrega o driver de vídeo no processo: sozinho ele valia ~45 MB.
+  Quem quiser a placa de vídeo liga `UseHardwareRendering` nas Opções.
+- **A tela que sai é descartada** (`ContentHost.Content = null`) e a memória
+  é devolvida ao Windows com uma coleta compacta em ociosidade
+  (`MainWindow.AliviarMemoria`) — depois da varredura e ao sair de uma
+  ferramenta.
+- **A varredura da inicialização não roda a cada letra da busca.** Ela estava
+  dentro do `UpdateStatus`; agora roda uma vez por carga, fora da tela, e só
+  se a coluna "Inicialização" estiver visível.
+- **O ícone da linha é carregado sob demanda** (`ProgramRow.Icon`, lista
+  virtualizada) e sai do próprio executável (`Ui/ProgramIcons.cs`,
+  `ExtractIconEx`, com cache por caminho). Antes quase nenhum programa tinha
+  ícone, porque o carregador de imagem do WPF não lê `.exe`.
+- **Voltar para a lista não varre o registro de novo**, a menos que uma
+  ferramenta tenha sido aberta no caminho (ela pode ter mudado o que está
+  instalado). "Atualizar" continua em "Mais ações" e no atalho.
+- **Como medir**: compile a variante sem elevação
+  (`-p:ApplicationManifest=app-preview.manifest`) e rode com
+  `TRANAL_UI_SNAPSHOT=<pasta>`: o app percorre as telas, grava cada uma em
+  PNG e fecha — é a conferência visual sem ninguém olhando a tela.
+
 ## O filtro da lista (regra do núcleo)
 
 - **O estado dos filtros mora no núcleo** (`Core/Appearance/ProgramFilters.cs`,

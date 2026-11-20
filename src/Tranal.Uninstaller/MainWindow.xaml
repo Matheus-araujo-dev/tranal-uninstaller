@@ -3,11 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="clr-namespace:Tranal.Uninstaller.Ui"
         xmlns:ui="clr-namespace:Tranal.Uninstaller.Ui.Appearance"
-        Title="Tranal Uninstaller Pro" Height="900" Width="1600" WindowStartupLocation="CenterScreen"
-        WindowState="Maximized"
+        Title="Tranal Uninstaller Pro" Height="820" Width="1320" MinWidth="980" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
         Background="{DynamicResource PanelBrush}"
-        FontFamily="{DynamicResource UiFont}" FontSize="12"
-        UseLayoutRounding="True">
+        FontFamily="{DynamicResource UiFont}" FontSize="12.5"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+
+  <!--
+    A janela principal no estilo do Tranal Sentinel.
+
+    A ideia da tela: a tarefa principal (desinstalar) fica na frente, sozinha.
+    Uma lista limpa, uma busca grande e um botao "Desinstalar" que diz o que
+    vai acontecer. Todo o resto mora em "Ferramentas", cada uma com o guia
+    "o que faz / o que voce ganha / quando usar / cuidado" — a pessoa le
+    antes de mexer.
+  -->
 
   <Window.Resources>
     <!--
@@ -17,22 +27,52 @@
       codigo e ilegivel.
     -->
     <DataTemplate x:Key="ProgramNameTemplate">
-      <StackPanel Orientation="Horizontal">
-        <Image Source="{Binding Icon}" Width="16" Height="16" Stretch="Uniform"
-               VerticalAlignment="Center" Margin="0,0,6,0" />
+      <StackPanel Orientation="Horizontal" Margin="2,0,0,0">
+        <Border Width="28" Height="28" CornerRadius="7" Margin="0,0,10,0" VerticalAlignment="Center"
+                Background="{DynamicResource CardBrush}">
+          <Grid>
+            <!-- Sem icone, o desenho generico de aplicativo: a linha nunca fica com um buraco. -->
+            <TextBlock Text="&#xE71D;" FontSize="13" HorizontalAlignment="Center">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource GlyphStatic}">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding Icon}" Value="{x:Null}">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+            <Image Source="{Binding Icon}" Width="20" Height="20" Stretch="Uniform"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+          </Grid>
+        </Border>
         <!--
           O realce pinta o nome. Sem regra que case, o pincel e nulo e o nome
           usa a cor do tema.
         -->
-        <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
-                   Foreground="{Binding HighlightTextBrush}" />
+        <TextBlock Text="{Binding Label}" VerticalAlignment="Center" FontWeight="SemiBold"
+                   TextTrimming="CharacterEllipsis">
+          <TextBlock.Style>
+            <Style TargetType="TextBlock">
+              <Setter Property="Foreground" Value="{Binding HighlightTextBrush}" />
+              <Style.Triggers>
+                <!-- Sem realce o pincel e nulo: o nome usa a cor do tema. -->
+                <DataTrigger Binding="{Binding HighlightColorKey}" Value="">
+                  <Setter Property="Foreground" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListViewItem}}" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </TextBlock.Style>
+        </TextBlock>
       </StackPanel>
     </DataTemplate>
 
     <!--
       A coluna das caixas de selecao: e a "Show check boxes in Details view"
       do Revo (15334). Fica a esquerda de tudo e so aparece na visualizacao
-      de detalhes.
+      de detalhes. Desligada por padrao desde a interface nova.
     -->
     <DataTemplate x:Key="ProgramCheckTemplate">
       <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" VerticalAlignment="Center"
@@ -40,782 +80,331 @@
     </DataTemplate>
   </Window.Resources>
 
-  <Grid>
+  <Grid Background="{DynamicResource PanelBrush}">
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="212" />
+      <ColumnDefinition Width="236" />
       <ColumnDefinition Width="*" />
       <ColumnDefinition Width="Auto" />
       <ColumnDefinition Width="Auto" />
     </Grid.ColumnDefinitions>
 
-    <!-- ================= BARRA LATERAL ================= -->
+    <!-- ================= NAVEGACAO LATERAL ================= -->
     <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
-      <Grid>
-        <Grid.RowDefinitions>
-          <RowDefinition Height="30" />   <!-- aba -->
-          <RowDefinition Height="38" />   <!-- busca -->
-          <RowDefinition Height="44" />   <!-- titulo -->
-          <RowDefinition Height="52" />   <!-- botoes -->
-          <RowDefinition Height="46" />   <!-- instalar com -->
-          <RowDefinition Height="*" />    <!-- modulos -->
-          <RowDefinition Height="Auto" /> <!-- cabecalho ferramentas -->
-          <RowDefinition Height="Auto" /> <!-- ferramentas -->
-        </Grid.RowDefinitions>
-
-        <TextBlock Grid.Row="0" Text="{loc:Tr Sidebar.Uninstaller}" Margin="10,0"
-                   VerticalAlignment="Center" FontWeight="Bold" FontSize="13" />
-
-        <!-- busca + botao de filtro -->
-        <Grid Grid.Row="1" Margin="8,4">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <TextBox x:Name="SearchBox" Grid.Column="0" VerticalContentAlignment="Center"
-                   TextChanged="SearchBox_TextChanged" />
-          <TextBlock Text="&#x1F50D;" HorizontalAlignment="Left" Margin="4,0,0,0"
-                     VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}" IsHitTestVisible="False" />
-          <TextBlock Text="&#x1F4CC;" HorizontalAlignment="Right" Margin="0,0,6,0"
-                     VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}" IsHitTestVisible="False" />
-          <Button Grid.Column="1" x:Name="FilterButton" Content="&#x25BE;" Width="26"
-                  Margin="4,0,0,0" Style="{StaticResource FlatButton}" Padding="0"
-                  Click="FilterButton_Click" ToolTip="{loc:Tr Sidebar.Filters}" />
-        </Grid>
-
-        <!-- popup de filtros -->
-        <Popup x:Name="FilterPopup" PlacementTarget="{Binding ElementName=FilterButton}"
-               Placement="Bottom" AllowsTransparency="True" StaysOpen="False">
-          <Border Background="{DynamicResource PopupBrush}" BorderBrush="{DynamicResource PopupBorderBrush}"
-                  BorderThickness="1" Padding="6" MinWidth="220">
-            <StackPanel>
-              <TextBlock Text="{loc:Tr Sidebar.FilterByType}" FontWeight="SemiBold" Margin="4,2" />
-              <RadioButton x:Name="TypeAllRadio" Content="{loc:Tr Sidebar.All}" IsChecked="True" Margin="8,0,0,2"
-                           Tag="All" Checked="FilterOption_Changed" />
-              <RadioButton x:Name="Type32Radio" Content="{loc:Tr Sidebar.Bits32}" Margin="8,0,0,2"
-                           Tag="32" Checked="FilterOption_Changed" />
-              <RadioButton x:Name="Type64Radio" Content="{loc:Tr Sidebar.Bits64}" Margin="8,0,0,2"
-                           Tag="64" Checked="FilterOption_Changed" />
-              <RadioButton x:Name="TypeMsiRadio" Content="{loc:Tr Sidebar.Msi}" Margin="8,0,0,6"
-                           Tag="msi" Checked="FilterOption_Changed" />
-
-              <TextBlock Text="{loc:Tr Sidebar.FilterBySize}" FontWeight="SemiBold" Margin="4,2" />
-              <RadioButton x:Name="SizeAllRadio" Content="{loc:Tr Sidebar.All}" IsChecked="True" Margin="8,0,0,2"
-                           Tag="all" Checked="FilterOption_Changed" />
-              <RadioButton x:Name="SizeSmallRadio" Content="{loc:Tr Sidebar.SizeSmall}" Margin="8,0,0,2"
-                           Tag="small" Checked="FilterOption_Changed" />
-              <RadioButton x:Name="SizeMediumRadio" Content="{loc:Tr Sidebar.SizeMedium}" Margin="8,0,0,2"
-                           Tag="medium" Checked="FilterOption_Changed" />
-              <RadioButton x:Name="SizeLargeRadio" Content="{loc:Tr Sidebar.SizeLarge}" Margin="8,0,0,8"
-                           Tag="large" Checked="FilterOption_Changed" />
-
-              <TextBlock Text="{loc:Tr Sidebar.FilterByDrive}" FontWeight="SemiBold" Margin="4,2" />
-              <StackPanel x:Name="DriveFilterPanel" Margin="8,0,0,4" />
-
-              <!--
-                "Hidden" (15362) do Revo: mostra os componentes que o Windows
-                esconde por padrao. E a mesma preferencia de "Mostrar
-                componentes do sistema" das Opcoes — uma regra, dois lugares
-                para chegar nela.
-              -->
-              <TextBlock Text="{loc:Tr Sidebar.FilterByHidden}" FontWeight="SemiBold" Margin="4,6,0,2" />
-              <CheckBox x:Name="HiddenFilterCheck" Content="{loc:Tr Sidebar.Hidden}" Margin="8,0,0,4"
-                        AutomationProperties.AutomationId="FilterHidden"
-                        Checked="HiddenFilter_Changed" Unchecked="HiddenFilter_Changed" />
-            </StackPanel>
+      <DockPanel>
+        <!-- marca -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="22,22,16,22">
+          <Border Width="32" Height="32" CornerRadius="9" Background="{DynamicResource PrimaryBrush}">
+            <TextBlock Style="{StaticResource GlyphStatic}" Text="&#xE74D;" FontSize="16"
+                       HorizontalAlignment="Center" Foreground="{DynamicResource PrimaryTextBrush}" />
           </Border>
-        </Popup>
-
-        <!-- titulo da acao -->
-        <TextBlock Grid.Row="2" x:Name="ActionTitleText" Text="{loc:Tr Sidebar.Uninstall}" Margin="12,0"
-                   VerticalAlignment="Center" FontSize="19" FontWeight="Bold"
-                   Foreground="{DynamicResource TitleTextBrush}" />
-
-        <!-- acoes principais -->
-        <Grid Grid.Row="3" Margin="8,0">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Button Grid.Column="0" x:Name="ForcedUninstallButton"
-                  Style="{StaticResource FlatButton}" Margin="0,0,4,0"
-                  Content="{loc:Tr Sidebar.ForcedUninstall}" Click="ForcedUninstallButton_Click"
-                  AutomationProperties.AutomationId="CmdForcedUninstall" />
-          <Button Grid.Column="1" x:Name="MoreCommandsButton"
-                  Style="{StaticResource FlatButton}" Margin="4,0,0,0"
-                  Content="{loc:Tr Sidebar.MoreCommands}" Click="MoreCommandsButton_Click"
-                  AutomationProperties.AutomationId="CmdMoreCommands" />
-        </Grid>
-
-        <TextBlock Grid.Row="4" Margin="12,6" TextWrapping="Wrap"
-                   Foreground="{DynamicResource TextDimBrush}" FontSize="11"
-                   Text="{loc:Tr Sidebar.InstallWith}" />
-
-        <!-- lista de modulos -->
-        <StackPanel Grid.Row="5" x:Name="ModulePanel">
-          <!--
-            A Central: o que precisa de atencao na maquina, em um lugar so.
-            E o "Action Center" do IObit (medido no binario dele), sem a
-            propaganda de produtos: aqui cada item leva a ferramenta do
-            Tranal que age sobre ele.
-          -->
-          <Button x:Name="BtnCentral" Style="{StaticResource ModuleButton}" Tag="Central"
-                  Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleCentral">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F9ED;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Central}" />
-            </StackPanel>
-          </Button>
-          <Button x:Name="BtnAllPrograms" Style="{StaticResource ModuleButtonSelected}" Tag="AllPrograms"
-                  Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleAllPrograms">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4D6;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.AllPrograms}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="TracedPrograms" Click="ModuleButton_Click"
-                  AutomationProperties.AutomationId="ModuleTracedPrograms">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4C8;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.TracedPrograms}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="WindowsApps" Click="ModuleButton_Click"
-                  AutomationProperties.AutomationId="ModuleWindowsApps">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5A5;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.WindowsApps}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="BrowserExtensions" Click="ModuleButton_Click"
-                  AutomationProperties.AutomationId="ModuleBrowserExtensions">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F310;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.BrowserExtensions}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="LogsDatabase" Click="ModuleButton_Click"
-                  AutomationProperties.AutomationId="ModuleLogsDatabase">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C2;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.LogsDatabase}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="HunterMode" Click="ModuleButton_Click"
-                  AutomationProperties.AutomationId="ModuleHunterMode">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F3AF;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.HunterMode}" />
-            </StackPanel>
-          </Button>
+          <StackPanel Margin="11,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="Tranal" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TitleTextBrush}" />
+            <TextBlock Text="Uninstaller Pro" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
+          </StackPanel>
         </StackPanel>
 
-        <!-- cabecalho do grupo de ferramentas -->
-        <Border Grid.Row="6" x:Name="ToolsToolbarHeaderBorder" MinHeight="24"
-                Background="{DynamicResource ToolBarBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
-          <TextBlock Text="{loc:Tr Sidebar.Tools}" Margin="10,0" VerticalAlignment="Center" FontWeight="SemiBold" />
-        </Border>
-
-        <!-- ferramentas -->
-        <StackPanel Grid.Row="7" x:Name="ToolPanel">
-          <Button Style="{StaticResource ModuleButton}" Tag="AutorunManager" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolAutorunManager">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x2699;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.AutorunManager}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="JunkCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolJunkCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D1;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.JunkCleaner}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="WindowsTools" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolWindowsTools">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F527;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.WindowsTools}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="EvidenceRemover" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolEvidenceRemover">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F52B;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.EvidenceRemover}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="UnrecoverableDelete" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolUnrecoverableDelete">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D1;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.UnrecoverableDelete}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Tracks Cleaner: os tres modulos separados, como no Revo -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupTracksCleaner}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="HistoryCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolHistoryCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.HistoryCleaner}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="TracksBrowsers" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolTracksBrowsers">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F310;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.TracksBrowsers}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="TracksOffice" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolTracksOffice">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4C4;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.TracksOffice}" />
-            </StackPanel>
-          </Button>
-          <Button Style="{StaticResource ModuleButton}" Tag="TracksWindows" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolTracksWindows">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1FA9F;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.TracksWindows}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Otimizacao -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupOptimization}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="RegistryOptimizer" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolRegistryOptimizer">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C3;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.RegistryOptimizer}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="RegistryCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolRegistryCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D3;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.RegistryCleaner}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="Processes" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolProcesses">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F9F0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Processes}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Privacidade: rastros do uso da maquina, fluxos escondidos e ferramentas proprias. -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupPrivacy}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="PrivacyTraces" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolPrivacyTraces">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F576;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.PrivacyTraces}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="AlternateDataStreams" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolAlternateDataStreams">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4E6;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.AlternateDataStreams}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="CustomTools" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolCustomTools">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F6E0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.CustomTools}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Gestao do sistema: permissoes, servicos, tarefas, drivers, saude. -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupSystem}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="Appearance" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolAppearance">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F3A8;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Appearance.Title}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="SystemManagement" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolSystemManagement">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F6E0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.SystemManagement}" />
-            </StackPanel>
-          </Button>
-
-          <!--
-            Gerenciador de menu de contexto: as entradas do botao direito do
-            Explorer, em um lugar so — as do Tranal e as que os outros
-            programas deixaram.
-          -->
-          <Button Style="{StaticResource ModuleButton}" Tag="ContextMenu" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolContextMenu">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D7;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.ContextMenu}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Diagnostico: informacoes do sistema, impacto, falhas e relocacao. -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupInsights}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="SystemInfo" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolSystemInfo">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5A5;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.SystemInfo}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="ProgramImpact" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolProgramImpact">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4CA;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.ProgramImpact}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="CrashAnalyzer" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolCrashAnalyzer">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F41B;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.CrashAnalyzer}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="Relocation" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolRelocation">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F69A;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Relocation}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="UninstallHistory" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolUninstallHistory">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4DC;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.UninstallHistory}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Limpeza: destravador, internet, disco, atalhos, MRU e componentes. -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupCleanup}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="Unlocker" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolUnlocker">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F512;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Unlocker}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="InternetCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolInternetCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F310;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.InternetCleaner}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="DriveCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolDriveCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C4;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.DriveCleaner}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="ShortcutFixer" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolShortcutFixer">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F517;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.ShortcutFixer}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="MruCleaner" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolMruCleaner">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D1;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.MruCleaner}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="SharedDlls" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolSharedDlls">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C5;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.SharedDlls}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="BootCenter" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolBootCenter">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x23F1;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.BootCenter}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="ActiveFiles" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolActiveFiles">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F517;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.ActiveFiles}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="FileAssociator" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolFileAssociator">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.FileAssociator}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="UndoCenter" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolUndoCenter">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x21BA;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.UndoCenter}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="FileOwnership" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolFileOwnership">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F512;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.FileOwnership}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="DeepAnalysis" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolDeepAnalysis">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F50E;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.DeepAnalysis}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="InstallerGuard" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolInstallerGuard">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F50D;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.InstallerGuard}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="FailedUninstalls" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolFailedUninstalls">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x26A0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.FailedUninstalls}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="PowerPlan" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolPowerPlan">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x23F8;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.PowerPlan}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="Hibernation" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolHibernation">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F634;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Hibernation}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="StoreStartup" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolStoreStartup">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F6F1;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.StoreStartup}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="MsiDependencies" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolMsiDependencies">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F517;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.MsiDependencies}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="AppxCatalog" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolAppxCatalog">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4E6;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.AppxCatalog}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="SystemDlls" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolSystemDlls">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C5;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.SystemDlls}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="TrayIcon" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolTrayIcon">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4E3;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.TrayIcon}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="NewInstalls" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolNewInstalls">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F195;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.NewInstalls}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="ProgramCategories" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolProgramCategories">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C2;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.ProgramCategories}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="WindowsIntegration" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolWindowsIntegration">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5A5;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.WindowsIntegration}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="Notifications" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolNotifications">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F514;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Notifications}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="OperationProfiles" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolOperationProfiles">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F39B;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.OperationProfiles}" />
-            </StackPanel>
-          </Button>
-
+        <!-- rodape: apoio e opcoes -->
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,16">
           <Button Style="{StaticResource ModuleButton}" Tag="Donate" Click="Doar_Click"
                   AutomationProperties.AutomationId="CmdDonate">
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F49D;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Cmd.Donate}" />
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xEB51;" Margin="0,0,12,0" />
+              <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Cmd.Donate}" />
             </StackPanel>
           </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="RecycleBin" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolRecycleBin">
+          <Button x:Name="OptionsNavButton" Style="{StaticResource ModuleButton}" Click="OptionsNavButton_Click"
+                  AutomationProperties.AutomationId="NavOptions">
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D1;&#xFE0F;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.RecycleBin}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Inspecao: localizador, acoes agendadas e visor hexadecimal. -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupInspect}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="Finder" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolFinder">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F50D;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Finder}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="RunOnce" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolRunOnce">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x23F3;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.RunOnce}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="PendingOperations" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolPendingOperations">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x23F8;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.PendingOperations}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="DailyRegistryBackup" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolDailyRegistryBackup">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5C4;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.DailyRegistryBackup}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="HexViewer" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolHexViewer">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4A3;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.HexViewer}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Manutencao: bloatware, duplicatas, impressoras, dumps e navegador. -->
-          <TextBlock Text="{loc:Tr Sidebar.GroupMaintenance}" Margin="10,10,0,2"
-                     FontSize="11" FontWeight="Bold"
-                     Foreground="{DynamicResource TextDimBrush}" />
-          <Button Style="{StaticResource ModuleButton}" Tag="Bloatware" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolBloatware">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F9F9;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Bloatware}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="Duplicates" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolDuplicates">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F465;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Duplicates}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="Printers" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolPrinters">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5A8;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.Printers}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="CrashDumps" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolCrashDumps">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F4A5;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.CrashDumps}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="BrowserCleanup" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolBrowserCleanup">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F5D8;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.BrowserCleanup}" />
-            </StackPanel>
-          </Button>
-
-          <!-- Atualizacoes: dos programas instalados e do proprio Tranal. -->
-          <Button Style="{StaticResource ModuleButton}" Tag="SoftwareUpdates" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolSoftwareUpdates">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F504;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.SoftwareUpdates}" />
-            </StackPanel>
-          </Button>
-
-          <Button Style="{StaticResource ModuleButton}" Tag="AppUpdate" Click="ToolButton_Click"
-                  AutomationProperties.AutomationId="ToolAppUpdate">
-            <StackPanel Orientation="Horizontal">
-              <TextBlock Text="&#x1F6E0;" Margin="0,0,8,0" />
-              <TextBlock Text="{loc:Tr Module.AppUpdate}" />
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xE713;" Margin="0,0,12,0" />
+              <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.Options}" />
             </StackPanel>
           </Button>
         </StackPanel>
-      </Grid>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel x:Name="SidebarNav">
+            <!-- O que a pessoa veio fazer: remover programas. -->
+            <StackPanel x:Name="ModulePanel">
+              <Button x:Name="BtnAllPrograms" Style="{StaticResource ModuleButtonSelected}" Tag="AllPrograms"
+                      Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleAllPrograms">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE71D;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.Programs}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource ModuleButton}" Tag="WindowsApps" Click="ModuleButton_Click"
+                      AutomationProperties.AutomationId="ModuleWindowsApps">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE7F4;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.WindowsApps}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource ModuleButton}" Tag="BrowserExtensions" Click="ModuleButton_Click"
+                      AutomationProperties.AutomationId="ModuleBrowserExtensions">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xEA86;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.Extensions}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource ModuleButton}" Tag="UninstallHistory" Click="ToolButton_Click"
+                      AutomationProperties.AutomationId="NavHistory">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE81C;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.History}" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+
+            <!-- As ferramentas: tudo o que nao e desinstalar, em uma pagina so. -->
+            <Border x:Name="ToolsToolbarHeaderBorder" Margin="0,6,0,0">
+              <Button x:Name="BtnToolsHome" Style="{StaticResource ModuleButton}" Tag="ToolsHome"
+                      Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleToolsHome">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE90F;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.Tools}" />
+                </StackPanel>
+              </Button>
+            </Border>
+
+            <!-- Outras formas de remover: para quando a lista nao basta. -->
+            <TextBlock Text="{loc:Tr Nav.More}" Style="{StaticResource SectionLabel}" Margin="24,22,0,6" FontSize="10.5" />
+            <StackPanel x:Name="MorePanel">
+              <Button x:Name="ForcedUninstallButton" Style="{StaticResource ModuleButton}"
+                      Click="ForcedUninstallButton_Click" ToolTip="{loc:Tr Nav.ForcedTip}"
+                      AutomationProperties.AutomationId="CmdForcedUninstall">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE945;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Nav.Forced}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource ModuleButton}" Tag="TracedPrograms" Click="ModuleButton_Click"
+                      AutomationProperties.AutomationId="ModuleTracedPrograms">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE9D9;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Module.TracedPrograms}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource ModuleButton}" Tag="LogsDatabase" Click="ModuleButton_Click"
+                      AutomationProperties.AutomationId="ModuleLogsDatabase">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE8F1;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Module.LogsDatabase}" />
+                </StackPanel>
+              </Button>
+              <Button Style="{StaticResource ModuleButton}" Tag="HunterMode" Click="ModuleButton_Click"
+                      AutomationProperties.AutomationId="ModuleHunterMode">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE8B0;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Module.HunterMode}" />
+                </StackPanel>
+              </Button>
+              <!--
+                A Central: o que precisa de atencao na maquina, em um lugar so.
+                E o "Action Center" do IObit (medido no binario dele), sem a
+                propaganda de produtos: aqui cada item leva a ferramenta do
+                Tranal que age sobre ele.
+              -->
+              <Button x:Name="BtnCentral" Style="{StaticResource ModuleButton}" Tag="Central"
+                      Click="ModuleButton_Click" AutomationProperties.AutomationId="ModuleCentral">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Style="{StaticResource Glyph}" Text="&#xE80F;" Margin="0,0,12,0" />
+                  <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Module.Central}" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
     </Border>
 
     <!-- ================= AREA PRINCIPAL ================= -->
-    <Grid Grid.Column="1">
+    <Grid Grid.Column="1" Margin="32,0,32,0">
       <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />  <!-- cabecalho -->
+        <RowDefinition Height="Auto" />  <!-- busca e acoes -->
+        <RowDefinition Height="Auto" />  <!-- guia da ferramenta -->
+        <RowDefinition Height="*" />     <!-- conteudo -->
+        <RowDefinition Height="Auto" />  <!-- barra da selecao -->
+        <RowDefinition Height="Auto" />  <!-- status -->
       </Grid.RowDefinitions>
 
-      <!-- cabecalho do modulo + botao de menu -->
-      <Border Grid.Row="0" x:Name="MainToolbarBorder" MinHeight="30" Background="{DynamicResource HeaderBrush}"
-              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+      <!-- cabecalho: titulo, explicacao e o menu -->
+      <Border Grid.Row="0" x:Name="MainToolbarBorder" Padding="0,26,0,18">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <TextBlock x:Name="ModuleHeader" Text="{loc:Tr Module.AllPrograms}" Margin="8,0"
-                     VerticalAlignment="Center" FontWeight="SemiBold"
-                     Foreground="{DynamicResource TitleTextBrush}" />
-          <!--
-            O painel lateral de configuracoes (o "Properties Sidebar" do BCU):
-            filtros e realces. A regra mora no nucleo; o painel so edita o
-            estado.
-          -->
-          <Button Grid.Column="1" x:Name="SettingsPanelButton" Content="&#x1F527;" Width="30"
-                  Style="{StaticResource FlatButton}" Margin="0,2,0,2" Padding="0"
-                  Click="SettingsPanelButton_Click" AutomationProperties.AutomationId="CmdSettingsPanel"
-                  ToolTip="{loc:Tr Sidebar.Settings}" />
-          <!--
-            O painel ancorado: a ferramenta que o usuario fixou. O painel
-            continua na lateral quando o usuario troca de tela.
-          -->
-          <Button Grid.Column="2" x:Name="DockPanelButton" Content="&#x1F4CC;" Width="30"
-                  Style="{StaticResource FlatButton}" Margin="0,2,0,2" Padding="0"
-                  Click="DockPanelButton_Click" AutomationProperties.AutomationId="CmdDockPanel"
-                  ToolTip="{loc:Tr Panel.Dock}" />
-          <Button Grid.Column="3" x:Name="MainMenuButton" Content="&#x2630;" Width="34"
-                  Style="{StaticResource FlatButton}" Margin="0,2,4,2" Padding="0"
-                  Click="MainMenuButton_Click" AutomationProperties.AutomationId="CmdMainMenu"
-                  ToolTip="Menu" />
+          <StackPanel>
+            <Button x:Name="BackToToolsButton" Style="{StaticResource LinkButton}" Visibility="Collapsed"
+                    Margin="0,0,0,6" HorizontalAlignment="Left" Click="BackToToolsButton_Click"
+                    AutomationProperties.AutomationId="CmdBackToTools">
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE72B;" FontSize="11" Margin="0,0,8,0" />
+                <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Guide.Back}" />
+              </StackPanel>
+            </Button>
+            <TextBlock x:Name="ModuleHeader" Style="{StaticResource PageTitle}" Text="{loc:Tr Module.AllPrograms}"
+                       Foreground="{DynamicResource TitleTextBrush}" />
+            <Border x:Name="DescriptionPanelBorder">
+              <TextBlock x:Name="DescriptionText" Style="{StaticResource PageSubtitle}" MaxWidth="760"
+                         HorizontalAlignment="Left" />
+            </Border>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+            <!--
+              O painel lateral de configuracoes (o "Properties Sidebar" do BCU):
+              filtros e realces. A regra mora no nucleo; o painel so edita o
+              estado.
+            -->
+            <Button x:Name="SettingsPanelButton" Content="&#xE71C;" Style="{StaticResource IconButton}"
+                    Click="SettingsPanelButton_Click" AutomationProperties.AutomationId="CmdSettingsPanel"
+                    ToolTip="{loc:Tr Action.Panel}" />
+            <!--
+              O painel ancorado: a ferramenta que o usuario fixou. O painel
+              continua na lateral quando o usuario troca de tela.
+            -->
+            <Button x:Name="DockPanelButton" Content="&#xE718;" Style="{StaticResource IconButton}"
+                    Click="DockPanelButton_Click" AutomationProperties.AutomationId="CmdDockPanel"
+                    ToolTip="{loc:Tr Panel.Dock}" Visibility="Collapsed" />
+            <Button x:Name="MainMenuButton" Content="&#xE700;" Style="{StaticResource IconButton}"
+                    Click="MainMenuButton_Click" AutomationProperties.AutomationId="CmdMainMenu"
+                    ToolTip="{loc:Tr Nav.Menu}" />
+          </StackPanel>
         </Grid>
       </Border>
 
-      <!-- conteudo: lista de programas OU painel do modulo/ferramenta -->
-      <Grid Grid.Row="1">
-        <!-- Todos os Programas -->
-        <Grid x:Name="ProgramsView">
+      <!-- busca e acoes da lista de programas -->
+      <Grid Grid.Row="1" x:Name="ProgramsToolbar" Margin="0,0,0,14">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" MaxWidth="560" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid>
+          <TextBox x:Name="SearchBox" Height="40" Padding="38,0,12,0" FontSize="13" VerticalContentAlignment="Center"
+                   TextChanged="SearchBox_TextChanged" AutomationProperties.AutomationId="SearchBox"
+                   AutomationProperties.Name="{loc:Tr Search.Placeholder}" />
+          <TextBlock Style="{StaticResource GlyphStatic}" Text="&#xE721;" FontSize="13" Margin="14,0,0,0"
+                     HorizontalAlignment="Left" IsHitTestVisible="False" />
+          <TextBlock x:Name="SearchPlaceholder" Text="{loc:Tr Search.Placeholder}" Margin="39,0,0,0" FontSize="13"
+                     VerticalAlignment="Center" IsHitTestVisible="False" Foreground="{DynamicResource FaintTextBrush}" />
+        </Grid>
+        <Button Grid.Column="1" x:Name="FilterButton" Style="{StaticResource OutlineButton}" Margin="10,0,0,0"
+                Height="40" Click="FilterButton_Click" AutomationProperties.AutomationId="CmdFilters"
+                ToolTip="{loc:Tr Sidebar.Filters}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xE71C;" FontSize="12" Margin="0,0,8,0" />
+            <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Action.Filters}" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" x:Name="MoreCommandsButton" Style="{StaticResource OutlineButton}" Margin="8,0,0,0"
+                Height="40" Click="MoreCommandsButton_Click" AutomationProperties.AutomationId="CmdMoreCommands">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Action.More}" />
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xE70D;" FontSize="10" Margin="8,0,0,0" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <!-- popup de filtros -->
+      <Popup x:Name="FilterPopup" PlacementTarget="{Binding ElementName=FilterButton}"
+             Placement="Bottom" VerticalOffset="6" AllowsTransparency="True" StaysOpen="False" PopupAnimation="Fade">
+        <Border Background="{DynamicResource PopupBrush}" BorderBrush="{DynamicResource PopupBorderBrush}"
+                BorderThickness="1" CornerRadius="12" Padding="16,12" MinWidth="260">
+          <StackPanel>
+            <TextBlock Text="{loc:Tr Sidebar.FilterByType}" Style="{StaticResource SectionLabel}" Margin="0,2,0,6" />
+            <RadioButton x:Name="TypeAllRadio" Content="{loc:Tr Sidebar.All}" IsChecked="True" Margin="0,0,0,6"
+                         Tag="All" Checked="FilterOption_Changed" />
+            <RadioButton x:Name="Type32Radio" Content="{loc:Tr Sidebar.Bits32}" Margin="0,0,0,6"
+                         Tag="32" Checked="FilterOption_Changed" />
+            <RadioButton x:Name="Type64Radio" Content="{loc:Tr Sidebar.Bits64}" Margin="0,0,0,6"
+                         Tag="64" Checked="FilterOption_Changed" />
+            <RadioButton x:Name="TypeMsiRadio" Content="{loc:Tr Sidebar.Msi}" Margin="0,0,0,6"
+                         Tag="msi" Checked="FilterOption_Changed" />
+
+            <TextBlock Text="{loc:Tr Sidebar.FilterBySize}" Style="{StaticResource SectionLabel}" Margin="0,10,0,6" />
+            <RadioButton x:Name="SizeAllRadio" Content="{loc:Tr Sidebar.All}" IsChecked="True" Margin="0,0,0,6"
+                         Tag="all" Checked="FilterOption_Changed" />
+            <RadioButton x:Name="SizeSmallRadio" Content="{loc:Tr Sidebar.SizeSmall}" Margin="0,0,0,6"
+                         Tag="small" Checked="FilterOption_Changed" />
+            <RadioButton x:Name="SizeMediumRadio" Content="{loc:Tr Sidebar.SizeMedium}" Margin="0,0,0,6"
+                         Tag="medium" Checked="FilterOption_Changed" />
+            <RadioButton x:Name="SizeLargeRadio" Content="{loc:Tr Sidebar.SizeLarge}" Margin="0,0,0,6"
+                         Tag="large" Checked="FilterOption_Changed" />
+
+            <TextBlock Text="{loc:Tr Sidebar.FilterByDrive}" Style="{StaticResource SectionLabel}" Margin="0,10,0,6" />
+            <StackPanel x:Name="DriveFilterPanel" />
+
+            <!--
+              "Hidden" (15362) do Revo: mostra os componentes que o Windows
+              esconde por padrao. E a mesma preferencia de "Mostrar
+              componentes do sistema" das Opcoes — uma regra, dois lugares
+              para chegar nela.
+            -->
+            <TextBlock Text="{loc:Tr Sidebar.FilterByHidden}" Style="{StaticResource SectionLabel}" Margin="0,10,0,6" />
+            <CheckBox x:Name="HiddenFilterCheck" Content="{loc:Tr Sidebar.Hidden}" Margin="0,0,0,4"
+                      AutomationProperties.AutomationId="FilterHidden"
+                      Checked="HiddenFilter_Changed" Unchecked="HiddenFilter_Changed" />
+          </StackPanel>
+        </Border>
+      </Popup>
+
+      <!-- guia da ferramenta aberta: o que faz, o que ganha, quando usar, cuidado -->
+      <Border Grid.Row="2" x:Name="ToolGuidePanel" Style="{StaticResource Card}" Padding="18,14"
+              Margin="0,0,0,14" Visibility="Collapsed">
+        <DockPanel>
+          <Grid DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Style="{StaticResource GlyphStatic}" Text="&#xE946;" FontSize="13" Margin="0,0,8,0" />
+              <TextBlock Text="{loc:Tr Guide.Show}" FontWeight="SemiBold" VerticalAlignment="Center"
+                         Foreground="{DynamicResource TitleTextBrush}" />
+            </StackPanel>
+            <Button x:Name="GuideToggleButton" Style="{StaticResource LinkButton}" HorizontalAlignment="Right"
+                    Click="GuideToggleButton_Click" AutomationProperties.AutomationId="CmdGuideToggle">
+              <TextBlock x:Name="GuideToggleText" Style="{StaticResource BtnText}" Text="{loc:Tr Guide.Hide}" />
+            </Button>
+          </Grid>
+          <UniformGrid x:Name="GuideBody" Columns="4" Margin="0,12,0,0">
+            <StackPanel Margin="0,0,18,0">
+              <TextBlock Text="{loc:Tr Guide.Label.What}" Style="{StaticResource SectionLabel}" Margin="0,0,0,4" />
+              <TextBlock x:Name="GuideWhat" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" LineHeight="18" />
+            </StackPanel>
+            <StackPanel Margin="0,0,18,0">
+              <TextBlock Text="{loc:Tr Guide.Label.Gain}" Style="{StaticResource SectionLabel}" Margin="0,0,0,4" />
+              <TextBlock x:Name="GuideGain" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" LineHeight="18" />
+            </StackPanel>
+            <StackPanel Margin="0,0,18,0">
+              <TextBlock Text="{loc:Tr Guide.Label.When}" Style="{StaticResource SectionLabel}" Margin="0,0,0,4" />
+              <TextBlock x:Name="GuideWhen" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" LineHeight="18" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="{loc:Tr Guide.Label.Avoid}" Style="{StaticResource SectionLabel}" Margin="0,0,0,4" />
+              <TextBlock x:Name="GuideAvoid" TextWrapping="Wrap" Foreground="{DynamicResource TextBrush}" LineHeight="18" />
+            </StackPanel>
+          </UniformGrid>
+        </DockPanel>
+      </Border>
+
+      <!-- conteudo: lista de programas, pagina de ferramentas OU a tela aberta -->
+      <Grid Grid.Row="3">
+        <!-- Programas instalados -->
+        <Border x:Name="ProgramsView" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                CornerRadius="14" Padding="6,4" Background="{DynamicResource PanelBrush}">
           <ListView x:Name="ProgramsList" BorderThickness="0"
                     AutomationProperties.AutomationId="ProgramsList"
-                    Background="{DynamicResource PanelBrush}"
-                    AlternationCount="2"
+                    Background="Transparent"
                     SelectionMode="Extended"
                     ScrollViewer.CanContentScroll="True"
-                    VirtualizingStackPanel.IsVirtualizing="True"
-                    VirtualizingStackPanel.VirtualizationMode="Recycling"
-                    PreviewMouseRightButtonDown="ProgramsList_PreviewMouseRightButtonDown">
+                    VirtualizingPanel.IsVirtualizing="True"
+                    VirtualizingPanel.VirtualizationMode="Recycling"
+                    VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                    VirtualizingPanel.ScrollUnit="Pixel"
+                    PreviewMouseRightButtonDown="ProgramsList_PreviewMouseRightButtonDown"
+                    MouseDoubleClick="ProgramsList_MouseDoubleClick"
+                    SelectionChanged="ProgramsList_SelectionChanged">
             <!--
               A grade (ListView.View) e montada em codigo: o usuario escolhe
               quais colunas quer ver (o "Columns" do Revo, 15054) e o XAML
@@ -829,46 +418,209 @@
               <GroupStyle>
                 <GroupStyle.HeaderTemplate>
                   <DataTemplate>
-                    <Border Background="{DynamicResource GroupHeaderBrush}" Padding="4,3">
-                      <TextBlock FontWeight="Bold" Foreground="{DynamicResource TitleTextBrush}" FontSize="11">
-                        <Run Text="{Binding Name, Mode=OneWay}" />
-                        <Run Text=": " />
-                        <Run Text="{Binding ItemCount, Mode=OneWay}" />
-                      </TextBlock>
-                    </Border>
+                    <StackPanel Orientation="Horizontal" Margin="10,14,0,6">
+                      <TextBlock FontWeight="SemiBold" FontSize="11.5" Foreground="{DynamicResource TextDimBrush}"
+                                 Text="{Binding Name, Mode=OneWay}" />
+                      <Border Margin="8,0,0,0" Padding="7,1" CornerRadius="8" Background="{DynamicResource CardBrush}">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                   Text="{Binding ItemCount, Mode=OneWay}" />
+                      </Border>
+                    </StackPanel>
                   </DataTemplate>
                 </GroupStyle.HeaderTemplate>
               </GroupStyle>
             </ListView.GroupStyle>
           </ListView>
-        </Grid>
+        </Border>
+
+        <!--
+          Ferramentas: a pagina de cartoes. Os botoes ficam todos aqui (um por
+          ferramenta do catalogo, ToolCatalog). A janela os distribui nas
+          categorias do nucleo (Core/ToolGuide.cs) e preenche o cartao com o
+          icone, o nome e o "o que faz" — o agrupamento mora em um lugar so.
+        -->
+        <ScrollViewer x:Name="ToolsHomeView" Visibility="Collapsed" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
+          <StackPanel>
+            <StackPanel x:Name="ToolSections" />
+            <StackPanel x:Name="ToolPanel" Visibility="Collapsed">
+              <Button Style="{StaticResource ToolCard}" Tag="AutorunManager" Click="ToolButton_Click" Content="{loc:Tr Module.AutorunManager}"
+                      AutomationProperties.AutomationId="ToolAutorunManager" />
+              <Button Style="{StaticResource ToolCard}" Tag="BootCenter" Click="ToolButton_Click" Content="{loc:Tr Module.BootCenter}"
+                      AutomationProperties.AutomationId="ToolBootCenter" />
+              <Button Style="{StaticResource ToolCard}" Tag="ActiveFiles" Click="ToolButton_Click" Content="{loc:Tr Module.ActiveFiles}"
+                      AutomationProperties.AutomationId="ToolActiveFiles" />
+              <Button Style="{StaticResource ToolCard}" Tag="FileAssociator" Click="ToolButton_Click" Content="{loc:Tr Module.FileAssociator}"
+                      AutomationProperties.AutomationId="ToolFileAssociator" />
+              <Button Style="{StaticResource ToolCard}" Tag="UndoCenter" Click="ToolButton_Click" Content="{loc:Tr Module.UndoCenter}"
+                      AutomationProperties.AutomationId="ToolUndoCenter" />
+              <Button Style="{StaticResource ToolCard}" Tag="FileOwnership" Click="ToolButton_Click" Content="{loc:Tr Module.FileOwnership}"
+                      AutomationProperties.AutomationId="ToolFileOwnership" />
+              <Button Style="{StaticResource ToolCard}" Tag="DeepAnalysis" Click="ToolButton_Click" Content="{loc:Tr Module.DeepAnalysis}"
+                      AutomationProperties.AutomationId="ToolDeepAnalysis" />
+              <Button Style="{StaticResource ToolCard}" Tag="InstallerGuard" Click="ToolButton_Click" Content="{loc:Tr Module.InstallerGuard}"
+                      AutomationProperties.AutomationId="ToolInstallerGuard" />
+              <Button Style="{StaticResource ToolCard}" Tag="FailedUninstalls" Click="ToolButton_Click" Content="{loc:Tr Module.FailedUninstalls}"
+                      AutomationProperties.AutomationId="ToolFailedUninstalls" />
+              <Button Style="{StaticResource ToolCard}" Tag="PowerPlan" Click="ToolButton_Click" Content="{loc:Tr Module.PowerPlan}"
+                      AutomationProperties.AutomationId="ToolPowerPlan" />
+              <Button Style="{StaticResource ToolCard}" Tag="Hibernation" Click="ToolButton_Click" Content="{loc:Tr Module.Hibernation}"
+                      AutomationProperties.AutomationId="ToolHibernation" />
+              <Button Style="{StaticResource ToolCard}" Tag="StoreStartup" Click="ToolButton_Click" Content="{loc:Tr Module.StoreStartup}"
+                      AutomationProperties.AutomationId="ToolStoreStartup" />
+              <Button Style="{StaticResource ToolCard}" Tag="MsiDependencies" Click="ToolButton_Click" Content="{loc:Tr Module.MsiDependencies}"
+                      AutomationProperties.AutomationId="ToolMsiDependencies" />
+              <Button Style="{StaticResource ToolCard}" Tag="AppxCatalog" Click="ToolButton_Click" Content="{loc:Tr Module.AppxCatalog}"
+                      AutomationProperties.AutomationId="ToolAppxCatalog" />
+              <Button Style="{StaticResource ToolCard}" Tag="SystemDlls" Click="ToolButton_Click" Content="{loc:Tr Module.SystemDlls}"
+                      AutomationProperties.AutomationId="ToolSystemDlls" />
+              <Button Style="{StaticResource ToolCard}" Tag="TrayIcon" Click="ToolButton_Click" Content="{loc:Tr Module.TrayIcon}"
+                      AutomationProperties.AutomationId="ToolTrayIcon" />
+              <Button Style="{StaticResource ToolCard}" Tag="NewInstalls" Click="ToolButton_Click" Content="{loc:Tr Module.NewInstalls}"
+                      AutomationProperties.AutomationId="ToolNewInstalls" />
+              <Button Style="{StaticResource ToolCard}" Tag="ProgramCategories" Click="ToolButton_Click" Content="{loc:Tr Module.ProgramCategories}"
+                      AutomationProperties.AutomationId="ToolProgramCategories" />
+              <Button Style="{StaticResource ToolCard}" Tag="WindowsIntegration" Click="ToolButton_Click" Content="{loc:Tr Module.WindowsIntegration}"
+                      AutomationProperties.AutomationId="ToolWindowsIntegration" />
+              <Button Style="{StaticResource ToolCard}" Tag="Notifications" Click="ToolButton_Click" Content="{loc:Tr Module.Notifications}"
+                      AutomationProperties.AutomationId="ToolNotifications" />
+              <Button Style="{StaticResource ToolCard}" Tag="OperationProfiles" Click="ToolButton_Click" Content="{loc:Tr Module.OperationProfiles}"
+                      AutomationProperties.AutomationId="ToolOperationProfiles" />
+              <Button Style="{StaticResource ToolCard}" Tag="JunkCleaner" Click="ToolButton_Click" Content="{loc:Tr Module.JunkCleaner}"
+                      AutomationProperties.AutomationId="ToolJunkCleaner" />
+              <Button Style="{StaticResource ToolCard}" Tag="WindowsTools" Click="ToolButton_Click" Content="{loc:Tr Module.WindowsTools}"
+                      AutomationProperties.AutomationId="ToolWindowsTools" />
+              <Button Style="{StaticResource ToolCard}" Tag="EvidenceRemover" Click="ToolButton_Click" Content="{loc:Tr Module.EvidenceRemover}"
+                      AutomationProperties.AutomationId="ToolEvidenceRemover" />
+              <Button Style="{StaticResource ToolCard}" Tag="UnrecoverableDelete" Click="ToolButton_Click" Content="{loc:Tr Module.UnrecoverableDelete}"
+                      AutomationProperties.AutomationId="ToolUnrecoverableDelete" />
+              <Button Style="{StaticResource ToolCard}" Tag="HistoryCleaner" Click="ToolButton_Click" Content="{loc:Tr Module.HistoryCleaner}"
+                      AutomationProperties.AutomationId="ToolHistoryCleaner" />
+              <Button Style="{StaticResource ToolCard}" Tag="TracksBrowsers" Click="ToolButton_Click" Content="{loc:Tr Module.TracksBrowsers}"
+                      AutomationProperties.AutomationId="ToolTracksBrowsers" />
+              <Button Style="{StaticResource ToolCard}" Tag="TracksOffice" Click="ToolButton_Click" Content="{loc:Tr Module.TracksOffice}"
+                      AutomationProperties.AutomationId="ToolTracksOffice" />
+              <Button Style="{StaticResource ToolCard}" Tag="TracksWindows" Click="ToolButton_Click" Content="{loc:Tr Module.TracksWindows}"
+                      AutomationProperties.AutomationId="ToolTracksWindows" />
+              <Button Style="{StaticResource ToolCard}" Tag="RegistryOptimizer" Click="ToolButton_Click" Content="{loc:Tr Module.RegistryOptimizer}"
+                      AutomationProperties.AutomationId="ToolRegistryOptimizer" />
+              <Button Style="{StaticResource ToolCard}" Tag="RegistryCleaner" Click="ToolButton_Click" Content="{loc:Tr Module.RegistryCleaner}"
+                      AutomationProperties.AutomationId="ToolRegistryCleaner" />
+              <Button Style="{StaticResource ToolCard}" Tag="PrivacyTraces" Click="ToolButton_Click" Content="{loc:Tr Module.PrivacyTraces}"
+                      AutomationProperties.AutomationId="ToolPrivacyTraces" />
+              <Button Style="{StaticResource ToolCard}" Tag="AlternateDataStreams" Click="ToolButton_Click" Content="{loc:Tr Module.AlternateDataStreams}"
+                      AutomationProperties.AutomationId="ToolAlternateDataStreams" />
+              <Button Style="{StaticResource ToolCard}" Tag="Unlocker" Click="ToolButton_Click" Content="{loc:Tr Module.Unlocker}"
+                      AutomationProperties.AutomationId="ToolUnlocker" />
+              <Button Style="{StaticResource ToolCard}" Tag="InternetCleaner" Click="ToolButton_Click" Content="{loc:Tr Module.InternetCleaner}"
+                      AutomationProperties.AutomationId="ToolInternetCleaner" />
+              <Button Style="{StaticResource ToolCard}" Tag="DriveCleaner" Click="ToolButton_Click" Content="{loc:Tr Module.DriveCleaner}"
+                      AutomationProperties.AutomationId="ToolDriveCleaner" />
+              <Button Style="{StaticResource ToolCard}" Tag="ShortcutFixer" Click="ToolButton_Click" Content="{loc:Tr Module.ShortcutFixer}"
+                      AutomationProperties.AutomationId="ToolShortcutFixer" />
+              <Button Style="{StaticResource ToolCard}" Tag="MruCleaner" Click="ToolButton_Click" Content="{loc:Tr Module.MruCleaner}"
+                      AutomationProperties.AutomationId="ToolMruCleaner" />
+              <Button Style="{StaticResource ToolCard}" Tag="SharedDlls" Click="ToolButton_Click" Content="{loc:Tr Module.SharedDlls}"
+                      AutomationProperties.AutomationId="ToolSharedDlls" />
+              <Button Style="{StaticResource ToolCard}" Tag="RecycleBin" Click="ToolButton_Click" Content="{loc:Tr Module.RecycleBin}"
+                      AutomationProperties.AutomationId="ToolRecycleBin" />
+              <Button Style="{StaticResource ToolCard}" Tag="Finder" Click="ToolButton_Click" Content="{loc:Tr Module.Finder}"
+                      AutomationProperties.AutomationId="ToolFinder" />
+              <Button Style="{StaticResource ToolCard}" Tag="RunOnce" Click="ToolButton_Click" Content="{loc:Tr Module.RunOnce}"
+                      AutomationProperties.AutomationId="ToolRunOnce" />
+              <Button Style="{StaticResource ToolCard}" Tag="PendingOperations" Click="ToolButton_Click" Content="{loc:Tr Module.PendingOperations}"
+                      AutomationProperties.AutomationId="ToolPendingOperations" />
+              <Button Style="{StaticResource ToolCard}" Tag="DailyRegistryBackup" Click="ToolButton_Click" Content="{loc:Tr Module.DailyRegistryBackup}"
+                      AutomationProperties.AutomationId="ToolDailyRegistryBackup" />
+              <Button Style="{StaticResource ToolCard}" Tag="HexViewer" Click="ToolButton_Click" Content="{loc:Tr Module.HexViewer}"
+                      AutomationProperties.AutomationId="ToolHexViewer" />
+              <Button Style="{StaticResource ToolCard}" Tag="Bloatware" Click="ToolButton_Click" Content="{loc:Tr Module.Bloatware}"
+                      AutomationProperties.AutomationId="ToolBloatware" />
+              <Button Style="{StaticResource ToolCard}" Tag="Duplicates" Click="ToolButton_Click" Content="{loc:Tr Module.Duplicates}"
+                      AutomationProperties.AutomationId="ToolDuplicates" />
+              <Button Style="{StaticResource ToolCard}" Tag="Printers" Click="ToolButton_Click" Content="{loc:Tr Module.Printers}"
+                      AutomationProperties.AutomationId="ToolPrinters" />
+              <Button Style="{StaticResource ToolCard}" Tag="CrashDumps" Click="ToolButton_Click" Content="{loc:Tr Module.CrashDumps}"
+                      AutomationProperties.AutomationId="ToolCrashDumps" />
+              <Button Style="{StaticResource ToolCard}" Tag="BrowserCleanup" Click="ToolButton_Click" Content="{loc:Tr Module.BrowserCleanup}"
+                      AutomationProperties.AutomationId="ToolBrowserCleanup" />
+              <Button Style="{StaticResource ToolCard}" Tag="SoftwareUpdates" Click="ToolButton_Click" Content="{loc:Tr Module.SoftwareUpdates}"
+                      AutomationProperties.AutomationId="ToolSoftwareUpdates" />
+              <Button Style="{StaticResource ToolCard}" Tag="AppUpdate" Click="ToolButton_Click" Content="{loc:Tr Module.AppUpdate}"
+                      AutomationProperties.AutomationId="ToolAppUpdate" />
+              <Button Style="{StaticResource ToolCard}" Tag="UninstallHistory" Click="ToolButton_Click" Content="{loc:Tr Module.UninstallHistory}"
+                      AutomationProperties.AutomationId="ToolUninstallHistory" />
+              <Button Style="{StaticResource ToolCard}" Tag="CustomTools" Click="ToolButton_Click" Content="{loc:Tr Module.CustomTools}"
+                      AutomationProperties.AutomationId="ToolCustomTools" />
+              <Button Style="{StaticResource ToolCard}" Tag="Processes" Click="ToolButton_Click" Content="{loc:Tr Module.Processes}"
+                      AutomationProperties.AutomationId="ToolProcesses" />
+              <Button Style="{StaticResource ToolCard}" Tag="SystemManagement" Click="ToolButton_Click" Content="{loc:Tr Module.SystemManagement}"
+                      AutomationProperties.AutomationId="ToolSystemManagement" />
+              <Button Style="{StaticResource ToolCard}" Tag="ContextMenu" Click="ToolButton_Click" Content="{loc:Tr Module.ContextMenu}"
+                      AutomationProperties.AutomationId="ToolContextMenu" />
+              <Button Style="{StaticResource ToolCard}" Tag="Appearance" Click="ToolButton_Click" Content="{loc:Tr Module.Appearance}"
+                      AutomationProperties.AutomationId="ToolAppearance" />
+              <Button Style="{StaticResource ToolCard}" Tag="SystemInfo" Click="ToolButton_Click" Content="{loc:Tr Module.SystemInfo}"
+                      AutomationProperties.AutomationId="ToolSystemInfo" />
+              <Button Style="{StaticResource ToolCard}" Tag="ProgramImpact" Click="ToolButton_Click" Content="{loc:Tr Module.ProgramImpact}"
+                      AutomationProperties.AutomationId="ToolProgramImpact" />
+              <Button Style="{StaticResource ToolCard}" Tag="CrashAnalyzer" Click="ToolButton_Click" Content="{loc:Tr Module.CrashAnalyzer}"
+                      AutomationProperties.AutomationId="ToolCrashAnalyzer" />
+              <Button Style="{StaticResource ToolCard}" Tag="Relocation" Click="ToolButton_Click" Content="{loc:Tr Module.Relocation}"
+                      AutomationProperties.AutomationId="ToolRelocation" />
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
 
         <!-- painel do modulo/ferramenta ativo -->
-        <ContentControl x:Name="ContentHost" Visibility="Collapsed" />
+        <Border x:Name="ContentHostBorder" Visibility="Collapsed" BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1" CornerRadius="14" Padding="8" Background="{DynamicResource PanelBrush}">
+          <ContentControl x:Name="ContentHost" />
+        </Border>
       </Grid>
 
-      <!-- painel de descricao -->
-      <Border Grid.Row="2" x:Name="DescriptionPanelBorder" Background="{DynamicResource DescriptionBrush}"
-              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
-        <DockPanel>
-          <Grid DockPanel.Dock="Top" Height="22">
-            <TextBlock Text="{loc:Tr Common.Description}" Margin="8,0" VerticalAlignment="Center" FontWeight="SemiBold" />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,6,0">
-              <Button Content="&#x1F4CC;" Width="24" Height="18" Style="{StaticResource FlatButton}"
-                      BorderThickness="0" Background="Transparent" ToolTip="Ocultar automaticamente" />
-              <Button Content="&#x2715;" Width="24" Height="18" Style="{StaticResource FlatButton}"
-                      BorderThickness="0" Background="Transparent" ToolTip="Fechar" />
+      <!-- barra da selecao: o que vai ser desinstalado, e o botao que faz -->
+      <Border Grid.Row="4" x:Name="SelectionBar" Style="{StaticResource Card}" Margin="0,14,0,0" Padding="16,12">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <Border Width="40" Height="40" CornerRadius="10" Background="{DynamicResource HoverBrush}" Margin="0,0,14,0">
+            <Grid>
+              <Image x:Name="SelectionIcon" Width="26" Height="26" Stretch="Uniform"
+                     RenderOptions.BitmapScalingMode="HighQuality" />
+              <TextBlock x:Name="SelectionGlyph" Style="{StaticResource GlyphStatic}" Text="&#xE71D;"
+                         HorizontalAlignment="Center" />
+            </Grid>
+          </Border>
+          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <TextBlock x:Name="SelectionTitle" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource TitleTextBrush}" Text="{loc:Tr Selection.None.Title}" />
+            <TextBlock x:Name="SelectionDetail" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource TextDimBrush}" Text="{loc:Tr Selection.None.Hint}" />
+          </StackPanel>
+          <Button Grid.Column="2" x:Name="QuickUninstallButton" Style="{StaticResource OutlineButton}"
+                  Content="{loc:Tr Action.QuickUninstall}" ToolTip="{loc:Tr Action.QuickUninstallTip}"
+                  Margin="12,0,0,0" IsEnabled="False" Click="QuickUninstallButton_Click"
+                  AutomationProperties.AutomationId="CmdQuickUninstallButton" />
+          <Button Grid.Column="3" x:Name="UninstallButton" Style="{StaticResource PrimaryButton}"
+                  ToolTip="{loc:Tr Action.UninstallTip}" Margin="10,0,0,0" IsEnabled="False"
+                  Click="UninstallButton_Click" AutomationProperties.AutomationId="CmdUninstallButton">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xE74D;" FontSize="13" Margin="0,0,8,0" />
+              <TextBlock Style="{StaticResource BtnText}" Text="{loc:Tr Action.Uninstall}" />
             </StackPanel>
-          </Grid>
-          <TextBlock x:Name="DescriptionText" Margin="8,2,8,6" TextWrapping="Wrap"
-                     Foreground="{DynamicResource TextBrush}" FontSize="11" />
-        </DockPanel>
+          </Button>
+        </Grid>
       </Border>
 
       <!-- barra de status -->
-      <Border Grid.Row="3" x:Name="StatusBarBorder" MinHeight="24" Background="{DynamicResource StatusBarBrush}"
-              BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
-        <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="ProgramStatusText" Margin="8,0" VerticalAlignment="Center" FontSize="11" />
+      <Border Grid.Row="5" x:Name="StatusBarBorder" Padding="2,10,0,14">
+        <TextBlock x:Name="StatusText" AutomationProperties.AutomationId="ProgramStatusText" FontSize="11.5"
+                   Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
       </Border>
     </Grid>
 
@@ -877,8 +629,8 @@
       realces. Ele aparece a direita da lista e edita o mesmo conjunto de
       filtros que o popup e a caixa de busca.
     -->
-    <Border Grid.Column="2" x:Name="SettingsPanelBorder" Visibility="Collapsed" Width="290"
-            Background="{DynamicResource PanelBrush}"
+    <Border Grid.Column="2" x:Name="SettingsPanelBorder" Visibility="Collapsed" Width="300"
+            Background="{DynamicResource SidebarBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
       <ui:SettingsSidebar x:Name="SettingsSidebarPanel" />
     </Border>
@@ -887,29 +639,26 @@
       O painel ancorado (o "push pin" do Uninstall Tool): a ferramenta que o
       usuario fixou continua na lateral enquanto ele navega pelas outras.
     -->
-    <Border Grid.Column="3" x:Name="DockPanelBorder" Visibility="Collapsed" Width="320"
-            Background="{DynamicResource PanelBrush}"
+    <Border Grid.Column="3" x:Name="DockPanelBorder" Visibility="Collapsed" Width="340"
+            Background="{DynamicResource SidebarBrush}"
             BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,0,0,0">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border Grid.Row="0" x:Name="DockPanelHeaderBorder" MinHeight="26"
-                Background="{DynamicResource HeaderBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" x:Name="DockPanelHeaderBorder" Padding="16,14,8,10">
           <Grid>
-            <TextBlock x:Name="DockPanelTitle" Margin="8,0" VerticalAlignment="Center"
+            <TextBlock x:Name="DockPanelTitle" VerticalAlignment="Center" FontSize="14"
                        FontWeight="SemiBold" Foreground="{DynamicResource TitleTextBrush}" />
-            <Button x:Name="DockPanelCloseButton" Content="&#x2715;" Width="26"
-                    HorizontalAlignment="Right" Style="{StaticResource FlatButton}"
-                    Margin="0,1,2,1" Padding="0"
+            <Button x:Name="DockPanelCloseButton" Content="&#xE711;" Style="{StaticResource IconButton}"
+                    HorizontalAlignment="Right" Width="30" Height="30" FontSize="11"
                     Click="DockPanelCloseButton_Click"
                     AutomationProperties.AutomationId="CmdDockPanelClose"
                     ToolTip="{loc:Tr Panel.Undock}" />
           </Grid>
         </Border>
-        <ContentControl Grid.Row="1" x:Name="DockPanelHost" />
+        <ContentControl Grid.Row="1" x:Name="DockPanelHost" Margin="8,0,8,8" />
       </Grid>
     </Border>
   </Grid>

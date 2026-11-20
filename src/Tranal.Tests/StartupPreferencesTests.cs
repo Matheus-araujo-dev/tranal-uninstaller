@@ -175,14 +175,17 @@ public class StartupPreferencesTests : IDisposable
     }
 
     [Fact]
-    public void AsPreferenciasNovasLigamPorPadrao()
+    public void AInterfaceNovaAbreNaListaSemCaixasMarcadas()
     {
         var settings = new AppSettings();
 
         // O Revo foca os programas monitorados no arranque e mostra as caixas
-        // de selecao na visualizacao de detalhes: e o padrao do original.
-        Assert.True(settings.FocusTracedProgramsOnStartup);
-        Assert.True(settings.ShowCheckBoxesInDetailsView);
+        // de selecao (todas marcadas). A interface nova abre na lista de
+        // programas — a tarefa principal — e sem as caixas, que pareciam
+        // dizer "tudo sera removido". As duas opcoes continuam nas Opcoes.
+        Assert.False(settings.FocusTracedProgramsOnStartup);
+        Assert.False(settings.ShowCheckBoxesInDetailsView);
+        Assert.True(settings.CompactProgramList);
     }
 
     // ---------------------------------------------------------------

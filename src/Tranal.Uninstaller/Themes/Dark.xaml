@@ -1,9 +1,12 @@
 <!--
   Cores do tema escuro do Tranal Uninstaller Pro.
-  Medidas nas capturas reais do Revo Uninstaller Pro 5.5.4 (UI dark).
+
+  A paleta e a do Tranal Sentinel: monocromatica, preto profundo, cartoes um
+  tom acima do fundo, texto quase branco e um cinza para o que e secundario.
+  A cor so aparece quando carrega sentido (perigo, sucesso, aviso).
 
   Este dicionario contem SOMENTE brushes: os estilos ficam em Styles.xaml e
-  sao comuns aos dois temas. Assim a troca de tema em runtime e so uma troca
+  sao comuns a todos os temas. Assim a troca de tema em runtime e so uma troca
   de brushes em Application.Resources — nenhum dicionario XAML precisa ser
   carregado em runtime.
 -->
@@ -11,47 +14,54 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- ===== Superficies ===== -->
-  <SolidColorBrush x:Key="SidebarBrush" Color="#FF464646" />
-  <SolidColorBrush x:Key="PanelBrush" Color="#FF525252" />
-  <SolidColorBrush x:Key="HeaderBrush" Color="#FF3C3C3C" />
-  <SolidColorBrush x:Key="DescriptionBrush" Color="#FF4C4C4C" />
-  <SolidColorBrush x:Key="ToolBarBrush" Color="#FF3E3E3E" />
-  <SolidColorBrush x:Key="StatusBarBrush" Color="#FF3C3C3C" />
-  <SolidColorBrush x:Key="GroupHeaderBrush" Color="#FF464646" />
-  <SolidColorBrush x:Key="PopupBrush" Color="#FF3A3A3A" />
-  <SolidColorBrush x:Key="RowAlternateBrush" Color="#FF5A5A5A" />
+  <SolidColorBrush x:Key="SidebarBrush" Color="#FF080808" />
+  <SolidColorBrush x:Key="PanelBrush" Color="#FF000000" />
+  <SolidColorBrush x:Key="HeaderBrush" Color="#FF000000" />
+  <SolidColorBrush x:Key="DescriptionBrush" Color="#FF0E0E0E" />
+  <SolidColorBrush x:Key="ToolBarBrush" Color="#FF080808" />
+  <SolidColorBrush x:Key="StatusBarBrush" Color="#FF000000" />
+  <SolidColorBrush x:Key="GroupHeaderBrush" Color="#FF000000" />
+  <SolidColorBrush x:Key="PopupBrush" Color="#FF0E0E0E" />
+  <SolidColorBrush x:Key="RowAlternateBrush" Color="#FF000000" />
+  <SolidColorBrush x:Key="CardBrush" Color="#FF0E0E0E" />
 
   <!-- ===== Texto ===== -->
-  <SolidColorBrush x:Key="TextBrush" Color="#FFE6E6E6" />
-  <!-- Titulos sobre superficies neutras (sidebar, cabecalhos). No tema escuro
-       o Revo usa branco puro; no claro precisa de tinta escura. -->
+  <SolidColorBrush x:Key="TextBrush" Color="#FFF5F5F5" />
   <SolidColorBrush x:Key="TitleTextBrush" Color="#FFFFFFFF" />
-  <SolidColorBrush x:Key="TextDimBrush" Color="#FFB4B4B4" />
-  <SolidColorBrush x:Key="DisabledBrush" Color="#FF7A7A7A" />
-  <SolidColorBrush x:Key="LinkBrush" Color="#FF3399FF" />
+  <SolidColorBrush x:Key="TextDimBrush" Color="#FF8C8C8C" />
+  <SolidColorBrush x:Key="FaintTextBrush" Color="#FF5A5A5A" />
+  <SolidColorBrush x:Key="DisabledBrush" Color="#FF4A4A4A" />
+  <SolidColorBrush x:Key="LinkBrush" Color="#FFD6D6D6" />
 
   <!-- ===== Contorno e interacao ===== -->
-  <SolidColorBrush x:Key="BorderBrush" Color="#FF2E2E2E" />
+  <SolidColorBrush x:Key="BorderBrush" Color="#FF1F1F1F" />
+  <SolidColorBrush x:Key="StrongBorderBrush" Color="#FF3A3A3A" />
   <SolidColorBrush x:Key="PopupBorderBrush" Color="#FF2A2A2A" />
-  <SolidColorBrush x:Key="HoverBrush" Color="#FF5A5A5A" />
-  <SolidColorBrush x:Key="PressedBrush" Color="#FF6E6E6E" />
-  <SolidColorBrush x:Key="SelectionBrush" Color="#FF2F6FB5" />
+  <SolidColorBrush x:Key="HoverBrush" Color="#FF181818" />
+  <SolidColorBrush x:Key="PressedBrush" Color="#FF222222" />
+  <SolidColorBrush x:Key="SelectionBrush" Color="#FF242424" />
   <SolidColorBrush x:Key="SelectionTextBrush" Color="#FFFFFFFF" />
-  <SolidColorBrush x:Key="AccentBrush" Color="#FF3399FF" />
+  <SolidColorBrush x:Key="AccentBrush" Color="#FFF5F5F5" />
+
+  <!-- Botao principal: o branco do Sentinel, com texto preto. -->
+  <SolidColorBrush x:Key="PrimaryBrush" Color="#FFF5F5F5" />
+  <SolidColorBrush x:Key="PrimaryTextBrush" Color="#FF000000" />
 
   <!-- ===== Controles ===== -->
-  <SolidColorBrush x:Key="ButtonFaceBrush" Color="#FF5A5A5A" />
-  <SolidColorBrush x:Key="ButtonBorderBrush" Color="#FF6A6A6A" />
-  <SolidColorBrush x:Key="ButtonHoverBrush" Color="#FF6E6E6E" />
-  <SolidColorBrush x:Key="InputBrush" Color="#FF3A3A3A" />
-  <SolidColorBrush x:Key="InputBorderBrush" Color="#FF2A2A2A" />
-  <SolidColorBrush x:Key="ColumnHeaderBrush" Color="#FF3F3F3F" />
-  <SolidColorBrush x:Key="ColumnHeaderTextBrush" Color="#FFEFEFEF" />
-  <SolidColorBrush x:Key="ColumnHeaderBorderBrush" Color="#FF2C2C2C" />
+  <SolidColorBrush x:Key="ButtonFaceBrush" Color="#FF0E0E0E" />
+  <SolidColorBrush x:Key="ButtonBorderBrush" Color="#FF2E2E2E" />
+  <SolidColorBrush x:Key="ButtonHoverBrush" Color="#FF1A1A1A" />
+  <SolidColorBrush x:Key="InputBrush" Color="#FF0E0E0E" />
+  <SolidColorBrush x:Key="InputBorderBrush" Color="#FF262626" />
+  <SolidColorBrush x:Key="ColumnHeaderBrush" Color="#FF000000" />
+  <SolidColorBrush x:Key="ColumnHeaderTextBrush" Color="#FF8C8C8C" />
+  <SolidColorBrush x:Key="ColumnHeaderBorderBrush" Color="#FF1F1F1F" />
+  <SolidColorBrush x:Key="ScrollThumbBrush" Color="#FF2E2E2E" />
+  <SolidColorBrush x:Key="ScrollThumbHoverBrush" Color="#FF6A6A6A" />
 
   <!-- ===== Semanticos ===== -->
-  <SolidColorBrush x:Key="DangerBrush" Color="#FFCC5555" />
-  <SolidColorBrush x:Key="SuccessBrush" Color="#FF66CC66" />
-  <SolidColorBrush x:Key="WarningBrush" Color="#FFFFCC55" />
+  <SolidColorBrush x:Key="DangerBrush" Color="#FFE5484D" />
+  <SolidColorBrush x:Key="SuccessBrush" Color="#FF46A758" />
+  <SolidColorBrush x:Key="WarningBrush" Color="#FFF5A524" />
 
 </ResourceDictionary>

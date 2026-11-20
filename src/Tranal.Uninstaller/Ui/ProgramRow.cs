@@ -28,14 +28,25 @@ public sealed class ProgramRow : INotifyPropertyChanged
         Program = program;
 
         Custom = ProgramCustomizationStore.Has(program) ? ProgramCustomizationStore.For(program) : null;
+    }
 
-        // O icone escolhido pelo usuario tem precedencia sobre o icone do
-        // proprio programa (o "Change Icon" do Revo, 15079). Se o caminho
-        // escolhido nao carregar, o icone do programa continua valendo: sem
-        // icone nenhum, o usuario perderia a referencia do programa.
+    /// <summary>
+    /// Carrega o icone da linha.
+    ///
+    /// O icone escolhido pelo usuario tem precedencia sobre o icone do
+    /// proprio programa (o "Change Icon" do Revo, 15079). Se o caminho
+    /// escolhido nao carregar, o icone do programa continua valendo: sem
+    /// icone nenhum, o usuario perderia a referencia do programa. Quando o
+    /// DisplayIcon aponta para o executavel (o caso comum), o icone sai do
+    /// proprio executavel.
+    /// </summary>
+    private ImageSource? LoadIcon()
+    {
+        var program = Program;
         var escolhido = string.IsNullOrWhiteSpace(Custom?.IconPath) ? null : Custom!.IconPath;
-        Icon = (escolhido is not null ? IconPickerWindow.LoadIcon(escolhido) : null)
-            ?? IconPickerWindow.LoadIcon(program.IconPath);
+        return (escolhido is not null ? IconPickerWindow.LoadIcon(escolhido) : null)
+            ?? IconPickerWindow.LoadIcon(program.IconPath)
+            ?? ProgramIcons.FromDisplayIcon(program.DisplayIcon);
     }
 
     public string DisplayName => ProgramColumns.Value(ProgramColumn.Name, Program, Custom);
@@ -190,5 +201,25 @@ public sealed class ProgramRow : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public ImageSource? Icon { get; }
+    private ImageSource? _icon;
+    private bool _iconLoaded;
+
+    /// <summary>
+    /// O icone da linha, carregado na primeira vez que a lista o desenha.
+    ///
+    /// MEDIDO: carregar o icone de todas as linhas no construtor lia o disco
+    /// de ~200 programas antes de a lista aparecer. A lista e virtualizada:
+    /// so as linhas visiveis pedem o icone.
+    /// </summary>
+    public ImageSource? Icon
+    {
+        get
+        {
+            if (_iconLoaded) return _icon;
+
+            _iconLoaded = true;
+            _icon = LoadIcon();
+            return _icon;
+        }
+    }
 }
