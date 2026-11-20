@@ -1039,16 +1039,66 @@ matriz consolidada em `docs/auditoria/MATRIZ.md`.
   também na CLI; referenciar os dois criaria dois tipos `Core` diferentes).
   Por isso a conferência da camada de interface é feita sobre o fonte em disco.
 
-## Publicar
+## Publicar, instalar e atualizar (padrão dos apps Tranal)
+
+Vale a decisão **DEC-APPS-DISTRIBUICAO-001** (`D:\project-ai\docs\decisions\`),
+a mesma do Sentinel, do Despertador e do Suno. Em resumo:
+
+- **Todo PR mesclado na `main` vira uma versão nova.** O
+  `.github/workflows/publicar.yml` dispara em push na `main` e no botão
+  *Run workflow* (`patch | minor | major`). O passo "Decidir a versao" pega a
+  **maior tag `vX.Y.Z`** publicada e sobe o patch (ou o salto escolhido); a
+  `<Version>` do `.csproj` é só um **piso**. Nunca repete nem volta número.
+  Não crie tag à mão: o CI cria.
+- O CI roda os testes, publica a GUI, a CLI e o instalador com a versão
+  gravada (`publish-tranal.ps1 -Version X.Y.Z` → `-p:Version` e
+  `iscc /DMyAppVersion=X.Y.Z`), **confere a versão gravada** nos executáveis
+  e cria a release `vX.Y.Z` marcada como **Latest**, com o
+  `TranalUninstaller-Setup.exe` como asset. A release rolante `latest`
+  continua existindo, com `--latest=false`, para quem guardou o link.
+- **Quem mescla o PR é o agente** (`gh pr merge --merge`), depois de build
+  da solução e testes verdes, e acompanha o Actions até a release sair. O
+  owner não mescla.
+- **Instalador** (`installer/tranal.iss`): um `.exe` só, pasta
+  `{autopf}\Tranal Group\Tranal Uninstaller Pro`, `AppId` fixo
+  (`{4F0C1D6E-…}` — nunca muda), `CloseApplications=force`. No modo
+  silencioso a entrada `skipifnotsilent` da seção `[Run]` **reabre o app** no
+  fim; o Restart Manager não serve porque o Tranal não se registra nele. A
+  pasta e o `AppId` nunca mudaram desde o primeiro instalador, então não há
+  instalação antiga a migrar.
+- **Atualizador** (`Core/Updates/UpdateService.cs`, `VerificarEInstalarAsync`):
+  confere **ao abrir e de hora em hora** (`IntervaloDeVerificacao`) a lista
+  de releases do GitHub (`FeedDoTranalPadrao`); a regra da maior tag mora em
+  `Core/Updates/GitHubReleases.cs` (tag que não é `vX.Y.Z`, rascunho e
+  pre-release são ignorados). Baixa o Setup **conferindo o tamanho** do asset
+  e o roda com `UpdateInstaller.SilentArguments`
+  (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS`); a janela
+  fecha o app e o instalador o reabre. **Nunca instala no meio de uma
+  desinstalação**: com a fila ocupada (`UninstallQueue.IsBusy`) ou outra
+  janela do Tranal aberta, fica para a próxima conferência.
+- As duas preferências (`CheckForUpdateOnStartup`, `UpdateAutomatically`)
+  nascem **ligadas**. Um `settings.json` antigo é ligado **uma vez**
+  (`UpdatePolicyRevision`, em `AppSettingsStore.Normalize`); depois disso a
+  escolha do usuário vale.
+- **Só a cópia instalada pelo Setup se instala sozinha**
+  (`UpdateService.PodeInstalarSozinho`: o `unins000.exe` do Inno ao lado do
+  executável, e fora do modo portátil). O `.exe` avulso da release, a variante
+  de pré-visualização e o build de desenvolvimento só **avisam** da versão
+  nova: rodar o Setup a partir deles instalaria em Program Files, fecharia a
+  cópia a cada abertura e nunca a atualizaria.
+- **Senha no instalador é incompatível com a atualização automática.** Com o
+  secret `TRANAL_SETUP_PASSWORD` o Setup pede senha, o `/VERYSILENT` aborta
+  depois de o app já ter fechado, e nada o reabre. Não crie esse secret
+  enquanto a atualização automática for o padrão.
+- O `feed/tranal.json` é o feed das versões antigas e não é mais lido pelo
+  app (o padrão é a API de releases); ele não é atualizado pelo CI. Quem tem a
+  1.4.0 (que só lia esse feed, e só baixava) instala o Setup **uma vez** à mão;
+  dali em diante a atualização é sozinha.
 
 ```powershell
-git push origin main                      # CI monta a release "latest"
-git tag -a v1.0 -m "..." && git push origin v1.0   # CI monta a release da versão
+gh pr merge <n> --merge     # o push na main publica vX.Y.Z sozinho
+gh workflow run publicar.yml -f tipo=minor   # salto de versão na hora
 ```
-
-O `.github/workflows/publicar.yml` roda os testes, publica a GUI (com
-`requireAdministrator`), a variante de pré-visualização (sem admin) e a CLI,
-e atualiza a release "latest".
 
 ## Medição (o que vale como verdade)
 

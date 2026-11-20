@@ -8,7 +8,9 @@
 ;   /DRuntimeFile=...     redistribuivel do .NET Desktop Runtime
 ;   /DRuntimeFileName=... nome do redistribuivel
 ;   /DOutputDir=...       onde gravar o Setup.exe
-;   /DAppVersion=...      versao publicada
+;   /DMyAppVersion=...    versao publicada (o padrao dos apps Tranal,
+;                         DEC-APPS-DISTRIBUICAO-001; /DAppVersion, o nome
+;                         antigo, ainda e aceito)
 ;   /DLicenseFile=...     arquivo de licenca
 ;   /DRepoRoot=...        raiz do repositorio
 ;
@@ -53,8 +55,15 @@
 #ifndef OutputDir
   #error "OutputDir nao definido"
 #endif
-#ifndef AppVersion
-  #error "AppVersion nao definido"
+; A versao vem de /DMyAppVersion (o nome comum a todos os apps Tranal). O
+; nome antigo, /DAppVersion, continua aceito para nao quebrar quem ja chama
+; assim.
+#ifndef MyAppVersion
+  #ifdef AppVersion
+    #define MyAppVersion AppVersion
+  #else
+    #error "MyAppVersion nao definido (use /DMyAppVersion=X.Y.Z)"
+  #endif
 #endif
 #ifndef LicenseFile
   #error "LicenseFile nao definido"
@@ -76,8 +85,8 @@
 [Setup]
 AppId={{4F0C1D6E-2A83-4B57-9E14-7C8D5B2A9F30}
 AppName={#AppName}
-AppVersion={#AppVersion}
-AppVerName={#AppName} {#AppVersion}
+AppVersion={#MyAppVersion}
+AppVerName={#AppName} {#MyAppVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppHomeUrl}
 AppSupportURL={#AppHomeUrl}/issues
@@ -102,10 +111,15 @@ UninstallDisplayIcon={app}\{#AppExeName}
 ; O icone do setup e o mesmo do programa: o .ico e gerado por
 ; tools\gerar-icone.ps1 e entra no executavel via ApplicationIcon.
 SetupIconFile={#RepoRoot}\src\Tranal.Uninstaller\Assets\Tranal.ico
-CloseApplications=yes
+; A atualizacao automatica roda o setup em modo silencioso com o app
+; aberto: "force" fecha o app sem perguntar (no modo silencioso nao ha a
+; quem perguntar). RestartApplications=no porque a reabertura e feita pela
+; secao [Run] (entrada "skipifnotsilent"): o Restart Manager so reabre app
+; que se registrou nele, e o Tranal nao se registra.
+CloseApplications=force
 RestartApplications=no
 SetupLogging=yes
-VersionInfoVersion={#AppVersion}
+VersionInfoVersion={#MyAppVersion}
 ; Instalador protegido por senha: quando a senha vem do ambiente, o conteudo
 ; do setup e criptografado (Encryption=yes, XChaCha20 no motor do Inno Setup
 ; 6) e a instalacao pede a senha no comeco. Sem senha, o instalador fica
@@ -165,6 +179,14 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; WorkingDir: "
 ; "CreateProcess falhou; codigo 740" e o programa nunca abre.
 Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; \
     Flags: nowait postinstall skipifsilent runascurrentuser; Check: RuntimeDisponivel
+
+; Atualizacao automatica (DEC-APPS-DISTRIBUICAO-001): o app baixou a versao
+; nova e rodou este setup com /VERYSILENT, e o setup o fechou
+; (CloseApplications=force). No fim, o app e reaberto sozinho — o usuario nao
+; fecha nem reabre nada. "runascurrentuser" pelo mesmo motivo da entrada
+; acima: o Tranal exige administrador.
+Filename: "{app}\{#AppExeName}"; \
+    Flags: nowait skipifnotsilent runascurrentuser; Check: RuntimeDisponivel
 
 [UninstallRun]
 ; Remove a entrada do menu de contexto do Windows: o executavel sera

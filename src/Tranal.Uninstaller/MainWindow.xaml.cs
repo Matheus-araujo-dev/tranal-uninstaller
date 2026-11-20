@@ -149,6 +149,7 @@ public partial class MainWindow : Window
             await ReloadAsync();
             FocusStartupModule();
             _ = CheckForUpdateOnStartup();
+            IniciarVerificacaoPeriodica();
         };
     }
 
@@ -242,46 +243,92 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Verifica, ao iniciar, se ha versao nova do Tranal.
+    /// Verifica, ao iniciar, se ha versao nova do Tranal — e, com a
+    /// preferencia "Atualizar automaticamente" (o padrao), baixa o Setup e o
+    /// roda em modo silencioso. O app fecha e o instalador o reabre no fim
+    /// (DEC-APPS-DISTRIBUICAO-001).
     ///
-    /// Corresponde a opcao "Verificar por atualizacoes ao iniciar" do Revo
-    /// (e a "Atualizar automaticamente em segundo plano", que baixa o pacote
-    /// sem atrapalhar). A verificacao roda em segundo plano e nao bloqueia a
-    /// janela: o resultado aparece na barra de status.
-    ///
-    /// A regra de "o que e versao nova" e do nucleo
-    /// (<see cref="UpdateService.TemVersaoNova"/>), a mesma que a tela de
-    /// atualizacao usa.
+    /// A ordem das decisoes e do nucleo
+    /// (<see cref="UpdateService.VerificarEInstalarAsync"/>); a janela so diz
+    /// se pode fechar agora e mostra o resultado na barra de status.
     /// </summary>
     private async Task CheckForUpdateOnStartup()
     {
         var settings = AppSettingsStore.Current;
         if (!settings.CheckForUpdateOnStartup) return;
+        if (_atualizando) return;
 
+        _atualizando = true;
         try
         {
-            var resultado = await UpdateService.VerificarTranalAsync();
-            if (!resultado.Success) return;
+            var resultado = await UpdateService.VerificarEInstalarAsync(PodeFecharParaAtualizar, settings.UpdateAutomatically);
 
-            var atual = UpdateService.VersaoAtual();
-            if (!UpdateService.TemVersaoNova(atual, resultado.LatestVersion)) return;
+            switch (resultado.Outcome)
+            {
+                case AutoUpdateOutcome.NewVersionAvailable:
+                case AutoUpdateOutcome.Postponed:
+                case AutoUpdateOutcome.DownloadFailed:
+                case AutoUpdateOutcome.NoInstaller:
+                case AutoUpdateOutcome.InstallFailed:
+                    StatusText.Text = $"{Loc.Get("Update.LatestVersion")} {resultado.LatestVersion}";
+                    break;
 
-            StatusText.Text = $"{Loc.Get("Update.LatestVersion")} {resultado.LatestVersion}";
-
-            // "Atualizar automaticamente em segundo plano": o pacote e baixado
-            // sem abrir nada. O usuario decide quando executa.
-            if (!settings.UpdateAutomatically) return;
-            if (string.IsNullOrWhiteSpace(resultado.DownloadUrl)) return;
-
-            var destino = UpdateService.CaminhoDoPacote(resultado.DownloadUrl);
-            var ok = await AutoUpdateClient.DownloadAsync(resultado.DownloadUrl!, destino, null, default);
-            if (ok) StatusText.Text += " — " + Loc.Get("Update.Done");
+                case AutoUpdateOutcome.Installing:
+                    // O Setup silencioso precisa trocar os arquivos do app:
+                    // o Tranal fecha agora e o instalador o reabre no fim.
+                    StatusText.Text = $"{Loc.Get("Update.LatestVersion")} {resultado.LatestVersion}";
+                    Application.Current.Shutdown();
+                    break;
+            }
         }
         catch
         {
             // Sem rede, a verificacao silenciosa falha e o Tranal continua
-            // funcionando: a opcao e um extra, nunca um bloqueio.
+            // funcionando: a atualizacao e um extra, nunca um bloqueio.
         }
+        finally
+        {
+            _atualizando = false;
+        }
+    }
+
+    /// <summary>Evita duas conferencias ao mesmo tempo (a do arranque e a periodica).</summary>
+    private bool _atualizando;
+
+    /// <summary>O relogio da conferencia de hora em hora.</summary>
+    private System.Windows.Threading.DispatcherTimer? _timerDeAtualizacao;
+
+    /// <summary>
+    /// Confere de novo a cada <see cref="UpdateService.IntervaloDeVerificacao"/>
+    /// enquanto o app esta aberto: quem deixa o Tranal aberto na bandeja
+    /// tambem recebe a versao nova.
+    /// </summary>
+    private void IniciarVerificacaoPeriodica()
+    {
+        if (_timerDeAtualizacao is not null) return;
+
+        _timerDeAtualizacao = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = UpdateService.IntervaloDeVerificacao,
+        };
+        _timerDeAtualizacao.Tick += async (_, _) => await CheckForUpdateOnStartup();
+        _timerDeAtualizacao.Start();
+        Closed += (_, _) => _timerDeAtualizacao?.Stop();
+    }
+
+    /// <summary>
+    /// O app pode fechar agora para a atualizacao? Nao no meio de uma
+    /// desinstalacao: nem com a fila rodando, nem com outra janela do Tranal
+    /// aberta (o assistente de desinstalacao, as opcoes, uma ferramenta). A
+    /// instalacao fica para a proxima conferencia.
+    /// </summary>
+    private bool PodeFecharParaAtualizar()
+    {
+        if (Tranal.Uninstaller.Core.Automation.UninstallQueue.IsBusy) return false;
+
+        return Dispatcher.Invoke(() =>
+            Application.Current.Windows.Cast<Window>()
+                .All(w => ReferenceEquals(w, this) || !w.IsVisible));
     }
 
     /// <summary>
