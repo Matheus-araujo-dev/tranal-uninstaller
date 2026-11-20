@@ -12,13 +12,6 @@
     <TextBlock Text="{loc:Tr App.Subtitle}" Foreground="{DynamicResource TextDimBrush}"
                Margin="0,0,0,14" TextWrapping="Wrap" />
 
-    <TextBlock Text="{loc:Tr Options.Theme}" FontWeight="SemiBold" Margin="0,0,0,6" />
-
-    <RadioButton x:Name="DarkRadio" GroupName="Theme" IsChecked="True" Margin="0,0,0,6"
-                 Content="{loc:Tr Cmd.ThemeDark}" Checked="ThemeRadio_Changed" />
-    <RadioButton x:Name="LightRadio" GroupName="Theme"
-                 Content="{loc:Tr Cmd.ThemeLight}" Checked="ThemeRadio_Changed" />
-
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
       <Button x:Name="OkButton" Content="{loc:Tr Common.Ok}" Style="{StaticResource FlatButton}"
               Width="90" Click="OkButton_Click" IsDefault="True" />

@@ -41,9 +41,6 @@ namespace Tranal.Uninstaller.Theming;
 public static class ThemeManager
 {
     public const string Dark = "Dark";
-    public const string Light = "Light";
-    public const string Slate = "Slate";
-    public const string Contrast = "Contrast";
 
     /// <summary>Chave do catalogo de temas em Application.Resources.</summary>
     private const string CatalogKey = "ThemeCatalog";
@@ -174,8 +171,8 @@ public static class ThemeManager
         }
     }
 
-    /// <summary>Alterna entre os dois temas.</summary>
-    public static void Toggle() => Apply(IsDark ? Light : Dark);
+    /// <summary>Reaplica o tema unico (mantido por compatibilidade).</summary>
+    public static void Toggle() => Apply(Dark);
 
     /// <summary>
     /// Aplica o tema salvo nas preferencias. Chamado na inicializacao da aplicacao,

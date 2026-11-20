@@ -153,9 +153,9 @@ public static class TraceLogExporter
         sb.AppendLine("<!DOCTYPE html>");
         sb.AppendLine("<html lang=\"pt-BR\"><head><meta charset=\"utf-8\">");
         sb.AppendLine("<title>Tranal Uninstaller - Log de instalacao</title>");
-        sb.AppendLine("<style>body{font-family:Segoe UI,Arial;background:#525252;color:#e6e6e6}");
-        sb.AppendLine("table{border-collapse:collapse;width:100%;margin-bottom:24px}th,td{border:1px solid #2e2e2e;padding:4px 8px;text-align:left}");
-        sb.AppendLine("th{background:#3c3c3c}tr:nth-child(even){background:#5a5a5a}h2{margin:18px 0 6px}</style>");
+        sb.AppendLine("<style>body{font-family:Segoe UI,Arial;background:#0E0E0E;color:#F5F5F5}");
+        sb.AppendLine("table{border-collapse:collapse;width:100%;margin-bottom:24px}th,td{border:1px solid #1F1F1F;padding:4px 8px;text-align:left}");
+        sb.AppendLine("th{background:#080808}tr:nth-child(even){background:#121212}h2{margin:18px 0 6px}</style>");
         sb.AppendLine("</head><body>");
         sb.AppendLine("<h1>Log de instalacao monitorada</h1>");
         sb.AppendLine("<table><tr><th>Campo</th><th>Valor</th></tr>");

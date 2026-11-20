@@ -47,7 +47,7 @@ public static class ColorBlindPalette
     public const string StandardSuccess = "#FF4CAF50";
 
     /// <summary>A cor de realce do destaque, no modo padrao.</summary>
-    public const string StandardAccent = "#FF4C9AFF";
+    public const string StandardAccent = "#FFF5F5F5";
 
     /// <summary>
     /// As cores de realce por modo, em ordem: aviso, perigo, sucesso,
@@ -63,10 +63,10 @@ public static class ColorBlindPalette
             new[] { StandardWarning, StandardDanger, StandardSuccess, StandardAccent },
 
         [ColorVisionMode.Protanopia] =
-            new[] { "#FFE14D", "#FF7A1A", "#2E7BE0", "#6C3FD1" },
+            new[] { "#FFE14D", "#FF7A1A", "#66CC66", "#D0D0D0" },
 
         [ColorVisionMode.Deuteranopia] =
-            new[] { "#FFE14D", "#FF7A1A", "#2E7BE0", "#6C3FD1" },
+            new[] { "#FFE14D", "#FF7A1A", "#66CC66", "#D0D0D0" },
 
         [ColorVisionMode.Tritanopia] =
             new[] { "#F0E14D", "#FF8080", "#1E8A3C", "#D060FF" },
@@ -78,8 +78,8 @@ public static class ColorBlindPalette
     private static readonly Dictionary<ColorVisionMode, string> AccentColors = new()
     {
         [ColorVisionMode.Standard] = StandardAccent,
-        [ColorVisionMode.Protanopia] = "#6C3FD1",
-        [ColorVisionMode.Deuteranopia] = "#6C3FD1",
+        [ColorVisionMode.Protanopia] = "#D0D0D0",
+        [ColorVisionMode.Deuteranopia] = "#D0D0D0",
         [ColorVisionMode.Tritanopia] = "#D060FF",
     };
 
@@ -131,16 +131,16 @@ public static class ColorBlindPalette
         {
             Colors = new Dictionary<ThemeColorRole, string>
             {
-                [ThemeColorRole.Background] = "#FF3C3C3C",
-                [ThemeColorRole.Panel] = "#FF525252",
-                [ThemeColorRole.Header] = "#FF3C3C3C",
-                [ThemeColorRole.Text] = "#FFE6E6E6",
-                [ThemeColorRole.MutedText] = "#FFB4B4B4",
+                [ThemeColorRole.Background] = "#FF080808",
+                [ThemeColorRole.Panel] = "#FF0E0E0E",
+                [ThemeColorRole.Header] = "#FF080808",
+                [ThemeColorRole.Text] = "#FFF5F5F5",
+                [ThemeColorRole.MutedText] = "#FF8C8C8C",
                 [ThemeColorRole.Selection] = accent,
                 [ThemeColorRole.SelectionText] = "#FFFFFFFF",
                 [ThemeColorRole.Accent] = accent,
-                [ThemeColorRole.Border] = "#FF2E2E2E",
-                [ThemeColorRole.Button] = "#FF4A4A4A",
+                [ThemeColorRole.Border] = "#FF1F1F1F",
+                [ThemeColorRole.Button] = "#FF181818",
             },
         };
     }

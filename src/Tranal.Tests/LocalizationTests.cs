@@ -150,14 +150,14 @@ public class AppSettingsTests
 
             AppSettingsStore.Save(new AppSettings
             {
-                Theme = "Light",
+                Theme = "Dark",
                 Language = "en-US",
                 NewProgramsDays = 14,
                 ShowSystemComponents = true,
             });
 
             var loaded = AppSettingsStore.Load();
-            Assert.Equal("Light", loaded.Theme);
+            Assert.Equal("Dark", loaded.Theme);
             Assert.Equal("en-US", loaded.Language);
             Assert.Equal(14, loaded.NewProgramsDays);
             Assert.True(loaded.ShowSystemComponents);

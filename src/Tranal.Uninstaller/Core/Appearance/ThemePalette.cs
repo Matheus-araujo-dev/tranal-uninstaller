@@ -97,29 +97,8 @@ public static class ThemeSkinCatalog
         {
             Id = "Dark",
             DisplayName = "Escuro",
-            Description = "O tema escuro, com fundo cinza e destaque azul.",
+            Description = "Tema monocromático escuro, inspirado no Tranal Sentinel.",
             IsDark = true,
-        },
-        new ThemeSkin
-        {
-            Id = "Slate",
-            DisplayName = "Ardosia",
-            Description = "Um tema escuro de tom azulado, para telas com muito texto.",
-            IsDark = true,
-        },
-        new ThemeSkin
-        {
-            Id = "Contrast",
-            DisplayName = "Alto contraste",
-            Description = "Preto e branco com contorno forte, para leitura com pouca luz.",
-            IsDark = true,
-        },
-        new ThemeSkin
-        {
-            Id = "Light",
-            DisplayName = "Clássico",
-            Description = "O tema claro, com fundo claro e tinta escura.",
-            IsDark = false,
         },
     };
 
@@ -149,15 +128,7 @@ public static class ThemeSkinCatalog
             if (string.Equals(skin.DisplayName, text, StringComparison.OrdinalIgnoreCase)) return skin.Id;
         }
 
-        // Os apelidos antigos do projeto: "claro" e "classico" eram as duas
-        // formas de escrever o tema claro antes de existirem outros.
-        if (text.Equals("claro", StringComparison.OrdinalIgnoreCase)
-            || text.Equals("clássico", StringComparison.OrdinalIgnoreCase)
-            || text.Equals("classico", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Light";
-        }
-
+        // Os apelidos antigos do projeto apontam para o tema unico.
         return Default;
     }
 
@@ -276,104 +247,38 @@ public sealed class ThemePalette
 }
 
 /// <summary>
-/// As paletas que o Tranal usa por padrao.
+/// A paleta que o Tranal usa por padrao.
 ///
-/// Sao os **mesmos** valores dos dicionarios XAML (<c>Themes/Dark.xaml</c> e
-/// <c>Themes/Light.xaml</c>). A duplicacao aqui e intencional e limitada: a
-/// paleta e o que a linha de comando e o painel de configuracao mostram,
-/// e o XAML e o que a tela usa. Mudar um sem o outro e um defeito — por isso
-/// o teste do projeto compara as duas.
+/// Sao os **mesmos** valores do dicionario XAML (<c>Themes/Dark.xaml</c>).
+/// A duplicacao aqui e intencional e limitada: a paleta e o que a linha de
+/// comando e o painel de configuracao mostram, e o XAML e o que a tela usa.
+/// Mudar um sem o outro e um defeito — por isso o teste do projeto compara
+/// as duas.
 /// </summary>
 public static class ThemePalettes
 {
-    /// <summary>A paleta do tema escuro.</summary>
+    /// <summary>A paleta do tema unico (monocromatico escuro).</summary>
     public static ThemePalette Dark { get; } = new()
     {
         Colors = new Dictionary<ThemeColorRole, string>
         {
-            [ThemeColorRole.Background] = "#FF3C3C3C",
-            [ThemeColorRole.Panel] = "#FF525252",
-            [ThemeColorRole.Header] = "#FF3C3C3C",
-            [ThemeColorRole.Text] = "#FFE6E6E6",
-            [ThemeColorRole.MutedText] = "#FFB4B4B4",
-            [ThemeColorRole.Selection] = "#FF2F6FB5",
+            [ThemeColorRole.Background] = "#FF080808",
+            [ThemeColorRole.Panel] = "#FF0E0E0E",
+            [ThemeColorRole.Header] = "#FF080808",
+            [ThemeColorRole.Text] = "#FFF5F5F5",
+            [ThemeColorRole.MutedText] = "#FF8C8C8C",
+            [ThemeColorRole.Selection] = "#FF3A3A3A",
             [ThemeColorRole.SelectionText] = "#FFFFFFFF",
-            [ThemeColorRole.Accent] = "#FF3399FF",
-            [ThemeColorRole.Border] = "#FF2E2E2E",
-            [ThemeColorRole.Button] = "#FF4A4A4A",
-            [ThemeColorRole.CommandButtonText] = "#FFE6E6E6",
-            [ThemeColorRole.DialogBackground] = "#FF525252",
+            [ThemeColorRole.Accent] = "#FFF5F5F5",
+            [ThemeColorRole.Border] = "#FF1F1F1F",
+            [ThemeColorRole.Button] = "#FF181818",
+            [ThemeColorRole.CommandButtonText] = "#FFF5F5F5",
+            [ThemeColorRole.DialogBackground] = "#FF0E0E0E",
         },
     };
 
-    /// <summary>A paleta do tema claro.</summary>
-    public static ThemePalette Light { get; } = new()
-    {
-        Colors = new Dictionary<ThemeColorRole, string>
-        {
-            [ThemeColorRole.Background] = "#FFF0F0F0",
-            [ThemeColorRole.Panel] = "#FFFFFFFF",
-            [ThemeColorRole.Header] = "#FFE4E4E4",
-            [ThemeColorRole.Text] = "#FF1A1A1A",
-            [ThemeColorRole.MutedText] = "#FF5A5A5A",
-            [ThemeColorRole.Selection] = "#FFCCE4FF",
-            [ThemeColorRole.SelectionText] = "#FF101010",
-            [ThemeColorRole.Accent] = "#FF0B5CAB",
-            [ThemeColorRole.Border] = "#FFC8C8C8",
-            [ThemeColorRole.Button] = "#FFE8E8E8",
-            [ThemeColorRole.CommandButtonText] = "#FF1A1A1A",
-            [ThemeColorRole.DialogBackground] = "#FFFFFFFF",
-        },
-    };
-
-    /// <summary>A paleta do tema ardosia.</summary>
-    public static ThemePalette Slate { get; } = new()
-    {
-        Colors = new Dictionary<ThemeColorRole, string>
-        {
-            [ThemeColorRole.Background] = "#FF1E2A38",
-            [ThemeColorRole.Panel] = "#FF27384C",
-            [ThemeColorRole.Header] = "#FF223142",
-            [ThemeColorRole.Text] = "#FFE8EEF5",
-            [ThemeColorRole.MutedText] = "#FF9FB0C4",
-            [ThemeColorRole.Selection] = "#FF2A6FA8",
-            [ThemeColorRole.SelectionText] = "#FFFFFFFF",
-            [ThemeColorRole.Accent] = "#FF5AA9E6",
-            [ThemeColorRole.Border] = "#FF16202C",
-            [ThemeColorRole.Button] = "#FF31465E",
-            [ThemeColorRole.CommandButtonText] = "#FFE8EEF5",
-            [ThemeColorRole.DialogBackground] = "#FF27384C",
-        },
-    };
-
-    /// <summary>A paleta do tema de alto contraste.</summary>
-    public static ThemePalette Contrast { get; } = new()
-    {
-        Colors = new Dictionary<ThemeColorRole, string>
-        {
-            [ThemeColorRole.Background] = "#FF000000",
-            [ThemeColorRole.Panel] = "#FF000000",
-            [ThemeColorRole.Header] = "#FF000000",
-            [ThemeColorRole.Text] = "#FFFFFFFF",
-            [ThemeColorRole.MutedText] = "#FFD0D0D0",
-            [ThemeColorRole.Selection] = "#FF0000AA",
-            [ThemeColorRole.SelectionText] = "#FFFFFFFF",
-            [ThemeColorRole.Accent] = "#FFFFFF00",
-            [ThemeColorRole.Border] = "#FFFFFFFF",
-            [ThemeColorRole.Button] = "#FF202020",
-            [ThemeColorRole.CommandButtonText] = "#FFFFFFFF",
-            [ThemeColorRole.DialogBackground] = "#FF000000",
-        },
-    };
-
-    /// <summary>A paleta de um tema pelo id.</summary>
-    public static ThemePalette Of(string? skinId) => Normalize(skinId) switch
-    {
-        "Light" => Light,
-        "Slate" => Slate,
-        "Contrast" => Contrast,
-        _ => Dark,
-    };
+    /// <summary>A paleta do tema unico.</summary>
+    public static ThemePalette Of(string? skinId) => Dark;
 
     /// <summary>Normaliza o id do tema para um dos quatro conhecidos.</summary>
     public static string Normalize(string? skinId) => ThemeSkinCatalog.Normalize(skinId);

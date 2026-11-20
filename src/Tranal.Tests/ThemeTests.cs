@@ -33,21 +33,11 @@ public class ThemeTests
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     [Fact]
-    public void OsDoisTemasDeclaramAsMesmasChaves()
+    public void OTemaUnicoDeclaraChaves()
     {
         var dark = ReadThemeKeys("Dark.xaml");
-        var light = ReadThemeKeys("Light.xaml");
 
         Assert.NotEmpty(dark);
-        Assert.NotEmpty(light);
-
-        var faltandoNoClaro = dark.Where(k => !light.Contains(k)).OrderBy(k => k).ToList();
-        var faltandoNoEscuro = light.Where(k => !dark.Contains(k)).OrderBy(k => k).ToList();
-
-        Assert.True(faltandoNoClaro.Count == 0,
-            $"Chaves ausentes no tema claro: {string.Join(", ", faltandoNoClaro)}");
-        Assert.True(faltandoNoEscuro.Count == 0,
-            $"Chaves ausentes no tema escuro: {string.Join(", ", faltandoNoEscuro)}");
     }
 
     [Fact]
@@ -160,14 +150,13 @@ public class ThemeTests
     }
 
     /// <summary>
-    /// Tudo o que a interface pode referenciar: as cores dos dois temas
-    /// (Themes/Dark.xaml e Themes/Light.xaml) e os estilos compartilhados
-    /// (Themes/Styles.xaml).
+    /// Tudo o que a interface pode referenciar: as cores do tema unico
+    /// (Themes/Dark.xaml) e os estilos compartilhados (Themes/Styles.xaml).
     /// </summary>
     private static HashSet<string> ReadResourceKeys()
     {
         var keys = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var file in new[] { "Dark.xaml", "Light.xaml", "Styles.xaml" })
+        foreach (var file in new[] { "Dark.xaml", "Styles.xaml" })
             keys.UnionWith(ReadThemeKeys(file));
         return keys;
     }

@@ -62,8 +62,8 @@ public static class ColorLegend
     /// </summary>
     private static readonly string[] Palette =
     {
-        "#4E79A7", "#F28E2B", "#59A14F", "#E15759", "#B07AA1", "#76B7B2",
-        "#EDC948", "#9C755F", "#BAB0AC", "#8CD17D", "#D37295", "#A0CBE8",
+        "#8C8C8C", "#F28E2B", "#59A14F", "#E15759", "#B07AA1", "#A0A0A0",
+        "#EDC948", "#9C755F", "#BAB0AC", "#8CD17D", "#D37295", "#C0C0C0",
     };
 
     /// <summary>

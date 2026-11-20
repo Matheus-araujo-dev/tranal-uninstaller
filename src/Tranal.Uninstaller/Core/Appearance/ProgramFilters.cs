@@ -133,7 +133,7 @@ public static class HighlightPalette
         Warning => "#FFE3B341",
         Danger => "#FFE05C5C",
         Success => "#FF4CAF50",
-        Accent => "#FF4C9AFF",
+        Accent => "#FFF5F5F5",
         _ => null,
     };
 }

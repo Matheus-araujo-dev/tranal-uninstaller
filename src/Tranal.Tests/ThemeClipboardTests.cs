@@ -75,20 +75,20 @@ public class ThemeClipboardTests
     }
 
     [Fact]
-    public void OCatalogoDeTemasTemOsQuatroEGravaOPrimeiroComoPadrao()
+    public void OCatalogoDeTemasTemUmEGravaOPrimeiroComoPadrao()
     {
-        Assert.Equal(4, ThemeSkinCatalog.All.Count);
+        Assert.Single(ThemeSkinCatalog.All);
         Assert.Equal("Dark", ThemeSkinCatalog.Default);
-        Assert.True(ThemeSkinCatalog.Exists("Slate"));
+        Assert.True(ThemeSkinCatalog.Exists("Dark"));
         Assert.False(ThemeSkinCatalog.Exists(" inexistente"));
     }
 
     [Fact]
-    public void ONomeDoThemeAceitaOApelidoAntigoDoClaro()
+    public void ONomeDoThemeNormalizaTudoParaDark()
     {
-        Assert.Equal("Light", ThemeSkinCatalog.Normalize("claro"));
-        Assert.Equal("Light", ThemeSkinCatalog.Normalize("CLARO"));
-        Assert.Equal("Light", ThemeSkinCatalog.Normalize("classico"));
+        Assert.Equal("Dark", ThemeSkinCatalog.Normalize("claro"));
+        Assert.Equal("Dark", ThemeSkinCatalog.Normalize("CLARO"));
+        Assert.Equal("Dark", ThemeSkinCatalog.Normalize("classico"));
         Assert.Equal("Dark", ThemeSkinCatalog.Normalize("desconhecido"));
         Assert.Equal("Dark", ThemeSkinCatalog.Normalize(null));
     }
