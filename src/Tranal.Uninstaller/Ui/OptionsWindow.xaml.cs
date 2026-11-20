@@ -103,6 +103,7 @@ public partial class OptionsWindow : Window
         ShowCheckBoxesCheck.IsChecked = settings.ShowCheckBoxesInDetailsView;
         AdvancedModeCheck.IsChecked = settings.AdvancedMode;
         FastLoadingCheck.IsChecked = settings.FastLoadingMode;
+        HardwareRenderingCheck.IsChecked = settings.UseHardwareRendering;
         CheckUpdateCheck.IsChecked = settings.CheckForUpdateOnStartup;
         AutoUpdateCheck.IsChecked = settings.UpdateAutomatically;
         SkipInformationCheck.IsChecked = settings.SkipInformationMessages;
@@ -413,6 +414,7 @@ public partial class OptionsWindow : Window
             s.ShowWebPageShortcuts = ShowWebShortcutsCheck.IsChecked == true;
             s.AdvancedMode = AdvancedModeCheck.IsChecked == true;
             s.FastLoadingMode = FastLoadingCheck.IsChecked == true;
+        s.UseHardwareRendering = HardwareRenderingCheck.IsChecked == true;
             s.CheckForUpdateOnStartup = CheckUpdateCheck.IsChecked == true;
             s.UpdateAutomatically = AutoUpdateCheck.IsChecked == true;
             s.SkipInformationMessages = SkipInformationCheck.IsChecked == true;

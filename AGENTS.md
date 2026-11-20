@@ -989,6 +989,82 @@ matriz consolidada em `docs/auditoria/MATRIZ.md`.
   `HeaderBrush` etc. são superfícies. Só os brushes de texto (nome com `Text`)
   podem ir no `Foreground`. Há teste que reprova o uso trocado.
 
+## A interface leve (estilo do Tranal Sentinel)
+
+A janela principal foi refeita para quem só quer desinstalar um programa. As
+regras abaixo valem para qualquer mudança de tela.
+
+- **A desinstalação fica na frente, sozinha.** A lista de programas abre no
+  arranque (não os programas monitorados), com busca grande, a barra da
+  seleção embaixo (ícone, nome, empresa, versão, tamanho) e o botão
+  "Desinstalar" — o único botão principal da tela. Dois cliques na linha
+  também desinstalam. Os três caminhos chamam o mesmo `StartUninstall`.
+- **Todo o resto mora em "Ferramentas"**, uma página de cartões por categoria.
+  A categoria e as chaves do guia moram em **um lugar só**:
+  `Core/ToolGuide.cs` (`CategoryOf`, `ToolsOf`, `KeyOf`). Os cartões do XAML
+  são só o "estoque" de botões (um por ferramenta do `ToolCatalog`, com
+  `Tag`/`AutomationId` fixos); a janela os distribui pelas categorias do
+  núcleo em `BuildToolCards`. Não escreva uma segunda lista de categorias.
+- **Toda ferramenta tem guia** — `Guide.<id>.What|Gain|When|Avoid` (o que
+  faz, o que você ganha, quando usar, cuidado) nos dois catálogos. Ele aparece
+  no cartão (o "o que faz") e no topo da ferramenta aberta (`ToolGuidePanel`).
+  `InterfaceLeveTests` reprova ferramenta sem guia, sem categoria ou com as
+  quatro partes repetidas. Ferramenta nova = categoria + guia nos dois idiomas.
+- **O visual é do Sentinel**: monocromático, cartões com canto 14, navegação
+  em pílulas, botão principal claro sobre fundo escuro (`PrimaryBrush` /
+  `PrimaryTextBrush`), ícones da Segoe Fluent Icons (`Ui/ToolGlyphs.cs`) — não
+  emoji colorido. As chaves de cor são as mesmas nos quatro temas.
+- **Todo controle com popup ou hover tem template próprio** em
+  `Themes/Styles.xaml` (menu, submenu, separador, lista suspensa, abas, árvore,
+  dica, barra de rolagem). O template padrão do WPF tem cor fixa — era ele que
+  deixava o submenu **branco** no tema escuro.
+- **Texto dentro de botão segue a cor do botão.** O estilo implícito de
+  `TextBlock` da aplicação vale até dentro dos templates; por isso todo
+  `ContentPresenter` dos templates tem um `<Style TargetType="TextBlock"/>`
+  vazio, e o texto escrito à mão dentro de botão usa `BtnText`/`Glyph`.
+- **Padrões novos com migração única** (`AppSettings.UiRevision`, como a
+  `UpdatePolicyRevision`): abrir na lista e sem caixas de marcação (toda
+  linha nascia marcada e parecia dizer "tudo será removido"). Depois da
+  migração, a escolha do usuário vale. A **lista compacta** é só o padrão de
+  quem instala agora: a migração não a liga, para não tirar colunas que a
+  pessoa já tinha escolhido.
+- **A coluna "Inicialização" é varrida quando entra na grade**, não só na
+  carga (`VarrerInicializacaoSeVisivelAsync`): sem isso, mostrar a coluna pela
+  janela "Colunas" deixava a coluna vazia até a próxima carga.
+
+## Memória (teto de 80 MB)
+
+Medido nesta máquina (coluna "Memória" do Gerenciador de Tarefas, que é o
+working set privado):
+
+| | antes | depois |
+|---|---|---|
+| em repouso, lista carregada | 110–131 MB | ~34 MB |
+| memória privada comprometida | 160–186 MB | ~40 MB |
+| pico navegando por várias ferramentas | — | 64–74 MB |
+
+- **O desenho é por software** (`App.AplicarModoDeDesenho`). O desenho por
+  hardware carrega o driver de vídeo no processo: sozinho ele valia ~45 MB.
+  Quem quiser a placa de vídeo liga `UseHardwareRendering` nas Opções.
+- **A tela que sai é descartada** (`ContentHost.Content = null`) e a memória
+  é devolvida ao Windows com uma coleta compacta em ociosidade
+  (`MainWindow.AliviarMemoria`) — depois da varredura e ao sair de uma
+  ferramenta.
+- **A varredura da inicialização não roda a cada letra da busca.** Ela estava
+  dentro do `UpdateStatus`; agora roda uma vez por carga, fora da tela, e só
+  se a coluna "Inicialização" estiver visível.
+- **O ícone da linha é carregado sob demanda** (`ProgramRow.Icon`, lista
+  virtualizada) e sai do próprio executável (`Ui/ProgramIcons.cs`,
+  `ExtractIconEx`, com cache por caminho). Antes quase nenhum programa tinha
+  ícone, porque o carregador de imagem do WPF não lê `.exe`.
+- **Voltar para a lista não varre o registro de novo**, a menos que uma
+  ferramenta tenha sido aberta no caminho (ela pode ter mudado o que está
+  instalado). "Atualizar" continua em "Mais ações" e no atalho.
+- **Como medir**: compile a variante sem elevação
+  (`-p:ApplicationManifest=app-preview.manifest`) e rode com
+  `TRANAL_UI_SNAPSHOT=<pasta>`: o app percorre as telas, grava cada uma em
+  PNG e fecha — é a conferência visual sem ninguém olhando a tela.
+
 ## O filtro da lista (regra do núcleo)
 
 - **O estado dos filtros mora no núcleo** (`Core/Appearance/ProgramFilters.cs`,
@@ -1039,16 +1115,66 @@ matriz consolidada em `docs/auditoria/MATRIZ.md`.
   também na CLI; referenciar os dois criaria dois tipos `Core` diferentes).
   Por isso a conferência da camada de interface é feita sobre o fonte em disco.
 
-## Publicar
+## Publicar, instalar e atualizar (padrão dos apps Tranal)
+
+Vale a decisão **DEC-APPS-DISTRIBUICAO-001** (`D:\project-ai\docs\decisions\`),
+a mesma do Sentinel, do Despertador e do Suno. Em resumo:
+
+- **Todo PR mesclado na `main` vira uma versão nova.** O
+  `.github/workflows/publicar.yml` dispara em push na `main` e no botão
+  *Run workflow* (`patch | minor | major`). O passo "Decidir a versao" pega a
+  **maior tag `vX.Y.Z`** publicada e sobe o patch (ou o salto escolhido); a
+  `<Version>` do `.csproj` é só um **piso**. Nunca repete nem volta número.
+  Não crie tag à mão: o CI cria.
+- O CI roda os testes, publica a GUI, a CLI e o instalador com a versão
+  gravada (`publish-tranal.ps1 -Version X.Y.Z` → `-p:Version` e
+  `iscc /DMyAppVersion=X.Y.Z`), **confere a versão gravada** nos executáveis
+  e cria a release `vX.Y.Z` marcada como **Latest**, com o
+  `TranalUninstaller-Setup.exe` como asset. A release rolante `latest`
+  continua existindo, com `--latest=false`, para quem guardou o link.
+- **Quem mescla o PR é o agente** (`gh pr merge --merge`), depois de build
+  da solução e testes verdes, e acompanha o Actions até a release sair. O
+  owner não mescla.
+- **Instalador** (`installer/tranal.iss`): um `.exe` só, pasta
+  `{autopf}\Tranal Group\Tranal Uninstaller Pro`, `AppId` fixo
+  (`{4F0C1D6E-…}` — nunca muda), `CloseApplications=force`. No modo
+  silencioso a entrada `skipifnotsilent` da seção `[Run]` **reabre o app** no
+  fim; o Restart Manager não serve porque o Tranal não se registra nele. A
+  pasta e o `AppId` nunca mudaram desde o primeiro instalador, então não há
+  instalação antiga a migrar.
+- **Atualizador** (`Core/Updates/UpdateService.cs`, `VerificarEInstalarAsync`):
+  confere **ao abrir e de hora em hora** (`IntervaloDeVerificacao`) a lista
+  de releases do GitHub (`FeedDoTranalPadrao`); a regra da maior tag mora em
+  `Core/Updates/GitHubReleases.cs` (tag que não é `vX.Y.Z`, rascunho e
+  pre-release são ignorados). Baixa o Setup **conferindo o tamanho** do asset
+  e o roda com `UpdateInstaller.SilentArguments`
+  (`/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS`); a janela
+  fecha o app e o instalador o reabre. **Nunca instala no meio de uma
+  desinstalação**: com a fila ocupada (`UninstallQueue.IsBusy`) ou outra
+  janela do Tranal aberta, fica para a próxima conferência.
+- As duas preferências (`CheckForUpdateOnStartup`, `UpdateAutomatically`)
+  nascem **ligadas**. Um `settings.json` antigo é ligado **uma vez**
+  (`UpdatePolicyRevision`, em `AppSettingsStore.Normalize`); depois disso a
+  escolha do usuário vale.
+- **Só a cópia instalada pelo Setup se instala sozinha**
+  (`UpdateService.PodeInstalarSozinho`: o `unins000.exe` do Inno ao lado do
+  executável, e fora do modo portátil). O `.exe` avulso da release, a variante
+  de pré-visualização e o build de desenvolvimento só **avisam** da versão
+  nova: rodar o Setup a partir deles instalaria em Program Files, fecharia a
+  cópia a cada abertura e nunca a atualizaria.
+- **Senha no instalador é incompatível com a atualização automática.** Com o
+  secret `TRANAL_SETUP_PASSWORD` o Setup pede senha, o `/VERYSILENT` aborta
+  depois de o app já ter fechado, e nada o reabre. Não crie esse secret
+  enquanto a atualização automática for o padrão.
+- O `feed/tranal.json` é o feed das versões antigas e não é mais lido pelo
+  app (o padrão é a API de releases); ele não é atualizado pelo CI. Quem tem a
+  1.4.0 (que só lia esse feed, e só baixava) instala o Setup **uma vez** à mão;
+  dali em diante a atualização é sozinha.
 
 ```powershell
-git push origin main                      # CI monta a release "latest"
-git tag -a v1.0 -m "..." && git push origin v1.0   # CI monta a release da versão
+gh pr merge <n> --merge     # o push na main publica vX.Y.Z sozinho
+gh workflow run publicar.yml -f tipo=minor   # salto de versão na hora
 ```
-
-O `.github/workflows/publicar.yml` roda os testes, publica a GUI (com
-`requireAdministrator`), a variante de pré-visualização (sem admin) e a CLI,
-e atualiza a release "latest".
 
 ## Medição (o que vale como verdade)
 

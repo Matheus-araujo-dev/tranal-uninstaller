@@ -1,5 +1,18 @@
 # Novidades
 
+## Distribuição no padrão dos apps Tranal
+
+- Cada PR mesclado publica uma versão nova (`vX.Y.Z`, a maior tag + 1), com o
+  `TranalUninstaller-Setup.exe` na release marcada como Latest.
+- O Tranal confere as releases ao abrir e de hora em hora, baixa o instalador
+  (conferindo o tamanho), instala em modo silencioso e é reaberto sozinho no fim.
+- O instalador fecha o programa aberto (`CloseApplications=force`) e o reabre na
+  instalação silenciosa.
+- Só a cópia instalada pelo Setup se instala sozinha; o `.exe` avulso e o modo
+  portátil apenas avisam da versão nova.
+- **Quem tem a v1.4.0 instalada** baixa e roda o `TranalUninstaller-Setup.exe`
+  uma vez: a v1.4.0 ainda não sabia se atualizar sozinha.
+
 ## v1.4 — partida a frio corrigida, integridade das preferências por programa e instalador
 
 ### Novo: as sobras agora vêm do registro do instalador, não só do nome

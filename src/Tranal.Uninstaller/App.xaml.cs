@@ -26,6 +26,7 @@ public partial class App : Application
         }
 
         CultureInfoSetup();
+        AplicarModoDeDesenho();
 
         AppDomain.CurrentDomain.UnhandledException += (_, args) => FatalLog.Write(args.ExceptionObject as Exception);
         DispatcherUnhandledException += (_, args) =>
@@ -88,11 +89,18 @@ public partial class App : Application
         // primeira pintura ja sai com o tema escolhido.
         PerguntarTemaNoPrimeiroLancamento();
 
-        window.Show();
-
         // A tela de inicializacao so fecha depois que a janela principal
         // carregou, e respeitando o tempo minimo de permanencia.
+        //
+        // O handler e ligado ANTES do Show. MEDIDO: ligado depois, ele perdia
+        // o Loaded (que dispara dentro do Show) e a tela de inicializacao
+        // nunca fechava — ficava escondida atras da janela principal. Alem de
+        // sobrar na tela quando a janela ia para a bandeja, ela fazia o
+        // atualizador ver "outra janela aberta" e adiar a instalacao para
+        // sempre.
         window.Loaded += (_, _) => SplashWindow.CloseAfter(splash, splashStartedAt);
+
+        window.Show();
 
         // Entrada pelo menu de contexto do Explorer: o alvo vem na linha de
         // comando. Sem este tratamento, o clique no Explorer apenas abria a
@@ -185,6 +193,22 @@ public partial class App : Application
 
     /// <summary>Grava a falha fatal em disco (a UI nao consegue mostrar o erro em sessao nao interativa).</summary>
     private static void LogFatal(Exception? exception) => FatalLog.Write(exception);
+
+    /// <summary>
+    /// Desenha a janela por software, a menos que a pessoa tenha pedido a
+    /// placa de video (<see cref="Core.Settings.AppSettings.UseHardwareRendering"/>).
+    ///
+    /// MEDIDO: o desenho por hardware carrega o driver de video no processo e
+    /// era a maior parte da memoria do Tranal (131 MB contra 87 MB com
+    /// software, antes de qualquer outra otimizacao). Precisa rodar antes da
+    /// primeira janela: depois dela o WPF ja escolheu o caminho de desenho.
+    /// </summary>
+    private static void AplicarModoDeDesenho()
+    {
+        if (AppSettingsStore.Current.UseHardwareRendering) return;
+
+        System.Windows.Media.RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
+    }
 
     /// <summary>Mantem a formatacao numerica independente do locale do sistema.</summary>
     private static void CultureInfoSetup()

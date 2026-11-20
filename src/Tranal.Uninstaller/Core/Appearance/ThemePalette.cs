@@ -97,7 +97,7 @@ public static class ThemeSkinCatalog
         {
             Id = "Dark",
             DisplayName = "Escuro",
-            Description = "Tema monocromático escuro, inspirado no Tranal Sentinel.",
+            Description = "O tema escuro do Tranal: preto, monocromatico, com cartoes arredondados.",
             IsDark = true,
         },
     };
@@ -263,17 +263,17 @@ public static class ThemePalettes
         Colors = new Dictionary<ThemeColorRole, string>
         {
             [ThemeColorRole.Background] = "#FF080808",
-            [ThemeColorRole.Panel] = "#FF0E0E0E",
-            [ThemeColorRole.Header] = "#FF080808",
+            [ThemeColorRole.Panel] = "#FF000000",
+            [ThemeColorRole.Header] = "#FF000000",
             [ThemeColorRole.Text] = "#FFF5F5F5",
             [ThemeColorRole.MutedText] = "#FF8C8C8C",
-            [ThemeColorRole.Selection] = "#FF3A3A3A",
+            [ThemeColorRole.Selection] = "#FF242424",
             [ThemeColorRole.SelectionText] = "#FFFFFFFF",
             [ThemeColorRole.Accent] = "#FFF5F5F5",
             [ThemeColorRole.Border] = "#FF1F1F1F",
-            [ThemeColorRole.Button] = "#FF181818",
+            [ThemeColorRole.Button] = "#FF0E0E0E",
             [ThemeColorRole.CommandButtonText] = "#FFF5F5F5",
-            [ThemeColorRole.DialogBackground] = "#FF0E0E0E",
+            [ThemeColorRole.DialogBackground] = "#FF000000",
         },
     };
 

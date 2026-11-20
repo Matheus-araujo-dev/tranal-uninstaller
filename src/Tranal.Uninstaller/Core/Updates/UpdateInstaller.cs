@@ -17,15 +17,31 @@ public sealed record UpdateInstallResult(bool Started, string PackagePath, strin
 /// O Tranal ja baixa o pacote da atualizacao (o <c>AutoUpdateClient</c>). O
 /// que faltava era a ultima etapa: rodar o instalador.
 ///
-/// <para><b>Nada roda sozinho.</b> O instalador so e executado quando o
-/// usuario pede — o metodo existe para ser chamado por um comando ou por um
-/// botao, nunca em um temporizador. E o Tranal nao e instalado por cima de
-/// si mesmo: o proprio instalador cuida disso.</para>
+/// <para><b>Quando roda sozinho.</b> Pela DEC-APPS-DISTRIBUICAO-001, a
+/// versao nova e instalada em modo silencioso (<see cref="SilentArguments"/>)
+/// quando a preferencia "Atualizar automaticamente" esta ligada — e ela e o
+/// padrao. Quem decide <i>quando</i> e o <see cref="UpdateService"/>
+/// (<c>VerificarEInstalarAsync</c>), que nunca instala no meio de uma
+/// desinstalacao. O instalador (Inno Setup, <c>CloseApplications=force</c>)
+/// fecha o Tranal, troca os arquivos e o reabre no fim.</para>
 ///
 /// A regra esta em um lugar so: este modulo sabe executar o pacote.
 /// </summary>
 public static class UpdateInstaller
 {
+    /// <summary>
+    /// Os argumentos da instalacao silenciosa do Setup (Inno Setup), os mesmos
+    /// em todos os apps Tranal: sem janela, sem caixa de mensagem, sem
+    /// reiniciar o Windows, fechando o app que esta aberto.
+    /// </summary>
+    public const string SilentArguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS";
+
+    /// <summary>
+    /// Executa o Setup em modo silencioso (<see cref="SilentArguments"/>).
+    /// </summary>
+    /// <param name="packagePath">O Setup baixado.</param>
+    public static UpdateInstallResult RunSilent(string? packagePath) => Run(packagePath, SilentArguments);
+
     /// <summary>
     /// O pacote e um executavel que pode ser rodado?
     /// </summary>

@@ -56,6 +56,13 @@ Baixe o **`TranalUninstaller-Setup.exe`** da release e execute. É um instalador
 wizard em português, escolha da pasta e entrada em **"Adicionar e remover programas"** — como o
 Revo faz.
 
+**Atualização automática.** Cada versão publicada é uma release `vX.Y.Z` com o
+`TranalUninstaller-Setup.exe`. O Tranal confere as releases ao abrir e de hora em hora; quando há
+versão nova, baixa o instalador, fecha sozinho, o instalador troca os arquivos em modo silencioso
+e reabre o programa. As preferências e o histórico ficam em `%LOCALAPPDATA%` e não são tocados.
+Dá para desligar nas **Opções** ("Atualizar automaticamente em segundo plano"); a troca nunca
+acontece no meio de uma desinstalação.
+
 | | Medido |
 |---|---|
 | Tamanho do setup | **62,07 MB** (`TranalUninstaller-Setup.exe`) |

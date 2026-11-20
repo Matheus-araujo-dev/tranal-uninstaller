@@ -59,17 +59,48 @@ public sealed class AppSettings
     /// Foca a tela "Traced Programs" (Programas Monitorados) no arranque.
     ///
     /// Corresponde a opcao 15129 do Revo ("Set the focus on Traced Programs on
-    /// startup"). Padrao: <c>true</c>.
+    /// startup"). Padrao: <c>false</c> desde a interface nova (ver
+    /// <see cref="UiRevision"/>): o app abre na lista de programas, que e a
+    /// tarefa principal de quem abre um desinstalador.
     /// </summary>
-    public bool FocusTracedProgramsOnStartup { get; set; } = true;
+    public bool FocusTracedProgramsOnStartup { get; set; }
 
     /// <summary>
     /// Mostra as caixas de selecao na visualizacao de detalhes da lista.
     ///
     /// Corresponde a opcao 15334 do Revo ("Show check boxes in Details view").
-    /// Padrao: <c>true</c>.
+    /// Padrao: <c>false</c> desde a interface nova: a caixa e so indicador
+    /// visual e toda linha nascia marcada — para quem nao conhece o Revo, a
+    /// lista parecia dizer "tudo sera removido".
     /// </summary>
-    public bool ShowCheckBoxesInDetailsView { get; set; } = true;
+    public bool ShowCheckBoxesInDetailsView { get; set; }
+
+    /// <summary>
+    /// A revisao da interface que este arquivo de preferencias ja viu. Um
+    /// arquivo de antes da interface nova (revisao 0) tem os padroes antigos
+    /// gravados — e nao por escolha do usuario. A migracao os troca UMA vez,
+    /// em <see cref="AppSettingsStore.Normalize"/>; depois disso, a escolha
+    /// do usuario vale. Ver <see cref="AppSettingsStore.UiCurrentRevision"/>.
+    /// </summary>
+    public int UiRevision { get; set; }
+
+    /// <summary>
+    /// Recolhe o guia ("o que faz / o que voce ganha / quando usar /
+    /// cuidado") no topo das ferramentas. Padrao: <c>false</c> — quem abre uma
+    /// ferramenta pela primeira vez le para que ela serve antes de mexer.
+    /// </summary>
+    public bool CollapseToolGuide { get; set; }
+
+    /// <summary>
+    /// Desenha a janela com a placa de video. Padrao: <c>false</c>.
+    ///
+    /// MEDIDO nesta maquina (RX 9060 XT, Windows 11): o desenho por hardware
+    /// do WPF carrega o driver de video no processo e soma ~45 MB de memoria
+    /// privada (131 MB contra 87 MB, coluna "Memoria" do Gerenciador de
+    /// Tarefas). A interface do Tranal e plana e sem animacao: o desenho por
+    /// software nao perde nada visivel.
+    /// </summary>
+    public bool UseHardwareRendering { get; set; }
 
     /// <summary>Codigo de idioma ativo (ver <see cref="Localization.LanguageCatalog"/>).</summary>
     public string Language { get; set; } = "pt-BR";
@@ -167,11 +198,29 @@ public sealed class AppSettings
     /// </summary>
     public bool AdvancedMode { get; set; }
 
-    /// <summary>Verifica por atualizacoes ao iniciar. Padrao: <c>false</c>.</summary>
-    public bool CheckForUpdateOnStartup { get; set; }
+    /// <summary>
+    /// Verifica por atualizacoes ao iniciar e de hora em hora. Padrao:
+    /// <c>true</c> — e o padrao de todos os apps Tranal
+    /// (DEC-APPS-DISTRIBUICAO-001).
+    /// </summary>
+    public bool CheckForUpdateOnStartup { get; set; } = true;
 
-    /// <summary>Atualiza automaticamente em segundo plano. Padrao: <c>false</c>.</summary>
-    public bool UpdateAutomatically { get; set; }
+    /// <summary>
+    /// Baixa e instala a versao nova sozinho, em modo silencioso (o app fecha
+    /// e o instalador o reabre). Padrao: <c>true</c>
+    /// (DEC-APPS-DISTRIBUICAO-001).
+    /// </summary>
+    public bool UpdateAutomatically { get; set; } = true;
+
+    /// <summary>
+    /// Ate que revisao da politica de atualizacao este arquivo ja foi
+    /// migrado. Um arquivo gravado antes da DEC-APPS-DISTRIBUICAO-001 tem as
+    /// duas preferencias de atualizacao desligadas (o padrao antigo) e e
+    /// ligado UMA vez, em <see cref="AppSettingsStore.Normalize"/>; depois
+    /// disso, a escolha do usuario vale. Ver
+    /// <see cref="AppSettingsStore.UpdatePolicyCurrentRevision"/>.
+    /// </summary>
+    public int UpdatePolicyRevision { get; set; }
 
     /// <summary>
     /// Envia arquivos e pastas removidos para a Lixeira em vez de apaga-los
@@ -481,10 +530,12 @@ public sealed class AppSettings
     public bool RestoreTrayOnClick { get; set; } = true;
 
     /// <summary>
-    /// A lista de programas em modo compacto: so as colunas essenciais.
-    /// Padrao: <c>false</c>.
+    /// A lista de programas em modo compacto: so as colunas essenciais (nome,
+    /// tamanho, versao e empresa). Padrao: <c>true</c> desde a interface nova
+    /// — vinte colunas tecnicas assustam quem so quer desinstalar um
+    /// programa. Quem quer todas desliga nas Opcoes.
     /// </summary>
-    public bool CompactProgramList { get; set; }
+    public bool CompactProgramList { get; set; } = true;
 
     /// <summary>
     /// Avisa quando aparece um programa novo. Padrao: <c>true</c>.
@@ -569,8 +620,20 @@ public static class AppSettingsStore
         }
         catch { /* preferencias corrompidas nao podem impedir a execucao */ }
 
-        return new AppSettings();
+        return Normalize(new AppSettings());
     }
+
+    /// <summary>
+    /// A revisao atual da politica de atualizacao (1 = DEC-APPS-DISTRIBUICAO-001:
+    /// conferir ao abrir e de hora em hora, instalar sozinho).
+    /// </summary>
+    public const int UpdatePolicyCurrentRevision = 1;
+
+    /// <summary>
+    /// A revisao atual da interface (1 = a interface leve no estilo do Tranal
+    /// Sentinel: abre na lista de programas, sem as caixas de marcacao).
+    /// </summary>
+    public const int UiCurrentRevision = 1;
 
     /// <summary>Grava as preferencias em disco (best effort).</summary>
     public static void Save(AppSettings settings)
@@ -647,6 +710,32 @@ public static class AppSettingsStore
         settings.DisplayPreference = ExecutionPreferences.Normalize(settings.DisplayPreference);
         settings.PreservedFileKinds ??= new List<string>();
 
+        // A politica de atualizacao mudou (DEC-APPS-DISTRIBUICAO-001): o
+        // arquivo antigo tem as duas preferencias desligadas porque esse era
+        // o padrao, e nao porque o usuario escolheu. A migracao liga as duas
+        // uma unica vez; depois dela, o que o usuario marcar vale.
+        if (settings.UpdatePolicyRevision < UpdatePolicyCurrentRevision)
+        {
+            settings.CheckForUpdateOnStartup = true;
+            settings.UpdateAutomatically = true;
+            settings.UpdatePolicyRevision = UpdatePolicyCurrentRevision;
+        }
+
+        // A interface nova muda dois padroes herdados do Revo (abrir nos
+        // programas monitorados e mostrar as caixas de marcacao). O arquivo
+        // antigo tem os dois ligados porque era o padrao; a migracao desliga
+        // UMA vez, e depois o que o usuario escolher vale.
+        //
+        // A lista compacta NAO entra na migracao: ela so e o padrao de quem
+        // instala agora. Quem ja usava a lista completa perderia colunas que
+        // escolheu (Anotacao, Inicializacao, Marcas) sem nenhum aviso.
+        if (settings.UiRevision < UiCurrentRevision)
+        {
+            settings.FocusTracedProgramsOnStartup = false;
+            settings.ShowCheckBoxesInDetailsView = false;
+            settings.UiRevision = UiCurrentRevision;
+        }
+
         return settings;
     }
 }
@@ -672,5 +761,6 @@ public static class SettingsFileFormat
         + "forciblyStopRunningExecutables, createFullRegistryBackupBeforeUninstall, "
         + "batchItemLimit, retryFailedAttempts, restartWhenFinished, closeAppWhenFinished, "
         + "lastScanAt, lastScanCount, "
-        + "runPreference, displayPreference, preservedFileKinds[]";
+        + "runPreference, displayPreference, preservedFileKinds[], "
+        + "uiRevision, collapseToolGuide, useHardwareRendering, compactProgramList";
 }

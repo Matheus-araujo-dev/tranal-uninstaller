@@ -26,7 +26,12 @@ param(
 
     # Certificado que assina o instalador. Se vier vazio, o certificado de
     # assinatura da Tranal no repositorio de certificados do usuario e usado.
-    [string]$SigningThumbprint = ''
+    [string]$SigningThumbprint = '',
+
+    # Versao gravada no executavel e no instalador (X.Y.Z). O CI passa a
+    # versao decidida pela maior tag (DEC-APPS-DISTRIBUICAO-001); vazia, vale
+    # a <Version> do projeto.
+    [string]$Version = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -37,6 +42,15 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $proj = Join-Path $repoRoot 'src\Tranal.Uninstaller'
 $cliProj = Join-Path $repoRoot 'src\Tranal.Cli'
+
+# A versao gravada nos binarios. Com -Version, ela vale por cima da
+# <Version> do .csproj (que vira so um piso no CI). Sem -Version, nada muda.
+$versionProps = @()
+if ($Version) {
+    if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw "Versao invalida: '$Version' (esperado X.Y.Z)" }
+    $versionProps = @("-p:Version=$Version", "-p:AssemblyVersion=$Version.0",
+        "-p:FileVersion=$Version.0", "-p:InformationalVersion=$Version")
+}
 
 function Reset-Intermediate([string]$projectDir) {
     $obj = Join-Path $projectDir 'obj'
@@ -158,7 +172,7 @@ try {
             Reset-Intermediate $proj
             dotnet publish $proj\Tranal.Uninstaller.csproj -c Release -r win-x64 --self-contained true `
                 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
-                -o publish\gui
+                -o publish\gui @versionProps
             if ($LASTEXITCODE -ne 0) { throw "Falha no publish do GUI (exit $LASTEXITCODE)" }
             $expected = 'requireAdministrator'
             $target = 'publish\gui\TranalUninstaller.exe'
@@ -168,7 +182,7 @@ try {
             dotnet publish $proj\Tranal.Uninstaller.csproj -c Release -r win-x64 --self-contained true `
                 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
                 -p:ApplicationManifest=app-preview.manifest `
-                -o publish\preview
+                -o publish\preview @versionProps
             if ($LASTEXITCODE -ne 0) { throw "Falha no publish do preview (exit $LASTEXITCODE)" }
             $expected = 'asInvoker'
             $target = 'publish\preview\TranalUninstaller.exe'
@@ -177,7 +191,7 @@ try {
             Reset-Intermediate $cliProj
             dotnet publish $cliProj\Tranal.Cli.csproj -c Release -r win-x64 --self-contained true `
                 -p:PublishSingleFile=true `
-                -o publish\cli
+                -o publish\cli @versionProps
             if ($LASTEXITCODE -ne 0) { throw "Falha no publish da CLI (exit $LASTEXITCODE)" }
             $expected = $null
             $target = 'publish\cli\tranal.exe'
@@ -190,7 +204,7 @@ try {
             Reset-Intermediate $proj
             dotnet publish $proj\Tranal.Uninstaller.csproj -c Release -r win-x64 --self-contained false `
                 -p:PublishSingleFile=false `
-                -o publish\setup-payload
+                -o publish\setup-payload @versionProps
             if ($LASTEXITCODE -ne 0) { throw "Falha no publish do payload do setup (exit $LASTEXITCODE)" }
 
             $runtime = Get-RuntimeRedist
@@ -198,8 +212,10 @@ try {
 
             # A versao vem do proprio projeto: um numero escrito a mao no
             # script de publicacao seria uma segunda fonte da verdade.
-            $versao = (Select-String -Path (Join-Path $proj 'Tranal.Uninstaller.csproj') `
-                -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+            $versao = if ($Version) { $Version } else {
+                (Select-String -Path (Join-Path $proj 'Tranal.Uninstaller.csproj') `
+                    -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+            }
 
             # A senha do instalador vem do ambiente (e nao da linha de
             # comando: a linha de comando de qualquer processo e visivel).
@@ -227,7 +243,7 @@ try {
                 "/DRuntimeFile=$runtime",
                 "/DRuntimeFileName=$([System.IO.Path]::GetFileName($runtime))",
                 "/DOutputDir=$repoRoot\publish\setup",
-                "/DAppVersion=$versao",
+                "/DMyAppVersion=$versao",
                 "/DLicenseFile=$repoRoot\LICENSE",
                 "/DRepoRoot=$repoRoot"
             )
