@@ -97,7 +97,7 @@ public static class ThemeSkinCatalog
         {
             Id = "Dark",
             DisplayName = "Escuro",
-            Description = "O tema escuro, com fundo cinza e destaque azul.",
+            Description = "O tema escuro do Tranal: preto, monocromatico, com cartoes arredondados.",
             IsDark = true,
         },
         new ThemeSkin
@@ -117,8 +117,8 @@ public static class ThemeSkinCatalog
         new ThemeSkin
         {
             Id = "Light",
-            DisplayName = "Clássico",
-            Description = "O tema claro, com fundo claro e tinta escura.",
+            DisplayName = "Claro",
+            Description = "O tema claro: branco, monocromatico, com tinta escura.",
             IsDark = false,
         },
     };
@@ -291,18 +291,18 @@ public static class ThemePalettes
     {
         Colors = new Dictionary<ThemeColorRole, string>
         {
-            [ThemeColorRole.Background] = "#FF3C3C3C",
-            [ThemeColorRole.Panel] = "#FF525252",
-            [ThemeColorRole.Header] = "#FF3C3C3C",
-            [ThemeColorRole.Text] = "#FFE6E6E6",
-            [ThemeColorRole.MutedText] = "#FFB4B4B4",
-            [ThemeColorRole.Selection] = "#FF2F6FB5",
+            [ThemeColorRole.Background] = "#FF080808",
+            [ThemeColorRole.Panel] = "#FF000000",
+            [ThemeColorRole.Header] = "#FF000000",
+            [ThemeColorRole.Text] = "#FFF5F5F5",
+            [ThemeColorRole.MutedText] = "#FF8C8C8C",
+            [ThemeColorRole.Selection] = "#FF242424",
             [ThemeColorRole.SelectionText] = "#FFFFFFFF",
-            [ThemeColorRole.Accent] = "#FF3399FF",
-            [ThemeColorRole.Border] = "#FF2E2E2E",
-            [ThemeColorRole.Button] = "#FF4A4A4A",
-            [ThemeColorRole.CommandButtonText] = "#FFE6E6E6",
-            [ThemeColorRole.DialogBackground] = "#FF525252",
+            [ThemeColorRole.Accent] = "#FFF5F5F5",
+            [ThemeColorRole.Border] = "#FF1F1F1F",
+            [ThemeColorRole.Button] = "#FF0E0E0E",
+            [ThemeColorRole.CommandButtonText] = "#FFF5F5F5",
+            [ThemeColorRole.DialogBackground] = "#FF000000",
         },
     };
 
@@ -311,17 +311,17 @@ public static class ThemePalettes
     {
         Colors = new Dictionary<ThemeColorRole, string>
         {
-            [ThemeColorRole.Background] = "#FFF0F0F0",
+            [ThemeColorRole.Background] = "#FFF6F6F6",
             [ThemeColorRole.Panel] = "#FFFFFFFF",
-            [ThemeColorRole.Header] = "#FFE4E4E4",
-            [ThemeColorRole.Text] = "#FF1A1A1A",
-            [ThemeColorRole.MutedText] = "#FF5A5A5A",
-            [ThemeColorRole.Selection] = "#FFCCE4FF",
-            [ThemeColorRole.SelectionText] = "#FF101010",
-            [ThemeColorRole.Accent] = "#FF0B5CAB",
-            [ThemeColorRole.Border] = "#FFC8C8C8",
-            [ThemeColorRole.Button] = "#FFE8E8E8",
-            [ThemeColorRole.CommandButtonText] = "#FF1A1A1A",
+            [ThemeColorRole.Header] = "#FFFFFFFF",
+            [ThemeColorRole.Text] = "#FF111111",
+            [ThemeColorRole.MutedText] = "#FF6B6B6B",
+            [ThemeColorRole.Selection] = "#FFE6E6E6",
+            [ThemeColorRole.SelectionText] = "#FF000000",
+            [ThemeColorRole.Accent] = "#FF111111",
+            [ThemeColorRole.Border] = "#FFE6E6E6",
+            [ThemeColorRole.Button] = "#FFFFFFFF",
+            [ThemeColorRole.CommandButtonText] = "#FF111111",
             [ThemeColorRole.DialogBackground] = "#FFFFFFFF",
         },
     };
@@ -331,18 +331,18 @@ public static class ThemePalettes
     {
         Colors = new Dictionary<ThemeColorRole, string>
         {
-            [ThemeColorRole.Background] = "#FF1E2A38",
-            [ThemeColorRole.Panel] = "#FF27384C",
-            [ThemeColorRole.Header] = "#FF223142",
+            [ThemeColorRole.Background] = "#FF0F151C",
+            [ThemeColorRole.Panel] = "#FF0B1016",
+            [ThemeColorRole.Header] = "#FF0B1016",
             [ThemeColorRole.Text] = "#FFE8EEF5",
-            [ThemeColorRole.MutedText] = "#FF9FB0C4",
-            [ThemeColorRole.Selection] = "#FF2A6FA8",
+            [ThemeColorRole.MutedText] = "#FF8A9BB0",
+            [ThemeColorRole.Selection] = "#FF1F2C3B",
             [ThemeColorRole.SelectionText] = "#FFFFFFFF",
-            [ThemeColorRole.Accent] = "#FF5AA9E6",
-            [ThemeColorRole.Border] = "#FF16202C",
-            [ThemeColorRole.Button] = "#FF31465E",
+            [ThemeColorRole.Accent] = "#FF8FC4F0",
+            [ThemeColorRole.Border] = "#FF1C2733",
+            [ThemeColorRole.Button] = "#FF141C25",
             [ThemeColorRole.CommandButtonText] = "#FFE8EEF5",
-            [ThemeColorRole.DialogBackground] = "#FF27384C",
+            [ThemeColorRole.DialogBackground] = "#FF0B1016",
         },
     };
 

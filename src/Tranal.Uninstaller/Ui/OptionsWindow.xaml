@@ -92,6 +92,10 @@
         <CheckBox x:Name="FastLoadingCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.FastLoading}"
                   AutomationProperties.AutomationId="OptFastLoading" />
+        <!-- Vale no proximo arranque: o caminho de desenho e escolhido antes da primeira janela. -->
+        <CheckBox x:Name="HardwareRenderingCheck" Margin="0,2,0,2"
+                  Content="{loc:Tr Options.HardwareRendering}"
+                  AutomationProperties.AutomationId="OptHardwareRendering" />
         <CheckBox x:Name="CheckUpdateCheck" Margin="0,2,0,2"
                   Content="{loc:Tr Options.CheckUpdate}"
                   AutomationProperties.AutomationId="OptCheckUpdate" />
