@@ -167,11 +167,29 @@ public sealed class AppSettings
     /// </summary>
     public bool AdvancedMode { get; set; }
 
-    /// <summary>Verifica por atualizacoes ao iniciar. Padrao: <c>false</c>.</summary>
-    public bool CheckForUpdateOnStartup { get; set; }
+    /// <summary>
+    /// Verifica por atualizacoes ao iniciar e de hora em hora. Padrao:
+    /// <c>true</c> — e o padrao de todos os apps Tranal
+    /// (DEC-APPS-DISTRIBUICAO-001).
+    /// </summary>
+    public bool CheckForUpdateOnStartup { get; set; } = true;
 
-    /// <summary>Atualiza automaticamente em segundo plano. Padrao: <c>false</c>.</summary>
-    public bool UpdateAutomatically { get; set; }
+    /// <summary>
+    /// Baixa e instala a versao nova sozinho, em modo silencioso (o app fecha
+    /// e o instalador o reabre). Padrao: <c>true</c>
+    /// (DEC-APPS-DISTRIBUICAO-001).
+    /// </summary>
+    public bool UpdateAutomatically { get; set; } = true;
+
+    /// <summary>
+    /// Ate que revisao da politica de atualizacao este arquivo ja foi
+    /// migrado. Um arquivo gravado antes da DEC-APPS-DISTRIBUICAO-001 tem as
+    /// duas preferencias de atualizacao desligadas (o padrao antigo) e e
+    /// ligado UMA vez, em <see cref="AppSettingsStore.Normalize"/>; depois
+    /// disso, a escolha do usuario vale. Ver
+    /// <see cref="AppSettingsStore.UpdatePolicyCurrentRevision"/>.
+    /// </summary>
+    public int UpdatePolicyRevision { get; set; }
 
     /// <summary>
     /// Envia arquivos e pastas removidos para a Lixeira em vez de apaga-los
@@ -569,8 +587,14 @@ public static class AppSettingsStore
         }
         catch { /* preferencias corrompidas nao podem impedir a execucao */ }
 
-        return new AppSettings();
+        return Normalize(new AppSettings());
     }
+
+    /// <summary>
+    /// A revisao atual da politica de atualizacao (1 = DEC-APPS-DISTRIBUICAO-001:
+    /// conferir ao abrir e de hora em hora, instalar sozinho).
+    /// </summary>
+    public const int UpdatePolicyCurrentRevision = 1;
 
     /// <summary>Grava as preferencias em disco (best effort).</summary>
     public static void Save(AppSettings settings)
@@ -646,6 +670,17 @@ public static class AppSettingsStore
         settings.RunPreference = ExecutionPreferences.Normalize(settings.RunPreference);
         settings.DisplayPreference = ExecutionPreferences.Normalize(settings.DisplayPreference);
         settings.PreservedFileKinds ??= new List<string>();
+
+        // A politica de atualizacao mudou (DEC-APPS-DISTRIBUICAO-001): o
+        // arquivo antigo tem as duas preferencias desligadas porque esse era
+        // o padrao, e nao porque o usuario escolheu. A migracao liga as duas
+        // uma unica vez; depois dela, o que o usuario marcar vale.
+        if (settings.UpdatePolicyRevision < UpdatePolicyCurrentRevision)
+        {
+            settings.CheckForUpdateOnStartup = true;
+            settings.UpdateAutomatically = true;
+            settings.UpdatePolicyRevision = UpdatePolicyCurrentRevision;
+        }
 
         return settings;
     }

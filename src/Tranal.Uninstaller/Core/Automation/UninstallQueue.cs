@@ -87,6 +87,15 @@ public static class UninstallQueue
     private static readonly SemaphoreSlim Gate = new(1, 1);
 
     /// <summary>
+    /// Ha uma desinstalacao da fila rodando agora?
+    ///
+    /// O atualizador consulta isto antes de fechar o app para instalar a
+    /// versao nova: fechar no meio de um desinstalador deixaria o programa
+    /// pela metade.
+    /// </summary>
+    public static bool IsBusy => Gate.CurrentCount == 0;
+
+    /// <summary>
     /// Executa a fila, um programa por vez.
     ///
     /// E a MESMA regra da variante assincrona (<see cref="RunAsync"/>), que e

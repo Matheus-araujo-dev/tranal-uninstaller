@@ -1,12 +1,28 @@
 name: Publicar
 
-# A cada push na main, gera o TranalUninstaller.exe e atualiza a release "latest".
-# Ao criar uma tag (ex.: v1.0), gera tambem uma release fixa dessa versao.
+# Todo push na main (todo PR mesclado) vira uma versao nova, sem passo manual
+# (DEC-APPS-DISTRIBUICAO-001, o padrao dos apps Tranal):
+#   1. decide o numero da versao (ver o passo "Decidir a versao");
+#   2. roda os testes;
+#   3. gera o app, a CLI e o instalador com esse numero gravado;
+#   4. cria a tag vX.Y.Z e a release dela (a "Latest"), com o
+#      TranalUninstaller-Setup.exe como asset.
+# O atualizador do app (Core/Updates/UpdateService.cs) procura a maior tag
+# vX.Y.Z entre as releases: sem a tag versionada, o app instalado nunca veria
+# a versao nova.
+#
+# O botao "Run workflow" (aba Actions) publica na hora, escolhendo o salto:
+# patch (1.4.1 -> 1.4.2), minor (-> 1.5.0) ou major (-> 2.0.0).
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
+    inputs:
+      tipo:
+        description: 'Que parte da versao sobe'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
 
 permissions:
   contents: write
@@ -25,6 +41,51 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # So a main publica: o botao rodado em outra branch soltaria uma
+      # release com codigo que nao foi mesclado.
+      - name: Conferir a branch
+        if: github.ref != 'refs/heads/main'
+        shell: pwsh
+        run: throw "Publicar so roda na main (esta execucao e de $env:GITHUB_REF)."
+
+      # A versao nova parte da maior tag vX.Y.Z ja publicada e sobe a parte
+      # pedida (no push, sempre o patch). A <Version> do .csproj e um PISO: se
+      # ela e maior que o resultado (alguem subiu a mao), vale ela. Assim
+      # nenhuma release sai com numero repetido ou menor, e o atualizador
+      # sempre enxerga a nova. (A mesma logica do tranal-sentinel.)
+      - name: Decidir a versao
+        id: versao
+        shell: pwsh
+        env:
+          TIPO: ${{ inputs.tipo || 'patch' }}
+        run: |
+          $texto = (Select-String -Path src\Tranal.Uninstaller\Tranal.Uninstaller.csproj `
+            -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
+          $piso = [version]$texto
+
+          function Normalizar([version]$v) {
+            [version]::new($v.Major, $v.Minor, [Math]::Max($v.Build, 0))
+          }
+
+          $tags = git ls-remote --tags origin |
+            ForEach-Object { ($_ -split 'refs/tags/')[1] } |
+            Where-Object { $_ -match '^v\d+\.\d+(\.\d+)?$' } |
+            ForEach-Object { Normalizar ([version]$_.Substring(1)) }
+          $maior = $tags | Sort-Object -Descending | Select-Object -First 1
+          if (-not $maior) { $maior = [version]::new(0, 0, 0) }
+
+          $candidata = switch ($env:TIPO) {
+            'major' { [version]::new($maior.Major + 1, 0, 0) }
+            'minor' { [version]::new($maior.Major, $maior.Minor + 1, 0) }
+            default { [version]::new($maior.Major, $maior.Minor, $maior.Build + 1) }
+          }
+
+          $piso = Normalizar $piso
+          $nova = if ($piso -gt $candidata) { $piso } else { $candidata }
+
+          "Tipo: $env:TIPO | maior tag: $maior | piso (.csproj): $piso | versao nova: $nova"
+          "numero=$nova" >> $env:GITHUB_OUTPUT
+
       - name: Build
         run: dotnet build Tranal.Uninstaller.slnx -c Release -nologo
 
@@ -42,12 +103,14 @@ jobs:
       - name: Publicar a GUI (arquivo unico, com o .NET embutido, exige administrador)
         shell: pwsh
         run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant gui
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant gui `
+            -Version "${{ steps.versao.outputs.numero }}"
 
       - name: Publicar a variante de pre-visualizacao (sem administrador)
         shell: pwsh
         run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant preview
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant preview `
+            -Version "${{ steps.versao.outputs.numero }}"
 
       # O primeiro arranque (sem o arquivo de preferencias) sobuga em dois
       # defeitos de ordenacao que nao aparecem no caminho normal. O teste
@@ -99,7 +162,8 @@ jobs:
       - name: Publicar a CLI (arquivo unico, com o .NET embutido)
         shell: pwsh
         run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant cli `
+            -Version "${{ steps.versao.outputs.numero }}"
 
       # O gerenciador de menu de contexto (o "Context Menu Manager" do HiBit):
       # o botao da barra lateral abre a tela, a tela carrega e mostra as
@@ -300,7 +364,22 @@ jobs:
           # com ela, o conteudo do instalador so abre com a senha.
           TRANAL_SETUP_PASSWORD: ${{ secrets.TRANAL_SETUP_PASSWORD }}
         run: |
-          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools\publish-tranal.ps1 -Variant setup `
+            -Version "${{ steps.versao.outputs.numero }}"
+
+      # O numero da release tem de estar gravado no que vai para o usuario:
+      # e com ele que o atualizador compara. Compara-se X.Y.Z: medido, o .exe
+      # do .NET grava "1.4.99.0" e o Setup do Inno grava "1.4.99".
+      - name: Conferir a versao gravada
+        shell: pwsh
+        run: |
+          $esperada = "${{ steps.versao.outputs.numero }}"
+          foreach ($exe in 'publish\gui\TranalUninstaller.exe', 'publish\setup-payload\TranalUninstaller.exe', 'publish\setup\TranalUninstaller-Setup.exe') {
+            $v = [version]((Get-Item $exe).VersionInfo.FileVersion.Trim())
+            $gravada = "$($v.Major).$($v.Minor).$($v.Build)"
+            if ($gravada -ne $esperada) { throw "$exe saiu com a versao $gravada, e a release e $esperada." }
+            "$exe $gravada"
+          }
 
       - name: Montar pacote
         shell: pwsh
@@ -310,62 +389,32 @@ jobs:
             -DestinationPath TranalUninstaller.zip
           Compress-Archive -Path publish\cli\tranal.exe -DestinationPath tranal-cli.zip
 
-      - name: Atualizar release "latest"
-        if: startsWith(github.ref, 'refs/heads/')
+      # A release da versao e a "Latest" do GitHub: e a que aparece para
+      # baixar na pagina do repositorio e a que o atualizador escolhe (maior
+      # tag vX.Y.Z). A tag e criada pelo proprio gh, no commit deste push (a
+      # tag criada com o GITHUB_TOKEN nao dispara outra execucao).
+      - name: Release da versao
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $sha = "$env:GITHUB_SHA".Substring(0, 7)
-          gh release delete latest --cleanup-tag --yes
+          $tag = "v${{ steps.versao.outputs.numero }}"
+          gh release create $tag publish\setup\TranalUninstaller-Setup.exe `
+            TranalUninstaller.zip tranal-cli.zip `
+            publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
+            --target $env:GITHUB_SHA --latest --title "Tranal Uninstaller Pro $tag" --notes-file NOVIDADES.md
+
+      # A release rolante "latest" continua existindo para quem guardou o link
+      # dela (e para o feed antigo, feed/tranal.json, que aponta para ela);
+      # ela so nao e mais a marcada como "Latest" no GitHub.
+      - name: Atualizar release "latest"
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete latest --cleanup-tag --yes 2>$null
           gh release create latest TranalUninstaller.zip tranal-cli.zip `
             publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
             publish\setup\TranalUninstaller-Setup.exe `
-            --target $env:GITHUB_SHA --latest `
+            --target $env:GITHUB_SHA --latest=false `
             --title "Tranal Uninstaller Pro (versao mais recente)" --notes-file NOVIDADES.md
-
-      # O feed de atualizacao do proprio Tranal.
-      #
-      # A release "latest" e uma tag MOVEL: o nome dela e "latest", sem
-      # numero de versao. Uma tag sem numero nao diz qual versao foi
-      # publicada, e por isso a versao mora em um arquivo do repositorio,
-      # reescrito aqui com o que a publicacao acabou de montar.
-      #
-      # O arquivo so e gravado quando o conteudo muda de verdade: o
-      # endereco do instalador e fixo (a tag movel) e a versao so muda
-      # quando o projeto muda de versao. Sem isso, cada push faria um
-      # commit e o proprio commit dispararia outro push.
-      - name: Atualizar o feed de atualizacao
-        if: startsWith(github.ref, 'refs/heads/')
-        shell: pwsh
-        run: |
-          $versao = (Select-String -Path src\Tranal.Uninstaller\Tranal.Uninstaller.csproj `
-            -Pattern '<Version>([^<]+)</Version>').Matches[0].Groups[1].Value
-          $conteudo = @"
-          {
-            "latestVersion": "$versao",
-            "downloadUrl": "https://github.com/Matheus-araujo-dev/tranal-uninstaller/releases/download/latest/TranalUninstaller-Setup.exe",
-            "releaseNotes": "https://github.com/Matheus-araujo-dev/tranal-uninstaller/releases/tag/latest"
-          }
-          "@
-          $arquivo = "feed/tranal.json"
-          $atual = if (Test-Path $arquivo) { (Get-Content $arquivo -Raw) } else { "" }
-          if ($atual.Trim() -ne $conteudo.Trim()) {
-            [System.IO.File]::WriteAllText((Join-Path (Get-Location) $arquivo), $conteudo + "`n", (New-Object System.Text.UTF8Encoding($false)))
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add $arquivo
-            git commit -m "Atualiza o feed de atualizacao (versao $versao)"
-            git push
-          }
-
-      - name: Release da versao (tag)
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create $env:GITHUB_REF_NAME TranalUninstaller.zip tranal-cli.zip `
-            publish\gui\TranalUninstaller.exe publish\cli\tranal.exe `
-            publish\setup\TranalUninstaller-Setup.exe `
-            --title "Tranal Uninstaller Pro $env:GITHUB_REF_NAME" --generate-notes --latest=false

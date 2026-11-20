@@ -23,6 +23,13 @@ public sealed class UpdateCheckResult
     /// <summary>Notas de versao publicadas (string vazia quando inexistentes).</summary>
     public string? ReleaseNotes { get; init; }
 
+    /// <summary>
+    /// Tamanho do instalador em bytes, quando o feed informa (a lista de
+    /// releases do GitHub informa). O download e conferido contra ele: um
+    /// arquivo truncado nunca e executado.
+    /// </summary>
+    public long? ExpectedSize { get; init; }
+
     /// <summary>Motivo da falha (null quando a verificacao deu certo).</summary>
     public string? ErrorMessage { get; init; }
 }
@@ -121,8 +128,17 @@ public sealed class AutoUpdateClient
     /// de sucesso. O cancelamento e propagado como
     /// <see cref="OperationCanceledException"/>.
     /// </summary>
+    /// <param name="url">O endereco do pacote.</param>
+    /// <param name="destination">Onde gravar.</param>
+    /// <param name="progress">Progresso (opcional).</param>
+    /// <param name="ct">Token de cancelamento.</param>
+    /// <param name="expectedSize">
+    /// Tamanho esperado em bytes. Quando informado e o arquivo baixado tem
+    /// outro tamanho, o download e descartado e devolve false.
+    /// </param>
     public static async Task<bool> DownloadAsync(
-        string url, string destination, IProgress<DownloadProgress>? progress, CancellationToken ct)
+        string url, string destination, IProgress<DownloadProgress>? progress, CancellationToken ct,
+        long? expectedSize = null)
     {
         if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(destination)) return false;
 
@@ -172,6 +188,12 @@ public sealed class AutoUpdateClient
                             : null,
                     });
                 }
+            }
+
+            if (expectedSize is > 0 && new FileInfo(temporary).Length != expectedSize.Value)
+            {
+                ToolLog.Error($"Atualizacao de '{url}' com tamanho diferente do publicado ({new FileInfo(temporary).Length} != {expectedSize.Value}).");
+                return false;
             }
 
             File.Move(temporary, destination, overwrite: true);
@@ -228,6 +250,12 @@ public sealed class AutoUpdateClient
             {
                 using var document = JsonDocument.Parse(text);
                 var root = document.RootElement;
+
+                // A lista de releases do GitHub tem regra propria: vale a
+                // maior tag vX.Y.Z, e nao a primeira da lista.
+                if (GitHubReleases.IsReleaseList(root))
+                    return GitHubReleases.PickLatest(root, UpdateService.SetupAssetName);
+
                 if (root.ValueKind == JsonValueKind.Array && root.GetArrayLength() > 0)
                     root = root[0];
 
