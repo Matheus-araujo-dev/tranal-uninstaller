@@ -328,7 +328,7 @@ public partial class MainWindow : Window
 
         return Dispatcher.Invoke(() =>
             Application.Current.Windows.Cast<Window>()
-                .All(w => ReferenceEquals(w, this) || !w.IsVisible));
+                .All(w => ReferenceEquals(w, this) || !w.IsVisible || w is SplashWindow));
     }
 
     /// <summary>

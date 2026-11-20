@@ -219,6 +219,22 @@ public sealed class DistribuicaoTests
         Assert.Contains("--latest --title", yml);
     }
 
+    [Fact]
+    public void ATelaDeAberturaFechaENaoBloqueiaAAtualizacao()
+    {
+        // MEDIDO: com o handler ligado depois do Show, o Loaded ja tinha
+        // disparado e a tela de abertura nunca fechava; o atualizador a via
+        // como "outra janela aberta" e adiava a instalacao para sempre.
+        var app = Ler("src", "Tranal.Uninstaller", "App.xaml.cs");
+        var ligacao = app.IndexOf("window.Loaded += (_, _) => SplashWindow.CloseAfter", StringComparison.Ordinal);
+        var show = app.IndexOf("window.Show();", StringComparison.Ordinal);
+        Assert.True(ligacao > 0 && show > 0, "trechos nao encontrados no App.xaml.cs");
+        Assert.True(ligacao < show, "o fechamento da tela de abertura precisa ser ligado antes do window.Show()");
+
+        var janela = Ler("src", "Tranal.Uninstaller", "MainWindow.xaml.cs");
+        Assert.Contains("w is SplashWindow", janela);
+    }
+
     private static string Ler(params string[] partes)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
