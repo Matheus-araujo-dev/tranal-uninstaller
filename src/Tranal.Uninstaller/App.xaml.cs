@@ -88,11 +88,18 @@ public partial class App : Application
         // primeira pintura ja sai com o tema escolhido.
         PerguntarTemaNoPrimeiroLancamento();
 
-        window.Show();
-
         // A tela de inicializacao so fecha depois que a janela principal
         // carregou, e respeitando o tempo minimo de permanencia.
+        //
+        // O handler e ligado ANTES do Show. MEDIDO: ligado depois, ele perdia
+        // o Loaded (que dispara dentro do Show) e a tela de inicializacao
+        // nunca fechava — ficava escondida atras da janela principal. Alem de
+        // sobrar na tela quando a janela ia para a bandeja, ela fazia o
+        // atualizador ver "outra janela aberta" e adiar a instalacao para
+        // sempre.
         window.Loaded += (_, _) => SplashWindow.CloseAfter(splash, splashStartedAt);
+
+        window.Show();
 
         // Entrada pelo menu de contexto do Explorer: o alvo vem na linha de
         // comando. Sem este tratamento, o clique no Explorer apenas abria a
