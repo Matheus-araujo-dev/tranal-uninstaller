@@ -128,6 +128,47 @@ public sealed class DistribuicaoTests
     }
 
     [Fact]
+    public void SoACopiaInstaladaPeloSetupSeAtualizaSozinha()
+    {
+        var pasta = Path.Combine(Path.GetTempPath(), "tranal-dist-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(pasta);
+        try
+        {
+            // Copia avulsa (sem o desinstalador do Inno ao lado): so avisa.
+            Assert.False(UpdateService.PodeInstalarSozinho(pasta, portatil: false));
+
+            File.WriteAllText(Path.Combine(pasta, UpdateService.InnoUninstallerName), "x");
+            Assert.True(UpdateService.PodeInstalarSozinho(pasta, portatil: false));
+
+            // Modo portatil nunca se instala por cima.
+            Assert.False(UpdateService.PodeInstalarSozinho(pasta, portatil: true));
+            Assert.False(UpdateService.PodeInstalarSozinho(null, portatil: false));
+        }
+        finally
+        {
+            Directory.Delete(pasta, true);
+        }
+    }
+
+    [Fact]
+    public void OSetupBaixadoSoEReaproveitadoComOTamanhoPublicado()
+    {
+        var arquivo = Path.Combine(Path.GetTempPath(), "tranal-dist-" + Guid.NewGuid().ToString("N") + ".exe");
+        File.WriteAllBytes(arquivo, new byte[10]);
+        try
+        {
+            Assert.True(UpdateService.PacoteJaBaixado(arquivo, 10));
+            Assert.False(UpdateService.PacoteJaBaixado(arquivo, 11));
+            Assert.False(UpdateService.PacoteJaBaixado(arquivo, null));
+            Assert.False(UpdateService.PacoteJaBaixado(arquivo + ".nao", 10));
+        }
+        finally
+        {
+            File.Delete(arquivo);
+        }
+    }
+
+    [Fact]
     public void PreferenciasAntigasSaoMigradasUmaVezEDepoisAEscolhaVale()
     {
         // Arquivo de antes do padrao: as duas desligadas (o padrao antigo).

@@ -1080,8 +1080,20 @@ a mesma do Sentinel, do Despertador e do Suno. Em resumo:
   nascem **ligadas**. Um `settings.json` antigo é ligado **uma vez**
   (`UpdatePolicyRevision`, em `AppSettingsStore.Normalize`); depois disso a
   escolha do usuário vale.
+- **Só a cópia instalada pelo Setup se instala sozinha**
+  (`UpdateService.PodeInstalarSozinho`: o `unins000.exe` do Inno ao lado do
+  executável, e fora do modo portátil). O `.exe` avulso da release, a variante
+  de pré-visualização e o build de desenvolvimento só **avisam** da versão
+  nova: rodar o Setup a partir deles instalaria em Program Files, fecharia a
+  cópia a cada abertura e nunca a atualizaria.
+- **Senha no instalador é incompatível com a atualização automática.** Com o
+  secret `TRANAL_SETUP_PASSWORD` o Setup pede senha, o `/VERYSILENT` aborta
+  depois de o app já ter fechado, e nada o reabre. Não crie esse secret
+  enquanto a atualização automática for o padrão.
 - O `feed/tranal.json` é o feed das versões antigas e não é mais lido pelo
-  app (o padrão é a API de releases); ele não é atualizado pelo CI.
+  app (o padrão é a API de releases); ele não é atualizado pelo CI. Quem tem a
+  1.4.0 (que só lia esse feed, e só baixava) instala o Setup **uma vez** à mão;
+  dali em diante a atualização é sozinha.
 
 ```powershell
 gh pr merge <n> --merge     # o push na main publica vX.Y.Z sozinho

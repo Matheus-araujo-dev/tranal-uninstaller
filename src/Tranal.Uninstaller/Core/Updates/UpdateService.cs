@@ -150,14 +150,20 @@ public static class UpdateService
         Func<bool> podeInstalar, bool instalarAutomaticamente, CancellationToken ct = default)
     {
         var check = await VerificarTranalAsync(ct).ConfigureAwait(false);
-        var decisao = Decidir(check, VersaoAtual(), instalarAutomaticamente);
+        var decisao = Decidir(check, VersaoAtual(),
+            instalarAutomaticamente && PodeInstalarSozinho(AppContext.BaseDirectory, PortableMode.IsPortableMode));
         if (decisao.Outcome != AutoUpdateOutcome.ShouldDownload) return decisao;
 
+        // Um Setup ja baixado com o tamanho publicado e reaproveitado: a
+        // instalacao adiada (Postponed) nao baixa 60 MB de novo a cada hora.
         var destino = CaminhoDoPacote(check.DownloadUrl);
-        var baixou = await AutoUpdateClient
-            .DownloadAsync(check.DownloadUrl!, destino, null, ct, check.ExpectedSize)
-            .ConfigureAwait(false);
-        if (!baixou) return decisao with { Outcome = AutoUpdateOutcome.DownloadFailed };
+        if (!PacoteJaBaixado(destino, check.ExpectedSize))
+        {
+            var baixou = await AutoUpdateClient
+                .DownloadAsync(check.DownloadUrl!, destino, null, ct, check.ExpectedSize)
+                .ConfigureAwait(false);
+            if (!baixou) return decisao with { Outcome = AutoUpdateOutcome.DownloadFailed };
+        }
 
         if (!podeInstalar()) return decisao with { Outcome = AutoUpdateOutcome.Postponed };
 
@@ -167,6 +173,61 @@ public static class UpdateService
             Outcome = execucao.Started ? AutoUpdateOutcome.Installing : AutoUpdateOutcome.InstallFailed,
             Detail = execucao.Detail,
         };
+    }
+
+    /// <summary>
+    /// O nome do desinstalador que o Inno Setup grava na pasta do app.
+    /// </summary>
+    public const string InnoUninstallerName = "unins000.exe";
+
+    /// <summary>
+    /// Este executavel pode se atualizar sozinho? So quando ele roda da pasta
+    /// que o Setup instalou (o <see cref="InnoUninstallerName"/> esta ao
+    /// lado) e nao esta em modo portatil.
+    ///
+    /// Sem esta guarda, uma copia avulsa (o .exe da release, a variante de
+    /// pre-visualizacao, o build de desenvolvimento) rodaria o Setup — que
+    /// instala em Program Files, e nao nela — e fecharia a cada abertura: a
+    /// copia nunca se atualizaria e o computador ganharia uma instalacao que
+    /// ninguem pediu. Fora da pasta do Setup, o ciclo so avisa.
+    /// </summary>
+    /// <param name="pastaDoApp">A pasta do executavel que esta rodando.</param>
+    /// <param name="portatil">O Tranal esta em modo portatil?</param>
+    public static bool PodeInstalarSozinho(string? pastaDoApp, bool portatil)
+    {
+        if (portatil || string.IsNullOrWhiteSpace(pastaDoApp)) return false;
+
+        try
+        {
+            return System.IO.File.Exists(System.IO.Path.Combine(pastaDoApp, InnoUninstallerName));
+        }
+        catch (Exception)
+        {
+            // Pasta ilegivel: na duvida, nao instala sozinho (so avisa).
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// O Setup ja esta no disco, inteiro? Exige o tamanho publicado: sem ele
+    /// nao ha como saber se o arquivo esta completo, e o download e refeito.
+    /// </summary>
+    /// <param name="caminho">Onde o Setup e baixado.</param>
+    /// <param name="tamanhoEsperado">O tamanho do asset na release.</param>
+    public static bool PacoteJaBaixado(string caminho, long? tamanhoEsperado)
+    {
+        if (tamanhoEsperado is not > 0) return false;
+
+        try
+        {
+            var info = new System.IO.FileInfo(caminho);
+            return info.Exists && info.Length == tamanhoEsperado.Value;
+        }
+        catch (Exception)
+        {
+            // Sem conseguir ler o arquivo, baixa de novo.
+            return false;
+        }
     }
 
     /// <summary>
